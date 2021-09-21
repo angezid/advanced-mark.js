@@ -1,7 +1,7 @@
 /*!***************************************************
 * mark.js v9.0.0
 * https://markjs.io/
-* Copyright (c) 2014–2018, Julian Kühnel
+* Copyright (c) 2014–2021, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
@@ -630,6 +630,97 @@
         valid: valid
       };
     }
+    checkParents(textNode, tags) {
+      if (textNode === textNode.parentNode.lastChild) {
+        if (tags.indexOf(textNode.parentNode.nodeName) !== -1) {
+          return true;
+        } else {
+          let parent = textNode.parentNode;
+          while (parent === parent.parentNode.lastChild) {
+            if (tags.indexOf(parent.parentNode.nodeName) !== -1) {
+              return true;
+            }
+            parent = parent.parentNode;
+          }
+        }
+        let node = textNode.parentNode.nextSibling;
+        if (node && node.nodeType === 1 && tags.indexOf(node.nodeName) !== -1) {
+          return true;
+        }
+      }
+      return false;
+    }
+    checkNextNodes(next, tags) {
+      if (next && next.nodeType === 1) {
+        if (tags.indexOf(next.nodeName) !== -1) {
+          return true;
+        } else if (next.firstChild) {
+          let prevNode, child = next.firstChild;
+          while (child) {
+            if (child.nodeType === 1) {
+              if (tags.indexOf(child.nodeName) !== -1) {
+                return true;
+              }
+              prevNode = child;
+              child = child.firstChild;
+              continue;
+            }
+            return false;
+          }
+          return this.checkNextNodes(prevNode.nextSibling, tags);
+        }
+        if (next === next.parentNode.lastChild
+          && tags.indexOf(next.parentNode.nodeName) !== -1) {
+          return  true;
+        }
+      }
+      return  false;
+    }
+    getTextNodesAcrossElements(cb) {
+      let val = '', start, text, addSpace, offset, nodes = [],
+        reg =/[\s.,;:?!"'`(){}[\]+*^<=>/@#$%&\\~-]/;
+      const tags = ['DIV', 'P', 'LI', 'TD', 'TR', 'TH', 'UL', 'OL', 'BR',
+        'DD', 'DL', 'DT', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'HR',
+        'FIGCAPTION', 'FIGURE', 'PRE', 'TABLE', 'THEAD', 'TBODY', 'TFOOT',
+        'INPUT', 'LABEL', 'IMAGE', 'IMG', 'NAV', 'DETAILS', 'FORM', 'SELECT',
+        'BODY', 'MAIN', 'SECTION', 'ARTICLE', 'ASIDE', 'PICTURE', 'BUTTON',
+        'HEADER', 'FOOTER', 'QUOTE', 'ADDRESS', 'AREA', 'CANVAS', 'MAP',
+        'FIELDSET', 'TEXTAREA', 'TRACK', 'VIDEO', 'AUDIO', 'METER',
+        'IFRAME', 'MARQUEE', 'OBJECT', 'SVG'];
+      this.iterator.forEachNode(NodeFilter.SHOW_TEXT, node => {
+        addSpace = false;
+        offset = 0;
+        start = val.length;
+        text = node.textContent;
+        if ( !reg.test(text[text.length-1])) {
+          addSpace = this.checkParents(node, tags)
+            || this.checkNextNodes(node.nextSibling, tags);
+        }
+        if (addSpace) {
+          val += text + ' ';
+          offset = 1;
+        } else {
+          val += text;
+        }
+        nodes.push({
+          start: start,
+          end: val.length - offset,
+          offset : offset,
+          node
+        });
+      }, node => {
+        if (this.matchesExclude(node.parentNode)) {
+          return NodeFilter.FILTER_REJECT;
+        } else {
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }, () => {
+        cb({
+          value: val,
+          nodes: nodes
+        });
+      });
+    }
     getTextNodes(cb) {
       let val = '',
         nodes = [];
@@ -669,6 +760,28 @@
       repl.textContent = startNode.textContent;
       startNode.parentNode.replaceChild(repl, startNode);
       return ret;
+    }
+    wrapMatchInMappedTextNode(dict, start, end, filterCb, eachCb) {
+      let nodeIndex = 0;
+      dict.nodes.every((n, i) => {
+        const sibl = dict.nodes[i + 1];
+        if (typeof sibl === 'undefined' || sibl.start > start) {
+          if (!filterCb(n.node)) {
+            return false;
+          }
+          const s = start - n.start,
+            e = (end > n.end ? n.end : end) - n.start;
+          n.node = this.wrapRangeInTextNode(n.node, s, e);
+          eachCb(n.node.previousSibling, nodeIndex++);
+          n.start += e;
+          if (end > n.end) {
+            start = n.end + n.offset;
+          } else {
+            return false;
+          }
+        }
+        return true;
+      });
     }
     wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
       dict.nodes.every((n, i) => {
@@ -727,7 +840,7 @@
             (match = regex.exec(node.textContent)) !== null &&
             match[matchIdx] !== ''
           ) {
-            if (this.opt.separateGroups) {
+            if (this.opt.separateGroups && match.length !== 1){
               node = this.separateGroups(
                 node,
                 match,
@@ -755,7 +868,7 @@
     }
     wrapMatchesAcrossElements(regex, ignoreGroups, filterCb, eachCb, endCb) {
       const matchIdx = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
-      this.getTextNodes(dict => {
+      this.getTextNodesAcrossElements(dict => {
         let match;
         while (
           (match = regex.exec(dict.value)) !== null &&
@@ -767,12 +880,11 @@
               start += match[i].length;
             }
           }
-          const end = start + match[matchIdx].length;
-          this.wrapRangeInMappedTextNode(dict, start, end, node => {
+          const end = regex.lastIndex;
+          this.wrapMatchInMappedTextNode(dict, start, end, node => {
             return filterCb(match[matchIdx], node);
-          }, (node, lastIndex) => {
-            regex.lastIndex = lastIndex;
-            eachCb(node);
+          }, (node, nodeIndex) => {
+            eachCb(node, nodeIndex, match);
           });
         }
         endCb();
@@ -832,12 +944,16 @@
     }
     markRegExp(regexp, opt) {
       this.opt = opt;
+      if (this.opt.acrossElements && !regexp.global && !regexp.sticky) {
+        let flags = 'g' + (regexp.flags ? regexp.flags : '');
+        regexp = new RegExp(regexp.source, flags);
+      }
       this.log(`Searching with expression "${regexp}"`);
       let totalMatches = 0,
         fn = 'wrapMatches';
-      const eachCb = element => {
+      const eachCb = (element, nodeIndex, regMatch) => {
         totalMatches++;
-        this.opt.each(element);
+        this.opt.each(element, nodeIndex, regMatch);
       };
       if (this.opt.acrossElements) {
         fn = 'wrapMatchesAcrossElements';
