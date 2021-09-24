@@ -3,10 +3,10 @@ describe('markRegExp with acrossElements and ignoreGroups', function() {
   var matchCount;
   beforeEach(function() {
     loadFixtures('across-elements/regexp/ignore-groups-2.html');
-    matchCount = 0; 
+    matchCount = 0;
   });
 
-  it('should mark \'some text\' with ignoreGroups : 1', function(done) {
+  it('should mark text with ignoreGroups: 1', function(done) {
     var reg = /\b(group1)\s+some\s+\w+\b/gi,
       $ctx = $('.across-elements-ignore-groups-1');
 
@@ -15,21 +15,32 @@ describe('markRegExp with acrossElements and ignoreGroups', function() {
       'acrossElements' : true,
       'ignoreGroups' : 1,
       each : eachMark,
-      'done' : function(total) {
+      'done' : function() {
         expect(matchCount).toBe(6);
-        
-        var marks = $ctx.find('mark');
-        marks.find('.text-1').each(function() {
-          expect(getMarkText($(this), marks)).toBe('some text');
-        });
-        //expect(total).toBe(11);
-        expect(marks).toHaveLength(total);
+        expect(testMarkedText($ctx)).toBe(6);
         done();
       }
     });
   });
 
-  it('should mark \'some text\' with ignoreGroups : 2', function(done) {
+  it('should mark group nested in ignore one & next word', function(done) {
+    var reg = /\b(group1\b.+\b(some)\s+)\w+\b/gi,
+      $ctx = $('.across-elements-ignore-groups-1');
+
+    new Mark($ctx[0]).markRegExp(reg, {
+      className : 'text',
+      'acrossElements' : true,
+      'ignoreGroups' : 1,
+      each : eachMark,
+      'done' : function() {
+        expect(matchCount).toBe(7);
+        expect(testMarkedText($ctx)).toBe(7);
+        done();
+      }
+    });
+  });
+
+  it('should mark text with ignoreGroups : 2', function(done) {
     var reg = /\b(group1)\b.+?\b(group2)\s+some\s+\w+\b/gi,
       $ctx = $('.across-elements-ignore-groups-2');
 
@@ -38,22 +49,16 @@ describe('markRegExp with acrossElements and ignoreGroups', function() {
       'acrossElements' : true,
       'ignoreGroups' : 2,
       each : eachMark,
-      'done' : function(total) {
+      'done' : function() {
         expect(matchCount).toBe(7);
-
-        var marks = $ctx.find('mark');
-        marks.find('.text-1').each(function() {
-          expect(getMarkText($(this), marks)).toBe('some text');
-        });
-        //expect(total).toBe(15);
-        expect(marks).toHaveLength(total);
+        expect(testMarkedText($ctx)).toBe(7);
         done();
       }
     });
   });
 
-  it('should mark \'some text\' with optional ignore group', function(done) {
-    var reg = /\b(group1)\b(?:.+?\b(group2))?\s+some\s+\w+\b/gi,
+  it('should mark text with optional ignore group', function(done) {
+    var reg = /\b(group1)\b(.+?\bgroup2)?\s+some\s+\w+\b/gi,
       $ctx = $('.across-elements-ignore-groups-2');
 
     new Mark($ctx[0]).markRegExp(reg, {
@@ -61,21 +66,15 @@ describe('markRegExp with acrossElements and ignoreGroups', function() {
       'acrossElements' : true,
       'ignoreGroups' : 2,
       each : eachMark,
-      'done' : function(total) {
+      'done' : function() {
         expect(matchCount).toBe(9);
-
-        var marks = $ctx.find('mark');
-        marks.find('.text-1').each(function() {
-          expect(getMarkText($(this), marks)).toBe('some text');
-        });
-        //expect(total).toBe(19);
-        expect(marks).toHaveLength(total);
+        expect(testMarkedText($ctx)).toBe(9);
         done();
       }
     });
   });
 
-  it('should mark \'some text\' with nested ignore group', function(done) {
+  it('should mark text with nested ignore group', function(done) {
     var reg = /\b(group1\b.+\b(group2))\s+some\s+\w+\b/gi,
       $ctx = $('.across-elements-ignore-groups-2');
 
@@ -84,15 +83,9 @@ describe('markRegExp with acrossElements and ignoreGroups', function() {
       'acrossElements' : true,
       'ignoreGroups' : 2,
       each : eachMark,
-      'done' : function(total) {
+      'done' : function() {
         expect(matchCount).toBe(7);
-
-        var marks = $ctx.find('mark');
-        marks.find('.text-1').each(function() {
-          expect(getMarkText($(this), marks)).toBe('some text');
-        });
-        //expect(total).toBe(15);
-        expect(marks).toHaveLength(total);
+        expect(testMarkedText($ctx)).toBe(7);
         done();
       }
     });
@@ -105,23 +98,39 @@ describe('markRegExp with acrossElements and ignoreGroups', function() {
     }
   }
 
+  function testMarkedText($ctx) {
+    var count = 0,
+      marks = $ctx.find('mark');
+
+    marks.filter(function() {
+      return $(this).hasClass('text-1');
+
+    }).each(function() {
+      expect(getMarkedText($(this), marks)).toBe('sometext');
+      count++;
+    });
+    return count;
+  }
+
   // it collect match text across elements
-  function getMarkText(elem, marks) {
-    var text = '', match = false;
+  function getMarkedText(elem, marks) {
+    var text = '', found = false;
     marks.each(function(i, el) {
-      if ( !match) {
+      if ( !found) {
         if (el === elem[0]) {
-          match = true;
+          found = true;
         }
 
-      } else if ($(this).hasClass('text-1')) {
+      } else if (el.className && /\b[a-z]+-1\b/.test(el.className)) {
         return  false;
       }
-      if (match) {
+      if (found) {
         text += $(this).text();
       }
-      return true; 
+      return true;
     });
-    return  text;
+    // the text, collected without taking into account html elements,
+    // requires some normalization
+    return  text.replace(/\s+/g, '').toLowerCase();
   }
 });

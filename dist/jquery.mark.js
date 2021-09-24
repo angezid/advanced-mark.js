@@ -1148,10 +1148,14 @@
           }
         }
 
-        index = text.indexOf(match[matchIdx]);
+        group = match[matchIdx];
 
-        if (index !== -1 && index < textIndex) {
-          textIndex = index;
+        if (group) {
+          index = text.indexOf(match[matchIdx]);
+
+          if (index !== -1 && index < textIndex) {
+            textIndex = index;
+          }
         }
 
         start += textIndex;
