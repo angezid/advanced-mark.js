@@ -370,7 +370,8 @@ class Mark {
   * @type {object.<string>}
   * @property {string} value - The composite value of all text nodes
   * @property {object[]} nodes - An array of objects
-  * @property {number} lastIndex - The index used to avoid iteration
+  * @property {number} lastIndex - The property used to store the nodes last
+  * index
   * @property {number} nodes.start - The start position within the composite
   * value
   * @property {number} nodes.end - The end position within the composite
@@ -538,7 +539,8 @@ class Mark {
    * @type {object.<string>}
    * @property {string} value - The composite value of all text nodes
    * @property {object[]} nodes - An array of objects
-   * @property {number} lastIndex - The index used to avoid iteration
+   * @property {number} lastIndex - The property used to store the nodes last
+   * index
    * @property {number} nodes.start - The start position within the composite
    * value
    * @property {number} nodes.end - The end position within the composite
@@ -638,7 +640,7 @@ class Mark {
   }
 
   /**
-  * Mark separate groups of the current match across elements
+  * Mark separate groups of the current match
   * @param {Mark~wrapMatchGroupsDict} dict - The dictionary
   * @param {array} match - The current match
   * @param {number} matchIdx - The start of the match based on ignoreGroups
@@ -678,7 +680,7 @@ class Mark {
   }
 
   /**
-  * Mark separate groups of the current match across elements
+  * Mark separate groups of the current match
   * @param {Mark~wrapMatchGroups2Dict} dict - The dictionary
   * @param {array} match - The current match
   * @param {number} matchIdx - The start of the match based on ignoreGroups
@@ -721,7 +723,7 @@ class Mark {
             // it also increment nodeIndex to keep track of marked nodes
             eachCb(node, nodeIndex++, groupIndex, i);
           });
-          // group may be filtered out
+          // a match group may be filtered out
           if (isMarked) {
             if (end > max) {
               max = end;
@@ -743,7 +745,7 @@ class Mark {
     let start = match.index,
       i = matchIdx,
       indices;
-    // last ignore group may be undefined
+    // the last ignore group may be undefined - find first valid
     while (--i > 0) {
       indices = match.indices[i];
       if (indices) {
@@ -771,7 +773,8 @@ class Mark {
       textIndex = 0,
       i = matchIdx,
       group, index;
-    // find group index from the start of the match 
+    // search for last valid ignore group from the start of the match
+    // only reliable with distinct groups
     while (--i > 0) {
       group = match[i];
       if (group) {
@@ -783,9 +786,12 @@ class Mark {
       }
     }
     // it correct start index if group to mark is nested in ignore group
-    index = text.indexOf(match[matchIdx]);
-    if (index !== -1 && index < textIndex) {
-      textIndex = index;
+    group = match[matchIdx];
+    if (group) {
+      index = text.indexOf(match[matchIdx]);
+      if (index !== -1 && index < textIndex) {
+        textIndex = index;
+      }
     }
     start += textIndex;
     return  start;
@@ -865,14 +871,15 @@ class Mark {
    * @property {number} matchNodeIndex - The 0-based index of marked element
    * within match
    * @property {number} groupNodeIndex - The 0-based index of marked element
-   * within match group, is available with option 'separateGroups'
+   * within match group, is only available with option 'separateGroups'
    */
 
   /**
    * Callback for each wrapped element
    * @callback Mark~wrapMatchesAcrossElementsEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object
+   * @param {Mark~matchInfoObject} matchInfo - The object containing match
+   * information 
    */
   /**
    * Filter callback before each wrapping
@@ -1066,7 +1073,8 @@ class Mark {
    * Callback for each marked element
    * @callback Mark~markEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object
+   * @param {Mark~matchInfoObject} matchInfo - The object containing match
+   * information, is only available with option 'acrossElements'
    */
   /**
    * Callback if there were no matches
@@ -1115,7 +1123,8 @@ class Mark {
    * Callback for each marked element
    * @callback Mark~markRegExpEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object
+   * @param {Mark~matchInfoObject} matchInfo - The object containing match
+   * information
    */
 
   /**
@@ -1168,7 +1177,8 @@ class Mark {
    * Callback for each marked element
    * @callback Mark~markEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {number} nodeIndex - The index of marked node within match
+   * @param {number} nodeIndex - The 0-based index of marked element within
+   * match, is only available with option 'acrossElements'
    */
   /**
    * Callback to filter matches

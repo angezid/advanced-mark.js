@@ -898,9 +898,12 @@
           }
         }
       }
-      index = text.indexOf(match[matchIdx]);
-      if (index !== -1 && index < textIndex) {
-        textIndex = index;
+      group = match[matchIdx];
+      if (group) {
+        index = text.indexOf(match[matchIdx]);
+        if (index !== -1 && index < textIndex) {
+          textIndex = index;
+        }
       }
       start += textIndex;
       return  start;
