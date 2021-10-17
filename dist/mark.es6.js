@@ -765,7 +765,7 @@
       return ret;
     }
     wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
-      let nodeIndex = 0;
+      let rangeStart = true;
       for (let i = dict.lastIndex; i < dict.nodes.length; i++)  {
         const sibl = dict.nodes[i + 1];
         if (typeof sibl === 'undefined' || sibl.start > start) {
@@ -781,7 +781,8 @@
           if (e > s) {
             n.node = this.wrapRangeInTextNode(n.node, s, e);
             n.start += e;
-            eachCb(n.node.previousSibling, nodeIndex++);
+            eachCb(n.node.previousSibling, rangeStart);
+            rangeStart = false;
           }
           if (end > n.end) {
             start = n.end + (n.offset ? n.offset : 0);
@@ -808,7 +809,7 @@
       return node;
     }
     wrapMatchGroups(dict, match, regex, filterCb, eachCb) {
-      let nodeIndex = 0,
+      let matchStart = true,
         max = 0,
         i = 1,
         group, start, end, isMarked;
@@ -821,9 +822,10 @@
             isMarked = false;
             this.wrapRangeInMappedTextNode(dict, start, end, node => {
               return filterCb(group, node, i);
-            }, (node, grNodeIndex) => {
+            }, (node, groupStart) => {
               isMarked = true;
-              eachCb(node, nodeIndex++, grNodeIndex, i);
+              eachCb(node, matchStart, groupStart, i);
+              matchStart = false;
             });
             if (isMarked && end > max) {
               max = end;
@@ -833,7 +835,7 @@
       }
     }
     wrapMatchGroups2(dict, match, regex, filterCb, eachCb) {
-      let nodeIndex = 0,
+      let matchStart = true,
         startIndex = 0,
         i = 1,
         group, start, end, isMarked;
@@ -848,9 +850,10 @@
             isMarked = false;
             this.wrapRangeInMappedTextNode(dict, s + start, s + end, (node) => {
               return filterCb(group, node, i);
-            }, (node, grNodeIndex) => {
+            }, (node, groupStart) => {
               isMarked = true;
-              eachCb(node, nodeIndex++, grNodeIndex, i);
+              eachCb(node, matchStart, groupStart, i);
+              matchStart = false;
             });
             if (isMarked) {
               startIndex = end;
@@ -907,18 +910,18 @@
           index = 0;
           if (this.opt.separateGroups) {
             let fn = regex.hasIndices ? 'wrapMatchGroups' : 'wrapMatchGroups2';
-            this[fn](dict, match, regex, (group, node, grIndex) => {
+            this[fn](dict, match, regex, (group, node, groupIndex) => {
               return filterCb(group, node, {
                 match : match,
-                textNodeIndex : index++,
-                groupIndex : grIndex,
+                matchStart : index++ === 0,
+                groupIndex : groupIndex,
               });
-            }, (node, mNodeIndex, grNodeIndex, grIndex) => {
+            }, (node, matchStart, groupStart, groupIndex) => {
               eachCb(node, {
                 match : match,
-                matchNodeIndex : mNodeIndex,
-                groupIndex : grIndex,
-                groupNodeIndex : grNodeIndex,
+                matchStart : matchStart,
+                groupIndex : groupIndex,
+                groupStart : groupStart,
               });
             });
           } else {
@@ -932,12 +935,12 @@
             this.wrapRangeInMappedTextNode(dict, start, end, node => {
               return filterCb(match[matchIdx], node, {
                 match : match,
-                textNodeIndex : index++
+                matchStart : index++ === 0,
               });
-            }, (node, mNodeIndex) => {
+            }, (node, matchStart) => {
               eachCb(node, {
                 match : match,
-                matchNodeIndex : mNodeIndex,
+                matchStart : matchStart,
               });
             });
           }
@@ -1029,7 +1032,7 @@
     mark(sv, opt) {
       this.opt = opt;
       let totalMatches = 0,
-        nodeIndex,
+        matchStart,
         fn = 'wrapMatches';
       const {
           keywords: kwArr,
@@ -1044,8 +1047,8 @@
           }, (element, matchInfo) => {
             matches++;
             totalMatches++;
-            nodeIndex = matchInfo ? matchInfo.matchNodeIndex : nodeIndex;
-            this.opt.each(element, nodeIndex);
+            matchStart = matchInfo ? matchInfo.matchStart : matchStart;
+            this.opt.each(element, matchStart);
           }, () => {
             if (matches === 0) {
               this.opt.noMatch(kw);
