@@ -663,12 +663,12 @@ class Mark {
           end = match.indices[i][1];
 
           isMarked = false;
-          this.wrapRangeInMappedTextNode(dict, start, end, function(node) {
+          this.wrapRangeInMappedTextNode(dict, start, end, node => {
             return  filterCb(group, node);
-          }, function(node, groupIndex) {
+          }, (node, grNodeIndex) => {
             isMarked = true;
             // it also increment nodeIndex to keep track of marked nodes
-            eachCb(node, nodeIndex++, groupIndex, i);
+            eachCb(node, nodeIndex++, grNodeIndex, i);
           });
           // group may be filtered out
           if (isMarked && end > max) {
@@ -692,7 +692,6 @@ class Mark {
   wrapMatchGroups2(dict, match, matchIdx, lastIndex, filterCb, eachCb) {
     let nodeIndex = 0,
       startIndex = 0,
-      max = 0,
       i = matchIdx === 0 ? 1 : matchIdx,
       group, start, end, isMarked;
 
@@ -709,25 +708,16 @@ class Mark {
         end = start + group.length;
 
         if (start !== -1) {
-          if (start < max) {
-            // nested group, parent group is already marked
-            startIndex = end;
-            continue;
-          }
-
           isMarked = false;
           this.wrapRangeInMappedTextNode(dict, s + start, s + end, (node) => {
             return filterCb(group, node);
-          }, (node, groupIndex) => {
+          }, (node, grNodeIndex) => {
             isMarked = true;
             // it also increment nodeIndex to keep track of marked nodes
-            eachCb(node, nodeIndex++, groupIndex, i);
+            eachCb(node, nodeIndex++, grNodeIndex, i);
           });
           // a match group may be filtered out
           if (isMarked) {
-            if (end > max) {
-              max = end;
-            }
             startIndex = end;
           }
         }
@@ -736,65 +726,65 @@ class Mark {
   }
 
   /**
-  * Find last ignore group end index
+  * Find ignore groups end index
   * @param {array} match - The current match
   * @param {number} matchIdx - The start of the match based on ignoreGroups
   * @return {number}
   */
   findStartIndex(match, matchIdx) {
-    let start = match.index,
-      i = matchIdx,
+    let lastIndex = match.index,
       indices;
-    // the last ignore group may be undefined - find first valid
-    while (--i > 0) {
-      indices = match.indices[i];
-      if (indices) {
-        start = indices[1];
-        break;
+
+    for (let i = 1; i < matchIdx; i++) {
+      if (match[i]) {
+        indices = match.indices[i];
+        if (indices) {
+          if (indices[1] > lastIndex) {
+            lastIndex = indices[1];
+          }
+        }
       }
     }
     // group to mark may be nested in ignore group, if so, correct start index
     indices = match.indices[matchIdx];
-    if (indices && indices[0] < start) {
-      start = indices[0];
+    if (indices && indices[0] < lastIndex) {
+      lastIndex = indices[0];
     }
-    return  start;
+    return  lastIndex;
   }
 
   /**
-  * Find last ignore group end index
+  * Find ignore groups end index
   * @param {string} text - The current match text
   * @param {array} match - The current match
   * @param {number} matchIdx - The start of the match based on ignoreGroups
   * @return {number}
   */
   findStartIndex2(text, match, matchIdx) {
-    let start = match.index,
-      textIndex = 0,
-      i = matchIdx,
+    let lastIndex = 0,
       group, index;
-    // search for last valid ignore group from the start of the match
-    // only reliable with distinct groups
-    while (--i > 0) {
+
+    for (let i = 1; i < matchIdx; i++) {
       group = match[i];
       if (group) {
-        index = text.indexOf(group);
+        index = text.indexOf(group, lastIndex);
         if (index !== -1) {
-          textIndex = index + group.length;
-          break;
-        }
+          lastIndex = index + group.length;
+
+        } else {
+          break; 
+        } 
       }
     }
     // it correct start index if group to mark is nested in ignore group
     group = match[matchIdx];
     if (group) {
-      index = text.indexOf(match[matchIdx]);
-      if (index !== -1 && index < textIndex) {
-        textIndex = index;
+      index = text.indexOf(group);
+      if (index !== -1 && index < lastIndex) {
+        lastIndex = index;
       }
     }
-    start += textIndex;
-    return  start;
+    return  match.index + lastIndex;
   }
 
   /**
@@ -867,9 +857,10 @@ class Mark {
    * @typedef Mark~matchInfoObject
    * @type {object}
    * @property {array} match - The result of RegExp exec() method
-   * @property {number} index - The 0-based index of the current match group
    * @property {number} matchNodeIndex - The 0-based index of marked element
    * within match
+   * @property {number} groupIndex - The index of the current separate match
+   * group, is only available with option 'separateGroups'
    * @property {number} groupNodeIndex - The 0-based index of marked element
    * within match group, is only available with option 'separateGroups'
    */
@@ -907,21 +898,18 @@ class Mark {
     const matchIdx = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
     this.getTextNodesAcrossElements(dict => {
       let match;
-      while (
-        (match = regex.exec(dict.value)) !== null &&
-        match[matchIdx] !== ''
-      ) {
+      while ((match = regex.exec(dict.value)) !== null && match[0] !== '') {
         const end = regex.lastIndex;
 
         if (this.opt.separateGroups) {
           if (regex.hasIndices) {
             this.wrapMatchGroups(dict, match, matchIdx, (group, node) => {
               return filterCb(group, node);
-            }, (node, mNodeIndex, grNodeIndex, index) => {
+            }, (node, mNodeIndex, grNodeIndex, grIndex) => {
               eachCb(node, {
                 match : match,
-                index : index,
                 matchNodeIndex : mNodeIndex,
+                groupIndex : grIndex,
                 groupNodeIndex : grNodeIndex
               });
             });
@@ -929,11 +917,11 @@ class Mark {
           } else {
             this.wrapMatchGroups2(dict, match, matchIdx, end, (gr, node) => {
               return filterCb(gr, node);
-            }, (node, mNodeIndex, grNodeIndex, index) => {
+            }, (node, mNodeIndex, grNodeIndex, grIndex) => {
               eachCb(node, {
                 match : match,
-                index : index,
                 matchNodeIndex : mNodeIndex,
+                groupIndex : grIndex,
                 groupNodeIndex : grNodeIndex
               });
             });
@@ -941,25 +929,27 @@ class Mark {
 
         } else {
           // calculate range inside dict.value
-          let start = match.index;
+          let text, start = match.index;
 
           if (matchIdx > 0) {
             if (regex.hasIndices) {
               start = this.findStartIndex(match, matchIdx);
 
             } else {
-              let text = dict.value.substring(start, regex.lastIndex);
+              text = dict.value.substring(start, end);
               start = this.findStartIndex2(text, match, matchIdx);
             }
           }
           // not mark zero length range
           if (end > start) {
+            text = dict.value.substring(start, end);
+            
             this.wrapRangeInMappedTextNode(dict, start, end, node => {
-              return  filterCb(match[matchIdx], node);
+              return  filterCb(text, node);
+
             }, (node, mNodeIndex) => {
               eachCb(node, {
                 match : match,
-                index : matchIdx,
                 matchNodeIndex : mNodeIndex
               });
             });
@@ -1148,7 +1138,6 @@ class Mark {
   markRegExp(regexp, opt) {
     this.opt = opt;
 
-    this.log(`Searching with expression "${regexp}"`);
     let totalMatches = 0,
       fn = 'wrapMatches';
     const eachCb = (element, matchInfo) => {
@@ -1157,12 +1146,30 @@ class Mark {
     };
     if (this.opt.acrossElements) {
       fn = 'wrapMatchesAcrossElements';
-      // 'wrapMatchesAcrossElements' requires that custom regexp must have
-      // global or sticky flag to enable regexp.lastIndex
+
       if ( !regexp.global && !regexp.sticky) {
-        throw new Error('RegExp must have \'g\' or \'y\' flags');
+        let flags = 'g';
+        // regexp.flags may not be supported, in this case two flags must
+        // be checked out
+        if ( !regexp.flags) {
+          if (regexp.ignoreCase) {
+            flags += 'i';
+          }
+          if (regexp.multiline) {
+            flags += 'm';
+          }
+          
+        } else {
+          flags += regexp.flags;
+        } 
+        regexp = new RegExp(regexp.source, flags);
+        this.log(
+          'RegExp is recompiled with g flag because it must have g flag'
+        );
       }
     }
+    this.log(`Searching with expression "${regexp}"`);
+
     this[fn](regexp, this.opt.ignoreGroups, (match, node) => {
       return this.opt.filter(node, match, totalMatches);
     }, eachCb, () => {
