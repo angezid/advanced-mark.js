@@ -88,10 +88,10 @@ describe(
     });
 
     function eachMark(elem, info) {
-      if (info.matchNodeIndex === 0) {
+      if (info.matchStart) {
         matchCount++;
       }
-      if (info.groupNodeIndex === 0) {
+      if (info.groupStart) {
         if (info.groupIndex === 1) {
           elem.className = 'group1-1';
           group1Count++;

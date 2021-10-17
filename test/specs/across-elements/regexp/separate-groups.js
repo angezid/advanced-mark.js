@@ -108,11 +108,11 @@ describe('markRegExp with acrossElements and separateGroups', function() {
 
   function eachMark(elem, info) {
     // if match started
-    if (info.matchNodeIndex === 0) {
+    if (info.matchStart) {
       matchCount++;
     }
     // if match group started
-    if (info.groupNodeIndex === 0) {
+    if (info.groupStart) {
       // info.groupIndex is index of the current match group
       if (info.groupIndex === 1) {
         elem.className = 'group1-1';

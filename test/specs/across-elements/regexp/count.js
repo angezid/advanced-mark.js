@@ -25,7 +25,7 @@ describe('markRegExp with acrossElements and count words&phrases', function() {
     new Mark($ctx[0]).markRegExp(/\b(?:Lorem|ipsum)\b/gi, {
       'acrossElements' : true,
       'each' : function(elem, info) {
-        if (info.matchNodeIndex === 0) {
+        if (info.matchStart) {
           elem.className = 'start-1';
           wordCount++;
         }
@@ -53,7 +53,7 @@ describe('markRegExp with acrossElements and count words&phrases', function() {
       },
       'each' : function(elem, info) {
         // if match started
-        if (info.matchNodeIndex === 0) {
+        if (info.matchStart) {
           // elem in this case is the first marked element of the match
           elem.className = 'start-1';
           matchCount++;
