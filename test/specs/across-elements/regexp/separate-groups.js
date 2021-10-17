@@ -3,8 +3,8 @@ describe('markRegExp with acrossElements and separateGroups', function() {
   var $ctx,
     matchCount, group1Count, group2Count, group3Count,
     message = 'should count and test content of separate groups ',
-    groupReg = /\b(group1)\b.+?\b(group2)\b@?(?:\s+(?:\w+\s+)?(group3))?\b/gi,
-    nestedGr = /\b(group1\b.+?\b(group2)\b@?)(?:\s+(?:\w+\s+)?(group3))?\b/gi;
+    groupReg = /\b(group1)\b.+?\b(group2)\b@?(?:\s+(?:\w+\s+)?(\w+3))?\b/gi,
+    nestedGr = /\b(group1\b.+?\b(group2)\b@?)(?:\s+(?:\w+\s+)?(\w+3))?\b/gi;
 
   beforeEach(function() {
     loadFixtures('across-elements/regexp/separate-groups.html');
@@ -31,7 +31,7 @@ describe('markRegExp with acrossElements and separateGroups', function() {
   });
 
   it('should count separate groups in loop of 3 goes', function(done) {
-
+    // it mostly test 'getTextNodesAcrossElements' method
     for (var i = 1; i < 4; i++)  {
       matchCount = 0, group1Count = 0, group2Count = 0, group3Count = 0;
 
@@ -39,32 +39,33 @@ describe('markRegExp with acrossElements and separateGroups', function() {
         'acrossElements' : true,
         'separateGroups' : true,
         each : eachMark,
-        'done' : function(total) {
+        'done' : function() {
           expect(matchCount).toBe(27);
           expect(group1Count).toBe(27);
           expect(group2Count).toBe(27);
           expect(group3Count).toBe(16);
-          expect($ctx.find('mark').length).toBe(total * i);
           done();
         }
       });
     }
   });
 
-  it(message + 'with filtered out group', function(done) {
+  it('should count filtered separate groups', function(done) {
     new Mark($ctx[0]).markRegExp(groupReg, {
       'acrossElements' : true,
       'separateGroups' : true,
-      filter : function(node, group) {
-        if (group.toLowerCase() === 'group2') {
-          return  false;
+      filter : function(node, group, total, obj) {
+        // current group index. Note: if group lays across several elements
+        // the index will be the same while the current group is wrapping
+        if (obj.groupIndex === 1 || obj.groupIndex === 3) {
+          return false;
         }
-        return  true;
+        return true;
       },
       each : eachMark,
       'done' : function() {
         // mch, gr1, gr2, gr3,
-        test([27, 27, 0, 16]);
+        test([27, 0, 27, 0]);
         done();
       }
     });
@@ -75,10 +76,13 @@ describe('markRegExp with acrossElements and separateGroups', function() {
       'acrossElements' : true,
       'separateGroups' : true,
       filter : function(node, group) {
+        // current group matching string. Note: if group lays across several
+        // elements the matching string will be the same while the current
+        // group is wrapping
         if (/^group1/i.test(group)) {
-          return  false;
+          return false;
         }
-        return  true;
+        return true;
       },
       each : eachMark,
       'done' : function() {
@@ -97,48 +101,6 @@ describe('markRegExp with acrossElements and separateGroups', function() {
       'done' : function() {
         // mch, gr1, gr2, gr3,
         test([27, 27, 0, 16]);
-        done();
-      }
-    });
-  });
-
-  it(message + 'with group nested in ignore group', function(done) {
-    new Mark($ctx[0]).markRegExp(nestedGr, {
-      'acrossElements' : true,
-      'separateGroups' : true,
-      'ignoreGroups' : 1,
-      each : eachMark,
-      'done' : function() {
-        // mch, gr1, gr2, gr3,
-        test([27, 0, 27, 16]);
-        done();
-      }
-    });
-  });
-
-  it(message + 'with ignoreGroups : 1', function(done) {
-    new Mark($ctx[0]).markRegExp(groupReg, {
-      'acrossElements' : true,
-      'separateGroups' : true,
-      'ignoreGroups' : 1,
-      each : eachMark,
-      'done' : function() {
-        // mch, gr1, gr2, gr3,
-        test([27, 0, 27, 16]);
-        done();
-      }
-    });
-  });
-
-  it(message + 'with ignoreGroups : 2', function(done) {
-    new Mark($ctx[0]).markRegExp(groupReg, {
-      'acrossElements' : true,
-      'separateGroups' : true,
-      'ignoreGroups' : 2,
-      each : eachMark,
-      'done' : function() {
-        // mch, gr1, gr2, gr3,
-        test([16, 0, 0, 16]);
         done();
       }
     });
@@ -191,8 +153,8 @@ describe('markRegExp with acrossElements and separateGroups', function() {
       // filter all start elements
       return $(this).hasClass(klass);
 
-    }).each(function() {
-      expect(getMarkedText($(this), marks)).toMatch(reg);
+    }).each(function(i, elem) {
+      expect(getMarkedText(elem, marks)).toMatch(reg);
       count++;
     });
     return count;
@@ -203,19 +165,19 @@ describe('markRegExp with acrossElements and separateGroups', function() {
     var text = '', found = false;
     marks.each(function(i, el) {
       if ( !found) {
-        // start of a group
-        if (el === elem[0]) {
+        // start element of a group
+        if (el === elem) {
           found = true;
         }
       // start of next group mean end of the current group
       } else if (el.className && /\b[a-z]+\d-1\b/.test(el.className)) {
-        return  false;
+        return false;
       }
       if (found) {
         text += $(this).text();
       }
       return true;
     });
-    return  text;
+    return text;
   }
 });

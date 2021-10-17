@@ -1,5 +1,5 @@
 'use strict';
-describe('mark with acrossElements and count words & phrases', function() {
+describe('mark with acrossElements', function() {
   var $ctx;
   beforeEach(function() {
     loadFixtures('across-elements/basic/count.html');
@@ -7,29 +7,29 @@ describe('mark with acrossElements and count words & phrases', function() {
     $ctx = $('.across-elements-count');
   });
 
-  it('should correctly count whole words across elements', function(done) {
+  it('should count and test content of whole words', function(done) {
     var wordCount = 0;
     new Mark($ctx[0]).mark(['Lorem', 'ipsum'], {
       'diacritics' : false,
       'accuracy' : 'exactly',
       'acrossElements' : true,
       'each' : function(elem, nodeIndex) {
+        // if match started
         if (nodeIndex === 0) {
           elem.className = 'word-1';
           wordCount++;
         }
       },
-      'done' : function(total) {
+      'done' : function() {
         var count = testMarkedText($ctx, 'word-1', /^(?:lorem|ipsum)$/);
         expect(count).toBe(wordCount);
-        expect(wordCount).toBe(52);
-        expect($ctx.find('mark')).toHaveLength(total);
+        expect(count).toBe(52);
         done();
       }
     });
   });
 
-  it('should correctly count phrases across elements', function(done) {
+  it('should count and test content of phrases', function(done) {
     var phraseCount = 0;
 
     new Mark($ctx[0]).mark('Lorem ipsum', {
@@ -38,16 +38,17 @@ describe('mark with acrossElements and count words & phrases', function() {
       'accuracy' : 'exactly',
       'acrossElements' : true,
       each : function(elem, nodeIndex) {
+        // if match started
         if (nodeIndex === 0) {
+          // elem in this case is the first marked element of the match
           elem.className = 'phrase-1';
           phraseCount++;
         }
       },
-      'done' : function(total) {
+      'done' : function() {
         var count = testMarkedText($ctx, 'phrase-1', /^loremipsum$/);
         expect(count).toBe(phraseCount);
-        expect(phraseCount).toBe(25);
-        expect($ctx.find('mark')).toHaveLength(total);
+        expect(count).toBe(25);
         done();
       }
     });

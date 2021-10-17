@@ -19,58 +19,64 @@ describe('markRegExp with acrossElements and count words&phrases', function() {
     });
   });
 
-  it('should correctly count whole words across elements', function(done) {
+  it('should count and test content of whole words', function(done) {
     var wordCount = 0;
+
     new Mark($ctx[0]).markRegExp(/\b(?:Lorem|ipsum)\b/gi, {
-      className : 'word',
       'acrossElements' : true,
       'each' : function(elem, info) {
         if (info.matchNodeIndex === 0) {
-          elem.className = 'word-1';
+          elem.className = 'start-1';
           wordCount++;
         }
       },
-      'done' : function(total) {
-        var count = testMarkedText($ctx, 'word-1', /^(?:lorem|ipsum)$/);
+      'done' : function() {
+        var count = testMarkedText($ctx, /^(?:lorem|ipsum)$/);
         expect(count).toBe(wordCount);
-        expect(wordCount).toBe(52);
-        expect($ctx.find('mark')).toHaveLength(total);
+        expect(count).toBe(52);
         done();
       }
     });
   });
 
-  it('should correctly count phrases across elements', function(done) {
-    var phraseCount = 0;
+  it('should count and test content of filtered matches', function(done) {
+    var matchCount = 0;
 
-    new Mark($ctx[0]).markRegExp(/\bLorem\s+ipsum\b/gi, {
-      className : 'phrase',
+    new Mark($ctx[0]).markRegExp(/(\best\s+)?\bLorem\s+ipsum\b/gi, {
       'acrossElements' : true,
-      each : function(elem, info) {
+      filter : function(node, group, total, obj) {
+        // skip unwanted matches
+        if (obj.match[1]) {
+          return  false;
+        }
+        return true;
+      },
+      'each' : function(elem, info) {
+        // if match started
         if (info.matchNodeIndex === 0) {
-          elem.className = 'phrase-1';
-          phraseCount++;
+          // elem in this case is the first marked element of the match
+          elem.className = 'start-1';
+          matchCount++;
         }
       },
-      'done' : function(total) {
-        var count = testMarkedText($ctx, 'phrase-1', /^loremipsum$/);
-        expect(count).toBe(phraseCount);
-        expect(phraseCount).toBe(25);
-        expect($ctx.find('mark')).toHaveLength(total);
+      'done' : function() {
+        var count = testMarkedText($ctx, /^loremipsum$/);
+        expect(count).toBe(matchCount);
+        expect(count).toBe(22);
         done();
       }
     });
   });
 
-  function testMarkedText($ctx, klass, reg) {
+  function testMarkedText($ctx, reg) {
     var count = 0,
       marks = $ctx.find('mark');
 
-    marks.filter(function() {
-      return $(this).hasClass(klass);
+    marks.filter(function(i, el) {
+      return el.hasAttribute('class');
 
-    }).each(function() {
-      expect(getMarkedText($(this), marks)).toMatch(reg);
+    }).each(function(i, elem) {
+      expect(getMarkedText(elem, marks)).toMatch(reg);
       count++;
     });
     return count;
@@ -82,11 +88,11 @@ describe('markRegExp with acrossElements and count words&phrases', function() {
       found = false;
     marks.each(function(i, el) {
       if ( !found) {
-        if (el === elem[0]) {
+        if (el === elem) {
           found = true;
         }
 
-      } else if (el.className && /\b[a-z]+-1\b/.test(el.className)) {
+      } else if (el.hasAttribute('class')) {
         return  false;
       }
       if (found) {
