@@ -1141,10 +1141,10 @@
         var _this6 = this;
 
         var matchIdx = ignoreGroups === 0 || this.opt.separateGroups ? 0 : ignoreGroups + 1;
-        var match, index;
+        var match, count;
         this.getTextNodesAcrossElements(function (dict) {
           while ((match = regex.exec(dict.value)) !== null && match[matchIdx] !== '') {
-            index = 0;
+            count = -1;
 
             if (_this6.opt.separateGroups) {
               var fn = regex.hasIndices ? 'wrapMatchGroups' : 'wrapMatchGroups2';
@@ -1152,7 +1152,7 @@
               _this6[fn](dict, match, regex, function (group, node, groupIndex) {
                 return filterCb(group, node, {
                   match: match,
-                  matchStart: index++ === 0,
+                  matchStart: ++count === 0,
                   groupIndex: groupIndex
                 });
               }, function (node, matchStart, groupStart, groupIndex) {
@@ -1177,7 +1177,7 @@
               _this6.wrapRangeInMappedTextNode(dict, start, end, function (node) {
                 return filterCb(match[matchIdx], node, {
                   match: match,
-                  matchStart: index++ === 0
+                  matchStart: ++count === 0
                 });
               }, function (node, matchStart) {
                 eachCb(node, {

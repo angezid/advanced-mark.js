@@ -901,19 +901,19 @@
     wrapMatchesAcrossElements(regex, ignoreGroups, filterCb, eachCb, endCb) {
       const matchIdx =
         ignoreGroups === 0 || this.opt.separateGroups ? 0 : ignoreGroups + 1;
-      let match, index;
+      let match, count;
       this.getTextNodesAcrossElements(dict => {
         while (
           (match = regex.exec(dict.value)) !== null &&
           match[matchIdx] !== ''
         ) {
-          index = 0;
+          count = -1;
           if (this.opt.separateGroups) {
             let fn = regex.hasIndices ? 'wrapMatchGroups' : 'wrapMatchGroups2';
             this[fn](dict, match, regex, (group, node, groupIndex) => {
               return filterCb(group, node, {
                 match : match,
-                matchStart : index++ === 0,
+                matchStart : ++count === 0,
                 groupIndex : groupIndex,
               });
             }, (node, matchStart, groupStart, groupIndex) => {
@@ -935,7 +935,7 @@
             this.wrapRangeInMappedTextNode(dict, start, end, node => {
               return filterCb(match[matchIdx], node, {
                 match : match,
-                matchStart : index++ === 0,
+                matchStart : ++count === 0,
               });
             }, (node, matchStart) => {
               eachCb(node, {

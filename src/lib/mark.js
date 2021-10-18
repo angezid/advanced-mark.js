@@ -741,9 +741,8 @@ class Mark {
     for (; i < match.length; i++)  {
       group = match[i];
       if (group) {
-        // this approach to find regexp group indexes only reliable with
-        // sequential groups without condition and may fail with nested one
-        // e.g. (gr1)(?!..)..(gr2), with nested group (gr1..(gr2)..)..(gr3)
+        // this approach to find regexp group indices only reliable with
+        // distinct groups without condition
         start = text.indexOf(group, startIndex);
         end = start + group.length;
 
@@ -862,7 +861,7 @@ class Mark {
    * Filter callback before each wrapping
    * @callback Mark~wrapMatchesAcrossElementsFilterCallback
    * @param {string} match - The matching string
-   * @param {HTMLElement} node - The matching text node DOM element
+   * @param {HTMLElement} node - The text node where the match occurs
    * @param {Mark~filterInfoObject} filterInfo - The object containing match
    * information, is only available with 'separateGroups' option
    */
@@ -901,7 +900,6 @@ class Mark {
 
           this[fn](dict, match, regex, (group, node, groupIndex) => {
             return filterCb(group, node, {
-              // in order to use named capture groups match is necessary
               match : match,
               matchStart : ++count === 0,
               groupIndex : groupIndex,
@@ -927,7 +925,6 @@ class Mark {
 
           this.wrapRangeInMappedTextNode(dict, start, end, node => {
             return filterCb(match[matchIdx], node, {
-              // match object is more useful in filter callback than string
               match : match,
               matchStart : ++count === 0,
             });
@@ -1048,7 +1045,7 @@ class Mark {
    * @param {HTMLElement} element - The marked DOM element
    * @param {boolean} matchStart - indicate the start of the current match,
    * is only available with option 'acrossElements'
-   */ 
+   */
   /**
    * Callback if there were no matches
    * @callback Mark~markNoMatchCallback
@@ -1135,7 +1132,8 @@ class Mark {
     };
     if (this.opt.acrossElements) {
       fn = 'wrapMatchesAcrossElements';
-
+      // this solve backward-compatibility but open gate for new code
+      // to slip in without g flag
       if ( !regexp.global && !regexp.sticky) {
         let splits = regexp.toString().split('/'),
           flags = 'g' + splits[splits.length-1];
