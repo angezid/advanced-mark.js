@@ -14,7 +14,6 @@ describe('mark with acrossElements', function() {
       'accuracy' : 'exactly',
       'acrossElements' : true,
       'each' : function(elem, matchStart) {
-        // if match started
         if (matchStart) {
           elem.className = 'word-1';
           wordCount++;
@@ -38,7 +37,6 @@ describe('mark with acrossElements', function() {
       'accuracy' : 'exactly',
       'acrossElements' : true,
       each : function(elem, matchStart) {
-        // if match started
         if (matchStart) {
           // elem in this case is the first marked element of the match
           elem.className = 'phrase-1';
