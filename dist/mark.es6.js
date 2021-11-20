@@ -245,14 +245,8 @@
       const itr = this.createIterator(ctx, whatToShow, filterCb);
       let ifr = [],
         elements = [],
-        node, prevNode, retrieveNodes = () => {
-          ({
-            prevNode,
-            node
-          } = this.getIteratorNode(itr));
-          return node;
-        };
-      while (retrieveNodes()) {
+        prevNode = null, node;
+      while ((node = itr.nextNode())) {
         if (this.iframes) {
           this.forEachIframe(ctx, currIfr => {
             return this.checkIframeFilter(node, prevNode, currIfr, ifr);
@@ -263,6 +257,7 @@
           });
         }
         elements.push(node);
+        prevNode = node;
       }
       elements.forEach(node => {
         eachCb(node);
@@ -631,76 +626,112 @@
       };
     }
     checkParents(textNode, tags) {
+      let value = 0;
       if (textNode === textNode.parentNode.lastChild) {
-        if (tags.indexOf(textNode.parentNode.nodeName) !== -1) {
-          return true;
+        if ((value = tags[textNode.parentNode.nodeName.toLowerCase()])) {
+          return value;
         } else {
           let parent = textNode.parentNode;
           while (parent === parent.parentNode.lastChild) {
-            if (tags.indexOf(parent.parentNode.nodeName) !== -1) {
-              return true;
+            if ((value = tags[parent.parentNode.nodeName.toLowerCase()])) {
+              return value;
             }
             parent = parent.parentNode;
           }
         }
         let node = textNode.parentNode.nextSibling;
-        if (node && node.nodeType === 1 && tags.indexOf(node.nodeName) !== -1) {
-          return true;
+        if (node && node.nodeType === 1
+          && ((value = tags[node.nodeName.toLowerCase()]))) {
+          return value;
         }
       }
-      return false;
+      return -1;
     }
     checkNextNodes(node, tags) {
+      let value = 0;
       if (node && node.nodeType === 1) {
-        if (tags.indexOf(node.nodeName) !== -1) {
-          return true;
+        if ((value = tags[node.nodeName.toLowerCase()])) {
+          return value;
         } else if (node.firstChild) {
           let prevNode, child = node.firstChild;
           while (child) {
             if (child.nodeType === 1) {
-              if (tags.indexOf(child.nodeName) !== -1) {
-                return true;
+              if ((value = tags[child.nodeName.toLowerCase()])) {
+                return value;
               }
               prevNode = child;
               child = child.firstChild;
               continue;
             }
-            return false;
+            return -1;
           }
           return this.checkNextNodes(prevNode.nextSibling, tags);
         }
         if (node !== node.parentNode.lastChild) {
           return this.checkNextNodes(node.nextSibling, tags);
-        } else if (tags.indexOf(node.parentNode.nodeName) !== -1) {
-          return true;
+        } else if ((value = tags[node.parentNode.nodeName.toLowerCase()])) {
+          return value;
         }
       }
-      return false;
+      return -1;
     }
     getTextNodesAcrossElements(cb) {
-      let val = '', start, text, addSpace, offset, nodes = [],
-        reg =/[\s.,:?!"'`]/;
-      const tags = ['DIV', 'P', 'LI', 'TD', 'TR', 'TH', 'UL', 'OL', 'BR',
-        'DD', 'DL', 'DT', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'HR',
-        'FIGCAPTION', 'FIGURE', 'PRE', 'TABLE', 'THEAD', 'TBODY', 'TFOOT',
-        'INPUT', 'LABEL', 'IMAGE', 'IMG', 'NAV', 'DETAILS', 'FORM', 'SELECT',
-        'BODY', 'MAIN', 'SECTION', 'ARTICLE', 'ASIDE', 'PICTURE', 'BUTTON',
-        'HEADER', 'FOOTER', 'QUOTE', 'ADDRESS', 'AREA', 'CANVAS', 'MAP',
-        'FIELDSET', 'TEXTAREA', 'TRACK', 'VIDEO', 'AUDIO', 'METER',
-        'IFRAME', 'MARQUEE', 'OBJECT', 'SVG'];
+      let val = '', start, text, endBySpace, number, offset, nodes = [],
+        str = this.opt.boundaryChar
+          ? this.opt.boundaryChar.charAt(0) + ' ' : '\u0001 ',
+        str2 = ' ' + str;
+      let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
+        ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
+        h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
+        pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
+        img : 1, nav : 1, details : 1, label : 1, form : 1, select : 1, menu : 1,
+        menuitem : 1,
+        main : 1, section : 1, article : 1, aside : 1, picture : 1, output : 1,
+        button : 1, header : 1, footer : 1, address : 1, area : 1, canvas : 1,
+        map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
+        body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
+      if (this.opt.blockElementsBoundary) {
+        if (this.opt.blockElements && this.opt.blockElements.length) {
+          let elements = {};
+          for (let key in this.opt.blockElements) {
+            elements[this.opt.blockElements[key].toLowerCase()] = 1;
+          }
+          for (let key in elements) {
+            tags[key] = 2;
+          }
+        } else {
+          for (let key in tags) {
+            tags[key] = 2;
+          }
+          tags['br'] = 1;
+        }
+      }
       this.iterator.forEachNode(NodeFilter.SHOW_TEXT, node => {
-        addSpace = false;
         offset = 0;
         start = val.length;
         text = node.textContent;
-        if ( !reg.test(text[text.length-1])) {
-          addSpace = this.checkParents(node, tags) ||
-            this.checkNextNodes(node.nextSibling, tags);
+        endBySpace = /\s/.test(text[text.length - 1]);
+        if (this.opt.blockElementsBoundary || !endBySpace) {
+          number = this.checkParents(node, tags);
+          if (number === -1) {
+            number = this.checkNextNodes(node.nextSibling, tags);
+          }
+          if (number > 0) {
+            if ( !endBySpace) {
+              if (number === 1) {
+                val += text + ' ';
+                offset = 1;
+              } else if (number === 2) {
+                val += text + str2;
+                offset = 3;
+              }
+            } else if (number === 2) {
+              val += text + str;
+              offset = 2;
+            }
+          }
         }
-        if (addSpace) {
-          val += text + ' ';
-          offset = 1;
-        } else {
+        if (offset === 0) {
           val += text;
         }
         nodes.push({
@@ -838,26 +869,22 @@
       let matchStart = true,
         startIndex = 0,
         i = 1,
-        group, start, end, isMarked;
+        group, start, end;
       const s = match.index,
         text = dict.value.substring(s, regex.lastIndex);
-      for (; i < match.length; i++)  {
+      for (; i < match.length; i++) {
         group = match[i];
         if (group) {
           start = text.indexOf(group, startIndex);
           end = start + group.length;
           if (start !== -1) {
-            isMarked = false;
             this.wrapRangeInMappedTextNode(dict, s + start, s + end, (node) => {
               return filterCb(group, node, i);
             }, (node, groupStart) => {
-              isMarked = true;
               eachCb(node, matchStart, groupStart, i);
               matchStart = false;
             });
-            if (isMarked) {
-              startIndex = end;
-            }
+            startIndex = end;
           }
         }
       }
@@ -934,6 +961,7 @@
             const end = start + match[matchIdx].length;
             this.wrapRangeInMappedTextNode(dict, start, end, node => {
               return filterCb(match[matchIdx], node, {
+                regex: regex,
                 match : match,
                 matchStart : ++count === 0,
               });
@@ -1032,7 +1060,6 @@
     mark(sv, opt) {
       this.opt = opt;
       let totalMatches = 0,
-        matchStart,
         fn = 'wrapMatches';
       const {
           keywords: kwArr,
@@ -1042,13 +1069,12 @@
           const regex = new RegExpCreator(this.opt).create(kw);
           let matches = 0;
           this.log(`Searching with expression "${regex}"`);
-          this[fn](regex, 1, (term, node) => {
-            return this.opt.filter(node, kw, totalMatches, matches);
+          this[fn](regex, 1, (term, node, filterInfo) => {
+            return this.opt.filter(node, kw, totalMatches, matches, filterInfo);
           }, (element, matchInfo) => {
             matches++;
             totalMatches++;
-            matchStart = matchInfo ? matchInfo.matchStart : matchStart;
-            this.opt.each(element, matchStart);
+            this.opt.each(element, matchInfo);
           }, () => {
             if (matches === 0) {
               this.opt.noMatch(kw);

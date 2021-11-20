@@ -299,57 +299,60 @@ class Mark {
 
   /**
   * @param {HTMLElement} textNode - The DOM text node element
-  * @param {string[]} tags - An array of strings
-  * @return {boolean}
+  * @param {object} tags - The object containing HTMLElement names
+  * @return {number}
   */
   checkParents(textNode, tags) {
+    let value = 0;
     if (textNode === textNode.parentNode.lastChild) {
-      if (tags.indexOf(textNode.parentNode.nodeName) !== -1) {
-        return true;
+      if ((value = tags[textNode.parentNode.nodeName.toLowerCase()])) {
+        return value;
 
       } else {
         // loop through textNode parent nodes which are last child
         let parent = textNode.parentNode;
         while (parent === parent.parentNode.lastChild) {
-          if (tags.indexOf(parent.parentNode.nodeName) !== -1) {
-            return true;
+          if ((value = tags[parent.parentNode.nodeName.toLowerCase()])) {
+            return value;
           }
           parent = parent.parentNode;
         }
       }
       // textNode is last child of inline element so check parent next sibling
       let node = textNode.parentNode.nextSibling;
-      if (node && node.nodeType === 1 && tags.indexOf(node.nodeName) !== -1) {
-        return true;
+      if (node && node.nodeType === 1
+        && ((value = tags[node.nodeName.toLowerCase()]))) {
+        return value;
       }
     }
-    return false;
+    return -1;
   }
 
   /**
   * @param {HTMLElement} node - The DOM node element
-  * @param {string[]} tags - An array of strings
-  * @return {boolean}
+  * @param {object} tags - The object containing HTMLElement names
+  * @return {number}
   */
   checkNextNodes(node, tags) {
+    let value = 0;
     if (node && node.nodeType === 1) {
-      if (tags.indexOf(node.nodeName) !== -1) {
-        return true;
+      if ((value = tags[node.nodeName.toLowerCase()])) {
+        return value;
 
       } else if (node.firstChild) {
         // loop through firstChilds until condition is met
         let prevNode, child = node.firstChild;
         while (child) {
           if (child.nodeType === 1) {
-            if (tags.indexOf(child.nodeName) !== -1) {
-              return true;
+            if ((value = tags[child.nodeName.toLowerCase()])) {
+              return value;
             }
             prevNode = child;
             child = child.firstChild;
             continue;
           }
           // most likely child is text node
-          return false;
+          return -1;
         }
         // prevNode has no child nodes so check next sibling
         return this.checkNextNodes(prevNode.nextSibling, tags);
@@ -358,11 +361,11 @@ class Mark {
         // node has no child nodes so check next sibling
         return this.checkNextNodes(node.nextSibling, tags);
 
-      } else if (tags.indexOf(node.parentNode.nodeName) !== -1) {
-        return true;
+      } else if ((value = tags[node.parentNode.nodeName.toLowerCase()])) {
+        return value;
       }
     }
-    return false;
+    return -1;
   }
 
   /**
@@ -377,7 +380,7 @@ class Mark {
   * @property {number} nodes.end - The end position within the composite
   * value
   * @property {number} nodes.offset - The offset used to correct position
-  * if space was added to the end of the text node
+  * if space or string was added to the end of the text node
   * @property {HTMLElement} nodes.node - The DOM text node element
   */
 
@@ -394,36 +397,73 @@ class Mark {
   * @access protected
   */
   getTextNodesAcrossElements(cb) {
-    let val = '', start, text, addSpace, offset, nodes = [],
-      reg =/[\s.,:?!"'`]/;
+    let val = '', start, text, endBySpace, number, offset, nodes = [],
+      str = this.opt.boundaryChar
+        ? this.opt.boundaryChar.charAt(0) + ' ' : '\u0001 ',
+      str2 = ' ' + str;
 
-    // the space can be safely added to the end of a text node, when node checks
-    // run across element with one of those names
-    const tags = ['DIV', 'P', 'LI', 'TD', 'TR', 'TH', 'UL', 'OL', 'BR',
-      'DD', 'DL', 'DT', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'HR',
-      'FIGCAPTION', 'FIGURE', 'PRE', 'TABLE', 'THEAD', 'TBODY', 'TFOOT',
-      'INPUT', 'LABEL', 'IMAGE', 'IMG', 'NAV', 'DETAILS', 'FORM', 'SELECT',
-      'BODY', 'MAIN', 'SECTION', 'ARTICLE', 'ASIDE', 'PICTURE', 'BUTTON',
-      'HEADER', 'FOOTER', 'QUOTE', 'ADDRESS', 'AREA', 'CANVAS', 'MAP',
-      'FIELDSET', 'TEXTAREA', 'TRACK', 'VIDEO', 'AUDIO', 'METER',
-      'IFRAME', 'MARQUEE', 'OBJECT', 'SVG'];
+    // the space can be safely added to the end of a text node when
+    // the node checks run across element with one of those names
+    let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
+      ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
+      h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
+      pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
+      img : 1, nav : 1, details : 1, label : 1, form : 1, select : 1, menu : 1,
+      menuitem : 1,
+      main : 1, section : 1, article : 1, aside : 1, picture : 1, output : 1,
+      button : 1, header : 1, footer : 1, address : 1, area : 1, canvas : 1,
+      map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
+      body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
+
+    if (this.opt.blockElementsBoundary) {
+      if (this.opt.blockElements && this.opt.blockElements.length) {
+        // normalize custom blockElements names
+        let elements = {};
+        for (let key in this.opt.blockElements) {
+          elements[this.opt.blockElements[key].toLowerCase()] = 1;
+        }
+        // it also allows adding custom element names
+        for (let key in elements) {
+          tags[key] = 2;
+        }
+      } else {
+        for (let key in tags) {
+          tags[key] = 2;
+        }
+        // br is inline element. Currently is under question. 
+        tags['br'] = 1;
+      }
+    }
 
     this.iterator.forEachNode(NodeFilter.SHOW_TEXT, node => {
-      addSpace = false;
       offset = 0;
       start = val.length;
       text = node.textContent;
+      endBySpace = /\s/.test(text[text.length - 1]);
 
-      // in this implementation a space can be added only to the end of a text
-      // and 'lookahead' is only way to check parents and siblings
-      if ( !reg.test(text[text.length-1])) {
-        addSpace = this.checkParents(node, tags) ||
-          this.checkNextNodes(node.nextSibling, tags);
+      // in this implementation a space or string can be added only to the end
+      // of a text and 'lookahead' is only way to check parents and siblings
+      if (this.opt.blockElementsBoundary || !endBySpace) {
+        number = this.checkParents(node, tags);
+        if (number === -1) {
+          number = this.checkNextNodes(node.nextSibling, tags);
+        }
+        if (number > 0) {
+          if ( !endBySpace) {
+            if (number === 1) {
+              val += text + ' ';
+              offset = 1;
+            } else if (number === 2) {
+              val += text + str2;
+              offset = 3;
+            }
+          } else if (number === 2) {
+            val += text + str;
+            offset = 2;
+          }
+        }
       }
-      if (addSpace) {
-        val += text + ' ';
-        offset = 1;
-      } else {
+      if (offset === 0) {
         val += text;
       }
       nodes.push({
@@ -548,7 +588,7 @@ class Mark {
    * @property {number} nodes.end - The end position within the composite
    * value
    * @property {number} nodes.offset - The offset used to correct position
-   * if space was added to the end of the text node
+   * if space or string was added to the end of the text node
    * @property {HTMLElement} nodes.node - The DOM text node element
    */
   /**
@@ -683,7 +723,7 @@ class Mark {
       group = match[i];
       if (group) {
         start = match.indices[i][0];
-        //it prevents to mark nested group - parent group is already marked
+        //it prevents marking nested group - parent group is already marked
         if (start >= max) {
           end = match.indices[i][1];
 
@@ -733,32 +773,27 @@ class Mark {
     let matchStart = true,
       startIndex = 0,
       i = 1,
-      group, start, end, isMarked;
+      group, start, end;
 
     const s = match.index,
       text = dict.value.substring(s, regex.lastIndex);
 
-    for (; i < match.length; i++)  {
+    for (; i < match.length; i++) {
       group = match[i];
       if (group) {
-        // this approach to find regexp group indices only reliable with
-        // distinct groups without condition
+        // this approach only reliable with contiguous groups
+        // unwanted group(s) can be easily filtered out
         start = text.indexOf(group, startIndex);
         end = start + group.length;
 
         if (start !== -1) {
-          isMarked = false;
           this.wrapRangeInMappedTextNode(dict, s + start, s + end, (node) => {
             return filterCb(group, node, i);
           }, (node, groupStart) => {
-            isMarked = true;
             eachCb(node, matchStart, groupStart, i);
             matchStart = false;
           });
-          // a match group may be filtered out
-          if (isMarked) {
-            startIndex = end;
-          }
+          startIndex = end;
         }
       }
     }
@@ -844,10 +879,11 @@ class Mark {
   /**
    * @typedef Mark~filterInfoObject
    * @type {object}
+   * @property {RegExp} regex - The regular expression to be searched for
    * @property {array} match - The result of RegExp exec() method
    * @property {boolean} matchStart - indicate the start of match
    * @property {number} groupIndex - The group index, is only available
-   * with 'separateGroups' option
+   * with both 'acrossElements' and 'separateGroups' options
    */
 
   /**
@@ -863,7 +899,7 @@ class Mark {
    * @param {string} match - The matching string
    * @param {HTMLElement} node - The text node where the match occurs
    * @param {Mark~filterInfoObject} filterInfo - The object containing match
-   * information, is only available with 'separateGroups' option
+   * information
    */
 
   /**
@@ -925,6 +961,7 @@ class Mark {
 
           this.wrapRangeInMappedTextNode(dict, start, end, node => {
             return filterCb(match[matchIdx], node, {
+              regex: regex,
               match : match,
               matchStart : ++count === 0,
             });
@@ -1043,8 +1080,8 @@ class Mark {
    * Callback for each marked element
    * @callback Mark~markEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {boolean} matchStart - indicate the start of the current match,
-   * is only available with option 'acrossElements'
+   * @param {Mark~filterInfoObject} filterInfo - The object containing match
+   * information, is only available with 'acrossElements' option
    */
   /**
    * Callback if there were no matches
@@ -1085,7 +1122,7 @@ class Mark {
    * Callback to filter matches
    * @callback Mark~markRegExpFilterCallback
    * @param {HTMLElement} textNode - The text node which includes the match
-   * @param {string} match - The matching string for the RegExp:
+   * @param {string} match - The matching string:
    * 1) without 'ignoreGroups' and 'separateGroups' options - the whole match.
    * 2) with 'ignoreGroups' - [ignoreGroups number + 1] group matching string.
    * 3) with both 'acrossElements' and 'separateGroups' options - the current
@@ -1100,7 +1137,7 @@ class Mark {
    * @callback Mark~markRegExpEachCallback
    * @param {HTMLElement} element - The marked DOM element
    * @param {Mark~matchInfoObject} matchInfo - The object containing match
-   * information
+   * information, is only available with 'acrossElements' option
    */
 
   /**
@@ -1165,6 +1202,8 @@ class Mark {
    * marks
    * @param {number} termCounter - A counter indicating the number of marks
    * for the specific match
+   * @param {Mark~filterInfoObject} filterInfo - The object containing match
+   * information, is only available with 'acrossElements' option
    */
 
   /**
@@ -1187,7 +1226,6 @@ class Mark {
   mark(sv, opt) {
     this.opt = opt;
     let totalMatches = 0,
-      matchStart,
       fn = 'wrapMatches';
     const {
         keywords: kwArr,
@@ -1197,15 +1235,12 @@ class Mark {
         const regex = new RegExpCreator(this.opt).create(kw);
         let matches = 0;
         this.log(`Searching with expression "${regex}"`);
-        this[fn](regex, 1, (term, node) => {
-          return this.opt.filter(node, kw, totalMatches, matches);
+        this[fn](regex, 1, (term, node, filterInfo) => {
+          return this.opt.filter(node, kw, totalMatches, matches, filterInfo);
         }, (element, matchInfo) => {
           matches++;
           totalMatches++;
-          // 'matchInfo' object is only available when option 'acrossElements'
-          // is enabled and only matchInfo.matchStart is useful
-          matchStart = matchInfo ? matchInfo.matchStart : matchStart;
-          this.opt.each(element, matchStart);
+          this.opt.each(element, matchInfo);
         }, () => {
           if (matches === 0) {
             this.opt.noMatch(kw);

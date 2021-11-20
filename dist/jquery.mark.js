@@ -347,20 +347,12 @@
         var _this5 = this;
 
         var itr = this.createIterator(ctx, whatToShow, filterCb);
-
         var ifr = [],
             elements = [],
-            node,
-            prevNode,
-            retrieveNodes = function retrieveNodes() {
-          var _this5$getIteratorNod = _this5.getIteratorNode(itr);
+            prevNode = null,
+            node;
 
-          prevNode = _this5$getIteratorNod.prevNode;
-          node = _this5$getIteratorNod.node;
-          return node;
-        };
-
-        while (retrieveNodes()) {
+        while (node = itr.nextNode()) {
           if (this.iframes) {
             this.forEachIframe(ctx, function (currIfr) {
               return _this5.checkIframeFilter(node, prevNode, currIfr, ifr);
@@ -372,6 +364,7 @@
           }
 
           elements.push(node);
+          prevNode = node;
         }
 
         elements.forEach(function (node) {
@@ -808,15 +801,17 @@
     }, {
       key: "checkParents",
       value: function checkParents(textNode, tags) {
+        var value = 0;
+
         if (textNode === textNode.parentNode.lastChild) {
-          if (tags.indexOf(textNode.parentNode.nodeName) !== -1) {
-            return true;
+          if (value = tags[textNode.parentNode.nodeName.toLowerCase()]) {
+            return value;
           } else {
             var parent = textNode.parentNode;
 
             while (parent === parent.parentNode.lastChild) {
-              if (tags.indexOf(parent.parentNode.nodeName) !== -1) {
-                return true;
+              if (value = tags[parent.parentNode.nodeName.toLowerCase()]) {
+                return value;
               }
 
               parent = parent.parentNode;
@@ -825,27 +820,29 @@
 
           var node = textNode.parentNode.nextSibling;
 
-          if (node && node.nodeType === 1 && tags.indexOf(node.nodeName) !== -1) {
-            return true;
+          if (node && node.nodeType === 1 && (value = tags[node.nodeName.toLowerCase()])) {
+            return value;
           }
         }
 
-        return false;
+        return -1;
       }
     }, {
       key: "checkNextNodes",
       value: function checkNextNodes(node, tags) {
+        var value = 0;
+
         if (node && node.nodeType === 1) {
-          if (tags.indexOf(node.nodeName) !== -1) {
-            return true;
+          if (value = tags[node.nodeName.toLowerCase()]) {
+            return value;
           } else if (node.firstChild) {
             var prevNode,
                 child = node.firstChild;
 
             while (child) {
               if (child.nodeType === 1) {
-                if (tags.indexOf(child.nodeName) !== -1) {
-                  return true;
+                if (value = tags[child.nodeName.toLowerCase()]) {
+                  return value;
                 }
 
                 prevNode = child;
@@ -853,7 +850,7 @@
                 continue;
               }
 
-              return false;
+              return -1;
             }
 
             return this.checkNextNodes(prevNode.nextSibling, tags);
@@ -861,12 +858,12 @@
 
           if (node !== node.parentNode.lastChild) {
             return this.checkNextNodes(node.nextSibling, tags);
-          } else if (tags.indexOf(node.parentNode.nodeName) !== -1) {
-            return true;
+          } else if (value = tags[node.parentNode.nodeName.toLowerCase()]) {
+            return value;
           }
         }
 
-        return false;
+        return -1;
       }
     }, {
       key: "getTextNodesAcrossElements",
@@ -876,25 +873,124 @@
         var val = '',
             start,
             text,
-            addSpace,
+            endBySpace,
+            number,
             offset,
             nodes = [],
-            reg = /[\s.,:?!"'`]/;
-        var tags = ['DIV', 'P', 'LI', 'TD', 'TR', 'TH', 'UL', 'OL', 'BR', 'DD', 'DL', 'DT', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'HR', 'FIGCAPTION', 'FIGURE', 'PRE', 'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'INPUT', 'LABEL', 'IMAGE', 'IMG', 'NAV', 'DETAILS', 'FORM', 'SELECT', 'BODY', 'MAIN', 'SECTION', 'ARTICLE', 'ASIDE', 'PICTURE', 'BUTTON', 'HEADER', 'FOOTER', 'QUOTE', 'ADDRESS', 'AREA', 'CANVAS', 'MAP', 'FIELDSET', 'TEXTAREA', 'TRACK', 'VIDEO', 'AUDIO', 'METER', 'IFRAME', 'MARQUEE', 'OBJECT', 'SVG'];
+            str = this.opt.boundaryChar ? this.opt.boundaryChar.charAt(0) + ' ' : "\x01 ",
+            str2 = ' ' + str;
+        var tags = {
+          div: 1,
+          p: 1,
+          li: 1,
+          td: 1,
+          tr: 1,
+          th: 1,
+          ul: 1,
+          ol: 1,
+          br: 1,
+          dd: 1,
+          dl: 1,
+          dt: 1,
+          h1: 1,
+          h2: 1,
+          h3: 1,
+          h4: 1,
+          h5: 1,
+          h6: 1,
+          hr: 1,
+          blockquote: 1,
+          figcaption: 1,
+          figure: 1,
+          pre: 1,
+          table: 1,
+          thead: 1,
+          tbody: 1,
+          tfoot: 1,
+          input: 1,
+          img: 1,
+          nav: 1,
+          details: 1,
+          label: 1,
+          form: 1,
+          select: 1,
+          menu: 1,
+          menuitem: 1,
+          main: 1,
+          section: 1,
+          article: 1,
+          aside: 1,
+          picture: 1,
+          output: 1,
+          button: 1,
+          header: 1,
+          footer: 1,
+          address: 1,
+          area: 1,
+          canvas: 1,
+          map: 1,
+          fieldset: 1,
+          textarea: 1,
+          track: 1,
+          video: 1,
+          audio: 1,
+          body: 1,
+          iframe: 1,
+          meter: 1,
+          object: 1,
+          svg: 1
+        };
+
+        if (this.opt.blockElementsBoundary) {
+          if (this.opt.blockElements && this.opt.blockElements.length) {
+            var elements = {};
+
+            for (var key in this.opt.blockElements) {
+              elements[this.opt.blockElements[key].toLowerCase()] = 1;
+            }
+
+            for (var _key in elements) {
+              tags[_key] = 2;
+            }
+          } else {
+            for (var _key2 in tags) {
+              tags[_key2] = 2;
+            }
+
+            tags['br'] = 1;
+          }
+        }
+
         this.iterator.forEachNode(NodeFilter.SHOW_TEXT, function (node) {
-          addSpace = false;
           offset = 0;
           start = val.length;
           text = node.textContent;
+          endBySpace = /\s/.test(text[text.length - 1]);
 
-          if (!reg.test(text[text.length - 1])) {
-            addSpace = _this3.checkParents(node, tags) || _this3.checkNextNodes(node.nextSibling, tags);
+          if (_this3.opt.blockElementsBoundary || !endBySpace) {
+            number = _this3.checkParents(node, tags);
+
+            if (number === -1) {
+              number = _this3.checkNextNodes(node.nextSibling, tags);
+            }
+
+            if (number > 0) {
+              if (!endBySpace) {
+                if (number === 1) {
+                  val += text + ' ';
+                  offset = 1;
+                } else if (number === 2) {
+                  val += text + str2;
+                  offset = 3;
+                }
+              } else if (number === 2) {
+                val += text + str;
+                offset = 2;
+              }
+            }
           }
 
-          if (addSpace) {
-            val += text + ' ';
-            offset = 1;
-          } else {
+          if (offset === 0) {
             val += text;
           }
 
@@ -1070,8 +1166,7 @@
             i = 1,
             group,
             start,
-            end,
-            isMarked;
+            end;
         var s = match.index,
             text = dict.value.substring(s, regex.lastIndex);
 
@@ -1083,18 +1178,13 @@
             end = start + group.length;
 
             if (start !== -1) {
-              isMarked = false;
               this.wrapRangeInMappedTextNode(dict, s + start, s + end, function (node) {
                 return filterCb(group, node, i);
               }, function (node, groupStart) {
-                isMarked = true;
                 eachCb(node, matchStart, groupStart, i);
                 matchStart = false;
               });
-
-              if (isMarked) {
-                startIndex = end;
-              }
+              startIndex = end;
             }
           }
         }
@@ -1176,6 +1266,7 @@
 
               _this6.wrapRangeInMappedTextNode(dict, start, end, function (node) {
                 return filterCb(match[matchIdx], node, {
+                  regex: regex,
                   match: match,
                   matchStart: ++count === 0
                 });
@@ -1295,7 +1386,6 @@
 
         this.opt = opt;
         var totalMatches = 0,
-            matchStart,
             fn = 'wrapMatches';
 
         var _this$getSeparatedKey = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),
@@ -1307,14 +1397,13 @@
 
           _this9.log("Searching with expression \"".concat(regex, "\""));
 
-          _this9[fn](regex, 1, function (term, node) {
-            return _this9.opt.filter(node, kw, totalMatches, matches);
+          _this9[fn](regex, 1, function (term, node, filterInfo) {
+            return _this9.opt.filter(node, kw, totalMatches, matches, filterInfo);
           }, function (element, matchInfo) {
             matches++;
             totalMatches++;
-            matchStart = matchInfo ? matchInfo.matchStart : matchStart;
 
-            _this9.opt.each(element, matchStart);
+            _this9.opt.each(element, matchInfo);
           }, function () {
             if (matches === 0) {
               _this9.opt.noMatch(kw);
