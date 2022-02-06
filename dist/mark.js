@@ -1,7 +1,7 @@
 /*!***************************************************
 * mark.js v9.0.0
 * https://markjs.io/
-* Copyright (c) 2014–2021, Julian Kühnel
+* Copyright (c) 2014–2022, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
@@ -345,13 +345,21 @@
         var _this5 = this;
 
         var itr = this.createIterator(ctx, whatToShow, filterCb);
+
         var ifr = [],
             elements = [],
-            prevNode = null,
-            node;
+            node,
+            prevNode,
+            retrieveNodes = function retrieveNodes() {
+          var _this5$getIteratorNod = _this5.getIteratorNode(itr);
 
-        while (node = itr.nextNode()) {
-          if (this.iframes) {
+          prevNode = _this5$getIteratorNod.prevNode;
+          node = _this5$getIteratorNod.node;
+          return node;
+        };
+
+        if (this.iframes) {
+          while (retrieveNodes()) {
             this.forEachIframe(ctx, function (currIfr) {
               return _this5.checkIframeFilter(node, prevNode, currIfr, ifr);
             }, function (con) {
@@ -359,10 +367,12 @@
                 return elements.push(ifrNode);
               }, filterCb);
             });
+            elements.push(node);
           }
-
-          elements.push(node);
-          prevNode = node;
+        } else {
+          while (node = itr.nextNode()) {
+            elements.push(node);
+          }
         }
 
         elements.forEach(function (node) {
@@ -820,18 +830,16 @@
       }
     }, {
       key: "checkParents",
-      value: function checkParents(textNode, tags) {
-        var value = 0;
-
+      value: function checkParents(textNode, checkName) {
         if (textNode === textNode.parentNode.lastChild) {
-          if (value = tags[textNode.parentNode.nodeName.toLowerCase()]) {
-            return value;
+          if (checkName(textNode.parentNode)) {
+            return true;
           } else {
             var parent = textNode.parentNode;
 
             while (parent === parent.parentNode.lastChild) {
-              if (value = tags[parent.parentNode.nodeName.toLowerCase()]) {
-                return value;
+              if (checkName(parent.parentNode)) {
+                return true;
               }
 
               parent = parent.parentNode;
@@ -840,50 +848,82 @@
 
           var node = textNode.parentNode.nextSibling;
 
-          if (node && node.nodeType === 1 && (value = tags[node.nodeName.toLowerCase()])) {
-            return value;
+          if (node) {
+            if (node.nodeType === 1) {
+              if (checkName(node)) {
+                return true;
+              }
+            } else {
+              return true;
+            }
           }
         }
 
-        return -1;
+        return false;
       }
     }, {
-      key: "checkNextNodes",
-      value: function checkNextNodes(node, tags) {
-        var value = 0;
-
+      key: "checkNextSiblings",
+      value: function checkNextSiblings(node, checkName) {
         if (node && node.nodeType === 1) {
-          if (value = tags[node.nodeName.toLowerCase()]) {
-            return value;
+          if (checkName(node)) {
+            return;
           } else if (node.firstChild) {
-            var prevNode,
+            var prevFirstChild,
                 child = node.firstChild;
 
             while (child) {
               if (child.nodeType === 1) {
-                if (value = tags[child.nodeName.toLowerCase()]) {
-                  return value;
+                if (checkName(child)) {
+                  return;
                 }
 
-                prevNode = child;
+                prevFirstChild = child;
                 child = child.firstChild;
                 continue;
               }
 
-              return -1;
+              return;
             }
 
-            return this.checkNextNodes(prevNode.nextSibling, tags);
+            this.checkNextSiblings(prevFirstChild.nextSibling, checkName);
           }
 
           if (node !== node.parentNode.lastChild) {
-            return this.checkNextNodes(node.nextSibling, tags);
-          } else if (value = tags[node.parentNode.nodeName.toLowerCase()]) {
-            return value;
+            this.checkNextSiblings(node.nextSibling, checkName);
+          } else {
+            checkName(node.parentNode);
           }
         }
+      }
+    }, {
+      key: "prepare",
+      value: function prepare(tags) {
+        var str = "\x01 ",
+            boundary = this.opt.blockElementsBoundary;
 
-        return -1;
+        if (boundary.tagNames && boundary.tagNames.length) {
+          var elements = {};
+
+          for (var key in boundary.tagNames) {
+            elements[boundary.tagNames[key].toLowerCase()] = 1;
+          }
+
+          for (var _key in elements) {
+            tags[_key] = 2;
+          }
+        } else {
+          for (var _key2 in tags) {
+            tags[_key2] = 2;
+          }
+
+          tags['br'] = 1;
+        }
+
+        if (boundary["char"]) {
+          str = boundary["char"].charAt(0) + ' ';
+        }
+
+        return str;
       }
     }, {
       key: "getTextNodesAcrossElements",
@@ -894,11 +934,12 @@
             start,
             text,
             endBySpace,
-            number,
+            type,
             offset,
             nodes = [],
-            str = this.opt.boundaryChar ? this.opt.boundaryChar.charAt(0) + ' ' : "\x01 ",
-            str2 = ' ' + str;
+            boundary = this.opt.blockElementsBoundary,
+            str,
+            str2;
         var tags = {
           div: 1,
           p: 1,
@@ -961,24 +1002,9 @@
           svg: 1
         };
 
-        if (this.opt.blockElementsBoundary) {
-          if (this.opt.blockElements && this.opt.blockElements.length) {
-            var elements = {};
-
-            for (var key in this.opt.blockElements) {
-              elements[this.opt.blockElements[key].toLowerCase()] = 1;
-            }
-
-            for (var _key in elements) {
-              tags[_key] = 2;
-            }
-          } else {
-            for (var _key2 in tags) {
-              tags[_key2] = 2;
-            }
-
-            tags['br'] = 1;
-          }
+        if (boundary) {
+          str = this.prepare(tags);
+          str2 = ' ' + str;
         }
 
         this.iterator.forEachNode(NodeFilter.SHOW_TEXT, function (node) {
@@ -987,23 +1013,29 @@
           text = node.textContent;
           endBySpace = /\s/.test(text[text.length - 1]);
 
-          if (_this3.opt.blockElementsBoundary || !endBySpace) {
-            number = _this3.checkParents(node, tags);
+          if (boundary || !endBySpace) {
+            var success = _this3.checkParents(node, function (nd) {
+              type = tags[nd.nodeName.toLowerCase()];
+              return type;
+            });
 
-            if (number === -1) {
-              number = _this3.checkNextNodes(node.nextSibling, tags);
+            if (!success) {
+              _this3.checkNextSiblings(node.nextSibling, function (nd) {
+                type = tags[nd.nodeName.toLowerCase()];
+                return type;
+              });
             }
 
-            if (number > 0) {
+            if (type) {
               if (!endBySpace) {
-                if (number === 1) {
+                if (type === 1) {
                   val += text + ' ';
                   offset = 1;
-                } else if (number === 2) {
+                } else if (type === 2) {
                   val += text + str2;
                   offset = 3;
                 }
-              } else if (number === 2) {
+              } else if (type === 2) {
                 val += text + str;
                 offset = 2;
               }
@@ -1129,38 +1161,105 @@
         return node;
       }
     }, {
-      key: "separateGroups",
-      value: function separateGroups(node, match, matchIdx, filterCb, eachCb) {
-        var matchLen = match.length;
-
-        for (var i = 1; i < matchLen; i++) {
-          var pos = node.textContent.indexOf(match[i]);
-
-          if (match[i] && pos > -1 && filterCb(match[i], node)) {
-            node = this.wrapGroups(node, pos, match[i].length, eachCb);
-          }
-        }
-
-        return node;
-      }
-    }, {
-      key: "wrapMatchGroups",
-      value: function wrapMatchGroups(dict, match, regex, filterCb, eachCb) {
-        var matchStart = true,
-            max = 0,
-            i = 1,
+      key: "separateGroupsD",
+      value: function separateGroupsD(node, match, params, filterCb, eachCb) {
+        var lastIndex = 0,
+            offset = 0,
+            i = 0,
+            isWrapped = false,
+            matchStart = true,
             group,
             start,
-            end,
-            isMarked;
+            end;
 
-        for (; i < match.length; i++) {
+        while (++i < match.length) {
           group = match[i];
 
           if (group) {
             start = match.indices[i][0];
 
-            if (start >= max) {
+            if (start >= lastIndex) {
+              if (filterCb(group, node, i)) {
+                end = match.indices[i][1];
+                node = this.wrapGroups(node, start - offset, end - start, function (node) {
+                  eachCb(node, matchStart, i);
+                  matchStart = false;
+                });
+
+                if (end > lastIndex) {
+                  lastIndex = end;
+                }
+
+                offset = end;
+                isWrapped = true;
+              }
+            }
+          }
+        }
+
+        if (isWrapped) {
+          params.regex.lastIndex = 0;
+        }
+
+        return node;
+      }
+    }, {
+      key: "separateGroups",
+      value: function separateGroups(node, match, params, filterCb, eachCb) {
+        var startIndex = match.index,
+            i = -1,
+            isWrapped = false,
+            matchStart = true,
+            index,
+            group,
+            start;
+
+        while (++i < params.groups.length) {
+          index = params.groups[i];
+          group = match[index];
+
+          if (group) {
+            start = node.textContent.indexOf(group, startIndex);
+
+            if (start !== -1) {
+              if (filterCb(group, node, index)) {
+                node = this.wrapGroups(node, start, group.length, function (node) {
+                  eachCb(node, matchStart, i);
+                  matchStart = false;
+                });
+                startIndex = 0;
+                isWrapped = true;
+              } else {
+                startIndex = start + group.length;
+              }
+            }
+          }
+        }
+
+        if (isWrapped) {
+          params.regex.lastIndex = 0;
+        }
+
+        return node;
+      }
+    }, {
+      key: "wrapMatchGroupsD",
+      value: function wrapMatchGroupsD(dict, match, params, filterCb, eachCb) {
+        var matchStart = true,
+            lastIndex = 0,
+            i = 0,
+            group,
+            start,
+            end,
+            isMarked;
+
+        while (++i < match.length) {
+          group = match[i];
+
+          if (group) {
+            start = match.indices[i][0];
+
+            if (start >= lastIndex) {
               end = match.indices[i][1];
               isMarked = false;
               this.wrapRangeInMappedTextNode(dict, start, end, function (node) {
@@ -1171,27 +1270,28 @@
                 matchStart = false;
               });
 
-              if (isMarked && end > max) {
-                max = end;
+              if (isMarked && end > lastIndex) {
+                lastIndex = end;
               }
             }
           }
         }
       }
     }, {
-      key: "wrapMatchGroups2",
-      value: function wrapMatchGroups2(dict, match, regex, filterCb, eachCb) {
+      key: "wrapMatchGroups",
+      value: function wrapMatchGroups(dict, match, params, filterCb, eachCb) {
         var matchStart = true,
             startIndex = 0,
-            i = 1,
+            index,
             group,
             start,
             end;
         var s = match.index,
-            text = dict.value.substring(s, regex.lastIndex);
+            text = dict.value.substring(s, params.regex.lastIndex);
 
-        for (; i < match.length; i++) {
-          group = match[i];
+        for (var i = 0; i < params.groups.length; i++) {
+          index = params.groups[i];
+          group = match[index];
 
           if (group) {
             start = text.indexOf(group, startIndex);
@@ -1199,9 +1299,9 @@
 
             if (start !== -1) {
               this.wrapRangeInMappedTextNode(dict, s + start, s + end, function (node) {
-                return filterCb(group, node, i);
+                return filterCb(group, node, index);
               }, function (node, groupStart) {
-                eachCb(node, matchStart, groupStart, i);
+                eachCb(node, matchStart, groupStart, index);
                 matchStart = false;
               });
               startIndex = end;
@@ -1210,21 +1310,112 @@
         }
       }
     }, {
+      key: "collectRegexGroupIndexes",
+      value: function collectRegexGroupIndexes(regex) {
+        var groups = [],
+            stack = [],
+            i = -1,
+            index = 1,
+            brackets = 0,
+            charsRange = false,
+            str = regex.source,
+            reg = /^\(\?<(?![=!])|^\((?!\?)/;
+
+        while (++i < str.length) {
+          switch (str[i]) {
+            case '(':
+              if (!charsRange) {
+                if (reg.test(str.substring(i))) {
+                  stack.push(1);
+
+                  if (brackets === 0) {
+                    groups.push(index);
+                  }
+
+                  brackets++;
+                  index++;
+                } else {
+                  stack.push(0);
+                }
+              }
+
+              break;
+
+            case ')':
+              if (!charsRange && stack.pop() === 1) {
+                brackets--;
+              }
+
+              break;
+
+            case '\\':
+              i++;
+              break;
+
+            case '[':
+              charsRange = true;
+              break;
+
+            case ']':
+              charsRange = false;
+              break;
+
+            default:
+              break;
+          }
+        }
+
+        return groups;
+      }
+    }, {
       key: "wrapMatches",
       value: function wrapMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
         var _this5 = this;
 
-        var matchIdx = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
+        var separateGroups = this.opt.separateGroups,
+            matchIdx = separateGroups || ignoreGroups === 0 ? 0 : ignoreGroups + 1,
+            fn = regex.hasIndices ? 'separateGroupsD' : 'separateGroups',
+            params = !separateGroups ? {} : {
+          regex: regex,
+          groups: regex.hasIndices ? {} : this.collectRegexGroupIndexes(regex)
+        },
+            execution = {
+          abort: false
+        },
+            filterInfo = {
+          execution: execution
+        };
+        var match,
+            matchStart,
+            count = 0;
         this.getTextNodes(function (dict) {
-          dict.nodes.forEach(function (node) {
+          dict.nodes.every(function (node) {
             node = node.node;
-            var match;
 
             while ((match = regex.exec(node.textContent)) !== null && match[matchIdx] !== '') {
-              if (_this5.opt.separateGroups && match.length !== 1) {
-                node = _this5.separateGroups(node, match, matchIdx, filterCb, eachCb);
+              filterInfo.match = match;
+              matchStart = true;
+
+              if (separateGroups) {
+                node = _this5[fn](node, match, params, function (group, node, groupIndex) {
+                  filterInfo.matchStart = matchStart;
+                  filterInfo.groupIndex = groupIndex;
+                  matchStart = false;
+                  return filterCb(group, node, filterInfo);
+                }, function (node, matchStart, groupIndex) {
+                  if (matchStart) {
+                    count++;
+                  }
+
+                  eachCb(node, {
+                    match: match,
+                    matchStart: matchStart,
+                    count: count,
+                    groupIndex: groupIndex
+                  });
+                });
               } else {
-                if (!filterCb(match[matchIdx], node)) {
+                if (!filterCb(match[matchIdx], node, filterInfo)) {
                   continue;
                 }
 
@@ -1236,13 +1427,24 @@
                   }
                 }
 
-                node = _this5.wrapGroups(node, pos, match[matchIdx].length, eachCb);
+                node = _this5.wrapGroups(node, pos, match[matchIdx].length, function (node) {
+                  count++;
+                  eachCb(node, {
+                    match: match,
+                    count: count
+                  });
+                });
+                regex.lastIndex = 0;
               }
 
-              regex.lastIndex = 0;
+              if (execution.abort) {
+                break;
+              }
             }
+
+            return !execution.abort;
           });
-          endCb();
+          endCb(count);
         });
       }
     }, {
@@ -1250,25 +1452,42 @@
       value: function wrapMatchesAcrossElements(regex, ignoreGroups, filterCb, eachCb, endCb) {
         var _this6 = this;
 
-        var matchIdx = ignoreGroups === 0 || this.opt.separateGroups ? 0 : ignoreGroups + 1;
-        var match, count;
+        var separateGroups = this.opt.separateGroups,
+            matchIdx = separateGroups || ignoreGroups === 0 ? 0 : ignoreGroups + 1,
+            fn = regex.hasIndices ? 'wrapMatchGroupsD' : 'wrapMatchGroups',
+            params = !separateGroups || regex.hasIndices ? {} : {
+          regex: regex,
+          groups: this.collectRegexGroupIndexes(regex)
+        },
+            execution = {
+          abort: false
+        },
+            filterInfo = {
+          execution: execution
+        };
+        var match,
+            matchStart,
+            count = 0;
         this.getTextNodesAcrossElements(function (dict) {
           while ((match = regex.exec(dict.value)) !== null && match[matchIdx] !== '') {
-            count = -1;
+            filterInfo.match = match;
+            matchStart = true;
 
-            if (_this6.opt.separateGroups) {
-              var fn = regex.hasIndices ? 'wrapMatchGroups' : 'wrapMatchGroups2';
-
-              _this6[fn](dict, match, regex, function (group, node, groupIndex) {
-                return filterCb(group, node, {
-                  match: match,
-                  matchStart: ++count === 0,
-                  groupIndex: groupIndex
-                });
+            if (separateGroups) {
+              _this6[fn](dict, match, params, function (group, node, groupIndex) {
+                filterInfo.matchStart = matchStart;
+                filterInfo.groupIndex = groupIndex;
+                matchStart = false;
+                return filterCb(group, node, filterInfo);
               }, function (node, matchStart, groupStart, groupIndex) {
+                if (matchStart) {
+                  count++;
+                }
+
                 eachCb(node, {
                   match: match,
                   matchStart: matchStart,
+                  count: count,
                   groupIndex: groupIndex,
                   groupStart: groupStart
                 });
@@ -1285,21 +1504,28 @@
               var end = start + match[matchIdx].length;
 
               _this6.wrapRangeInMappedTextNode(dict, start, end, function (node) {
-                return filterCb(match[matchIdx], node, {
-                  regex: regex,
-                  match: match,
-                  matchStart: ++count === 0
-                });
+                filterInfo.matchStart = matchStart;
+                matchStart = false;
+                return filterCb(match[matchIdx], node, filterInfo);
               }, function (node, matchStart) {
+                if (matchStart) {
+                  count++;
+                }
+
                 eachCb(node, {
                   match: match,
-                  matchStart: matchStart
+                  matchStart: matchStart,
+                  count: count
                 });
               });
             }
+
+            if (execution.abort) {
+              break;
+            }
           }
 
-          endCb();
+          endCb(count);
         });
       }
     }, {
@@ -1371,19 +1597,12 @@
         var totalMatches = 0,
             fn = 'wrapMatches';
 
-        var eachCb = function eachCb(element, matchInfo) {
-          totalMatches++;
-
-          _this8.opt.each(element, matchInfo);
-        };
-
         if (this.opt.acrossElements) {
           fn = 'wrapMatchesAcrossElements';
 
           if (!regexp.global && !regexp.sticky) {
-            var splits = regexp.toString().split('/'),
-                flags = 'g' + splits[splits.length - 1];
-            regexp = new RegExp(regexp.source, flags);
+            var splits = regexp.toString().split('/');
+            regexp = new RegExp(regexp.source, 'g' + splits[splits.length - 1]);
             this.log('RegExp is recompiled with g flag because it must have g flag');
           }
         }
@@ -1391,12 +1610,16 @@
         this.log("Searching with expression \"".concat(regexp, "\""));
         this[fn](regexp, this.opt.ignoreGroups, function (match, node, filterInfo) {
           return _this8.opt.filter(node, match, totalMatches, filterInfo);
-        }, eachCb, function () {
-          if (totalMatches === 0) {
+        }, function (element, matchInfo) {
+          totalMatches++;
+
+          _this8.opt.each(element, matchInfo);
+        }, function (totalCount) {
+          if (totalCount === 0) {
             _this8.opt.noMatch(regexp);
           }
 
-          _this8.opt.done(totalMatches);
+          _this8.opt.done(totalMatches, totalCount);
         });
       }
     }, {
@@ -1405,12 +1628,15 @@
         var _this9 = this;
 
         this.opt = opt;
-        var totalMatches = 0,
-            fn = 'wrapMatches';
+        var index = 0,
+            totalMatches = 0,
+            totalCount = 0;
+        var fn = this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+            termStats = {};
 
         var _this$getSeparatedKey = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),
-            kwArr = _this$getSeparatedKey.keywords,
-            kwArrLen = _this$getSeparatedKey.length,
+            keywords = _this$getSeparatedKey.keywords,
+            length = _this$getSeparatedKey.length,
             handler = function handler(kw) {
           var regex = new RegExpCreator(_this9.opt).create(kw);
           var matches = 0;
@@ -1424,27 +1650,27 @@
             totalMatches++;
 
             _this9.opt.each(element, matchInfo);
-          }, function () {
-            if (matches === 0) {
+          }, function (count) {
+            totalCount += count;
+
+            if (count === 0) {
               _this9.opt.noMatch(kw);
             }
 
-            if (kwArr[kwArrLen - 1] === kw) {
-              _this9.opt.done(totalMatches);
+            termStats[kw] = count;
+
+            if (++index < length) {
+              handler(keywords[index]);
             } else {
-              handler(kwArr[kwArr.indexOf(kw) + 1]);
+              _this9.opt.done(totalMatches, totalCount, termStats);
             }
           });
         };
 
-        if (this.opt.acrossElements) {
-          fn = 'wrapMatchesAcrossElements';
-        }
-
-        if (kwArrLen === 0) {
-          this.opt.done(totalMatches);
+        if (length === 0) {
+          this.opt.done(totalMatches, 0, termStats);
         } else {
-          handler(kwArr[0]);
+          handler(keywords[index]);
         }
       }
     }, {
