@@ -1511,6 +1511,7 @@
       value: function wrapRangeFromIndex(ranges, filterCb, eachCb, endCb) {
         var _this7 = this;
 
+        var count = 0;
         this.getTextNodes(function (dict) {
           var originalLength = dict.value.length;
           ranges.forEach(function (range, counter) {
@@ -1522,12 +1523,16 @@
             if (valid) {
               _this7.wrapRangeInMappedTextNode(dict, start, end, function (node) {
                 return filterCb(node, range, dict.value.substring(start, end), counter);
-              }, function (node) {
+              }, function (node, rangeStart) {
+                if (rangeStart) {
+                  count++;
+                }
+
                 eachCb(node, range);
               });
             }
           });
-          endCb();
+          endCb(count);
         });
       }
     }, {
@@ -1572,7 +1577,7 @@
         var _this8 = this;
 
         this.opt = opt;
-        var totalMatches = 0,
+        var totalMarks = 0,
             fn = 'wrapMatches';
 
         if (this.opt.acrossElements) {
@@ -1587,17 +1592,17 @@
 
         this.log("Searching with expression \"".concat(regexp, "\""));
         this[fn](regexp, this.opt.ignoreGroups, function (match, node, filterInfo) {
-          return _this8.opt.filter(node, match, totalMatches, filterInfo);
+          return _this8.opt.filter(node, match, totalMarks, filterInfo);
         }, function (element, matchInfo) {
-          totalMatches++;
+          totalMarks++;
 
           _this8.opt.each(element, matchInfo);
-        }, function (totalCount) {
-          if (totalCount === 0) {
+        }, function (totalMatches) {
+          if (totalMatches === 0) {
             _this8.opt.noMatch(regexp);
           }
 
-          _this8.opt.done(totalMatches, totalCount);
+          _this8.opt.done(totalMarks, totalMatches);
         });
       }
     }, {
@@ -1607,8 +1612,8 @@
 
         this.opt = opt;
         var index = 0,
-            totalMatches = 0,
-            totalCount = 0;
+            totalMarks = 0,
+            totalMatches = 0;
         var fn = this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
             termStats = {};
 
@@ -1622,14 +1627,14 @@
           _this9.log("Searching with expression \"".concat(regex, "\""));
 
           _this9[fn](regex, 1, function (term, node, filterInfo) {
-            return _this9.opt.filter(node, kw, totalMatches, matches, filterInfo);
+            return _this9.opt.filter(node, kw, totalMarks, matches, filterInfo);
           }, function (element, matchInfo) {
             matches++;
-            totalMatches++;
+            totalMarks++;
 
             _this9.opt.each(element, matchInfo);
           }, function (count) {
-            totalCount += count;
+            totalMatches += count;
 
             if (count === 0) {
               _this9.opt.noMatch(kw);
@@ -1640,13 +1645,13 @@
             if (++index < length) {
               handler(keywords[index]);
             } else {
-              _this9.opt.done(totalMatches, totalCount, termStats);
+              _this9.opt.done(totalMarks, totalMatches, termStats);
             }
           });
         };
 
         if (length === 0) {
-          this.opt.done(totalMatches, 0, termStats);
+          this.opt.done(0, 0, termStats);
         } else {
           handler(keywords[index]);
         }
@@ -1657,7 +1662,7 @@
         var _this10 = this;
 
         this.opt = opt;
-        var totalMatches = 0,
+        var totalMarks = 0,
             ranges = this.checkRanges(rawRanges);
 
         if (ranges && ranges.length) {
@@ -1665,14 +1670,14 @@
           this.wrapRangeFromIndex(ranges, function (node, range, match, counter) {
             return _this10.opt.filter(node, range, match, counter);
           }, function (element, range) {
-            totalMatches++;
+            totalMarks++;
 
             _this10.opt.each(element, range);
-          }, function () {
-            _this10.opt.done(totalMatches);
+          }, function (totalMatches) {
+            _this10.opt.done(totalMarks, totalMatches);
           });
         } else {
-          this.opt.done(totalMatches);
+          this.opt.done(0, 0);
         }
       }
     }, {
