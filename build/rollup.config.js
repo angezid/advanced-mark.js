@@ -32,6 +32,39 @@ const output = {
       })()
     })
   },
+  output_es6 = {
+    name: (() => {
+      const str = pkg.name.split('/').pop().replace('.js', '');
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    })(),
+    file: pkg.main,
+    format: 'es',
+    extend: true,
+    banner: handlebars.compile(fs.readFileSync(path.join(
+      __dirname, 'templates/copyright.hbs'
+    ), 'utf8'))({
+      name: pkg.name.split('/').pop(),
+      version: `v${pkg.version}`,
+      homepage: pkg.homepage,
+      author: pkg.author.name,
+      license: pkg.license,
+      year: (() => {
+        const startYear = 2014,
+          year = new Date().getFullYear();
+        return year > startYear ? `${startYear}–${year}` : year;
+      })()
+    })
+  },
+  outputJquery_es6 = Object.assign({}, output_es6, {
+    file: (() => {
+      const spl = pkg.main.split('/');
+      spl[spl.length - 1] = `jquery.${spl[spl.length - 1]}`;
+      return spl.join('/');
+    })(),
+    globals: {
+      'jquery': 'jQuery'
+    }
+  }),
   outputJquery = Object.assign({}, output, {
     file: (() => {
       const spl = pkg.main.split('/');
@@ -43,6 +76,7 @@ const output = {
     }
   }),
   externalJquery = ['jquery'],
+  externalJquery_es6 = ['./jquery.module.js'],
   plugins = [
     // for external dependencies (just in case)
     resolve(),
@@ -89,20 +123,39 @@ const output = {
   })();
 
 // Actual config export
-export default [{
+export default [
+// es6
+{
+  input: 'src/vanilla.js',
+  output: Object.assign({}, output_es6, {
+    file: output_es6.file.replace('.js', '.es6.js')
+  }),
+  plugins
+}, {
+  input: 'src/jquery_es6.js',
+  output: Object.assign({}, outputJquery_es6, {
+    file: outputJquery_es6.file.replace('.js', '.es6.js')
+  }),
+  plugins,
+  external: externalJquery_es6
+},
+// umd
+{
   input: 'src/vanilla.js',
   output: Object.assign({}, output, {
-    file: output.file.replace('.js', '.es6.js')
+    file: output.file.replace('.js', '.umd.js')
   }),
   plugins
 }, {
   input: 'src/jquery.js',
   output: Object.assign({}, outputJquery, {
-    file: outputJquery.file.replace('.js', '.es6.js')
+    file: outputJquery.file.replace('.js', '.umd.js')
   }),
   plugins,
   external: externalJquery
-}, {
+},
+// ES5
+{
   input: 'src/vanilla.js',
   output,
   plugins: pluginsES5
@@ -111,20 +164,40 @@ export default [{
   output: outputJquery,
   plugins: pluginsES5,
   external: externalJquery
-}, {
+},
+
+// minified es6
+{
   input: 'src/vanilla.js',
-  output: Object.assign({}, output, {
-    file: output.file.replace('.js', '.es6.min.js')
+  output : Object.assign({}, output_es6, {
+    file: output_es6.file.replace('.js', '.es6.min.js')
+  }),
+  plugins: minifyPlugins,
+}, {
+  input: 'src/jquery_es6.js',
+  output: Object.assign({}, outputJquery_es6, {
+    file: outputJquery_es6.file.replace('.js', '.es6.min.js')
+  }),
+  plugins: minifyPlugins,
+  external: externalJquery_es6
+},
+// minified umd.
+{
+  input: 'src/vanilla.js',
+  output : Object.assign({}, output, {
+    file: output.file.replace('.js', '.umd.min.js')
   }),
   plugins: minifyPlugins,
 }, {
   input: 'src/jquery.js',
   output: Object.assign({}, outputJquery, {
-    file: outputJquery.file.replace('.js', '.es6.min.js')
+    file: outputJquery.file.replace('.js', '.umd.min.js')
   }),
   plugins: minifyPlugins,
   external: externalJquery
-}, {
+},
+// minified ES5
+{
   input: 'src/vanilla.js',
   output: Object.assign({}, output, {
     file: output.file.replace('.js', '.min.js')

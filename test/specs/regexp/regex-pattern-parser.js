@@ -1,14 +1,16 @@
 
 'use strict';
+/* eslint-disable */
 describe('test collectRegexGroupIndexes & separateGroups methods', function() {
   var $ctx,
     // this regex contains different grouping and other constructs to test
     // the RegExp pattern parser
     reg = /(?<=f)(\w(?:\w(a))a(a))((?<gr5>\2)+)(b(b(?<n>b))(?:bb)(?!a))()(?:)(?<!@)((?:\k<n>|\(|\)|\\)+)([a-z/()[\]\\]+?)(?=d)/;
+    /* eslint-enable */
 
   beforeEach(function() {
+    loadFixtures('regexp/regex-pattern-parser.html');
     $ctx = $('.regex-pattern-parser');
-    $ctx.unmark();
   });
 
   // test 'separateGroups' method
@@ -39,10 +41,9 @@ describe('test collectRegexGroupIndexes & separateGroups methods', function() {
     });
   });
 
-  // test 'separateGroupsD' method 
-  it('should count and test content of groups with d flag2', function(done) {
+  // test 'separateGroupsD' method for comparison
+  it('should count and test content of groups with d flag', function(done) {
     var groupIndexes = [], groupCount = 0, content = '';
-    
     new Mark($ctx[0]).markRegExp(new RegExp(reg.source, 'd'), {
       'separateGroups' : true,
       filter : function(node, group, total, obj) {
