@@ -1,5 +1,5 @@
 
-/*'use strict';
+'use strict';
 // in case when it become possible to test RegExp group `indices`
 describe(
   'markRegExp with acrossElements and separateGroups and RegExp.hasIndices',
@@ -7,8 +7,11 @@ describe(
     var $ctx,
       matchCount, group1Count, group2Count, group3Count,
       message = 'should count and test content of separate groups ',
-      groupReg = /\b(group1)\b.+?\b(group2)\b@?(?:\s+(?:\w+\s+)?(\w+3))?\b/dgi,
-      nestedGr = /\b(group1\b.+?\b(group2)\b@?)(?:\s+(?:\w+\s+)?(\w+3))?\b/dgi;
+      flags = 'dgi',
+      r1 = '\\b(group1)\\b.+?\\b(group2)\\b@?(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
+      groupReg = new RegExp(r1, flags),
+      r2 = '\\b(group1\\b.+?\\b(group2)\\b@?)(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
+      nestedGr = new RegExp(r2, flags);
 
     beforeEach(function() {
       // it used the same fixture as a spec separate-groups.js
@@ -164,4 +167,4 @@ describe(
       return text;
     }
   }
-);*/
+);

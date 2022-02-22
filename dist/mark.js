@@ -757,7 +757,7 @@
           start = parseInt(range.start, 10);
           end = start + parseInt(range.length, 10);
 
-          if (this.isNumeric(range.start) && this.isNumeric(range.length) && end - last > 0 && end - start > 0) {
+          if (this.isNumeric(range.start) && this.isNumeric(range.length) && start >= last && end > start) {
             valid = true;
           } else {
             this.log('Ignoring invalid or overlapping range: ' + "".concat(JSON.stringify(range)));
@@ -794,7 +794,7 @@
           valid = false;
           this.log("Invalid range: ".concat(JSON.stringify(range)));
           this.opt.noMatch(range);
-        } else if (string.substring(start, end).replace(/\s+/g, '') === '') {
+        } else if (!/\S/.test(string.substring(start, end))) {
           valid = false;
           this.log('Skipping whitespace only range: ' + JSON.stringify(range));
           this.opt.noMatch(range);

@@ -232,8 +232,8 @@ class Mark {
       if (
         this.isNumeric(range.start) &&
         this.isNumeric(range.length) &&
-        end - last > 0 &&
-        end - start > 0
+        start >= last &&
+        end > start
       ) {
         valid = true;
       } else {
@@ -284,7 +284,7 @@ class Mark {
       valid = false;
       this.log(`Invalid range: ${JSON.stringify(range)}`);
       this.opt.noMatch(range);
-    } else if (string.substring(start, end).replace(/\s+/g, '') === '') {
+    } else if ( !/\S/.test(string.substring(start, end))) {
       valid = false;
       // whitespace only; even if wrapped it is not visible
       this.log('Skipping whitespace only range: ' + JSON.stringify(range));
@@ -936,7 +936,7 @@ class Mark {
         end = start + group.length;
 
         if (start !== -1) {
-          this.wrapRangeInMappedTextNode(dict, s + start, s + end, (node) => {
+          this.wrapRangeInMappedTextNode(dict, s + start, s + end, node => {
             return filterCb(group, node, index);
           }, (node, groupStart) => {
             eachCb(node, matchStart, groupStart, index);
@@ -965,7 +965,7 @@ class Mark {
     while (++i < str.length) {
       switch (str[i]) {
         case '(':
-          if (!charsRange) {
+          if ( !charsRange) {
             if (reg.test(str.substring(i))) {
               stack.push(1);
               if (brackets === 0) {
@@ -1254,12 +1254,13 @@ class Mark {
    * @param {HTMLElement} node - The text node which includes the range
    * @param {Mark~rangeObject} range - the current range object
    * @param {string} match - string extracted from the matching range
-   * @param {number} counter - A counter indicating the number of all marks
+   * @param {number} counter - The current range index
    */
 
   /**
    * Callback on end
    * @callback Mark~wrapRangeFromIndexEndCallback
+   * @param {number} count - The number of wrapped ranges
    */
   /**
    * Wraps the indicated ranges across all HTML elements in all contexts
@@ -1270,8 +1271,8 @@ class Mark {
    * @access protected
    */
   wrapRangeFromIndex(ranges, filterCb, eachCb, endCb) {
-    let count = 0; 
-    
+    let count = 0;
+
     this.getTextNodes(dict => {
       const originalLength = dict.value.length;
       ranges.forEach((range, counter) => {
@@ -1360,8 +1361,7 @@ class Mark {
    * Callback when finished
    * @callback Mark~commonDoneCallback
    * @param {number} totalMarks - The total number of marked elements
-   * @param {number} totalMatches - The number of total matches when
-   * the 'acrossElements' option is enabled
+   * @param {number} totalMatches - The exact number of total matches
    * @param {object} termStats - An object containing an individual term's
    * matches count for {@link Mark#mark} method.
    */
@@ -1562,7 +1562,7 @@ class Mark {
    * @param {HTMLElement} node - The text node which includes the range
    * @param {array} range - array of range start and end points
    * @param {string} match - string extracted from the matching range
-   * @param {number} counter - A counter indicating the number of all marks
+   * @param {number} counter - The current range index
    */
 
   /**
@@ -1584,7 +1584,7 @@ class Mark {
    */
   markRanges(rawRanges, opt) {
     this.opt = opt;
-    let totalMarks = 0, 
+    let totalMarks = 0,
       ranges = this.checkRanges(rawRanges);
     if (ranges && ranges.length) {
       this.log(

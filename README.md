@@ -2,34 +2,24 @@
 
 ##### Highlight keywords using JavaScript. Intended for every use case. <br> Can e.g. be used to mark text in search results.
 
-[![License][license-image]][license]
-[![jsDelivr Hits][jsdelivr-image]][jsdelivr]
-[![Greenkeeper][greenkeeper-image]][greenkeeper]  
+Description and how to use can be found here [![Radical changes of across elements pipeline](https://github.com/julmot/mark.js/pull/450)]
 
-## Documentation and Further Information
+## Modules
+*. es6.*.js - pure ES6 Modules
+*.umd.*.js - UMD modules
 
-**Please view the [website][website] for documentation and further information!**
+There is a little hack with jquery modules. Maybe there is a better solution. It was tested on Firefox and Chrome.
 
-## Contributing
+### Module examples
+In the ModuleExamples folder, there are two simple examples.
+To test them on a local machine:
 
-See the [contribution guidelines][contributing].
+copy jquery.mark.es6.js, mark.es6.js, and jquery.js to the ModuleExamples directory
 
-## Changelog
+npm install --global http-server
 
-Changes are documented in [release][releases] descriptions.
+cd 'full path to ModuleExamples directory'    // change path
 
----
+http-server  // launch server
 
-Happy hacking!
-
-[license]: https://raw.githubusercontent.com/julmot/mark.js/master/LICENSE
-[jsdelivr]: https://www.jsdelivr.com/package/npm/mark.js
-[greenkeeper]: https://github.com/julmot/mark.js
-
-[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[jsdelivr-image]: https://data.jsdelivr.com/v1/package/npm/mark.js/badge?style=rounded
-[greenkeeper-image]: https://badges.greenkeeper.io/julmot/mark.js.svg
-
-[website]: https://markjs.io/
-[contributing]: https://github.com/julmot/mark.js/blob/master/CONTRIBUTING.md
-[releases]: https://github.com/julmot/mark.js/releases
+visit http://localhost:8080
