@@ -32,29 +32,9 @@ const output = {
       })()
     })
   },
-  output_es6 = {
-    name: (() => {
-      const str = pkg.name.split('/').pop().replace('.js', '');
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    })(),
-    file: pkg.main,
-    format: 'es',
-    extend: true,
-    banner: handlebars.compile(fs.readFileSync(path.join(
-      __dirname, 'templates/copyright.hbs'
-    ), 'utf8'))({
-      name: pkg.name.split('/').pop(),
-      version: `v${pkg.version}`,
-      homepage: pkg.homepage,
-      author: pkg.author.name,
-      license: pkg.license,
-      year: (() => {
-        const startYear = 2014,
-          year = new Date().getFullYear();
-        return year > startYear ? `${startYear}–${year}` : year;
-      })()
-    })
-  },
+  output_es6 = Object.assign({}, output, {
+    format : 'es'
+  }),
   outputJquery_es6 = Object.assign({}, output_es6, {
     file: (() => {
       const spl = pkg.main.split('/');
