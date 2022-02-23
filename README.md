@@ -8,7 +8,7 @@ Description and how to use can be found here [![Radical changes of across elemen
 *. es6.*.js - pure ES6 Modules
 *.umd.*.js - UMD modules
 
-There is a little hack with jquery modules. Maybe there is a better solution. It was tested on Firefox and Chrome.
+It was tested on Firefox and Chrome.
 
 ### Module examples
 In the ModuleExamples folder, there are two simple examples.

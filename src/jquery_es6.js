@@ -1,5 +1,5 @@
 import Mark from './lib/mark';
-import $ from './jquery.module.js';
+import './jquery.js';
 
 $.fn.mark = function(sv, opt) {
   new Mark(this.get()).mark(sv, opt);

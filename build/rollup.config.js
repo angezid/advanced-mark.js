@@ -56,7 +56,7 @@ const output = {
     }
   }),
   externalJquery = ['jquery'],
-  externalJquery_es6 = ['./jquery.module.js'],
+  externalJquery_es6 = ['./jquery.js'],
   plugins = [
     // for external dependencies (just in case)
     resolve(),

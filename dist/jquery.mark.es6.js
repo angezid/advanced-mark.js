@@ -5,7 +5,7 @@
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
-import $ from './jquery.module.js';
+import './jquery.js';
 
 class DOMIterator {
   constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000) {
