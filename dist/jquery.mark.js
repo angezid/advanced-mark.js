@@ -679,10 +679,14 @@
           'iframesTimeout': 5000,
           'separateWordSearch': true,
           'acrossElements': false,
+          'separateGroups': false,
           'wrapAllRanges': false,
           'ignoreGroups': 0,
           'each': function each() {},
           'noMatch': function noMatch() {},
+          'filterMatch': function filterMatch() {
+            return true;
+          },
           'filter': function filter() {
             return true;
           },

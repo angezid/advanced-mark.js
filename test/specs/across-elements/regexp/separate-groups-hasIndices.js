@@ -63,7 +63,6 @@ describe(
       new Mark($ctx[0]).markRegExp(nestedGr, {
         'acrossElements' : true,
         'separateGroups' : true,
-        'wrapAllRanges' : false,
         filter : function(node, group) {
           // current group matching string. Note: if group lays across several
           // elements the matching string will be the same while the current
@@ -86,7 +85,6 @@ describe(
       new Mark($ctx[0]).markRegExp(nestedGr, {
         'acrossElements' : true,
         'separateGroups' : true,
-        'wrapAllRanges' : false,
         each : eachMark,
         'done' : function() {
           // mch, gr1, gr2, gr3,

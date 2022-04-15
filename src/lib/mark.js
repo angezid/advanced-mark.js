@@ -54,10 +54,12 @@ class Mark {
       'iframesTimeout': 5000,
       'separateWordSearch': true,
       'acrossElements': false,
+      'separateGroups': false,
       'wrapAllRanges': false,
       'ignoreGroups': 0,
       'each': () => {},
       'noMatch': () => {},
+      'filterMatch': () => true,
       'filter': () => true,
       'done': () => {},
       'debug': false,
@@ -621,6 +623,12 @@ class Mark {
     return  retNode;
   }
 
+  /**
+   * Creates a new mark element, sets necessary attributes, adds text content,
+   * and replaces the old node by the new one
+   * @param  {HTMLElement} node - The DOM text node
+   * @return {HTMLElement} Returns the created DOM node
+   */
   createMarkElement(node) {
     const name = !this.opt.element ? 'mark' : this.opt.element;
 
@@ -636,6 +644,19 @@ class Mark {
     return  markNode;
   }
 
+  /**
+   * Wraps the instance element and class around matches that fit the start and
+   * end positions within the node, creates and inserts two objects into array
+   * after the current object to keep an ascending order of the start property
+   * @param {object} n - The current processed object
+   * @param {number} s - The position where to start wrapping
+   * @param {number} e - The position where to end wrapping
+   * @param {number} start - The start position of the match
+   * @param {number} index - The current index of the processed object
+   * @param {object[]} nodes - An array of objects
+   * @return {object} Returns the object containing data about the last
+   * splitted text node
+   */
   wrapRangeInTextNodeInsert(n, s, e, start, index, nodes) {
     let node = n.node.splitText(s),
       restNode = node.splitText(e - s),
@@ -708,6 +729,7 @@ class Mark {
       rangeStart = true;
 
     if (this.opt.wrapAllRanges) {
+      // checks and prepares the starting index in case of nesting/overlapping
       while (i >= 0 && dict.nodes[i].start > start) {
         i--;
       }
@@ -720,7 +742,6 @@ class Mark {
     for (i; i < dict.nodes.length; i++)  {
       const sibl = dict.nodes[i + 1];
       if (typeof sibl === 'undefined' || sibl.start > start) {
-      //if (i === len - 1 || dict.nodes[i+1] && dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
 
         if (!filterCb(n.node)) {
@@ -738,7 +759,7 @@ class Mark {
         if (s >= 0 && e > s) {
           if (this.opt.wrapAllRanges) {
             n = this.wrapRangeInTextNodeInsert(n, s, e, start, i, dict.nodes);
-            
+
           } else {
             n.node = this.wrapRangeInTextNode(n.node, s, e);
             // set new text node start index in the case of subsequent matches
@@ -746,7 +767,7 @@ class Mark {
             n.start += e;
             // set the last string index
             dict.lastTextIndex = n.start;
-          } 
+          }
           eachCb(n.node.previousSibling, rangeStart);
           rangeStart = false;
         }
@@ -959,7 +980,7 @@ class Mark {
       this.setLastIndex(params.regex, end);
     }
   }
-  
+
   /**
   * When processing zero length match, there is a need to set the RegExp
   * lastIndex depending on conditions. It's necessary to avoid infinite loop
@@ -1081,9 +1102,9 @@ class Mark {
   /* eslint-enable complexity */
 
   /**
-   * Filter callback before each wrapping
+   * Group filter callback before each wrapping
    * @callback Mark~wrapSeparateGroupsFilterCallback
-   * @param {string} match - The matching string
+   * @param {string} match - The group matching string
    * @param {HTMLElement} node - The text node where the match occurs
    * @param {Mark~filterInfoObject} filterInfo - The object containing match
    * information
@@ -1152,11 +1173,12 @@ class Mark {
             });
             eMatchStart = false;
           });
-
+          
           if (execution.abort) {
             break;
           }
         }
+
         // break loop on custom abort
         return !execution.abort;
       });
@@ -1278,13 +1300,6 @@ class Mark {
    */
 
   /**
-   * Callback for each wrapped element
-   * @callback Mark~wrapGroupsAcrossElementsEachCallback
-   * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object containing the match
-   * information
-   */
-  /**
    * Filter callback before each wrapping
    * @callback Mark~wrapGroupsAcrossElementsFilterCallback
    * @param {string} match - The matching string
@@ -1292,7 +1307,13 @@ class Mark {
    * @param {Mark~filterInfoObject} filterInfo - The object containing
    * the match information
    */
-
+  /**
+   * Callback for each wrapped element
+   * @callback Mark~wrapGroupsAcrossElementsEachCallback
+   * @param {HTMLElement} element - The marked DOM element
+   * @param {Mark~matchInfoObject} matchInfo - The object containing the match
+   * information
+   */
   /**
    * Callback on end
    * @callback Mark~wrapGroupsAcrossElementsEndCallback
