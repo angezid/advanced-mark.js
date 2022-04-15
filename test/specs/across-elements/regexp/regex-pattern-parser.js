@@ -3,8 +3,7 @@
 /* eslint-disable */
 describe('test collectRegexGroupIndexes & wrapMatchGroups methods with acrossElements option', function() {
   var $ctx,
-    // this regex contains different grouping and other constructs to test
-    // the RegExp pattern parser
+    // this regex contains different grouping and other constructs to test the RegExp pattern parser
     reg = /(?<=f)(\w(?:\w(a))a(a))((?<gr5>\2)+)(b(b(?<n>b))(?:bb)(?!a))()(?:)(?<!@)((?:\k<n>|\(|\)|\\)+)([a-z/()[\]\\]+?)(?=d)/;
     /* eslint-enable */
 
