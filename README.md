@@ -5,8 +5,8 @@
 Description and how to use can be found here [![Radical changes of across elements pipeline](https://github.com/julmot/mark.js/pull/450)]
 
 ## Modules
-*. es6.*.js - pure ES6 Modules
-*.umd.*.js - UMD modules    // previously named as *. es6.*.js 
+\*. es6.\*.js - pure ES6 Modules
+\*.umd.\*.js - UMD modules    // previously named as \*. es6.\*.js 
 
 It was tested on Firefox and Chrome.
 
@@ -30,15 +30,15 @@ The `markRanges` method with `wrapAllRanges` option, can mark nesting/overlappin
 The `markRegExp` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can mark:
 nesting groups, capture groups inside positive lookaround assertions. It's practically removes all restrictions. 
 
-Note: the "wrapAllRanges" option can cause performance degradation, if the context contains a very large number of text nodes and a large number of mark elements.
+Note: the `wrapAllRanges` option can cause performance degradation, if the context contains a very large number of text nodes and a large number of mark elements. 
 This is because each wrap element inserts two objects into the array, resulting in the creation of a new copy of the array.
 
-The 8MB file containing 177000 text nodes, marked groups 2500:
-with `wrapAllRanges` option - 0.65 sec.
+The 8MB file containing 177000 text nodes, marked groups 2500:  
+with `wrapAllRanges` option - 0.65 sec.  
 without - 0.45 sec.
 
-The same file, marked groups 29000:
-with `wrapAllRanges` option - 3.6 sec.
+The same file, marked groups 29000:  
+with `wrapAllRanges` option - 3.6 sec.  
 without - 0.7 sec.
 
 With `acrossElements` option the code simple:
@@ -47,11 +47,6 @@ context.markRegExp(/. . . /dg, {
     'acrossElements' : true,
     'separateGroups' : true,
     'wrapAllRanges' : true,
-    'filterMatch' : function(match) {
-        // to filter out whole match on presence of some optional group
-        if(match[num]) return false;
-		return  true;
-	},
 });
 ```
 
@@ -96,48 +91,5 @@ function buildRanges(context, regex) {
     }
   });
   return  ranges;
-}
-```
-
-Simple example with next/previous buttons. It's uses numbers as unique match identifiers in continuous ascending order.
-``` js
-let currentIndex = 0,
-    matchNumber = 0,
-    matchCount,
-    marks,
-    // highlight 3 words in sentences in any order
-    regex = /(?=[^.]*?(word1))(?=[^.]*?(word2))(?=[^.]*?(word3))/dgi;
-    
-context.markRegExp(regex, {
-    'acrossElements' : true,
-    'separateGroups' : true,
-    'wrapAllRanges' : true,
-    'filterMatch' : function(match) {
-        // if(match[num]) return false;
-		matchNumber++;
-		return  true;
-	},
-    'each' : function(elem, info) {
-        elem.setAttribute('data-markjs', matchNumber);
-    },
-    'done' : function(totalMarks, totalMatches) {
-        marks = $('mark');
-        matchCount = totalMatches;
-    }
-});
-
-prevButton.click(function() {
-	if(--currentIndex <= 0) currentIndex = 0;
-	highlightMatchGroups();
-});
-
-nextButton.click(function() {
-	if(++currentIndex > matchCount) currentIndex = matchCount;
-	highlightMatchGroups();
-});
-
-function highlightMatchGroups() {
-	marks.removeClass('current');
-	marks.filter((i, elem) => elem.getAttribute('data-markjs') == currentIndex).addClass('current');
 }
 ```
