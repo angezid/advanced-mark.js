@@ -93,3 +93,49 @@ function buildRanges(context, regex) {
   return  ranges;
 }
 ```
+
+Simple example with next/previous buttons. It's uses numbers as unique match identifiers in continuous ascending order.
+``` js
+let currentIndex = 0,
+    matchId = 0,
+    matchCount,
+    marks,
+    // highlight 3 words in sentences in any order
+    regex = /(?=[^.]*?(word1))(?=[^.]*?(word2))(?=[^.]*?(word3))/dgi;
+    
+context.markRegExp(regex, {
+    'acrossElements' : true,
+    'separateGroups' : true,
+    'wrapAllRanges' : true,
+    'filter' : function(node, group, totalMatch, info) {
+        // filter out whole match on presence of some conditional group before incrementing matchId
+        // if(match[num]) return false;
+        if(info.matchStart) {
+            matchId++;
+        }
+        return  true;
+    },
+    'each' : function(elem, info) {
+        elem.setAttribute('data-markjs', matchId);
+    },
+    'done' : function(totalMarks, totalMatches) {
+        marks = $('mark');
+        matchCount = totalMatches;
+    }
+});
+
+prevButton.click(function() {
+    if(--currentIndex <= 0) currentIndex = 0;
+    highlightMatchGroups();
+});
+
+nextButton.click(function() {
+    if(++currentIndex > matchCount) currentIndex = matchCount;
+    highlightMatchGroups();
+});
+
+function highlightMatchGroups() {
+    marks.removeClass('current');
+    marks.filter((i, elem) => elem.getAttribute('data-markjs') == currentIndex).addClass('current');
+}
+```
