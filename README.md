@@ -126,47 +126,6 @@ function buildRanges(context, regex) {
 }
 ```
 
-The hack to mark nesting groups without the `acrossElements` option and with RegExp not having the `d` flag:  
-``` js
-let regex = /...\b(group1)\b.+?\b(group2)\b.../gi;
-let ranges = buildRanges(context, regex);
-
-context.markRanges(ranges, {
-  'wrapAllRanges' : true,
-  'each' : function(node, range) {
-    // handle the additional properties
-    node.setAttribute('data-markjs', range.id);
-  }
-});
-
-function buildRanges(context, regex) {
-  let ranges = [],
-    matchId = 0;
-  
-  context.markRegExp(regex, {
-    'separateGroups' : true,
-    'wrapAllRanges' : true,
-    'filter' : function(node, group, totalMatch, info) {
-      if(info.matchStart) {
-        matchId++;
-        // creat the whole match range
-        creatRange(info.offset + info.match.index, info.match[0].length, matchId);
-      }
-      creatRange(info.offset + info.start, group.length, matchId, 'nested-group');
-      return false; 
-    }
-  });
-  
-  function creatRange(start, length, id, className) {
-    let range = { start : start, length : length };
-    if(id) range.id = id;
-    // ...
-    ranges.push(range);
-  }
-  return  ranges;
-}
-```
-
 Simple example with next/previous buttons. It's uses numbers as unique match identifiers in continuous ascending order.
 ``` js
 let currentIndex = 0,
