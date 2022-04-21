@@ -663,20 +663,22 @@ class Mark {
       markNode = this.createMarkElement(node);
 
     let mNode = {
-        node: markNode.childNodes[0],
         start: start,
         end: n.start + e,
-        offset: 0
+        offset: 0,
+        node: markNode.childNodes[0]
       },
       retNode = {
-        node: restNode,
         start: n.start + e,
         end: n.end,
-        offset: n.offset
+        offset: n.offset,
+        node: restNode
       };
 
     nodes.splice(index + 1, 0, mNode, retNode);
+    // set the first node properties
     n.end = start;
+    n.offset = 0; 
 
     return retNode;
   }
@@ -868,13 +870,13 @@ class Mark {
   * @callback Mark~separateGroupsFilterCallback
   * @param {string} group - The current group matching string
   * @param {HTMLElement} node - The text node where the match occurs
-  * @param {number} i - The current group index
+  * @param {number} index - The current group index
   */
   /**
   * Callback for each wrapped element
   * @callback Mark~separateGroupsEachCallback
   * @param {HTMLElement} element - The marked DOM element
-  * @param {number} i - The current group index
+  * @param {number} index - The current group index
   */
 
   /**
@@ -903,7 +905,7 @@ class Mark {
         if (start !== -1) {
           if (filterCb(group, node, index)) {
             node = this.wrapGroups(node, start, group.length, node => {
-              eachCb(node, i);
+              eachCb(node, index);
             });
             // start next search from the beginning of new node
             startIndex = 0;
@@ -1027,10 +1029,20 @@ class Mark {
   */
   wrapMatchGroups(dict, match, params, filterCb, eachCb) {
     let startIndex = 0,
-      index, group, start, end;
+      index = 0, 
+      group, start, end;
 
     const s = match.index,
-      text = dict.value.substring(s, params.regex.lastIndex);
+      text = match[0];
+    
+    //a way to mark nesting groups, it first wraps the whole match as a group 0
+    if (this.opt.wrapAllRanges) {
+      this.wrapRangeInMappedTextNode(dict, s, text.length, node => {
+        return filterCb(text, node, index);
+      }, function(node, groupStart) {
+        eachCb(node, groupStart, index);
+      });
+    }
 
     // the only way to avoid nested group being searched by the indexOf method
     // is to parse the RegExp pattern and collect main groups indexes
@@ -1228,6 +1240,7 @@ class Mark {
     this.getTextNodes(dict => {
       dict.nodes.every(nd => {
         node = nd.node;
+        filterInfo.offset = nd.start;
 
         while (
           (match = regex.exec(node.textContent)) !== null &&

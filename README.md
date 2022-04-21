@@ -28,45 +28,77 @@ visit http://localhost:8080
 The `markRanges` method with `wrapAllRanges` option, can mark nesting/overlapping ranges.
 
 The `markRegExp` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can mark:
-nesting groups, capture groups inside positive lookaround assertions. It's practically removes all restrictions. 
+nesting groups, capturing groups inside positive lookaround assertions. It's practically removes all restrictions.  
 
-Note: the `wrapAllRanges` option can cause performance degradation, if the context contains a very large number of text nodes and a large number of mark elements. 
-This is because each wrap element inserts two objects into the array, resulting in the creation of a new copy of the array.
+The lookaround examples below demonstrate cases when `wrapAllRanges` option should be used:
 
-The 8MB file containing 177000 text nodes, marked groups 2500:  
-with `wrapAllRanges` option - 0.65 sec.  
-without - 0.45 sec.
+* RegExp with lookaround assertions can create overlapping matches.  
+  With capturing group inside assertion, there is a possibility that the first group from the next match cannot be wrapped because the group from the previous match is already wrapped in the next match area:  
+  e.g. regex `/(?<=(gr1)\s+\w+\b).+?(gr2)/dg`,  string 'gr1 match1 gr1 gr2 match2 gr2'.  
 
-The same file, marked groups 29000:  
-with `wrapAllRanges` option - 3.6 sec.  
-without - 0.7 sec.
+* Another case: regex `/(?=\d*(1))(?=\d*(2))(?=\d*(3))/dg`, matches '123, 132, 213, 231, 312, 321'.  
+  This is not an overlapping case, but groups are wrapped in any order. If group 1 is wrapped first, the 2 and 3 will be ignored in '231, 321' ...  
 
-With `acrossElements` option the code simple:
+* Groups overlapping case: regex `/\w+(?=.*?(gr1 \w+))(?=.*?(\w+ gr2))/dg` , string 'example gr1 overlap gr2'.  
+  If gr1 is wrapped, the gr2 will be ignored.
+
+Note: the `wrapAllRanges` option can cause performance degradation if the context contains a very large number of text nodes and a large number of mark elements. 
+This is because with each wrapping, two more objects are inserted into the array, which require a lot of copying, memory allocation ...
+
+* The 8MB file containing 177000 text nodes, marked groups 2500:  
+  with `wrapAllRanges` option - 0.65 sec.  
+  without - 0.45 sec.
+
+* The same file, marked groups 29000:  
+  with `wrapAllRanges` option - 3.6 sec.  
+  without - 0.7 sec.
+
+Note: `wrapAllRanges` option with `d` flag will wrap all capturing groups regardless of nested level.  
+Without this option - if the group has been wrapped, all nested groups will be ignored.
+
+With `acrossElements` option the code is simple:
 ``` js
-context.markRegExp(/. . . /dg, {
+context.markRegExp(/.../dg, {
     'acrossElements' : true,
     'separateGroups' : true,
     'wrapAllRanges' : true,
 });
 ```
 
-To mark nesting/overlapping groups without `acrossElements` option is only possible through this hack:
+To mark nesting groups with the `acrossElements` option and with RegExp not having the `d` flag,  
+it treats the whole match as a group 0, and all child groups, in this case 'group1, group2', as nested groups:
 ``` js
-let regex = /. . . /dg;
+let regex = /...\b(group1)\b.+?\b(group2)\b.../gi;
+
+context.markRanges(regex, {
+    'acrossElements' : true,
+    'separateGroups' : true,
+    'wrapAllRanges' : true,
+    'each' : function(elem, info) {
+        // if(info.groupIndex === 0) elem.className = 'main-group';
+        if(info.groupIndex > 0) {
+            elem.className = 'nested-group';
+        }
+    }
+});
+```
+
+To mark nesting/overlapping groups without `acrossElements` option and with RegExp having the `d` flag, is only possible through this hack:
+``` js
+let regex = /.../dg;
 let ranges = buildRanges(context, regex);
 
 context.markRanges(ranges, {
   'wrapAllRanges' : true,
   'each' : function(node, range) {
-    // process additional properties
+    // handle the additional properties
     // node.setAttribute('data-markjs', range.id);
   }
 });
 
 function buildRanges(context, regex) {
   let ranges = [];
-  // it should only build ranges - an attempt to mark any group can break
-  // a regex normal workflow 
+  // it should only build ranges - an attempt to mark any group can break regex normal workflow
   context.markRegExp(regex, {
     'separateGroups' : true,
     'filter' : function(node, group, totalMatch, info) {
@@ -80,7 +112,7 @@ function buildRanges(context, regex) {
               start : info.offset + indices[0],
               length : indices[1] - indices[0]
             };
-            // some additional properties e.g. color to highlight nested group,
+            // some additional properties e.g. class/color to highlight nested group,
             // match identifer to highlight all match groups with next/previous buttons ...
             // can be added here to the range object
             ranges.push(range);
@@ -94,10 +126,50 @@ function buildRanges(context, regex) {
 }
 ```
 
+The hack to mark nesting groups without the `acrossElements` option and with RegExp not having the `d` flag:  
+``` js
+let regex = /...\b(group1)\b.+?\b(group2)\b.../gi;
+let ranges = buildRanges(context, regex);
+
+context.markRanges(ranges, {
+  'wrapAllRanges' : true,
+  'each' : function(node, range) {
+    // handle the additional properties
+    node.setAttribute('data-markjs', range.id);
+  }
+});
+
+function buildRanges(context, regex) {
+  let ranges = [],
+    matchId = 0;
+  
+  context.markRegExp(regex, {
+    'separateGroups' : true,
+    'wrapAllRanges' : true,
+    'filter' : function(node, group, totalMatch, info) {
+      if(info.matchStart) {
+        matchId++;
+        // creat the whole match range
+        creatRange(info.offset + info.match.index, info.match[0].length, matchId);
+      }
+      creatRange(info.offset + info.start, group.length, matchId, 'nested-group');
+      return false; 
+    }
+  });
+  
+  function creatRange(start, length, id, className) {
+    let range = { start : start, length : length };
+    if(id) range.id = id;
+    // ...
+    ranges.push(range);
+  }
+  return  ranges;
+}
+```
+
 Simple example with next/previous buttons. It's uses numbers as unique match identifiers in continuous ascending order.
 ``` js
 let currentIndex = 0,
-    matchId = 0,
     matchCount,
     marks,
     // highlight 3 words in sentences in any order
@@ -107,16 +179,9 @@ context.markRegExp(regex, {
     'acrossElements' : true,
     'separateGroups' : true,
     'wrapAllRanges' : true,
-    'filter' : function(node, group, totalMatch, info) {
-        // filter out whole match on presence of some conditional group before incrementing matchId
-        // if(match[num]) return false;
-        if(info.matchStart) {
-            matchId++;
-        }
-        return  true;
-    },
     'each' : function(elem, info) {
-        elem.setAttribute('data-markjs', matchId);
+        // info.count as a match identifier
+        elem.setAttribute('data-markjs', info.count);
     },
     'done' : function(totalMarks, totalMatches) {
         marks = $('mark');
