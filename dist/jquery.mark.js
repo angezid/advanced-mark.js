@@ -1141,19 +1141,20 @@
             restNode = node.splitText(e - s),
             markNode = this.createMarkElement(node);
         var mNode = {
-          node: markNode.childNodes[0],
           start: start,
           end: n.start + e,
-          offset: 0
+          offset: 0,
+          node: markNode.childNodes[0]
         },
             retNode = {
-          node: restNode,
           start: n.start + e,
           end: n.end,
-          offset: n.offset
+          offset: n.offset,
+          node: restNode
         };
         nodes.splice(index + 1, 0, mNode, retNode);
         n.end = start;
+        n.offset = 0;
         return retNode;
       }
     }, {
@@ -1281,7 +1282,7 @@
             if (start !== -1) {
               if (filterCb(group, node, index)) {
                 node = this.wrapGroups(node, start, group.length, function (node) {
-                  eachCb(node, i);
+                  eachCb(node, index);
                 });
                 startIndex = 0;
                 isWrapped = true;
@@ -1355,7 +1356,15 @@
             start,
             end;
         var s = match.index,
-            text = dict.value.substring(s, params.regex.lastIndex);
+            text = match[0];
+
+        if (this.opt.wrapAllRanges) {
+          this.wrapRangeInMappedTextNode(dict, s, params.regex.lastIndex, function (node) {
+            return filterCb(text, node, 0);
+          }, function (node, groupStart) {
+            eachCb(node, groupStart, 0);
+          });
+        }
 
         for (var i = 0; i < params.groups.length; i++) {
           index = params.groups[i];
@@ -1510,6 +1519,7 @@
         this.getTextNodes(function (dict) {
           dict.nodes.every(function (nd) {
             node = nd.node;
+            filterInfo.offset = nd.start;
 
             while ((match = regex.exec(node.textContent)) !== null && match[matchIdx] !== '') {
               filterInfo.match = match;
