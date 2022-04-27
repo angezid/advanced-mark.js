@@ -646,8 +646,7 @@ class Mark {
 
   /**
    * Wraps the instance element and class around matches that fit the start and
-   * end positions within the node, creates and inserts two objects into array
-   * after the current object to keep an ascending order of the start property
+   * end positions within the node
    * @param {object} n - The current processed object
    * @param {number} s - The position where to start wrapping
    * @param {number} e - The position where to end wrapping
@@ -658,6 +657,15 @@ class Mark {
    * splitted text node
    */
   wrapRangeInTextNodeInsert(n, s, e, start, index, nodes) {
+    let ended = e === n.node.textContent.length;
+
+    // no need to inset into the nodes
+    if (s === 0 && ended) {
+      let markNode = this.createMarkElement(n.node);
+      n.node = markNode.childNodes[0];
+      return { retNode : n, markNode };
+    }
+
     let node = n.node.splitText(s),
       restNode = node.splitText(e - s),
       markNode = this.createMarkElement(node);
@@ -675,12 +683,23 @@ class Mark {
         node: restNode
       };
 
-    nodes.splice(index + 1, 0, mNode, retNode);
-    // set the first node properties
-    n.end = start;
-    n.offset = 0; 
+    // at the start/end of a text node splitText() method creates an empty node
+    // this logic prevents getting objects contains empty nodes into the array
+    if (s === 0) {
+      nodes.splice(index, 1, mNode, retNode);
 
-    return retNode;
+    } else {
+      if (ended) {
+        nodes.splice(index + 1, 0, mNode);
+
+      } else {
+        nodes.splice(index + 1, 0, mNode, retNode);
+      }
+      n.end = start;
+      n.offset = 0;
+    }
+
+    return { retNode, markNode };
   }
 
   /* eslint-disable complexity */
@@ -725,7 +744,7 @@ class Mark {
    * @access protected
    */
   wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
-    // dict.lastIndex store last node index to avoid iteration over all text
+    // dict.lastIndex store last node index to avoid iteration over all
     // nodes to find the one matching the positions
     let i = dict.lastIndex,
       rangeStart = true;
@@ -742,8 +761,7 @@ class Mark {
     }
 
     for (i; i < dict.nodes.length; i++)  {
-      const sibl = dict.nodes[i + 1];
-      if (typeof sibl === 'undefined' || sibl.start > start) {
+      if (i + 1 === dict.nodes.length || dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
 
         if (!filterCb(n.node)) {
@@ -760,7 +778,10 @@ class Mark {
         // this check prevents creating an empty marked node
         if (s >= 0 && e > s) {
           if (this.opt.wrapAllRanges) {
-            n = this.wrapRangeInTextNodeInsert(n, s, e, start, i, dict.nodes);
+            let ret =
+              this.wrapRangeInTextNodeInsert(n, s, e, start, i, dict.nodes);
+            n = ret.retNode;
+            eachCb(ret.markNode, rangeStart);
 
           } else {
             n.node = this.wrapRangeInTextNode(n.node, s, e);
@@ -769,8 +790,9 @@ class Mark {
             n.start += e;
             // set the last string index
             dict.lastTextIndex = n.start;
+            eachCb(n.node.previousSibling, rangeStart);
           }
-          eachCb(n.node.previousSibling, rangeStart);
+          //eachCb(n.node.previousSibling, rangeStart);
           rangeStart = false;
         }
 
@@ -1029,12 +1051,12 @@ class Mark {
   */
   wrapMatchGroups(dict, match, params, filterCb, eachCb) {
     let startIndex = 0,
-      index = 0, 
+      index = 0,
       group, start, end;
 
     const s = match.index,
       text = match[0];
-    
+
     //a way to mark nesting groups, it first wraps the whole match as a group 0
     if (this.opt.wrapAllRanges) {
       this.wrapRangeInMappedTextNode(dict, s, text.length, node => {
@@ -1185,7 +1207,7 @@ class Mark {
             });
             eMatchStart = false;
           });
-          
+
           if (execution.abort) {
             break;
           }
