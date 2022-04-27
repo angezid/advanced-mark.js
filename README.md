@@ -39,8 +39,7 @@ The lookaround examples below demonstrate cases when `wrapAllRanges` option shou
 * Another case: regex `/(?=\d*(1))(?=\d*(2))(?=\d*(3))/dg`, matches '123, 132, 213, 231, 312, 321'.  
   This is not an overlapping case, but groups are wrapped in any order. If group 1 is wrapped first, the 2 and 3 will be ignored in '231, 321' ...  
 
-* Groups overlapping case: regex `/\w+(?=.*?(gr1 \w+))(?=.*?(\w+ gr2))/dg` , string 'example gr1 overlap gr2'.  
-  If gr1 is wrapped, the gr2 will be ignored.
+* Groups overlapping case: regex `/\w+(?=.*?(gr1 \w+))(?=.*?(\w+ gr2))/dg` , string 'example gr1 overlap gr2' - the gr1 will be wrapped, the gr2 will be ignored.
 
 Note: the `wrapAllRanges` option can cause performance degradation if the context contains a very large number of text nodes and a large number of mark elements. 
 This is because with each wrapping, two more objects are inserted into the array, which require a lot of copying, memory allocation ...

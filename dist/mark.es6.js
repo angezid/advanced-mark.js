@@ -827,6 +827,12 @@ class Mark {
     return  markNode;
   }
   wrapRangeInTextNodeInsert(n, s, e, start, index, nodes) {
+    let ended = e === n.node.textContent.length;
+    if (s === 0 && ended) {
+      let markNode = this.createMarkElement(n.node);
+      n.node = markNode.childNodes[0];
+      return { retNode : n, markNode };
+    }
     let node = n.node.splitText(s),
       restNode = node.splitText(e - s),
       markNode = this.createMarkElement(node);
@@ -842,10 +848,18 @@ class Mark {
         offset: n.offset,
         node: restNode
       };
-    nodes.splice(index + 1, 0, mNode, retNode);
-    n.end = start;
-    n.offset = 0;
-    return retNode;
+    if (s === 0) {
+      nodes.splice(index, 1, mNode, retNode);
+    } else {
+      if (ended) {
+        nodes.splice(index + 1, 0, mNode);
+      } else {
+        nodes.splice(index + 1, 0, mNode, retNode);
+      }
+      n.end = start;
+      n.offset = 0;
+    }
+    return { retNode, markNode };
   }
   wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
     let i = dict.lastIndex,
@@ -859,8 +873,7 @@ class Mark {
       return;
     }
     for (i; i < dict.nodes.length; i++)  {
-      const sibl = dict.nodes[i + 1];
-      if (typeof sibl === 'undefined' || sibl.start > start) {
+      if (i + 1 === dict.nodes.length || dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
         if (!filterCb(n.node)) {
           if (i > dict.lastIndex) {
@@ -872,13 +885,16 @@ class Mark {
           e = (end > n.end ? n.end : end) - n.start;
         if (s >= 0 && e > s) {
           if (this.opt.wrapAllRanges) {
-            n = this.wrapRangeInTextNodeInsert(n, s, e, start, i, dict.nodes);
+            let ret =
+              this.wrapRangeInTextNodeInsert(n, s, e, start, i, dict.nodes);
+            n = ret.retNode;
+            eachCb(ret.markNode, rangeStart);
           } else {
             n.node = this.wrapRangeInTextNode(n.node, s, e);
             n.start += e;
             dict.lastTextIndex = n.start;
+            eachCb(n.node.previousSibling, rangeStart);
           }
-          eachCb(n.node.previousSibling, rangeStart);
           rangeStart = false;
         }
         if (end > n.end) {
@@ -994,14 +1010,15 @@ class Mark {
   }
   wrapMatchGroups(dict, match, params, filterCb, eachCb) {
     let startIndex = 0,
-      index, group, start, end;
+      index = 0,
+      group, start, end;
     const s = match.index,
       text = match[0];
     if (this.opt.wrapAllRanges) {
-      this.wrapRangeInMappedTextNode(dict, s, params.regex.lastIndex, node => {
-        return filterCb(text, node, 0);
+      this.wrapRangeInMappedTextNode(dict, s, text.length, node => {
+        return filterCb(text, node, index);
       }, function(node, groupStart) {
-        eachCb(node, groupStart, 0);
+        eachCb(node, groupStart, index);
       });
     }
     for (let i = 0; i < params.groups.length; i++) {
