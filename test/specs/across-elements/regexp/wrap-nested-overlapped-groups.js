@@ -18,6 +18,27 @@ describe('markRegExp with separateGroups & wrapAllRanges option', function() {
     $ctx.unmark();
   });
   
+  it('should mark separateGroups without d flag', function(done) {
+    var groupCount = 0,
+      regex =/\w(\d+).+?(\d+).+?(\d+).+?(\d+([a-z]+)\d+)\w+/gi;
+    
+    new Mark($('.nesting-groups')[0]).markRegExp(regex, {
+      'acrossElements' : true,
+      'separateGroups' : true,
+      'wrapAllRanges' : true,
+      'each' : function(nd, info) {
+        if (info.groupStart) {
+          groupCount++;
+        }
+      },
+      'done' : function() {
+        // match[0] + gr1 + gr2 + gr3 + gr4
+        expect(groupCount).toBe(5);
+        done();
+      }
+    });
+  });
+  
   it(message + 'lookbehind assertion', function(done) {
     var groupCount = 0;
     new Mark($ctx[0]).markRegExp(new RegExp(lookbehind, flags), {

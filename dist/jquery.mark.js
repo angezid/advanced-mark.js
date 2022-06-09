@@ -635,6 +635,7 @@
       _classCallCheck(this, Mark);
 
       this.ctx = ctx;
+      this.cacheDict = {};
       this.ie = false;
       var ua = window.navigator.userAgent;
 
@@ -800,7 +801,7 @@
           this.log("End range automatically set to the max value of ".concat(max));
         }
 
-        if (start < 0 || end - start < 0 || start > max || end > max) {
+        if (start < 0 || end - start <= 0) {
           valid = false;
           this.log("Invalid range: ".concat(JSON.stringify(range)));
           this.opt.noMatch(range);
@@ -918,12 +919,20 @@
       value: function getTextNodesAcrossElements(cb) {
         var _this3 = this;
 
+        if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+          this.cacheDict.lastIndex = 0;
+          this.cacheDict.lastTextIndex = 0;
+          cb(this.cacheDict);
+          return;
+        }
+
         var val = '',
             start,
             text,
             endBySpace,
             type,
             offset,
+            totalOffset = 0,
             nodes = [],
             boundary = this.opt.blockElementsBoundary,
             str,
@@ -1038,8 +1047,10 @@
             start: start,
             end: val.length - offset,
             offset: offset,
+            totalOffset: totalOffset,
             node: node
           });
+          totalOffset -= offset;
         }, function (node) {
           if (_this3.matchesExclude(node.parentNode)) {
             return NodeFilter.FILTER_REJECT;
@@ -1047,18 +1058,29 @@
             return NodeFilter.FILTER_ACCEPT;
           }
         }, function () {
-          cb({
+          var dict = {
             value: val,
             nodes: nodes,
             lastIndex: 0,
             lastTextIndex: 0
-          });
+          };
+
+          if (_this3.opt.cacheTextNodes) {
+            _this3.cacheDict = dict;
+          }
+
+          cb(dict);
         });
       }
     }, {
       key: "getTextNodes",
       value: function getTextNodes(cb) {
         var _this4 = this;
+
+        if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+          cb(this.cacheDict);
+          return;
+        }
 
         var val = '',
             nodes = [];
@@ -1076,12 +1098,18 @@
             return NodeFilter.FILTER_ACCEPT;
           }
         }, function () {
-          cb({
+          var dict = {
             value: val,
             nodes: nodes,
             lastIndex: 0,
             lastTextIndex: 0
-          });
+          };
+
+          if (_this4.opt.cacheTextNodes) {
+            _this4.cacheDict = dict;
+          }
+
+          cb(dict);
         });
       }
     }, {
@@ -1180,7 +1208,7 @@
           if (i + 1 === dict.nodes.length || dict.nodes[i + 1].start > start) {
             var n = dict.nodes[i];
 
-            if (!filterCb(n.node)) {
+            if (!filterCb(n)) {
               if (i > dict.lastIndex) {
                 dict.lastIndex = i;
               }
@@ -1322,8 +1350,8 @@
             if (this.opt.wrapAllRanges || start >= lastIndex) {
               end = match.indices[i][1];
               isWrapped = false;
-              this.wrapRangeInMappedTextNode(dict, start, end, function (node) {
-                return filterCb(group, node, i);
+              this.wrapRangeInMappedTextNode(dict, start, end, function (obj) {
+                return filterCb(group, obj.node, i);
               }, function (node, groupStart) {
                 isWrapped = true;
                 eachCb(node, groupStart, i);
@@ -1363,8 +1391,8 @@
             text = match[0];
 
         if (this.opt.wrapAllRanges) {
-          this.wrapRangeInMappedTextNode(dict, s, text.length, function (node) {
-            return filterCb(text, node, index);
+          this.wrapRangeInMappedTextNode(dict, s, s + text.length, function (obj) {
+            return filterCb(text, obj.node, index);
           }, function (node, groupStart) {
             eachCb(node, groupStart, index);
           });
@@ -1379,8 +1407,8 @@
             end = start + group.length;
 
             if (start !== -1) {
-              this.wrapRangeInMappedTextNode(dict, s + start, s + end, function (node) {
-                return filterCb(group, node, index);
+              this.wrapRangeInMappedTextNode(dict, s + start, s + end, function (obj) {
+                return filterCb(group, obj.node, index);
               }, function (node, groupStart) {
                 eachCb(node, groupStart, index);
               });
@@ -1641,10 +1669,11 @@
 
             var end = start + match[matchIdx].length;
 
-            _this8.wrapRangeInMappedTextNode(dict, start, end, function (node) {
+            _this8.wrapRangeInMappedTextNode(dict, start, end, function (obj) {
               filterInfo.matchStart = matchStart;
+              filterInfo.offset = obj.totalOffset;
               matchStart = false;
-              return filterCb(match[matchIdx], node, filterInfo);
+              return filterCb(match[matchIdx], obj.node, filterInfo);
             }, function (node, matchStart) {
               if (matchStart) {
                 count++;
@@ -1680,8 +1709,8 @@
                 valid = _this9$checkWhitespac.valid;
 
             if (valid) {
-              _this9.wrapRangeInMappedTextNode(dict, start, end, function (node) {
-                return filterCb(node, range, dict.value.substring(start, end), counter);
+              _this9.wrapRangeInMappedTextNode(dict, start, end, function (obj) {
+                return filterCb(obj.node, range, dict.value.substring(start, end), counter);
               }, function (node, rangeStart) {
                 if (rangeStart) {
                   count++;
