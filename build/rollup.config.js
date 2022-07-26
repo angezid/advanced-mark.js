@@ -32,8 +32,16 @@ const output = {
       })()
     })
   },
+  outputRegCreator = Object.assign({}, output, {
+    name: 'regexpcreator',
+    file: 'dist/regexpcreator.js',
+  }),
   output_es6 = Object.assign({}, output, {
     format : 'es'
+  }),
+  outputRegCreator_es6 = Object.assign({}, output_es6, {
+    name: 'regexpcreator',
+    file: 'dist/regexpcreator.js'
   }),
   outputJquery_es6 = Object.assign({}, output_es6, {
     file: (() => {
@@ -118,6 +126,12 @@ export default [
   }),
   plugins,
   external: externalJquery_es6
+}, {
+  input: 'src/reg_creator.js',
+  output: Object.assign({}, outputRegCreator_es6, {
+    file: outputRegCreator_es6.file.replace('.js', '.es6.js')
+  }),
+  plugins
 },
 // umd
 {
@@ -134,6 +148,13 @@ export default [
   plugins,
   external: externalJquery
 },
+{
+  input: 'src/reg_creator.js',
+  output: Object.assign({}, outputRegCreator, {
+    file: outputRegCreator.file.replace('.js', '.umd.js')
+  }),
+  plugins
+},
 // ES5
 {
   input: 'src/vanilla.js',
@@ -144,6 +165,10 @@ export default [
   output: outputJquery,
   plugins: pluginsES5,
   external: externalJquery
+}, {
+  input: 'src/reg_creator.js',
+  output: outputRegCreator,
+  plugins: pluginsES5
 },
 
 // minified es6
@@ -160,6 +185,12 @@ export default [
   }),
   plugins: minifyPlugins,
   external: externalJquery_es6
+}, {
+  input: 'src/reg_creator.js',
+  output : Object.assign({}, outputRegCreator_es6, {
+    file: outputRegCreator_es6.file.replace('.js', '.es6.min.js')
+  }),
+  plugins: minifyPlugins,
 },
 // minified umd.
 {
@@ -175,6 +206,12 @@ export default [
   }),
   plugins: minifyPlugins,
   external: externalJquery
+}, {
+  input: 'src/reg_creator.js',
+  output : Object.assign({}, outputRegCreator, {
+    file: outputRegCreator.file.replace('.js', '.umd.min.js')
+  }),
+  plugins: minifyPlugins,
 },
 // minified ES5
 {
@@ -190,4 +227,10 @@ export default [
   }),
   plugins: minifyPluginsES5,
   external: externalJquery
+}, {
+  input: 'src/reg_creator.js',
+  output: Object.assign({}, outputRegCreator, {
+    file: outputRegCreator.file.replace('.js', '.min.js')
+  }),
+  plugins: minifyPluginsES5
 }];
