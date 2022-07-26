@@ -457,7 +457,7 @@
 
     _createClass(RegExpCreator, [{
       key: "create",
-      value: function create(str) {
+      value: function create(str, patterns) {
         if (this.opt.wildcards !== 'disabled') {
           str = this.setupWildcardsRegExp(str);
         }
@@ -486,8 +486,19 @@
           str = this.createWildcardsRegExp(str);
         }
 
-        str = this.createAccuracyRegExp(str);
-        return new RegExp(str, "gm".concat(this.opt.caseSensitive ? '' : 'i'));
+        if (patterns) {
+          return this.createAccuracyRegExp(str, true);
+        } else {
+          str = this.createAccuracyRegExp(str, false);
+          return new RegExp(str, "gm".concat(this.opt.caseSensitive ? '' : 'i'));
+        }
+      }
+    }, {
+      key: "sortByLength",
+      value: function sortByLength(arry) {
+        return arry.sort(function (a, b) {
+          return a.length === b.length ? a > b ? 1 : -1 : b.length - a.length;
+        });
       }
     }, {
       key: "escapeStr",
@@ -497,18 +508,33 @@
     }, {
       key: "createSynonymsRegExp",
       value: function createSynonymsRegExp(str) {
+        var _this = this;
+
         var syn = this.opt.synonyms,
             sens = this.opt.caseSensitive ? '' : 'i',
             joinerPlaceholder = this.opt.ignoreJoiners || this.opt.ignorePunctuation.length ? "\0" : '';
 
         for (var index in syn) {
           if (syn.hasOwnProperty(index)) {
-            var value = syn[index],
-                k1 = this.opt.wildcards !== 'disabled' ? this.setupWildcardsRegExp(index) : this.escapeStr(index),
-                k2 = this.opt.wildcards !== 'disabled' ? this.setupWildcardsRegExp(value) : this.escapeStr(value);
+            var keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
+            keys.unshift(index);
+            keys = this.sortByLength(keys).map(function (key) {
+              if (_this.opt.wildcards !== 'disabled') {
+                key = _this.setupWildcardsRegExp(key);
+              }
 
-            if (k1 !== '' && k2 !== '') {
-              str = str.replace(new RegExp("(".concat(this.escapeStr(k1), "|").concat(this.escapeStr(k2), ")"), "gm".concat(sens)), joinerPlaceholder + "(".concat(this.processSynonyms(k1), "|") + "".concat(this.processSynonyms(k2), ")") + joinerPlaceholder);
+              key = _this.escapeStr(key);
+              return key;
+            }).filter(function (k) {
+              return k !== '';
+            });
+
+            if (keys.length > 1) {
+              str = str.replace(new RegExp("(".concat(keys.map(function (k) {
+                return _this.escapeStr(k);
+              }).join('|'), ")"), "gm".concat(sens)), joinerPlaceholder + "(".concat(keys.map(function (k) {
+                return _this.processSynonyms(k);
+              }).join('|'), ")") + joinerPlaceholder);
             }
           }
         }
@@ -598,8 +624,8 @@
       }
     }, {
       key: "createAccuracyRegExp",
-      value: function createAccuracyRegExp(str) {
-        var _this = this;
+      value: function createAccuracyRegExp(str, patterns) {
+        var _this2 = this;
 
         var chars = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~¡¿';
         var acc = this.opt.accuracy,
@@ -607,20 +633,49 @@
             ls = typeof acc === 'string' ? [] : acc.limiters,
             lsJoin = '';
         ls.forEach(function (limiter) {
-          lsJoin += "|".concat(_this.escapeStr(limiter));
+          lsJoin += "|".concat(_this2.escapeStr(limiter));
         });
 
-        switch (val) {
-          case 'partially':
-          default:
-            return "()(".concat(str, ")");
+        if (patterns) {
+          var lookbehind = '()',
+              pattern,
+              lookahead = '';
 
-          case 'complementary':
-            lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-            return "()([^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*)");
+          switch (val) {
+            case 'partially':
+            default:
+              pattern = str;
+              break;
 
-          case 'exactly':
-            return "(^|\\s".concat(lsJoin, ")(").concat(str, ")(?=$|\\s").concat(lsJoin, ")");
+            case 'complementary':
+              lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
+              pattern = "[^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*");
+              break;
+
+            case 'exactly':
+              lookbehind = "(^|\\s".concat(lsJoin, ")");
+              pattern = str, lookahead = "(?=$|\\s".concat(lsJoin, ")");
+              break;
+          }
+
+          return {
+            lookbehind: lookbehind,
+            pattern: pattern,
+            lookahead: lookahead
+          };
+        } else {
+          switch (val) {
+            case 'partially':
+            default:
+              return "()(".concat(str, ")");
+
+            case 'complementary':
+              lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
+              return "()([^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*)");
+
+            case 'exactly':
+              return "(^|\\s".concat(lsJoin, ")(").concat(str, ")(?=$|\\s").concat(lsJoin, ")");
+          }
         }
       }
     }]);
@@ -1822,6 +1877,12 @@
         var _this11 = this;
 
         this.opt = opt;
+
+        if (this.opt.combinePatterns) {
+          this.markCombinePatterns(sv, opt);
+          return;
+        }
+
         var index = 0,
             totalMarks = 0,
             totalMatches = 0;
@@ -1868,6 +1929,98 @@
         }
       }
     }, {
+      key: "markCombinePatterns",
+      value: function markCombinePatterns(sv, opt) {
+        var _this12 = this;
+
+        this.opt = opt;
+        var index = 0,
+            totalMarks = 0,
+            totalMatches = 0,
+            patterns = [];
+        var fn = this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+            flags = "gm".concat(this.opt.caseSensitive ? '' : 'i'),
+            termStats = {},
+            obj = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv);
+
+        var handler = function handler(pattern) {
+          var regex = new RegExp(pattern, flags);
+          var matches = 0;
+
+          _this12.log("Searching with expression \"".concat(regex, "\""));
+
+          _this12[fn](regex, 1, function (term, node, filterInfo) {
+            return _this12.opt.filter(node, term, totalMarks, matches, filterInfo);
+          }, function (element, matchInfo) {
+            matches++;
+            totalMarks++;
+            termStats[_this12.normalizeTerm(matchInfo.match[2])] += 1;
+
+            _this12.opt.each(element, matchInfo);
+          }, function (count) {
+            totalMatches += count;
+
+            if (count === 0) {
+              _this12.opt.noMatch(termStats);
+            }
+
+            if (++index < patterns.length) {
+              handler(patterns[index]);
+            } else {
+              _this12.opt.done(totalMarks, totalMatches, termStats);
+            }
+          });
+        };
+
+        if (obj.length === 0) {
+          this.opt.done(0, 0, termStats);
+        } else {
+          obj.keywords.forEach(function (kw) {
+            termStats[_this12.normalizeTerm(kw)] = 0;
+          });
+          patterns = this.getPatterns(obj.keywords);
+          handler(patterns[index]);
+        }
+      }
+    }, {
+      key: "normalizeTerm",
+      value: function normalizeTerm(term) {
+        term = term.trim().replace(/\s{2,}/g, ' ');
+        return this.opt.caseSensitive ? term : term.toLowerCase();
+      }
+    }, {
+      key: "getPatterns",
+      value: function getPatterns(keywords) {
+        var regexCreator = new RegExpCreator(this.opt),
+            first = regexCreator.create(keywords[0], true),
+            patterns = [];
+        var num = 10;
+
+        if (typeof this.opt.combinePatterns !== 'boolean') {
+          var _int = parseInt(this.opt.combinePatterns, 10);
+
+          if (this.isNumeric(_int)) {
+            num = _int;
+          }
+        }
+
+        var count = Math.ceil(keywords.length / num);
+
+        for (var k = 0; k < count; k++) {
+          var pattern = first.lookbehind + '(',
+              max = Math.min(k * num + num, keywords.length);
+
+          for (var i = k * num; i < max; i++) {
+            var ptn = regexCreator.create(keywords[i], true).pattern;
+            pattern += "(?:".concat(ptn, ")").concat(i < max - 1 ? '|' : '');
+          }
+
+          patterns.push(pattern + ')' + first.lookahead);
+        }
+
+        return patterns;
+      }
+    }, {
       key: "getMethodName",
       value: function getMethodName(opt) {
         if (opt) {
@@ -1889,7 +2042,7 @@
     }, {
       key: "markRanges",
       value: function markRanges(rawRanges, opt) {
-        var _this12 = this;
+        var _this13 = this;
 
         this.opt = opt;
         var totalMarks = 0,
@@ -1898,13 +2051,13 @@
         if (ranges && ranges.length) {
           this.log('Starting to mark with the following ranges: ' + JSON.stringify(ranges));
           this.wrapRangeFromIndex(ranges, function (node, range, match, counter) {
-            return _this12.opt.filter(node, range, match, counter);
+            return _this13.opt.filter(node, range, match, counter);
           }, function (element, range) {
             totalMarks++;
 
-            _this12.opt.each(element, range);
+            _this13.opt.each(element, range);
           }, function (totalMatches) {
-            _this12.opt.done(totalMarks, totalMatches);
+            _this13.opt.done(totalMarks, totalMatches);
           });
         } else {
           this.opt.done(0, 0);
@@ -1913,7 +2066,7 @@
     }, {
       key: "unmark",
       value: function unmark(opt) {
-        var _this13 = this;
+        var _this14 = this;
 
         this.opt = opt;
         var sel = this.opt.element ? this.opt.element : '*';
@@ -1925,10 +2078,10 @@
 
         this.log("Removal selector \"".concat(sel, "\""));
         this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, function (node) {
-          _this13.unwrapMatches(node);
+          _this14.unwrapMatches(node);
         }, function (node) {
           var matchesSel = DOMIterator.matches(node, sel),
-              matchesExclude = _this13.matchesExclude(node);
+              matchesExclude = _this14.matchesExclude(node);
 
           if (!matchesSel || matchesExclude) {
             return NodeFilter.FILTER_REJECT;
