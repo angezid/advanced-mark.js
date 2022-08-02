@@ -1453,7 +1453,13 @@ class Mark {
       }, (element, matchInfo) => {
         matches++;
         totalMarks++;
-        termStats[this.normalizeTerm(matchInfo.match[2])] += 1;
+        if (this.opt.acrossElements) {
+          if (matchInfo.matchStart) {
+            termStats[this.normalizeTerm(matchInfo.match[2])] += 1;
+          }
+        } else {
+          termStats[this.normalizeTerm(matchInfo.match[2])] += 1;
+        }
         this.opt.each(element, matchInfo);
       }, (count) => {
         totalMatches += count;
