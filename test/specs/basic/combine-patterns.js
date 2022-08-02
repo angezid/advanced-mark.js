@@ -1,7 +1,8 @@
 'use strict';
 describe('combine patterns without acrossElements option', function() {
   var $ctx;
-  var words = ['lorem', 'ipsum', 'dolor', 'sed', 'diam'];
+  var words = ['lorem', 'ipsum', 'dolor', 'sed', 'diam'],
+    stats = { 'lorem' : 4, 'ipsum' : 4, 'dolor' : 4, 'sed' : 4, 'diam' : 4 };
 
   beforeEach(function() {
     loadFixtures('basic/combine-patterns.html');
@@ -9,28 +10,19 @@ describe('combine patterns without acrossElements option', function() {
     $ctx = $('.context');
   });
 
-  it('should mark array with combinePatternsBy option', function(done) {
+  it('should mark array with combinePatterns option', function(done) {
     new Mark($ctx[0]).mark(words, {
-      'combinePatternsBy' : 3,
+      'combinePatterns' : 3,
       'accuracy' : 'exactly',
-      'done' : function(m, totalMatches) {
+      'done' : function(m, totalMatches, termStats) {
         expect(totalMatches).toBe(20);
-        expect(checkWords()).toBe(true);
+        expect($ctx.find('mark')).toHaveLength(20);
+
+        for (var term in termStats) {
+          expect(termStats[term]).toBe(stats[term]);
+        }
         done();
       }
     });
   });
-
-  function checkWords() {
-    var success = true;
-    // it checks correctness of marked words
-    $('mark').each(function(i, elem) {
-      if (words.indexOf(elem.textContent.toLowerCase()) === -1) {
-        success = false;
-        return false;
-      }
-      return true;
-    });
-    return success;
-  }
 });
