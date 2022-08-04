@@ -211,8 +211,11 @@ class RegExpCreator {
 
 function RegExpCreator$1(options) {
   const instance = new RegExpCreator(options);
-  this.create = (str, parts) => {
-    return instance.create(str, parts);
+  this.create = (str, patterns) => {
+    return instance.create(str, patterns);
+  };
+  this.createDiacritics = (str) => {
+    return instance.createDiacriticsRegExp(str);
   };
 }
 

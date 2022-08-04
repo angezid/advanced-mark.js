@@ -1943,7 +1943,7 @@ class Mark {
    * @param {string} term - The term to be processed
    */
   normalizeTerm(term) {
-    term = term.trim().replace(/\s{2,}/g, ' ');
+    term = term.trim().replace(/\s+/g, ' ');
     return this.opt.caseSensitive ? term : term.toLowerCase();
   }
 

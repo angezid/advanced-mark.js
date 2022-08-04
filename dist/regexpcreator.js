@@ -8,7 +8,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global.regexpcreator = factory());
+  (global.RegExpCreator = factory());
 }(this, (function () { 'use strict';
 
   function _classCallCheck(instance, Constructor) {
@@ -297,8 +297,12 @@
   function RegExpCreator$1(options) {
     var instance = new RegExpCreator(options);
 
-    this.create = function (str, parts) {
-      return instance.create(str, parts);
+    this.create = function (str, patterns) {
+      return instance.create(str, patterns);
+    };
+
+    this.createDiacritics = function (str) {
+      return instance.createDiacriticsRegExp(str);
     };
   }
 

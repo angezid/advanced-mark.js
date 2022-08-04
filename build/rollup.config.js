@@ -33,14 +33,14 @@ const output = {
     })
   },
   outputRegCreator = Object.assign({}, output, {
-    name: 'regexpcreator',
+    name: 'RegExpCreator',
     file: 'dist/regexpcreator.js',
   }),
   output_es6 = Object.assign({}, output, {
     format : 'es'
   }),
   outputRegCreator_es6 = Object.assign({}, output_es6, {
-    name: 'regexpcreator',
+    name: 'RegExpCreator',
     file: 'dist/regexpcreator.js'
   }),
   outputJquery_es6 = Object.assign({}, output_es6, {
