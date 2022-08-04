@@ -23,3 +23,6 @@ cd 'full path to ModuleExamples directory'    // change path
 http-server  // launch server
 
 visit http://localhost:8080
+
+### RegExpCreator module
+See in the ModuleExamples folder.
