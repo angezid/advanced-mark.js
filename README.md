@@ -5,7 +5,7 @@
 Description and how to use can be found here [![Radical changes of across elements pipeline](https://github.com/julmot/mark.js/pull/450)]
 
 ## Modules
-\*. es6.\*.js - pure ES6 Modules
+\*. es6.\*.js - real ES6 Modules
 \*.umd.\*.js - UMD modules    // previously named as \*. es6.\*.js 
 
 It was tested on Firefox and Chrome.
@@ -25,4 +25,4 @@ http-server  // launch server
 visit http://localhost:8080
 
 ### RegExpCreator module
-See in the ModuleExamples folder.
+How to use, see in the ModuleExamples folder.

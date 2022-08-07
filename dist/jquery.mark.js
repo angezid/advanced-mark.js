@@ -1939,38 +1939,53 @@
         var index = 0,
             totalMarks = 0,
             totalMatches = 0,
-            patterns = [];
-        var fn = this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+            patterns = [],
+            terms = [],
+            term;
+        var across = this.opt.acrossElements,
+            fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
             flags = "gm".concat(this.opt.caseSensitive ? '' : 'i'),
             termStats = {},
             obj = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv);
 
         var handler = function handler(pattern) {
-          var regex = new RegExp(pattern, flags);
+          var regex = new RegExp(pattern, flags),
+              patternTerms = terms[index];
           var matches = 0;
 
           _this12.log("Searching with expression \"".concat(regex, "\""));
 
-          _this12[fn](regex, 1, function (term, node, filterInfo) {
+          _this12[fn](regex, 1, function (t, node, filterInfo) {
+            if (across) {
+              if (filterInfo.matchStart) {
+                term = _this12.getCurrentTerm(filterInfo.match, patternTerms);
+              }
+            } else {
+              term = _this12.getCurrentTerm(filterInfo.match, patternTerms);
+            }
+
             return _this12.opt.filter(node, term, totalMarks, matches, filterInfo);
           }, function (element, matchInfo) {
             matches++;
             totalMarks++;
 
-            if (_this12.opt.acrossElements) {
+            if (across) {
               if (matchInfo.matchStart) {
-                termStats[_this12.normalizeTerm(matchInfo.match[2])] += 1;
+                termStats[term] += 1;
               }
             } else {
-              termStats[_this12.normalizeTerm(matchInfo.match[2])] += 1;
+              termStats[term] += 1;
             }
 
             _this12.opt.each(element, matchInfo);
           }, function (count) {
             totalMatches += count;
+            var array = patternTerms.filter(function (term) {
+              return termStats[term] === 0;
+            });
 
-            if (count === 0) {
-              _this12.opt.noMatch(termStats);
+            if (array.length) {
+              _this12.opt.noMatch(array);
             }
 
             if (++index < patterns.length) {
@@ -1984,50 +1999,70 @@
         if (obj.length === 0) {
           this.opt.done(0, 0, termStats);
         } else {
-          obj.keywords.forEach(function (kw) {
-            termStats[_this12.normalizeTerm(kw)] = 0;
+          obj.keywords.forEach(function (term) {
+            termStats[term] = 0;
           });
-          patterns = this.getPatterns(obj.keywords);
+          var o = this.getPatterns(obj.keywords);
+          terms = o.terms;
+          patterns = o.patterns;
           handler(patterns[index]);
         }
       }
     }, {
-      key: "normalizeTerm",
-      value: function normalizeTerm(term) {
-        term = term.trim().replace(/\s{2,}/g, ' ');
-        return this.opt.caseSensitive ? term : term.toLowerCase();
+      key: "getCurrentTerm",
+      value: function getCurrentTerm(match, terms) {
+        var i = match.length;
+
+        while (--i > 2) {
+          if (match[i]) {
+            return terms[i - 3];
+          }
+        }
+
+        return ' ';
       }
     }, {
       key: "getPatterns",
-      value: function getPatterns(keywords) {
+      value: function getPatterns(terms) {
         var regexCreator = new RegExpCreator(this.opt),
-            first = regexCreator.create(keywords[0], true),
-            patterns = [];
+            first = regexCreator.create(terms[0], true),
+            patterns = [],
+            array = [];
         var num = 10;
 
-        if (typeof this.opt.combinePatterns !== 'boolean') {
-          var _int = parseInt(this.opt.combinePatterns, 10);
+        if (typeof this.opt.combinePatterns === 'number') {
+          if (this.opt.combinePatterns === Infinity) {
+            num = Number.MAX_VALUE | 1;
+          } else {
+            var value = parseInt(this.opt.combinePatterns, 10);
 
-          if (this.isNumeric(_int)) {
-            num = _int;
+            if (this.isNumeric(value)) {
+              num = value;
+            }
           }
         }
 
-        var count = Math.ceil(keywords.length / num);
+        var count = Math.ceil(terms.length / num);
 
         for (var k = 0; k < count; k++) {
-          var pattern = first.lookbehind + '(',
-              max = Math.min(k * num + num, keywords.length);
+          var patternTerms = [],
+              pattern = first.lookbehind + '(',
+              max = Math.min(k * num + num, terms.length);
 
           for (var i = k * num; i < max; i++) {
-            var ptn = regexCreator.create(keywords[i], true).pattern;
-            pattern += "(?:".concat(ptn, ")").concat(i < max - 1 ? '|' : '');
+            var ptn = regexCreator.create(terms[i], true).pattern;
+            pattern += "(".concat(ptn, ")").concat(i < max - 1 ? '|' : '');
+            patternTerms.push(terms[i]);
           }
 
           patterns.push(pattern + ')' + first.lookahead);
+          array.push(patternTerms);
         }
 
-        return patterns;
+        return {
+          patterns: patterns,
+          terms: array
+        };
       }
     }, {
       key: "getMethodName",

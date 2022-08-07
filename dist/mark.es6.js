@@ -1438,33 +1438,44 @@ class Mark {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0,
-      patterns = [];
-    const fn =
-      this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+      patterns = [],
+      terms = [],
+      term;
+    const across = this.opt.acrossElements,
+      fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
       flags = `gm${this.opt.caseSensitive ? '' : 'i'}`,
       termStats = {},
       obj = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv);
     const handler = pattern => {
-      const regex = new RegExp(pattern, flags);
+      const regex = new RegExp(pattern, flags),
+        patternTerms = terms[index];
       let matches = 0;
       this.log(`Searching with expression "${regex}"`);
-      this[fn](regex, 1, (term, node, filterInfo) => {
+      this[fn](regex, 1, (t, node, filterInfo) => {
+        if (across) {
+          if (filterInfo.matchStart) {
+            term = this.getCurrentTerm(filterInfo.match, patternTerms);
+          }
+        } else {
+          term = this.getCurrentTerm(filterInfo.match, patternTerms);
+        }
         return this.opt.filter(node, term, totalMarks, matches, filterInfo);
       }, (element, matchInfo) => {
         matches++;
         totalMarks++;
-        if (this.opt.acrossElements) {
+        if (across) {
           if (matchInfo.matchStart) {
-            termStats[this.normalizeTerm(matchInfo.match[2])] += 1;
+            termStats[term] += 1;
           }
         } else {
-          termStats[this.normalizeTerm(matchInfo.match[2])] += 1;
+          termStats[term] += 1;
         }
         this.opt.each(element, matchInfo);
       }, (count) => {
         totalMatches += count;
-        if (count === 0) {
-          this.opt.noMatch(termStats);
+        const array = patternTerms.filter((term) => termStats[term] === 0);
+        if (array.length) {
+          this.opt.noMatch(array);
         }
         if (++index < patterns.length) {
           handler(patterns[index]);
@@ -1476,39 +1487,54 @@ class Mark {
     if (obj.length === 0) {
       this.opt.done(0, 0, termStats);
     } else {
-      obj.keywords.forEach(kw => {
-        termStats[this.normalizeTerm(kw)] = 0;
+      obj.keywords.forEach(term => {
+        termStats[term] = 0;
       });
-      patterns = this.getPatterns(obj.keywords);
+      const o = this.getPatterns(obj.keywords);
+      terms = o.terms;
+      patterns = o.patterns;
       handler(patterns[index]);
     }
   }
-  normalizeTerm(term) {
-    term = term.trim().replace(/\s{2,}/g, ' ');
-    return this.opt.caseSensitive ? term : term.toLowerCase();
-  }
-  getPatterns(keywords) {
-    const regexCreator = new RegExpCreator(this.opt),
-      first = regexCreator.create(keywords[0], true),
-      patterns = [];
-    let num = 10;
-    if (typeof this.opt.combinePatterns !== 'boolean') {
-      const int = parseInt(this.opt.combinePatterns, 10);
-      if (this.isNumeric(int)) {
-        num = int;
+  getCurrentTerm(match, terms) {
+    let i = match.length;
+    while (--i > 2) {
+      if (match[i]) {
+        return terms[i-3];
       }
     }
-    let count = Math.ceil(keywords.length / num);
+    return ' ';
+  }
+  getPatterns(terms) {
+    const regexCreator = new RegExpCreator(this.opt),
+      first = regexCreator.create(terms[0], true),
+      patterns = [],
+      array = [];
+    let num = 10;
+    if (typeof this.opt.combinePatterns === 'number') {
+      if (this.opt.combinePatterns === Infinity) {
+        num = Number.MAX_VALUE | 1;
+      } else {
+        const value = parseInt(this.opt.combinePatterns, 10);
+        if (this.isNumeric(value)) {
+          num = value;
+        }
+      }
+    }
+    let count = Math.ceil(terms.length / num);
     for (let k = 0; k < count; k++)  {
-      let pattern = first.lookbehind + '(',
-        max = Math.min(k * num + num, keywords.length);
+      let patternTerms = [],
+        pattern = first.lookbehind + '(',
+        max = Math.min(k * num + num, terms.length);
       for (let i = k * num; i < max; i++)  {
-        const ptn = regexCreator.create(keywords[i], true).pattern;
-        pattern += `(?:${ptn})${i < max - 1 ? '|' : ''}`;
+        const ptn = regexCreator.create(terms[i], true).pattern;
+        pattern += `(${ptn})${i < max - 1 ? '|' : ''}`;
+        patternTerms.push(terms[i]);
       }
       patterns.push(pattern + ')' + first.lookahead);
+      array.push(patternTerms);
     }
-    return patterns;
+    return {  patterns, terms : array };
   }
   getMethodName(opt) {
     if (opt) {
