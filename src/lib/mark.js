@@ -1882,39 +1882,51 @@ class Mark {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0,
-      patterns = [];
-    const fn =
-      this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+      patterns = [],
+      terms = [],
+      term;
+    const across = this.opt.acrossElements,
+      fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
       flags = `gm${this.opt.caseSensitive ? '' : 'i'}`,
       termStats = {},
       obj = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv);
 
     const handler = pattern => {
-      const regex = new RegExp(pattern, flags);
+      const regex = new RegExp(pattern, flags),
+        patternTerms = terms[index];
+
       let matches = 0;
       this.log(`Searching with expression "${regex}"`);
 
-      this[fn](regex, 1, (term, node, filterInfo) => { // filter
+      this[fn](regex, 1, (t, node, filterInfo) => { // filter
+        if (across) {
+          if (filterInfo.matchStart) {
+            term = this.getCurrentTerm(filterInfo.match, patternTerms);
+          }
+        } else {
+          term = this.getCurrentTerm(filterInfo.match, patternTerms);
+        }
         return this.opt.filter(node, term, totalMarks, matches, filterInfo);
 
       }, (element, matchInfo) => { // each
         matches++;
         totalMarks++;
 
-        if (this.opt.acrossElements) {
+        if (across) {
           if (matchInfo.matchStart) {
-            termStats[this.normalizeTerm(matchInfo.match[2])] += 1;
+            termStats[term] += 1;
           }
         } else {
-          termStats[this.normalizeTerm(matchInfo.match[2])] += 1;
+          termStats[term] += 1;
         }
         this.opt.each(element, matchInfo);
 
       }, (count) => { // end
         totalMatches += count;
-
-        if (count === 0) {
-          this.opt.noMatch(termStats);
+        
+        const array = patternTerms.filter((term) => termStats[term] === 0);
+        if (array.length) {
+          this.opt.noMatch(array);
         }
 
         if (++index < patterns.length) {
@@ -1930,54 +1942,76 @@ class Mark {
 
     } else {
       // initializes term statistics properties
-      obj.keywords.forEach(kw => {
-        termStats[this.normalizeTerm(kw)] = 0;
+      obj.keywords.forEach(term => {
+        termStats[term] = 0;
       });
-      patterns = this.getPatterns(obj.keywords);
+      const o = this.getPatterns(obj.keywords);
+      terms = o.terms;
+      patterns = o.patterns;
+
       handler(patterns[index]);
     }
   }
 
   /**
-   * Normalizes term spaces and character's case
-   * @param {string} term - The term to be processed
+   * @param {array} match - The result of RegExp exec() method
+   * @param {array} terms - The array of strings
+   * @return {string} - The matched term
    */
-  normalizeTerm(term) {
-    term = term.trim().replace(/\s+/g, ' ');
-    return this.opt.caseSensitive ? term : term.toLowerCase();
+  getCurrentTerm(match, terms) {
+    // it's better to search from the end of array because the terms sorted by
+    // length in descending order - shorter term appears more frequently
+    let i = match.length;
+    while (--i > 2) {
+      if (match[i]) {
+        return terms[i-3];
+      }
+    }
+    return ' ';
   }
 
   /**
    * Combines chunks of strings into RegExp patterns
-   * @param {array} keywords - The array of strings
+   * @param {array} terms - The array of strings
    * @return {array} - The array of combined RegExp patterns
    */
-  getPatterns(keywords) {
+  getPatterns(terms) {
     const regexCreator = new RegExpCreator(this.opt),
-      first = regexCreator.create(keywords[0], true),
-      patterns = [];
+      first = regexCreator.create(terms[0], true),
+      patterns = [],
+      array = [];
     let num = 10;
-
-    if (typeof this.opt.combinePatterns !== 'boolean') {
-      const int = parseInt(this.opt.combinePatterns, 10);
-      if (this.isNumeric(int)) {
-        num = int;
+    
+    if (typeof this.opt.combinePatterns === 'number') {
+      if (this.opt.combinePatterns === Infinity) {
+        num = Number.MAX_VALUE | 1;
+      } else {
+        const value = parseInt(this.opt.combinePatterns, 10);
+        if (this.isNumeric(value)) {
+          num = value;
+        }
       }
     }
 
-    let count = Math.ceil(keywords.length / num);
+    let count = Math.ceil(terms.length / num);
 
     for (let k = 0; k < count; k++)  {
-      let pattern = first.lookbehind + '(',
-        max = Math.min(k * num + num, keywords.length);
+      let patternTerms = [],
+        pattern = first.lookbehind + '(',
+        max = Math.min(k * num + num, terms.length);
 
       for (let i = k * num; i < max; i++)  {
-        const ptn = regexCreator.create(keywords[i], true).pattern;
-        pattern += `(?:${ptn})${i < max - 1 ? '|' : ''}`;
+        const ptn = regexCreator.create(terms[i], true).pattern;
+        // wrapping term pattern in capturing group is necessary to determine
+        // which term is currently matched
+        pattern += `(${ptn})${i < max - 1 ? '|' : ''}`;
+        patternTerms.push(terms[i]);
       }
+
       patterns.push(pattern + ')' + first.lookahead);
+      array.push(patternTerms);
     }
-    return patterns;
+    return {  patterns, terms : array };
   }
 
   /**
