@@ -35,4 +35,27 @@ describe('markCombinePatterns() without acrossElements option', function() {
       }
     });
   });
+
+  it('should mark first match of each array item', function(done) {
+    new Mark($ctx[0]).mark(words, {
+      'combinePatterns' : 3,
+      'accuracy' : 'exactly',
+      'filter' : function(node, term, marks, termMatchCount) {
+        // 'info.execution.abort' is useless here as it will break execution
+        // of whole combine pattern
+        if (termMatchCount >= 1) {
+          return false;
+        }
+        return true;
+      },
+      'done' : function(m, totalMatches, termStats) {
+        expect($ctx.find('mark')).toHaveLength(8);
+
+        for (var term in termStats) {
+          expect(termStats[term]).toBe(1);
+        }
+        done();
+      }
+    });
+  });
 });

@@ -15,7 +15,6 @@ describe('markCombinePatterns() with acrossElements option', function() {
   it('should mark array with combinePatterns option', function(done) {
     var matchCount = 0, first = true, groups = 0;
     new Mark($ctx[0]).mark(words, {
-      'separateWordSearch' : false,
       'accuracy' : 'exactly',
       'combinePatterns' : 4,
       'acrossElements' : true,
@@ -36,6 +35,30 @@ describe('markCombinePatterns() with acrossElements option', function() {
 
         for (var term in termStats) {
           expect(termStats[term]).toBe(stats[term]);
+        }
+        done();
+      }
+    });
+  });
+
+  it('should mark first match of each array item', function(done) {
+    new Mark($ctx[0]).mark(words, {
+      'accuracy' : 'exactly',
+      'combinePatterns' : 4,
+      'acrossElements' : true,
+      'filter' : function(node, term, marks, termMatchCount) {
+        // 'info.execution.abort' is useless here as it will break execution
+        // of whole combine pattern
+        if (termMatchCount >= 1) {
+          return false;
+        }
+        return true;
+      },
+      'done' : function(m, totalMatches, termStats) {
+        expect($ctx.find('mark')).toHaveLength(8);
+
+        for (var term in termStats) {
+          expect(termStats[term]).toBe(1);
         }
         done();
       }
