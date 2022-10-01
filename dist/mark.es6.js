@@ -1330,7 +1330,10 @@ class Mark {
             if (rangeStart) {
               count++;
             }
-            eachCb(node, range);
+            eachCb(node, range, {
+              matchStart: rangeStart,
+              count: count
+            });
           });
         }
       });
@@ -1399,27 +1402,33 @@ class Mark {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0;
-    const fn =
-      this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+    const across = this.opt.acrossElements,
+      fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
       termStats = {};
     const { keywords, length } =
       this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),
-      handler = kw => {
-        const regex = new RegExpCreator(this.opt).create(kw);
+      handler = term => {
+        const regex = new RegExpCreator(this.opt).create(term);
         let matches = 0;
         this.log(`Searching with expression "${regex}"`);
-        this[fn](regex, 1, (term, node, filterInfo) => {
-          return this.opt.filter(node, kw, totalMarks, matches, filterInfo);
+        this[fn](regex, 1, (t, node, filterInfo) => {
+          return this.opt.filter(node, term, totalMarks, matches, filterInfo);
         }, (element, matchInfo) => {
-          matches++;
+          if (across) {
+            if (matchInfo.matchStart) {
+              matches++;
+            }
+          } else {
+            matches++;
+          }
           totalMarks++;
           this.opt.each(element, matchInfo);
         }, (count) => {
           totalMatches += count;
           if (count === 0) {
-            this.opt.noMatch(kw);
+            this.opt.noMatch(term);
           }
-          termStats[kw] = count;
+          termStats[term] = count;
           if (++index < length) {
             handler(keywords[index]);
           } else {
@@ -1449,7 +1458,6 @@ class Mark {
     const handler = pattern => {
       const regex = new RegExp(pattern, flags),
         patternTerms = terms[index];
-      let matches = 0;
       this.log(`Searching with expression "${regex}"`);
       this[fn](regex, 1, (t, node, filterInfo) => {
         if (across) {
@@ -1459,9 +1467,8 @@ class Mark {
         } else {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
         }
-        return this.opt.filter(node, term, totalMarks, matches, filterInfo);
+        return this.opt.filter(node, term, totalMarks, termStats[term], filterInfo);
       }, (element, matchInfo) => {
-        matches++;
         totalMarks++;
         if (across) {
           if (matchInfo.matchStart) {
@@ -1515,7 +1522,7 @@ class Mark {
       if (this.opt.combinePatterns === Infinity) {
         num = Number.MAX_VALUE | 1;
       } else {
-        const value = parseInt(this.opt.combinePatterns, 10);
+        const value = parseInt(this.opt.combinePatterns);
         if (this.isNumeric(value)) {
           num = value;
         }
@@ -1562,9 +1569,9 @@ class Mark {
       this.wrapRangeFromIndex(
         ranges, (node, range, match, counter) => {
           return this.opt.filter(node, range, match, counter);
-        }, (element, range) => {
+        }, (element, range, rangeInfo) => {
           totalMarks++;
-          this.opt.each(element, range);
+          this.opt.each(element, range, rangeInfo);
         }, (totalMatches) => {
           this.opt.done(totalMarks, totalMatches);
         }

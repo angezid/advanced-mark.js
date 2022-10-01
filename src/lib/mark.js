@@ -830,7 +830,6 @@ class Mark {
             dict.lastTextIndex = n.start;
             eachCb(n.node.previousSibling, rangeStart);
           }
-          //eachCb(n.node.previousSibling, rangeStart);
           rangeStart = false;
         }
 
@@ -1568,6 +1567,8 @@ class Mark {
    * @param {Mark~rangeObject} range - the current range object; provided
    * start and length values will be numeric integers modified from the
    * provided original ranges.
+   * @param {Mark~rangeInfoObject} rangeInfo - The object containing the range
+    * information
    */
   /**
    * Filter callback before each wrapping
@@ -1614,7 +1615,10 @@ class Mark {
             if (rangeStart) {
               count++;
             }
-            eachCb(node, range);
+            eachCb(node, range, {
+              matchStart: rangeStart,
+              count: count
+            });
           });
         }
       });
@@ -1827,32 +1831,38 @@ class Mark {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0;
-    const fn =
-      this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+    const across = this.opt.acrossElements,
+      fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
       termStats = {};
 
     const { keywords, length } =
       this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),
-      handler = kw => { // async function calls as iframes are async too
-        const regex = new RegExpCreator(this.opt).create(kw);
+      handler = term => { // async function calls as iframes are async too
+        const regex = new RegExpCreator(this.opt).create(term);
         let matches = 0;
         this.log(`Searching with expression "${regex}"`);
 
-        this[fn](regex, 1, (term, node, filterInfo) => {
-          return this.opt.filter(node, kw, totalMarks, matches, filterInfo);
+        this[fn](regex, 1, (t, node, filterInfo) => { // filter
+          return this.opt.filter(node, term, totalMarks, matches, filterInfo);
 
-        }, (element, matchInfo) => {
-          matches++;
+        }, (element, matchInfo) => { // each
+          if (across) {
+            if (matchInfo.matchStart) {
+              matches++;
+            }
+          } else {
+            matches++;
+          }
           totalMarks++;
           this.opt.each(element, matchInfo);
 
-        }, (count) => {
+        }, (count) => { // end
           totalMatches += count;
 
           if (count === 0) {
-            this.opt.noMatch(kw);
+            this.opt.noMatch(term);
           }
-          termStats[kw] = count;
+          termStats[term] = count;
 
           if (++index < length) {
             handler(keywords[index]);
@@ -1895,7 +1905,6 @@ class Mark {
       const regex = new RegExp(pattern, flags),
         patternTerms = terms[index];
 
-      let matches = 0;
       this.log(`Searching with expression "${regex}"`);
 
       this[fn](regex, 1, (t, node, filterInfo) => { // filter
@@ -1906,10 +1915,10 @@ class Mark {
         } else {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
         }
-        return this.opt.filter(node, term, totalMarks, matches, filterInfo);
+        // termStats[term] is the number of wrapped matches so far for the term
+        return this.opt.filter(node, term, totalMarks, termStats[term], filterInfo);
 
       }, (element, matchInfo) => { // each
-        matches++;
         totalMarks++;
 
         if (across) {
@@ -1923,7 +1932,7 @@ class Mark {
 
       }, (count) => { // end
         totalMatches += count;
-        
+
         const array = patternTerms.filter((term) => termStats[term] === 0);
         if (array.length) {
           this.opt.noMatch(array);
@@ -1981,12 +1990,12 @@ class Mark {
       patterns = [],
       array = [];
     let num = 10;
-    
+
     if (typeof this.opt.combinePatterns === 'number') {
       if (this.opt.combinePatterns === Infinity) {
         num = Number.MAX_VALUE | 1;
       } else {
-        const value = parseInt(this.opt.combinePatterns, 10);
+        const value = parseInt(this.opt.combinePatterns);
         if (this.isNumeric(value)) {
           num = value;
         }
@@ -2035,10 +2044,19 @@ class Mark {
   }
 
   /**
+   * @typedef Mark~rangeInfoObject
+   * @type {object}
+   * @property {boolean} matchStart - indicate the start of range
+   * @property {number} count - The current number of wrapped ranges
+   */
+
+  /**
    * Callback for each marked element
    * @callback Mark~markRangesEachCallback
    * @param {HTMLElement} element - The marked DOM element
    * @param {array} range - array of range start and end points
+   * @param {Mark~rangeInfoObject}  - The object containing the range
+   * information
    */
   /**
    * Callback if a processed range is invalid, out-of-bounds, overlaps another
@@ -2082,12 +2100,14 @@ class Mark {
         JSON.stringify(ranges)
       );
       this.wrapRangeFromIndex(
-        ranges, (node, range, match, counter) => {
+        ranges, (node, range, match, counter) => { // filter
           return this.opt.filter(node, range, match, counter);
-        }, (element, range) => {
+
+        }, (element, range, rangeInfo) => { // each
           totalMarks++;
-          this.opt.each(element, range);
-        }, (totalMatches) => {
+          this.opt.each(element, range, rangeInfo);
+
+        }, (totalMatches) => { // end
           this.opt.done(totalMarks, totalMatches);
         }
       );

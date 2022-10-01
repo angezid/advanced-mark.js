@@ -1796,7 +1796,10 @@
                   count++;
                 }
 
-                eachCb(node, range);
+                eachCb(node, range, {
+                  matchStart: rangeStart,
+                  count: count
+                });
               });
             }
           });
@@ -1886,22 +1889,30 @@
         var index = 0,
             totalMarks = 0,
             totalMatches = 0;
-        var fn = this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+        var across = this.opt.acrossElements,
+            fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
             termStats = {};
 
         var _this$getSeparatedKey = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),
             keywords = _this$getSeparatedKey.keywords,
             length = _this$getSeparatedKey.length,
-            handler = function handler(kw) {
-          var regex = new RegExpCreator(_this11.opt).create(kw);
+            handler = function handler(term) {
+          var regex = new RegExpCreator(_this11.opt).create(term);
           var matches = 0;
 
           _this11.log("Searching with expression \"".concat(regex, "\""));
 
-          _this11[fn](regex, 1, function (term, node, filterInfo) {
-            return _this11.opt.filter(node, kw, totalMarks, matches, filterInfo);
+          _this11[fn](regex, 1, function (t, node, filterInfo) {
+            return _this11.opt.filter(node, term, totalMarks, matches, filterInfo);
           }, function (element, matchInfo) {
-            matches++;
+            if (across) {
+              if (matchInfo.matchStart) {
+                matches++;
+              }
+            } else {
+              matches++;
+            }
+
             totalMarks++;
 
             _this11.opt.each(element, matchInfo);
@@ -1909,10 +1920,10 @@
             totalMatches += count;
 
             if (count === 0) {
-              _this11.opt.noMatch(kw);
+              _this11.opt.noMatch(term);
             }
 
-            termStats[kw] = count;
+            termStats[term] = count;
 
             if (++index < length) {
               handler(keywords[index]);
@@ -1949,7 +1960,6 @@
         var handler = function handler(pattern) {
           var regex = new RegExp(pattern, flags),
               patternTerms = terms[index];
-          var matches = 0;
 
           _this12.log("Searching with expression \"".concat(regex, "\""));
 
@@ -1962,9 +1972,8 @@
               term = _this12.getCurrentTerm(filterInfo.match, patternTerms);
             }
 
-            return _this12.opt.filter(node, term, totalMarks, matches, filterInfo);
+            return _this12.opt.filter(node, term, totalMarks, termStats[term], filterInfo);
           }, function (element, matchInfo) {
-            matches++;
             totalMarks++;
 
             if (across) {
@@ -2032,7 +2041,7 @@
           if (this.opt.combinePatterns === Infinity) {
             num = Number.MAX_VALUE | 1;
           } else {
-            var value = parseInt(this.opt.combinePatterns, 10);
+            var value = parseInt(this.opt.combinePatterns);
 
             if (this.isNumeric(value)) {
               num = value;
@@ -2094,10 +2103,10 @@
           this.log('Starting to mark with the following ranges: ' + JSON.stringify(ranges));
           this.wrapRangeFromIndex(ranges, function (node, range, match, counter) {
             return _this13.opt.filter(node, range, match, counter);
-          }, function (element, range) {
+          }, function (element, range, rangeInfo) {
             totalMarks++;
 
-            _this13.opt.each(element, range);
+            _this13.opt.each(element, range, rangeInfo);
           }, function (totalMatches) {
             _this13.opt.done(totalMarks, totalMatches);
           });
