@@ -33,7 +33,7 @@ class DOMIterator {
    * iframe is online (either by the browsers "offline" mode or because
    * there's no internet connection)
    */
-  constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000) {
+  constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000, shadowDOM = false) {
     /**
      * The context of the instance. Either a DOM element, an array of DOM
      * elements, a NodeList or a selector
@@ -57,6 +57,12 @@ class DOMIterator {
      * @type {number}
      */
     this.iframesTimeout = iframesTimeout;
+    /**
+     * Boolean indicating if Shadow DOM support is enabled
+     * @type {boolean}
+     * @access protected
+     */
+    this.shadowDOM = shadowDOM;
   }
 
   /**
@@ -328,6 +334,68 @@ class DOMIterator {
   }
 
   /**
+   * Collects required nodes
+   * @param {HTMLElement} ctx - The context DOM element
+   * @param {DOMIterator~whatToShow} whatToShow
+   * @param {DOMIterator~filterCb} filter
+   * @return {Array}
+   * @access protected
+   */
+  collectNodes(ctx, whatToShow, filterCb) {
+    const elements = [],
+      itr = this.createIterator(ctx, whatToShow, filterCb);
+    let node;
+    while ((node = itr.nextNode())) {
+      elements.push(node);
+    }
+    return elements;
+  }
+
+  /**
+   * Collects required normal and shadow DOM nodes
+   * @param {HTMLElement} ctx - The context DOM element
+   * @param {DOMIterator~whatToShow} whatToShow
+   * @param {DOMIterator~filterCb} filter
+   * @return {Array}
+   * @access protected
+   */
+  collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
+    const elements = [],
+      showText = whatToShow === NodeFilter.SHOW_TEXT;
+
+    // 'document.createNodeIterator()' is useless to collect shadow DOM nodes with 'NodeFilter.SHOW_ELEMENT'
+    // this is a workaround
+    const loop = node => {
+      while (node) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+            elements.push(node);
+          }
+
+          if (node.shadowRoot && node.shadowRoot.mode === 'open') {
+            let elem = node.shadowRoot.querySelector(':first-child');
+            if (elem) {
+              loop(elem);
+            }
+          }
+
+        } else if (node.nodeType === Node.TEXT_NODE && showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+          elements.push(node);
+        }
+
+        if (node.hasChildNodes()) {
+          loop(node.firstChild);
+        }
+        node = node.nextSibling;
+      }
+    };
+
+    loop(ctx.firstChild);
+
+    return elements;
+  }
+
+  /**
    * Creates an instance of DOMIterator in an iframe
    * @param {HTMLDocument} contents - Iframe document
    * @return {DOMIterator}
@@ -504,16 +572,17 @@ class DOMIterator {
         elements.push(node);
       }
 
+    } else if (this.shadowDOM) {
+      elements = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
+
     } else {
-      // without 'getIteratorNode' the performance gain is ~2.5 times.
-      while ((node = itr.nextNode())) {
-        elements.push(node);
-      }
+      elements = this.collectNodes(ctx, whatToShow, filterCb);
     }
 
     elements.forEach(node => {
       eachCb(node);
     });
+
     if (this.iframes) {
       this.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
     }

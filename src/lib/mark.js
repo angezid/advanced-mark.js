@@ -83,7 +83,8 @@ class Mark {
       this.ctx,
       this.opt.iframes,
       this.opt.exclude,
-      this.opt.iframesTimeout
+      this.opt.iframesTimeout,
+      this.opt.shadowDOM
     );
   }
 
@@ -1846,13 +1847,7 @@ class Mark {
           return this.opt.filter(node, term, totalMarks, matches, filterInfo);
 
         }, (element, matchInfo) => { // each
-          if (across) {
-            if (matchInfo.matchStart) {
-              matches++;
-            }
-          } else {
-            matches++;
-          }
+          matches++;
           totalMarks++;
           this.opt.each(element, matchInfo);
 

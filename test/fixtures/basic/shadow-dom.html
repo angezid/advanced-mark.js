@@ -1,0 +1,24 @@
+<div class="context">
+  <p>Normal DOM text start</p>
+  <div id="shadow-dom"></div>
+  <p>Normal DOM text end</p>
+</div>
+
+<div class="shadow-dom-html">
+  <p>Shadow DOM text start</p>
+  <p class="exclude">Shadow <b>DOM</b> text excluded</p>
+  <div id="nested-shadow-dom"></div>
+  <p>Shadow DOM text end</p>
+</div>
+
+<div class="nested-shadow-dom-html">
+  <p class="exclude">Nested-shadow <b>DOM</b> text excluded</p>
+  <p>Nested-shadow DOM text start</p>
+  <div id="nested2-shadow-dom"></div>
+  <p>Nested-shadow DOM text end</p>
+</div>
+
+<div class="nested2-shadow-dom-html">
+  <p class="exclude"><span>Nested-nested-shadow <span><b>DOM</b></span><span> text excluded</p>
+  <p>Nested-nested-shadow DOM text</p>
+</div>

@@ -14,11 +14,12 @@
   $ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
   class DOMIterator {
-    constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000) {
+    constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000, shadowDOM = false) {
       this.ctx = ctx;
       this.iframes = iframes;
       this.exclude = exclude;
       this.iframesTimeout = iframesTimeout;
+      this.shadowDOM = shadowDOM;
     }
     static matches(element, selector) {
       const selectors = typeof selector === 'string' ? [selector] : selector,
@@ -172,6 +173,42 @@
     createIterator(ctx, whatToShow, filter) {
       return document.createNodeIterator(ctx, whatToShow, filter, false);
     }
+    collectNodes(ctx, whatToShow, filterCb) {
+      const elements = [],
+        itr = this.createIterator(ctx, whatToShow, filterCb);
+      let node;
+      while ((node = itr.nextNode())) {
+        elements.push(node);
+      }
+      return elements;
+    }
+    collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
+      const elements = [],
+        showText = whatToShow === NodeFilter.SHOW_TEXT;
+      const loop = node => {
+        while (node) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+              elements.push(node);
+            }
+            if (node.shadowRoot && node.shadowRoot.mode === 'open') {
+              let elem = node.shadowRoot.querySelector(':first-child');
+              if (elem) {
+                loop(elem);
+              }
+            }
+          } else if (node.nodeType === Node.TEXT_NODE && showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+            elements.push(node);
+          }
+          if (node.hasChildNodes()) {
+            loop(node.firstChild);
+          }
+          node = node.nextSibling;
+        }
+      };
+      loop(ctx.firstChild);
+      return elements;
+    }
     createInstanceOnIframe(contents) {
       return new DOMIterator(contents.querySelector('html'), this.iframes);
     }
@@ -265,10 +302,10 @@
           });
           elements.push(node);
         }
+      } else if (this.shadowDOM) {
+        elements = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
       } else {
-        while ((node = itr.nextNode())) {
-          elements.push(node);
-        }
+        elements = this.collectNodes(ctx, whatToShow, filterCb);
       }
       elements.forEach(node => {
         eachCb(node);
@@ -543,7 +580,8 @@
         this.ctx,
         this.opt.iframes,
         this.opt.exclude,
-        this.opt.iframesTimeout
+        this.opt.iframesTimeout,
+        this.opt.shadowDOM
       );
     }
     log(msg, level = 'debug') {
@@ -1422,13 +1460,7 @@
           this[fn](regex, 1, (t, node, filterInfo) => {
             return this.opt.filter(node, term, totalMarks, matches, filterInfo);
           }, (element, matchInfo) => {
-            if (across) {
-              if (matchInfo.matchStart) {
-                matches++;
-              }
-            } else {
-              matches++;
-            }
+            matches++;
             totalMarks++;
             this.opt.each(element, matchInfo);
           }, (count) => {
