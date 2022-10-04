@@ -74,6 +74,7 @@
       var iframes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       var exclude = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
       var iframesTimeout = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 5000;
+      var shadowDOM = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
 
       _classCallCheck(this, DOMIterator);
 
@@ -81,6 +82,7 @@
       this.iframes = iframes;
       this.exclude = exclude;
       this.iframesTimeout = iframesTimeout;
+      this.shadowDOM = shadowDOM;
     }
 
     _createClass(DOMIterator, [{
@@ -252,6 +254,54 @@
         return document.createNodeIterator(ctx, whatToShow, filter, false);
       }
     }, {
+      key: "collectNodes",
+      value: function collectNodes(ctx, whatToShow, filterCb) {
+        var elements = [],
+            itr = this.createIterator(ctx, whatToShow, filterCb);
+        var node;
+
+        while (node = itr.nextNode()) {
+          elements.push(node);
+        }
+
+        return elements;
+      }
+    }, {
+      key: "collectNodesWithShadowDOM",
+      value: function collectNodesWithShadowDOM(ctx, whatToShow, filterCb) {
+        var elements = [],
+            showText = whatToShow === NodeFilter.SHOW_TEXT;
+
+        var loop = function loop(node) {
+          while (node) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              if (!showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+                elements.push(node);
+              }
+
+              if (node.shadowRoot && node.shadowRoot.mode === 'open') {
+                var elem = node.shadowRoot.querySelector(':first-child');
+
+                if (elem) {
+                  loop(elem);
+                }
+              }
+            } else if (node.nodeType === Node.TEXT_NODE && showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+              elements.push(node);
+            }
+
+            if (node.hasChildNodes()) {
+              loop(node.firstChild);
+            }
+
+            node = node.nextSibling;
+          }
+        };
+
+        loop(ctx.firstChild);
+        return elements;
+      }
+    }, {
       key: "createInstanceOnIframe",
       value: function createInstanceOnIframe(contents) {
         return new DOMIterator(contents.querySelector('html'), this.iframes);
@@ -371,10 +421,10 @@
             });
             elements.push(node);
           }
+        } else if (this.shadowDOM) {
+          elements = this.collectNodesWithShadowDOM(ctx, whatToShow, filterCb);
         } else {
-          while (node = itr.nextNode()) {
-            elements.push(node);
-          }
+          elements = this.collectNodes(ctx, whatToShow, filterCb);
         }
 
         elements.forEach(function (node) {
@@ -729,7 +779,7 @@
     }, {
       key: "iterator",
       get: function get() {
-        return new DOMIterator(this.ctx, this.opt.iframes, this.opt.exclude, this.opt.iframesTimeout);
+        return new DOMIterator(this.ctx, this.opt.iframes, this.opt.exclude, this.opt.iframesTimeout, this.opt.shadowDOM);
       }
     }, {
       key: "log",

@@ -83,7 +83,8 @@ class Mark {
       this.ctx,
       this.opt.iframes,
       this.opt.exclude,
-      this.opt.iframesTimeout
+      this.opt.iframesTimeout,
+      this.opt.shadowDOM
     );
   }
 
