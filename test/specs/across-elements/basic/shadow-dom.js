@@ -81,9 +81,9 @@ describe('shadow DOM with acrossElements option', function() {
           }
 
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            let sibling = node.shadowRoot.querySelector(':first-child');
-            if (sibling) {
-              loop(sibling);
+            let elem = node.shadowRoot.querySelector(':first-child');
+            if (elem) {
+              loop(elem);
             }
           }
         }

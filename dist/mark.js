@@ -265,8 +265,8 @@
         return elements;
       }
     }, {
-      key: "collectNodesWithShadowDOM",
-      value: function collectNodesWithShadowDOM(ctx, whatToShow, filterCb) {
+      key: "collectNodesIncludeShadowDOM",
+      value: function collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
         var elements = [],
             showText = whatToShow === NodeFilter.SHOW_TEXT;
 
@@ -420,7 +420,7 @@
             elements.push(node);
           }
         } else if (this.shadowDOM) {
-          elements = this.collectNodesWithShadowDOM(ctx, whatToShow, filterCb);
+          elements = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
         } else {
           elements = this.collectNodes(ctx, whatToShow, filterCb);
         }

@@ -359,7 +359,7 @@ class DOMIterator {
    * @return {Array}
    * @access protected
    */
-  collectNodesWithShadowDOM(ctx, whatToShow, filterCb) {
+  collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
     const elements = [],
       showText = whatToShow === NodeFilter.SHOW_TEXT;
 
@@ -573,7 +573,7 @@ class DOMIterator {
       }
 
     } else if (this.shadowDOM) {
-      elements = this.collectNodesWithShadowDOM(ctx, whatToShow, filterCb);
+      elements = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
 
     } else {
       elements = this.collectNodes(ctx, whatToShow, filterCb);

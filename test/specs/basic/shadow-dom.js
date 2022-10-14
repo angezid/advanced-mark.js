@@ -50,8 +50,6 @@ describe('shadow DOM without acrossElements option', function() {
 
   function test() {
     var marks = collectMarkElements($ctx[0]);
-    console.log( marks.length );
-    
     expect(marks).toHaveLength(11);
     
     expect(marks.filter(function(el) {
@@ -80,9 +78,9 @@ describe('shadow DOM without acrossElements option', function() {
           }
 
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            let sibling = node.shadowRoot.querySelector(':first-child');
-            if (sibling) {
-              loop(sibling);
+            let elem = node.shadowRoot.querySelector(':first-child');
+            if (elem) {
+              loop(elem);
             }
           }
         }
