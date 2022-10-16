@@ -23,12 +23,17 @@ describe('shadow DOM without acrossElements option', function() {
   });
 
   it('should mark/unmark shadow DOM', function(done) {
+    const styleObj = { style : 'mark[data-markjs] { background: #ffe408; }' };
+
     new Mark($ctx[0]).mark(array, {
       'diacritics' : false,
-      'shadowDOM' : true,
+      'shadowDOM' : styleObj,
       'exclude' : exclude,
       'done' : function() {
-        test();
+        var obj = collectElements($ctx[0], styleObj);
+        expect(obj.elements).toHaveLength(11);
+        expect(obj.styles).toHaveLength(3);
+        testExcluded(obj.elements);
         unmark(done);
       }
     });
@@ -36,23 +41,24 @@ describe('shadow DOM without acrossElements option', function() {
 
   // important to test 'cacheTextNodes' option
   it('should mark/unmark shadow DOM with cacheTextNodes option', function(done) {
+    const styleObj = {};
+
     new Mark($ctx[0]).mark(array, {
       'diacritics' : false,
-      'shadowDOM' : true,
+      'shadowDOM' : styleObj,
       'cacheTextNodes' : true,
       'exclude' : exclude,
       'done' : function() {
-        test();
+        var obj = collectElements($ctx[0]);
+        expect(obj.elements).toHaveLength(11);
+        testExcluded(obj.elements);
         unmark(done);
       }
     });
   });
 
-  function test() {
-    var marks = collectMarkElements($ctx[0]);
-    expect(marks).toHaveLength(11);
-    
-    expect(marks.filter(function(el) {
+  function testExcluded(elements) {
+    expect(elements.filter(function(el) {
       return /excluded/i.test(el.textContent);
     })).toHaveLength(0);
   }
@@ -61,14 +67,17 @@ describe('shadow DOM without acrossElements option', function() {
     new Mark($ctx[0]).unmark({
       'shadowDOM' : true,
       'done' : function() {
-        expect(collectMarkElements($ctx[0])).toHaveLength(0);
+        var obj = collectElements($ctx[0]);
+        expect(obj.elements).toHaveLength(0);
+        expect(obj.styles).toHaveLength(0);
         done();
       }
     });
   }
 
-  function collectMarkElements(root) {
-    var elements = [];
+  function collectElements(root, obj) {
+    var elements = [],
+      styles = [];
 
     var loop = function(node) {
       while (node) {
@@ -78,9 +87,15 @@ describe('shadow DOM without acrossElements option', function() {
           }
 
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            let elem = node.shadowRoot.querySelector(':first-child');
-            if (elem) {
-              loop(elem);
+            if (obj && obj.style) {
+              let style = node.shadowRoot.querySelector('style');
+              if (style) {
+                styles.push(style);
+              }
+            }
+
+            if (node.shadowRoot.firstChild) {
+              loop(node.shadowRoot.firstChild);
             }
           }
         }
@@ -94,7 +109,7 @@ describe('shadow DOM without acrossElements option', function() {
 
     loop(root.firstChild);
 
-    return elements;
+    return { elements, styles };
   }
 
 });

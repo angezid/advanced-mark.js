@@ -361,7 +361,8 @@ class DOMIterator {
    */
   collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
     const elements = [],
-      showText = whatToShow === NodeFilter.SHOW_TEXT;
+      showText = whatToShow === NodeFilter.SHOW_TEXT,
+      style = this.shadowDOM.style ? this.createStyleElement() : null;
 
     // 'document.createNodeIterator()' is useless to collect shadow DOM nodes with 'NodeFilter.SHOW_ELEMENT'
     // this is a workaround
@@ -373,7 +374,9 @@ class DOMIterator {
           }
 
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            let elem = node.shadowRoot.querySelector(':first-child');
+            this.addRemoveStyle(node, style, showText);
+
+            let elem = node.shadowRoot.querySelector('*:not(style, script)');
             if (elem) {
               loop(elem);
             }
@@ -393,6 +396,39 @@ class DOMIterator {
     loop(ctx.firstChild);
 
     return elements;
+  }
+
+  /**
+   * Adds custom style to shadow root when marking, removes when unmark
+   * There is no possibility to check whether a shadow root has any matches though
+   * @param {HTMLElement} node - The shadow root node
+   * @param {HTMLElement} style - The custom style element
+   * @param {boolean} add - A boolean indicating add or remove a style element
+   */
+  addRemoveStyle(node, style, add) {
+    if (add) {
+      if ( !style || !node.shadowRoot.firstChild || node.shadowRoot.querySelector('style[data-markjs]')) {
+        return;
+      }
+      node.shadowRoot.insertBefore(style, node.shadowRoot.firstChild);
+      
+    } else {
+      let elem = node.shadowRoot.querySelector('style[data-markjs]');
+      if (elem) {
+        node.shadowRoot.removeChild(elem);
+      }
+    } 
+  }
+  
+  /**
+   * Creates custom style element which will be applied to a shadow root
+   * @return {HTMLElement}
+   */
+  createStyleElement() {
+    const style = document.createElement('style');
+    style.setAttribute('data-markjs', 'true');
+    style.textContent = this.shadowDOM.style;
+    return style;
   }
 
   /**

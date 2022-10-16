@@ -269,8 +269,11 @@
     }, {
       key: "collectNodesIncludeShadowDOM",
       value: function collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
+        var _this4 = this;
+
         var elements = [],
-            showText = whatToShow === NodeFilter.SHOW_TEXT;
+            showText = whatToShow === NodeFilter.SHOW_TEXT,
+            style = this.shadowDOM.style ? this.createStyleElement() : null;
 
         var loop = function loop(node) {
           while (node) {
@@ -280,7 +283,9 @@
               }
 
               if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-                var elem = node.shadowRoot.querySelector(':first-child');
+                _this4.addRemoveStyle(node, style, showText);
+
+                var elem = node.shadowRoot.querySelector('*:not(style, script)');
 
                 if (elem) {
                   loop(elem);
@@ -300,6 +305,31 @@
 
         loop(ctx.firstChild);
         return elements;
+      }
+    }, {
+      key: "addRemoveStyle",
+      value: function addRemoveStyle(node, style, add) {
+        if (add) {
+          if (!style || !node.shadowRoot.firstChild || node.shadowRoot.querySelector('style[data-markjs]')) {
+            return;
+          }
+
+          node.shadowRoot.insertBefore(style, node.shadowRoot.firstChild);
+        } else {
+          var elem = node.shadowRoot.querySelector('style[data-markjs]');
+
+          if (elem) {
+            node.shadowRoot.removeChild(elem);
+          }
+        }
+      }
+    }, {
+      key: "createStyleElement",
+      value: function createStyleElement() {
+        var style = document.createElement('style');
+        style.setAttribute('data-markjs', 'true');
+        style.textContent = this.shadowDOM.style;
+        return style;
       }
     }, {
       key: "createInstanceOnIframe",
@@ -381,12 +411,12 @@
     }, {
       key: "handleOpenIframes",
       value: function handleOpenIframes(ifr, whatToShow, eCb, fCb) {
-        var _this4 = this;
+        var _this5 = this;
 
         ifr.forEach(function (ifrDict) {
           if (!ifrDict.handled) {
-            _this4.getIframeContents(ifrDict.val, function (con) {
-              _this4.createInstanceOnIframe(con).forEachNode(whatToShow, eCb, fCb);
+            _this5.getIframeContents(ifrDict.val, function (con) {
+              _this5.createInstanceOnIframe(con).forEachNode(whatToShow, eCb, fCb);
             });
           }
         });
@@ -394,7 +424,7 @@
     }, {
       key: "iterateThroughNodes",
       value: function iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
-        var _this5 = this;
+        var _this6 = this;
 
         var itr = this.createIterator(ctx, whatToShow, filterCb);
 
@@ -403,19 +433,19 @@
             node,
             prevNode,
             retrieveNodes = function retrieveNodes() {
-          var _this5$getIteratorNod = _this5.getIteratorNode(itr);
+          var _this6$getIteratorNod = _this6.getIteratorNode(itr);
 
-          prevNode = _this5$getIteratorNod.prevNode;
-          node = _this5$getIteratorNod.node;
+          prevNode = _this6$getIteratorNod.prevNode;
+          node = _this6$getIteratorNod.node;
           return node;
         };
 
         if (this.iframes) {
           while (retrieveNodes()) {
             this.forEachIframe(ctx, function (currIfr) {
-              return _this5.checkIframeFilter(node, prevNode, currIfr, ifr);
+              return _this6.checkIframeFilter(node, prevNode, currIfr, ifr);
             }, function (con) {
-              _this5.createInstanceOnIframe(con).forEachNode(whatToShow, function (ifrNode) {
+              _this6.createInstanceOnIframe(con).forEachNode(whatToShow, function (ifrNode) {
                 return elements.push(ifrNode);
               }, filterCb);
             });
@@ -440,7 +470,7 @@
     }, {
       key: "forEachNode",
       value: function forEachNode(whatToShow, each, filter) {
-        var _this6 = this;
+        var _this7 = this;
 
         var done = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : function () {};
         var contexts = this.getContexts();
@@ -452,15 +482,15 @@
 
         contexts.forEach(function (ctx) {
           var ready = function ready() {
-            _this6.iterateThroughNodes(whatToShow, ctx, each, filter, function () {
+            _this7.iterateThroughNodes(whatToShow, ctx, each, filter, function () {
               if (--open <= 0) {
                 done();
               }
             });
           };
 
-          if (_this6.iframes) {
-            _this6.waitForIframes(ctx, ready);
+          if (_this7.iframes) {
+            _this7.waitForIframes(ctx, ready);
           } else {
             ready();
           }
@@ -928,7 +958,7 @@
           } else {
             var parent = textNode.parentNode;
 
-            while (parent === parent.parentNode.lastChild) {
+            while (parent.parentNode && parent === parent.parentNode.lastChild) {
               if (checkName(parent.parentNode)) {
                 return true;
               }
@@ -1941,8 +1971,7 @@
         var index = 0,
             totalMarks = 0,
             totalMatches = 0;
-        var across = this.opt.acrossElements,
-            fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+        var fn = this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
             termStats = {};
 
         var _this$getSeparatedKey = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),

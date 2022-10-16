@@ -325,7 +325,7 @@ class Mark {
       } else {
         // loop through textNode parent nodes which are last-child
         let parent = textNode.parentNode;
-        while (parent === parent.parentNode.lastChild) {
+        while (parent.parentNode && parent === parent.parentNode.lastChild) {
           if (checkName(parent.parentNode)) {
             return true;
           }
@@ -1832,8 +1832,8 @@ class Mark {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0;
-    const across = this.opt.acrossElements,
-      fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+    const fn =
+      this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
       termStats = {};
 
     const { keywords, length } =
