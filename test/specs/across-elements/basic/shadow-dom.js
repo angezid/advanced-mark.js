@@ -51,10 +51,27 @@ describe('shadow DOM with acrossElements option', function() {
     });
   });
 
+  // important to test 'blockElementsBoundary' option
+  it('should mark/unmark shadow DOM with blockElementsBoundary option', function(done) {
+    new Mark($ctx[0]).mark(array, {
+      'diacritics' : false,
+      'acrossElements' : true,
+      'shadowDOM' : true,
+      'exclude' : exclude,
+      'blockElementsBoundary' : {
+        tagNames : ['div', 'p'],
+      },
+      'done' : function() {
+        test();
+        unmark(done);
+      }
+    });
+  });
+
   function test() {
     var marks = collectMarkElements($ctx[0]);
     expect(marks).toHaveLength(11);
-    
+
     sequence.forEach(function(word, i) {
       expect(marks[i].textContent.toLowerCase()).toBe(word);
     });
@@ -81,9 +98,8 @@ describe('shadow DOM with acrossElements option', function() {
           }
 
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            let elem = node.shadowRoot.querySelector(':first-child');
-            if (elem) {
-              loop(elem);
+            if (node.shadowRoot.firstChild) {
+              loop(node.shadowRoot.firstChild);
             }
           }
         }

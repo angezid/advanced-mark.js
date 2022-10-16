@@ -176,7 +176,8 @@ class DOMIterator {
   }
   collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
     const elements = [],
-      showText = whatToShow === NodeFilter.SHOW_TEXT;
+      showText = whatToShow === NodeFilter.SHOW_TEXT,
+      style = this.shadowDOM.style ? this.createStyleElement() : null;
     const loop = node => {
       while (node) {
         if (node.nodeType === Node.ELEMENT_NODE) {
@@ -184,7 +185,8 @@ class DOMIterator {
             elements.push(node);
           }
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            let elem = node.shadowRoot.querySelector(':first-child');
+            this.addRemoveStyle(node, style, showText);
+            let elem = node.shadowRoot.querySelector('*:not(style, script)');
             if (elem) {
               loop(elem);
             }
@@ -200,6 +202,25 @@ class DOMIterator {
     };
     loop(ctx.firstChild);
     return elements;
+  }
+  addRemoveStyle(node, style, add) {
+    if (add) {
+      if ( !style || !node.shadowRoot.firstChild || node.shadowRoot.querySelector('style[data-markjs]')) {
+        return;
+      }
+      node.shadowRoot.insertBefore(style, node.shadowRoot.firstChild);
+    } else {
+      let elem = node.shadowRoot.querySelector('style[data-markjs]');
+      if (elem) {
+        node.shadowRoot.removeChild(elem);
+      }
+    }
+  }
+  createStyleElement() {
+    const style = document.createElement('style');
+    style.setAttribute('data-markjs', 'true');
+    style.textContent = this.shadowDOM.style;
+    return style;
   }
   createInstanceOnIframe(contents) {
     return new DOMIterator(contents.querySelector('html'), this.iframes);
@@ -701,7 +722,7 @@ class Mark {
         return true;
       } else {
         let parent = textNode.parentNode;
-        while (parent === parent.parentNode.lastChild) {
+        while (parent.parentNode && parent === parent.parentNode.lastChild) {
           if (checkName(parent.parentNode)) {
             return true;
           }
@@ -1440,8 +1461,8 @@ class Mark {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0;
-    const across = this.opt.acrossElements,
-      fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+    const fn =
+      this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
       termStats = {};
     const { keywords, length } =
       this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),
