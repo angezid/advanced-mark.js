@@ -3,7 +3,7 @@
 ##### Highlight keywords using JavaScript. Intended for every use case. <br> Can e.g. be used to mark text in search results.
 
 More info and how to use can be found here [Radical changes of across elements pipeline](https://github.com/julmot/mark.js/pull/450).  
-To play with mark.js - [Markjs-playground](https://github.com/angezid/Markjs-playground). It's requires minimum installation and provides full (except `iframes` option) functionally.
+To play with mark.js - [Markjs-playground](https://github.com/angezid/Markjs-playground). It's requires minimum installation and provides full functionally.
 
 ## Modules
 * \*. es6.\*.js now are real ES6 modules
@@ -23,7 +23,8 @@ The `createDiacritics(term)` method returns a term diacritic pattern.
 
 ``` js
 import RegExpCreator from './regexpcreator.es6.js';
-// the `options` object accepts : accuracy, diacritics, synonyms, caseSensitive, ignoreJoiners, ignorePunctuation, wildcards
+// the `options` object accepts : accuracy, diacritics, synonyms, caseSensitive,
+// ignoreJoiners, ignorePunctuation, wildcards
 const creator = new RegExpCreator(options);
 const obj = creator.create(term, true);
 console.log(obj.lookbehind, obj.pattern, obj.lookahead);
@@ -31,23 +32,14 @@ console.log(obj.lookbehind, obj.pattern, obj.lookahead);
 
 ## Mark shadow DOM
 With `shadowDOM` option mark.js now is able to highlight shadow DOM.  
-You can play with [Markjs-playground](https://github.com/angezid/Markjs-playground). Import `JONS -> Example -> Shadow DOM`.  
+You can play with [Markjs-playground](https://github.com/angezid/Markjs-playground). Import `JSON -> Examples -> Shadow DOM`.  
 **Note** that option `shadowDOM : {style : 'your mark element style'}` creates a style element and inserts it at the beginning of shadow root child node(s).  
 This operation is invasive, it can break code.  
 An inline style can be used as an alternative:
 ``` js
 each : (elem, info) => {
-	if(elem.getRootNode().nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-		elem.style.color = "red";
-	}
+    if(elem.getRootNode().nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+        elem.style.color = "red";
+    }
 }
 ```
-
-
-
-
-
-
-
-
-
