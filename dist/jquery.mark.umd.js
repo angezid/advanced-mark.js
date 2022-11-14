@@ -174,53 +174,50 @@
       return document.createNodeIterator(ctx, whatToShow, filter, false);
     }
     collectNodes(ctx, whatToShow, filterCb) {
-      const elements = [],
+      const nodes = [],
         itr = this.createIterator(ctx, whatToShow, filterCb);
       let node;
       while ((node = itr.nextNode())) {
-        elements.push(node);
+        nodes.push(node);
       }
-      return elements;
+      return nodes;
     }
     collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
-      const elements = [],
+      const nodes = [],
         showText = whatToShow === NodeFilter.SHOW_TEXT,
         style = this.shadowDOM.style ? this.createStyleElement() : null;
-      const loop = node => {
-        while (node) {
+      if (showText) {
+        whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+      }
+      const traverse = node => {
+        const iterator = this.createIterator(node, whatToShow);
+        while ((node = iterator.nextNode())) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-              elements.push(node);
+              nodes.push(node);
             }
             if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-              this.addRemoveStyle(node, style, showText);
-              let elem = node.shadowRoot.querySelector('*:not(style, script)');
-              if (elem) {
-                loop(elem);
-              }
+              this.addRemoveStyle(node.shadowRoot, style, showText);
+              traverse(node.shadowRoot);
             }
           } else if (node.nodeType === Node.TEXT_NODE && showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-            elements.push(node);
+            nodes.push(node);
           }
-          if (node.hasChildNodes()) {
-            loop(node.firstChild);
-          }
-          node = node.nextSibling;
         }
       };
-      loop(ctx.firstChild);
-      return elements;
+      traverse(ctx);
+      return nodes;
     }
-    addRemoveStyle(node, style, add) {
+    addRemoveStyle(root, style, add) {
       if (add) {
-        if ( !style || !node.shadowRoot.firstChild || node.shadowRoot.querySelector('style[data-markjs]')) {
+        if ( !style || !root.firstChild || root.querySelector('style[data-markjs]')) {
           return;
         }
-        node.shadowRoot.insertBefore(style, node.shadowRoot.firstChild);
+        root.insertBefore(style, root.firstChild);
       } else {
-        let elem = node.shadowRoot.querySelector('style[data-markjs]');
+        let elem = root.querySelector('style[data-markjs]');
         if (elem) {
-          node.shadowRoot.removeChild(elem);
+          root.removeChild(elem);
         }
       }
     }
@@ -302,33 +299,31 @@
       });
     }
     iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
-      const itr = this.createIterator(ctx, whatToShow, filterCb);
       let ifr = [],
-        elements = [],
-        node, prevNode, retrieveNodes = () => {
-          ({
-            prevNode,
-            node
-          } = this.getIteratorNode(itr));
+        nodes = [];
+      if (this.iframes) {
+        const itr = this.createIterator(ctx, whatToShow, filterCb);
+        let node, prevNode;
+        const retrieveNodes = () => {
+          ({ prevNode, node } = this.getIteratorNode(itr));
           return node;
         };
-      if (this.iframes) {
         while (retrieveNodes()) {
           this.forEachIframe(ctx, currIfr => {
             return this.checkIframeFilter(node, prevNode, currIfr, ifr);
           }, con => {
             this.createInstanceOnIframe(con).forEachNode(
-              whatToShow, ifrNode => elements.push(ifrNode), filterCb
+              whatToShow, ifrNode => nodes.push(ifrNode), filterCb
             );
           });
-          elements.push(node);
+          nodes.push(node);
         }
       } else if (this.shadowDOM) {
-        elements = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
+        nodes = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
       } else {
-        elements = this.collectNodes(ctx, whatToShow, filterCb);
+        nodes = this.collectNodes(ctx, whatToShow, filterCb);
       }
-      elements.forEach(node => {
+      nodes.forEach(node => {
         eachCb(node);
       });
       if (this.iframes) {
@@ -530,35 +525,26 @@
       ls.forEach(limiter => {
         lsJoin += `|${this.escapeStr(limiter)}`;
       });
+      let lookbehind = '()', pattern, lookahead = '';
+      switch (val) {
+        case 'partially':
+        default:
+          pattern = str;
+          break;
+        case 'complementary':
+          lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
+          pattern = `[^${lsJoin}]*${str}[^${lsJoin}]*`;
+          break;
+        case 'exactly':
+          lookbehind = `(^|\\s${lsJoin})`;
+          pattern = str,
+          lookahead = `(?=$|\\s${lsJoin})`;
+          break;
+      }
       if (patterns) {
-        let lookbehind = '()', pattern, lookahead = '';
-        switch (val) {
-          case 'partially':
-          default:
-            pattern = str;
-            break;
-          case 'complementary':
-            lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-            pattern = `[^${lsJoin}]*${str}[^${lsJoin}]*`;
-            break;
-          case 'exactly':
-            lookbehind = `(^|\\s${lsJoin})`;
-            pattern = str,
-            lookahead = `(?=$|\\s${lsJoin})`;
-            break;
-        }
         return { lookbehind, pattern, lookahead };
       } else {
-        switch (val) {
-          case 'partially':
-          default:
-            return `()(${str})`;
-          case 'complementary':
-            lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-            return `()([^${lsJoin}]*${str}[^${lsJoin}]*)`;
-          case 'exactly':
-            return `(^|\\s${lsJoin})(${str})(?=$|\\s${lsJoin})`;
-        }
+        return `${lookbehind}(${pattern})${lookahead}`;
       }
     }
   }
@@ -1290,7 +1276,7 @@
             break;
           }
         }
-        endCb(count, dict);
+        endCb(count);
       });
     }
     wrapGroupsAcrossElements(regex, unused, filterCb, eachCb, endCb) {
@@ -1372,7 +1358,7 @@
             break;
           }
         }
-        endCb(count, dict);
+        endCb(count);
       });
     }
     wrapRangeFromIndex(ranges, filterCb, eachCb, endCb) {

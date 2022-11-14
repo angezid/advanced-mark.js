@@ -176,35 +176,26 @@ class RegExpCreator {
     ls.forEach(limiter => {
       lsJoin += `|${this.escapeStr(limiter)}`;
     });
+    let lookbehind = '()', pattern, lookahead = '';
+    switch (val) {
+      case 'partially':
+      default:
+        pattern = str;
+        break;
+      case 'complementary':
+        lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
+        pattern = `[^${lsJoin}]*${str}[^${lsJoin}]*`;
+        break;
+      case 'exactly':
+        lookbehind = `(^|\\s${lsJoin})`;
+        pattern = str,
+        lookahead = `(?=$|\\s${lsJoin})`;
+        break;
+    }
     if (patterns) {
-      let lookbehind = '()', pattern, lookahead = '';
-      switch (val) {
-        case 'partially':
-        default:
-          pattern = str;
-          break;
-        case 'complementary':
-          lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-          pattern = `[^${lsJoin}]*${str}[^${lsJoin}]*`;
-          break;
-        case 'exactly':
-          lookbehind = `(^|\\s${lsJoin})`;
-          pattern = str,
-          lookahead = `(?=$|\\s${lsJoin})`;
-          break;
-      }
       return { lookbehind, pattern, lookahead };
     } else {
-      switch (val) {
-        case 'partially':
-        default:
-          return `()(${str})`;
-        case 'complementary':
-          lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-          return `()([^${lsJoin}]*${str}[^${lsJoin}]*)`;
-        case 'exactly':
-          return `(^|\\s${lsJoin})(${str})(?=$|\\s${lsJoin})`;
-      }
+      return `${lookbehind}(${pattern})${lookahead}`;
     }
   }
 }

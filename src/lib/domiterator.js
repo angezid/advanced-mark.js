@@ -342,13 +342,13 @@ class DOMIterator {
    * @access protected
    */
   collectNodes(ctx, whatToShow, filterCb) {
-    const elements = [],
+    const nodes = [],
       itr = this.createIterator(ctx, whatToShow, filterCb);
     let node;
     while ((node = itr.nextNode())) {
-      elements.push(node);
+      nodes.push(node);
     }
-    return elements;
+    return nodes;
   }
 
   /**
@@ -360,42 +360,38 @@ class DOMIterator {
    * @access protected
    */
   collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
-    const elements = [],
+    const nodes = [],
       showText = whatToShow === NodeFilter.SHOW_TEXT,
       style = this.shadowDOM.style ? this.createStyleElement() : null;
 
-    // 'document.createNodeIterator()' is useless to collect shadow DOM nodes with 'NodeFilter.SHOW_ELEMENT'
-    // this is a workaround
-    const loop = node => {
-      while (node) {
+    if (showText) {
+      whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+    }
+
+    const traverse = node => {
+      const iterator = this.createIterator(node, whatToShow);
+
+      while ((node = iterator.nextNode())) {
         if (node.nodeType === Node.ELEMENT_NODE) {
           if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-            elements.push(node);
+            nodes.push(node);
           }
 
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            this.addRemoveStyle(node, style, showText);
+            this.addRemoveStyle(node.shadowRoot, style, showText);
 
-            let elem = node.shadowRoot.querySelector('*:not(style, script)');
-            if (elem) {
-              loop(elem);
-            }
+            traverse(node.shadowRoot);
           }
 
         } else if (node.nodeType === Node.TEXT_NODE && showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-          elements.push(node);
+          nodes.push(node);
         }
-
-        if (node.hasChildNodes()) {
-          loop(node.firstChild);
-        }
-        node = node.nextSibling;
       }
     };
 
-    loop(ctx.firstChild);
+    traverse(ctx);
 
-    return elements;
+    return nodes;
   }
 
   /**
@@ -405,21 +401,21 @@ class DOMIterator {
    * @param {HTMLElement} style - The custom style element
    * @param {boolean} add - A boolean indicating add or remove a style element
    */
-  addRemoveStyle(node, style, add) {
+  addRemoveStyle(root, style, add) {
     if (add) {
-      if ( !style || !node.shadowRoot.firstChild || node.shadowRoot.querySelector('style[data-markjs]')) {
+      if ( !style || !root.firstChild || root.querySelector('style[data-markjs]')) {
         return;
       }
-      node.shadowRoot.insertBefore(style, node.shadowRoot.firstChild);
-      
+      root.insertBefore(style, root.firstChild);
+
     } else {
-      let elem = node.shadowRoot.querySelector('style[data-markjs]');
+      let elem = root.querySelector('style[data-markjs]');
       if (elem) {
-        node.shadowRoot.removeChild(elem);
+        root.removeChild(elem);
       }
-    } 
+    }
   }
-  
+
   /**
    * Creates custom style element which will be applied to a shadow root
    * @return {HTMLElement}
@@ -582,40 +578,40 @@ class DOMIterator {
    * @access protected
    */
   iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
-    const itr = this.createIterator(ctx, whatToShow, filterCb);
     let ifr = [],
-      elements = [],
-      node, prevNode, retrieveNodes = () => {
-        ({
-          prevNode,
-          node
-        } = this.getIteratorNode(itr));
+      nodes = [];
+
+    if (this.iframes) {
+      const itr = this.createIterator(ctx, whatToShow, filterCb);
+      let node, prevNode;
+
+      const retrieveNodes = () => {
+        ({ prevNode, node } = this.getIteratorNode(itr));
         return node;
       };
 
-    if (this.iframes) {
       while (retrieveNodes()) {
         this.forEachIframe(ctx, currIfr => {
           // note that ifr will be manipulated here
           return this.checkIframeFilter(node, prevNode, currIfr, ifr);
         }, con => {
           this.createInstanceOnIframe(con).forEachNode(
-            whatToShow, ifrNode => elements.push(ifrNode), filterCb
+            whatToShow, ifrNode => nodes.push(ifrNode), filterCb
           );
         });
         // it's faster to call the each callback in an array loop
         // than in this while loop
-        elements.push(node);
+        nodes.push(node);
       }
 
     } else if (this.shadowDOM) {
-      elements = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
+      nodes = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
 
     } else {
-      elements = this.collectNodes(ctx, whatToShow, filterCb);
+      nodes = this.collectNodes(ctx, whatToShow, filterCb);
     }
 
-    elements.forEach(node => {
+    nodes.forEach(node => {
       eachCb(node);
     });
 
