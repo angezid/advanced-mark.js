@@ -85,7 +85,6 @@ const output = {
         }]
       ],
       'plugins': [
-        '@babel/plugin-external-helpers',
         '@babel/plugin-transform-object-assign'
       ]
     }));

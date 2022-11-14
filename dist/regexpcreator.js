@@ -246,47 +246,35 @@
         ls.forEach(function (limiter) {
           lsJoin += "|".concat(_this2.escapeStr(limiter));
         });
+        var lookbehind = '()',
+            pattern,
+            lookahead = '';
+
+        switch (val) {
+          case 'partially':
+          default:
+            pattern = str;
+            break;
+
+          case 'complementary':
+            lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
+            pattern = "[^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*");
+            break;
+
+          case 'exactly':
+            lookbehind = "(^|\\s".concat(lsJoin, ")");
+            pattern = str, lookahead = "(?=$|\\s".concat(lsJoin, ")");
+            break;
+        }
 
         if (patterns) {
-          var lookbehind = '()',
-              pattern,
-              lookahead = '';
-
-          switch (val) {
-            case 'partially':
-            default:
-              pattern = str;
-              break;
-
-            case 'complementary':
-              lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-              pattern = "[^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*");
-              break;
-
-            case 'exactly':
-              lookbehind = "(^|\\s".concat(lsJoin, ")");
-              pattern = str, lookahead = "(?=$|\\s".concat(lsJoin, ")");
-              break;
-          }
-
           return {
             lookbehind: lookbehind,
             pattern: pattern,
             lookahead: lookahead
           };
         } else {
-          switch (val) {
-            case 'partially':
-            default:
-              return "()(".concat(str, ")");
-
-            case 'complementary':
-              lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-              return "()([^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*)");
-
-            case 'exactly':
-              return "(^|\\s".concat(lsJoin, ")(").concat(str, ")(?=$|\\s").concat(lsJoin, ")");
-          }
+          return "".concat(lookbehind, "(").concat(pattern, ")").concat(lookahead);
         }
       }
     }]);

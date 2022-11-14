@@ -1363,7 +1363,7 @@ class Mark {
           break;
         }
       }
-      endCb(count, dict);
+      endCb(count);
     });
   }
   /* eslint-enable complexity */
@@ -1557,7 +1557,7 @@ class Mark {
           break;
         }
       }
-      endCb(count, dict);
+      endCb(count);
     });
   }
 

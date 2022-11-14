@@ -254,70 +254,66 @@
     }, {
       key: "collectNodes",
       value: function collectNodes(ctx, whatToShow, filterCb) {
-        var elements = [],
+        var nodes = [],
             itr = this.createIterator(ctx, whatToShow, filterCb);
         var node;
 
         while (node = itr.nextNode()) {
-          elements.push(node);
+          nodes.push(node);
         }
 
-        return elements;
+        return nodes;
       }
     }, {
       key: "collectNodesIncludeShadowDOM",
       value: function collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
         var _this4 = this;
 
-        var elements = [],
+        var nodes = [],
             showText = whatToShow === NodeFilter.SHOW_TEXT,
             style = this.shadowDOM.style ? this.createStyleElement() : null;
 
-        var loop = function loop(node) {
-          while (node) {
+        if (showText) {
+          whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+        }
+
+        var traverse = function traverse(node) {
+          var iterator = _this4.createIterator(node, whatToShow);
+
+          while (node = iterator.nextNode()) {
             if (node.nodeType === Node.ELEMENT_NODE) {
               if (!showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-                elements.push(node);
+                nodes.push(node);
               }
 
               if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-                _this4.addRemoveStyle(node, style, showText);
+                _this4.addRemoveStyle(node.shadowRoot, style, showText);
 
-                var elem = node.shadowRoot.querySelector('*:not(style, script)');
-
-                if (elem) {
-                  loop(elem);
-                }
+                traverse(node.shadowRoot);
               }
             } else if (node.nodeType === Node.TEXT_NODE && showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-              elements.push(node);
+              nodes.push(node);
             }
-
-            if (node.hasChildNodes()) {
-              loop(node.firstChild);
-            }
-
-            node = node.nextSibling;
           }
         };
 
-        loop(ctx.firstChild);
-        return elements;
+        traverse(ctx);
+        return nodes;
       }
     }, {
       key: "addRemoveStyle",
-      value: function addRemoveStyle(node, style, add) {
+      value: function addRemoveStyle(root, style, add) {
         if (add) {
-          if (!style || !node.shadowRoot.firstChild || node.shadowRoot.querySelector('style[data-markjs]')) {
+          if (!style || !root.firstChild || root.querySelector('style[data-markjs]')) {
             return;
           }
 
-          node.shadowRoot.insertBefore(style, node.shadowRoot.firstChild);
+          root.insertBefore(style, root.firstChild);
         } else {
-          var elem = node.shadowRoot.querySelector('style[data-markjs]');
+          var elem = root.querySelector('style[data-markjs]');
 
           if (elem) {
-            node.shadowRoot.removeChild(elem);
+            root.removeChild(elem);
           }
         }
       }
@@ -424,38 +420,42 @@
       value: function iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
         var _this6 = this;
 
-        var itr = this.createIterator(ctx, whatToShow, filterCb);
-
         var ifr = [],
-            elements = [],
-            node,
-            prevNode,
-            retrieveNodes = function retrieveNodes() {
-          var _this6$getIteratorNod = _this6.getIteratorNode(itr);
-
-          prevNode = _this6$getIteratorNod.prevNode;
-          node = _this6$getIteratorNod.node;
-          return node;
-        };
+            nodes = [];
 
         if (this.iframes) {
-          while (retrieveNodes()) {
-            this.forEachIframe(ctx, function (currIfr) {
-              return _this6.checkIframeFilter(node, prevNode, currIfr, ifr);
-            }, function (con) {
-              _this6.createInstanceOnIframe(con).forEachNode(whatToShow, function (ifrNode) {
-                return elements.push(ifrNode);
-              }, filterCb);
-            });
-            elements.push(node);
-          }
+          (function () {
+            var itr = _this6.createIterator(ctx, whatToShow, filterCb);
+
+            var node, prevNode;
+
+            var retrieveNodes = function retrieveNodes() {
+              var _this6$getIteratorNod = _this6.getIteratorNode(itr);
+
+              prevNode = _this6$getIteratorNod.prevNode;
+              node = _this6$getIteratorNod.node;
+              return node;
+            };
+
+            while (retrieveNodes()) {
+              _this6.forEachIframe(ctx, function (currIfr) {
+                return _this6.checkIframeFilter(node, prevNode, currIfr, ifr);
+              }, function (con) {
+                _this6.createInstanceOnIframe(con).forEachNode(whatToShow, function (ifrNode) {
+                  return nodes.push(ifrNode);
+                }, filterCb);
+              });
+
+              nodes.push(node);
+            }
+          })();
         } else if (this.shadowDOM) {
-          elements = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
+          nodes = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
         } else {
-          elements = this.collectNodes(ctx, whatToShow, filterCb);
+          nodes = this.collectNodes(ctx, whatToShow, filterCb);
         }
 
-        elements.forEach(function (node) {
+        nodes.forEach(function (node) {
           eachCb(node);
         });
 
@@ -715,47 +715,35 @@
         ls.forEach(function (limiter) {
           lsJoin += "|".concat(_this2.escapeStr(limiter));
         });
+        var lookbehind = '()',
+            pattern,
+            lookahead = '';
+
+        switch (val) {
+          case 'partially':
+          default:
+            pattern = str;
+            break;
+
+          case 'complementary':
+            lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
+            pattern = "[^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*");
+            break;
+
+          case 'exactly':
+            lookbehind = "(^|\\s".concat(lsJoin, ")");
+            pattern = str, lookahead = "(?=$|\\s".concat(lsJoin, ")");
+            break;
+        }
 
         if (patterns) {
-          var lookbehind = '()',
-              pattern,
-              lookahead = '';
-
-          switch (val) {
-            case 'partially':
-            default:
-              pattern = str;
-              break;
-
-            case 'complementary':
-              lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-              pattern = "[^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*");
-              break;
-
-            case 'exactly':
-              lookbehind = "(^|\\s".concat(lsJoin, ")");
-              pattern = str, lookahead = "(?=$|\\s".concat(lsJoin, ")");
-              break;
-          }
-
           return {
             lookbehind: lookbehind,
             pattern: pattern,
             lookahead: lookahead
           };
         } else {
-          switch (val) {
-            case 'partially':
-            default:
-              return "()(".concat(str, ")");
-
-            case 'complementary':
-              lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-              return "()([^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*)");
-
-            case 'exactly':
-              return "(^|\\s".concat(lsJoin, ")(").concat(str, ")(?=$|\\s").concat(lsJoin, ")");
-          }
+          return "".concat(lookbehind, "(").concat(pattern, ")").concat(lookahead);
         }
       }
     }]);
@@ -1744,7 +1732,7 @@
             }
           }
 
-          endCb(count, dict);
+          endCb(count);
         });
       }
     }, {
@@ -1851,7 +1839,7 @@
             }
           }
 
-          endCb(count, dict);
+          endCb(count);
         });
       }
     }, {
