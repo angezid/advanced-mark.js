@@ -17,6 +17,7 @@ class Mark {
    * element, an array of DOM elements, a NodeList or a selector
    */
   constructor(ctx) {
+    this.version = '10.0.0';
     /**
      * The context of the instance. Either a DOM element, an array of DOM
      * elements, a NodeList or a selector
@@ -24,7 +25,11 @@ class Mark {
      * @access protected
      */
     this.ctx = ctx;
-    // used with the 'cacheTextNodes' option to improve performance
+    /**
+     * Used with the 'cacheTextNodes' option to improve performance
+     * @type {object}
+     * @access protected
+     */
     this.cacheDict = {};
     /**
      * Specifies if the current browser is a IE (necessary for the node
@@ -633,12 +638,13 @@ class Mark {
    * @access protected
    */
   matchesExclude(elem) {
-    // it's faster to check if array contains nodeName than selector in 'DOMIterator.matches()'
+    // it's faster to check if array contains node name than selector in 'DOMIterator.matches()'
     const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
+
     return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
       this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
   }
-  
+
   /**
    * Wraps the instance element and class around matches that fit the start and
    * end positions within the node
@@ -2121,12 +2127,12 @@ class Mark {
   unmark(opt) {
     this.opt = opt;
     let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
-    
+
     if (this.opt.className) {
       selector += `.${this.opt.className}`;
     }
     this.log(`Removal selector "${selector}"`);
-    
+
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
