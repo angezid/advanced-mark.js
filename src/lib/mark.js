@@ -17,7 +17,7 @@ class Mark {
    * element, an array of DOM elements, a NodeList or a selector
    */
   constructor(ctx) {
-    this.version = '10.0.0';
+    this.version = '[VI]{version} - built on {date}[/VI]';
     /**
      * The context of the instance. Either a DOM element, an array of DOM
      * elements, a NodeList or a selector

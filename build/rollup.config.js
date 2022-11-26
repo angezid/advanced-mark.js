@@ -7,6 +7,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import cleanup from 'rollup-plugin-cleanup';
 import babel from 'rollup-plugin-babel';
 import {terser} from "rollup-plugin-terser";
+import versionInjector from 'rollup-plugin-version-injector';
 
 // Shared config
 const output = {
@@ -69,6 +70,17 @@ const output = {
     // for external dependencies (just in case)
     resolve(),
     commonjs(),
+    versionInjector({
+      logLevel: 'warn',
+      exclude: [
+        'regexpcreator.js',
+        'regexpcreator.es6.js',
+        'regexpcreator.es6.min.js',
+        'regexpcreator.min.js',
+        'regexpcreator.umd.js',
+        'regexpcreator.umd.min.js'
+      ]
+    }),
     // remove non-license comments
     cleanup({
       comments: /^!/,
