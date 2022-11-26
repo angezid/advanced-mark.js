@@ -74,15 +74,18 @@ class DOMIterator {
    * @access public
    */
   static matches(element, selector) {
-    const selectors = typeof selector === 'string' ? [selector] : selector,
-      fn = (
-        element.matches ||
-        element.matchesSelector ||
-        element.msMatchesSelector ||
-        element.mozMatchesSelector ||
-        element.oMatchesSelector ||
-        element.webkitMatchesSelector
-      );
+    const selectors = typeof selector === 'string' ? [selector] : selector;
+    if ( !selectors) {
+      return false;
+    }
+    const fn = (
+      element.matches ||
+      element.matchesSelector ||
+      element.msMatchesSelector ||
+      element.mozMatchesSelector ||
+      element.oMatchesSelector ||
+      element.webkitMatchesSelector
+    );
     if (fn) {
       let match = false;
       selectors.every(sel => {
@@ -330,27 +333,9 @@ class DOMIterator {
    * @access protected
    */
   createIterator(ctx, whatToShow, filter) {
-    return document.createNodeIterator(ctx, whatToShow, filter, false);
+    return document.createNodeIterator(ctx, whatToShow, filter);
   }
-
-  /**
-   * Collects required nodes
-   * @param {HTMLElement} ctx - The context DOM element
-   * @param {DOMIterator~whatToShow} whatToShow
-   * @param {DOMIterator~filterCb} filter
-   * @return {Array}
-   * @access protected
-   */
-  collectNodes(ctx, whatToShow, filterCb) {
-    const nodes = [],
-      itr = this.createIterator(ctx, whatToShow, filterCb);
-    let node;
-    while ((node = itr.nextNode())) {
-      nodes.push(node);
-    }
-    return nodes;
-  }
-
+  
   /**
    * Collects required normal and shadow DOM nodes
    * @param {HTMLElement} ctx - The context DOM element
@@ -359,9 +344,8 @@ class DOMIterator {
    * @return {Array}
    * @access protected
    */
-  collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
-    const nodes = [],
-      showText = whatToShow === NodeFilter.SHOW_TEXT,
+  iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb) {
+    const showText = whatToShow === NodeFilter.SHOW_TEXT,
       style = this.shadowDOM.style ? this.createStyleElement() : null;
 
     if (showText) {
@@ -374,24 +358,24 @@ class DOMIterator {
       while ((node = iterator.nextNode())) {
         if (node.nodeType === Node.ELEMENT_NODE) {
           if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-            nodes.push(node);
+            eachCb(node);
           }
-
+          
+          // currently there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'
+          // is not work neither for 'shadowRoot' no for element itself
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
             this.addRemoveStyle(node.shadowRoot, style, showText);
 
             traverse(node.shadowRoot);
           }
 
-        } else if (node.nodeType === Node.TEXT_NODE && showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-          nodes.push(node);
+        } else if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+          eachCb(node);
         }
       }
     };
 
     traverse(ctx);
-
-    return nodes;
   }
 
   /**
@@ -578,10 +562,10 @@ class DOMIterator {
    * @access protected
    */
   iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
-    let ifr = [],
-      nodes = [];
-
+    
     if (this.iframes) {
+      let ifr = [],
+        nodes = [];
       const itr = this.createIterator(ctx, whatToShow, filterCb);
       let node, prevNode;
 
@@ -603,21 +587,25 @@ class DOMIterator {
         // than in this while loop
         nodes.push(node);
       }
+      
+      nodes.forEach(node => {
+        eachCb(node);
+      });
+      
+      this.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
 
     } else if (this.shadowDOM) {
-      nodes = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
+      this.iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb);
 
     } else {
-      nodes = this.collectNodes(ctx, whatToShow, filterCb);
+      const iterator = this.createIterator(ctx, whatToShow, filterCb);
+      let node;
+      
+      while ((node = iterator.nextNode())) {
+        eachCb(node);
+      }
     }
 
-    nodes.forEach(node => {
-      eachCb(node);
-    });
-
-    if (this.iframes) {
-      this.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
-    }
     doneCb();
   }
 
@@ -656,6 +644,9 @@ class DOMIterator {
       // wait for iframes to avoid recursive calls, otherwise this would
       // perhaps reach the recursive function call limit with many nodes
       if (this.iframes) {
+        // 'waitForIframes()' is buggy; it not waits for all iframes as it claims
+       // if the context contains multiple iframes, it calls multiple 'done' callbacks instead of single one,
+        // as a result, the same matches are wrapped in multiple mark elements
         this.waitForIframes(ctx, ready);
       } else {
         ready();

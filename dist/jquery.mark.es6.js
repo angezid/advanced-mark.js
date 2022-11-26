@@ -16,15 +16,18 @@ class DOMIterator {
     this.shadowDOM = shadowDOM;
   }
   static matches(element, selector) {
-    const selectors = typeof selector === 'string' ? [selector] : selector,
-      fn = (
-        element.matches ||
-        element.matchesSelector ||
-        element.msMatchesSelector ||
-        element.mozMatchesSelector ||
-        element.oMatchesSelector ||
-        element.webkitMatchesSelector
-      );
+    const selectors = typeof selector === 'string' ? [selector] : selector;
+    if ( !selectors) {
+      return false;
+    }
+    const fn = (
+      element.matches ||
+      element.matchesSelector ||
+      element.msMatchesSelector ||
+      element.mozMatchesSelector ||
+      element.oMatchesSelector ||
+      element.webkitMatchesSelector
+    );
     if (fn) {
       let match = false;
       selectors.every(sel => {
@@ -165,7 +168,12 @@ class DOMIterator {
     });
   }
   createIterator(ctx, whatToShow, filter) {
-    return document.createNodeIterator(ctx, whatToShow, filter, false);
+    return document.createNodeIterator(ctx, whatToShow, filter);
+  }
+  isExcluded(node, showText, filterCb) {
+    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'],
+      name = (showText ? node.parentNode.nodeName : node.nodeName).toUpperCase();
+    return nodeNames.indexOf(name) !== -1 || filterCb(node) === NodeFilter.FILTER_REJECT;
   }
   collectNodes(ctx, whatToShow, filterCb) {
     const nodes = [],
@@ -176,9 +184,8 @@ class DOMIterator {
     }
     return nodes;
   }
-  collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb) {
-    const nodes = [],
-      showText = whatToShow === NodeFilter.SHOW_TEXT,
+  iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb) {
+    const showText = whatToShow === NodeFilter.SHOW_TEXT,
       style = this.shadowDOM.style ? this.createStyleElement() : null;
     if (showText) {
       whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
@@ -188,19 +195,18 @@ class DOMIterator {
       while ((node = iterator.nextNode())) {
         if (node.nodeType === Node.ELEMENT_NODE) {
           if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-            nodes.push(node);
+            eachCb(node);
           }
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
             this.addRemoveStyle(node.shadowRoot, style, showText);
             traverse(node.shadowRoot);
           }
-        } else if (node.nodeType === Node.TEXT_NODE && showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-          nodes.push(node);
+        } else if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+          eachCb(node);
         }
       }
     };
     traverse(ctx);
-    return nodes;
   }
   addRemoveStyle(root, style, add) {
     if (add) {
@@ -293,9 +299,9 @@ class DOMIterator {
     });
   }
   iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
-    let ifr = [],
-      nodes = [];
     if (this.iframes) {
+      let ifr = [],
+        nodes = [];
       const itr = this.createIterator(ctx, whatToShow, filterCb);
       let node, prevNode;
       const retrieveNodes = () => {
@@ -312,16 +318,18 @@ class DOMIterator {
         });
         nodes.push(node);
       }
-    } else if (this.shadowDOM) {
-      nodes = this.collectNodesIncludeShadowDOM(ctx, whatToShow, filterCb);
-    } else {
-      nodes = this.collectNodes(ctx, whatToShow, filterCb);
-    }
-    nodes.forEach(node => {
-      eachCb(node);
-    });
-    if (this.iframes) {
+      nodes.forEach(node => {
+        eachCb(node);
+      });
       this.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
+    } else if (this.shadowDOM) {
+      this.iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb);
+    } else {
+      const iterator = this.createIterator(ctx, whatToShow, filterCb);
+      let node;
+      while ((node = iterator.nextNode())) {
+        eachCb(node);
+      }
     }
     doneCb();
   }
@@ -896,10 +904,11 @@ class Mark {
       cb(dict);
     });
   }
-  matchesExclude(el) {
-    return DOMIterator.matches(el, this.opt.exclude.concat([
-      'script', 'style', 'title', 'head', 'html'
-    ]));
+  matchesExclude(elem) {
+    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'],
+      name = elem.nodeName.toUpperCase();
+    return nodeNames.indexOf(name) !== -1 ||
+      this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
   }
   wrapRangeInTextNode(node, start, end) {
     const startNode = node.splitText(start),
@@ -1623,8 +1632,7 @@ class Mark {
   }
   unmark(opt) {
     this.opt = opt;
-    let sel = this.opt.element ? this.opt.element : '*';
-    sel += '[data-markjs]';
+    let sel = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
     if (this.opt.className) {
       sel += `.${this.opt.className}`;
     }
@@ -1632,12 +1640,10 @@ class Mark {
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      const matchesSel = DOMIterator.matches(node, sel),
-        matchesExclude = this.matchesExclude(node);
-      if (!matchesSel || matchesExclude) {
-        return NodeFilter.FILTER_REJECT;
-      } else {
+      if (DOMIterator.matches(node, sel) && !this.matchesExclude(node)) {
         return NodeFilter.FILTER_ACCEPT;
+      } else {
+        return NodeFilter.FILTER_REJECT;
       }
     }, this.opt.done);
   }
