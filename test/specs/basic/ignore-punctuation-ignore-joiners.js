@@ -29,7 +29,9 @@ describe('basic mark with ignorePunctuation and ignoreJoiners', function() {
           'diacritics': false,
           'ignoreJoiners': true,
           'ignorePunctuation': punctuation,
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

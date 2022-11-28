@@ -17,7 +17,9 @@ describe('basic mark with ignoreJoiners and special characters', function() {
       ], {
         'separateWordSearch': false,
         'ignoreJoiners': true,
-        'done': done
+        'done': function() {
+          done();
+        }
       });
     } catch (e) {
       err = true;

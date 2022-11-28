@@ -17,7 +17,9 @@ describe(
             'diacritics': false,
             'separateWordSearch': false,
             'className': 'nested',
-            'done': done
+            'done': function() {
+              done();
+            }
           });
         }
       });

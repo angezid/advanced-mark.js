@@ -5,7 +5,7 @@
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
-class RegExpCreator {
+class RegExpCreator$1 {
   constructor(options) {
     this.opt = Object.assign({}, {
       'diacritics': true,
@@ -200,8 +200,8 @@ class RegExpCreator {
   }
 }
 
-function RegExpCreator$1(options) {
-  const instance = new RegExpCreator(options);
+function RegExpCreator(options) {
+  const instance = new RegExpCreator$1(options);
   this.create = (str, patterns) => {
     return instance.create(str, patterns);
   };
@@ -210,4 +210,4 @@ function RegExpCreator$1(options) {
   };
 }
 
-export default RegExpCreator$1;
+export { RegExpCreator as default };

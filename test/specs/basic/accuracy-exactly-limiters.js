@@ -13,7 +13,9 @@ describe('basic mark with accuracy exactly and limiters', function() {
         ]
       },
       'separateWordSearch': false,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

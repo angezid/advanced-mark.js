@@ -335,7 +335,7 @@ class DOMIterator {
   createIterator(ctx, whatToShow, filter) {
     return document.createNodeIterator(ctx, whatToShow, filter);
   }
-  
+
   /**
    * Collects required normal and shadow DOM nodes
    * @param {HTMLElement} ctx - The context DOM element
@@ -360,7 +360,7 @@ class DOMIterator {
           if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
             eachCb(node);
           }
-          
+
           // currently there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'
           // is not work neither for 'shadowRoot' no for element itself
           if (node.shadowRoot && node.shadowRoot.mode === 'open') {
@@ -562,7 +562,7 @@ class DOMIterator {
    * @access protected
    */
   iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
-    
+
     if (this.iframes) {
       let ifr = [],
         nodes = [];
@@ -587,11 +587,11 @@ class DOMIterator {
         // than in this while loop
         nodes.push(node);
       }
-      
+
       nodes.forEach(node => {
         eachCb(node);
       });
-      
+
       this.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
 
     } else if (this.shadowDOM) {
@@ -600,7 +600,7 @@ class DOMIterator {
     } else {
       const iterator = this.createIterator(ctx, whatToShow, filterCb);
       let node;
-      
+
       while ((node = iterator.nextNode())) {
         eachCb(node);
       }
@@ -645,7 +645,7 @@ class DOMIterator {
       // perhaps reach the recursive function call limit with many nodes
       if (this.iframes) {
         // 'waitForIframes()' is buggy; it not waits for all iframes as it claims
-       // if the context contains multiple iframes, it calls multiple 'done' callbacks instead of single one,
+        // if the context contains multiple iframes, it calls multiple 'done' callbacks instead of single one,
         // as a result, the same matches are wrapped in multiple mark elements
         this.waitForIframes(ctx, ready);
       } else {

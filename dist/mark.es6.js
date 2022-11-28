@@ -1,3 +1,4 @@
+/* Version: 10.0.0 - November 28, 2022 16:08:16 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
@@ -167,20 +168,6 @@ class DOMIterator {
   }
   createIterator(ctx, whatToShow, filter) {
     return document.createNodeIterator(ctx, whatToShow, filter);
-  }
-  isExcluded(node, showText, filterCb) {
-    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'],
-      name = (showText ? node.parentNode.nodeName : node.nodeName).toUpperCase();
-    return nodeNames.indexOf(name) !== -1 || filterCb(node) === NodeFilter.FILTER_REJECT;
-  }
-  collectNodes(ctx, whatToShow, filterCb) {
-    const nodes = [],
-      itr = this.createIterator(ctx, whatToShow, filterCb);
-    let node;
-    while ((node = itr.nextNode())) {
-      nodes.push(node);
-    }
-    return nodes;
   }
   iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb) {
     const showText = whatToShow === NodeFilter.SHOW_TEXT,
@@ -549,8 +536,9 @@ class RegExpCreator {
   }
 }
 
-class Mark {
+class Mark$1 {
   constructor(ctx) {
+    this.version = '10.0.0 - built on November 28, 2022 16:08:16';
     this.ctx = ctx;
     this.cacheDict = {};
     this.ie = false;
@@ -903,9 +891,8 @@ class Mark {
     });
   }
   matchesExclude(elem) {
-    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'],
-      name = elem.nodeName.toUpperCase();
-    return nodeNames.indexOf(name) !== -1 ||
+    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
+    return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
       this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
   }
   wrapRangeInTextNode(node, start, end) {
@@ -1168,7 +1155,6 @@ class Mark {
         case '\\' : i++; break;
         case '[' : charsRange = true; break;
         case ']' : charsRange = false; break;
-        default : break;
       }
     }
     return groups;
@@ -1630,15 +1616,15 @@ class Mark {
   }
   unmark(opt) {
     this.opt = opt;
-    let sel = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
+    let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
     if (this.opt.className) {
-      sel += `.${this.opt.className}`;
+      selector += `.${this.opt.className}`;
     }
-    this.log(`Removal selector "${sel}"`);
+    this.log(`Removal selector "${selector}"`);
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      if (DOMIterator.matches(node, sel) && !this.matchesExclude(node)) {
+      if (DOMIterator.matches(node, selector) && !this.matchesExclude(node)) {
         return NodeFilter.FILTER_ACCEPT;
       } else {
         return NodeFilter.FILTER_REJECT;
@@ -1647,8 +1633,8 @@ class Mark {
   }
 }
 
-function Mark$1(ctx) {
-  const instance = new Mark(ctx);
+function Mark(ctx) {
+  const instance = new Mark$1(ctx);
   this.mark = (sv, opt) => {
     instance.mark(sv, opt);
     return this;
@@ -1665,7 +1651,10 @@ function Mark$1(ctx) {
     instance.unmark(opt);
     return this;
   };
+  this.getVersion = () => {
+    return instance.version;
+  };
   return this;
 }
 
-export default Mark$1;
+export { Mark as default };

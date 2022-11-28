@@ -31,7 +31,9 @@ describe('basic mark with wildcards and synonyms', function() {
               'separateWordSearch': false,
               'diacritics': false,
               'wildcards': 'enabled',
-              'done': done
+              'done': function() {
+                done();
+              }
             });
           }
         });

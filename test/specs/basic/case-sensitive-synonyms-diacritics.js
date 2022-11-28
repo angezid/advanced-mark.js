@@ -12,7 +12,9 @@ describe('basic mark with caseSensitive synonyms and diacritics', function() {
         'Dolor': 'Ãmet'
       },
       'caseSensitive': true,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

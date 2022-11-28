@@ -15,7 +15,9 @@ describe(
           'Dołor': 'ãmet'
         },
         'diacritics': true,
-        'done': done
+        'done': function() {
+          done();
+        }
       });
     });
 

@@ -16,7 +16,9 @@ describe('basic mark with custom element and class', function() {
           'separateWordSearch': false,
           'element': 'i',
           'className': 'custom',
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

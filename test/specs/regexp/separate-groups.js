@@ -19,7 +19,9 @@ describe('mark with regular expression and separateGroups', function() {
               done: function() {
                 new Mark($ctx4[0]).markRegExp(/\w+-\w+/g, {
                   separateGroups: true,
-                  done: done
+                  done : function() {
+                    done();
+                  }
                 });
               }
             });

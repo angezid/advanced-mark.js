@@ -12,7 +12,9 @@ describe('basic mark with an array of keywords', function() {
       'noMatch': function(term) {
         notFound.push(term);
       },
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

@@ -50,7 +50,9 @@ describe('mark with range no matches', function() {
                     errCall++;
                     notFound = notFound.concat(item);
                   },
-                  'done': done
+                  'done': function() {
+                    done();
+                  }
                 });
               }
             });

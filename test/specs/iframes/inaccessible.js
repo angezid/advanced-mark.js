@@ -15,7 +15,9 @@ describe('mark in inaccessible iframes', function() {
         'each': function($m) {
           $elements = $elements.add($($m));
         },
-        'done': done
+        'done': function() {
+          done();
+        }
       });
     } catch (e) {
       errCall++;

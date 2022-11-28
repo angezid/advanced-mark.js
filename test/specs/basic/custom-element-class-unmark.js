@@ -15,7 +15,9 @@ describe('basic unmark with custom element and class', function() {
         instance.unmark({
           'element': 'i',
           'className': 'custom',
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

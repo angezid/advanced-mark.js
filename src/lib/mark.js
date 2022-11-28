@@ -638,7 +638,7 @@ class Mark {
    * @access protected
    */
   matchesExclude(elem) {
-    // it's faster to check if array contains node name than selector in 'DOMIterator.matches()'
+    // it's faster to check if array contains the node name than selector in 'DOMIterator.matches()'
     const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
 
     return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||

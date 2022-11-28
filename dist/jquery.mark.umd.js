@@ -1,3 +1,4 @@
+/* Version: 10.0.0 - November 28, 2022 16:08:16 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
@@ -8,10 +9,12 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery')) :
   typeof define === 'function' && define.amd ? define(['jquery'], factory) :
-  (global.Mark = factory(global.jQuery));
-}(this, (function ($) { 'use strict';
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Mark = factory(global.jQuery));
+})(this, (function ($) { 'use strict';
 
-  $ = $ && $.hasOwnProperty('default') ? $['default'] : $;
+  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+  var $__default = /*#__PURE__*/_interopDefaultLegacy($);
 
   class DOMIterator {
     constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000, shadowDOM = false) {
@@ -175,20 +178,6 @@
     }
     createIterator(ctx, whatToShow, filter) {
       return document.createNodeIterator(ctx, whatToShow, filter);
-    }
-    isExcluded(node, showText, filterCb) {
-      const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'],
-        name = (showText ? node.parentNode.nodeName : node.nodeName).toUpperCase();
-      return nodeNames.indexOf(name) !== -1 || filterCb(node) === NodeFilter.FILTER_REJECT;
-    }
-    collectNodes(ctx, whatToShow, filterCb) {
-      const nodes = [],
-        itr = this.createIterator(ctx, whatToShow, filterCb);
-      let node;
-      while ((node = itr.nextNode())) {
-        nodes.push(node);
-      }
-      return nodes;
     }
     iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb) {
       const showText = whatToShow === NodeFilter.SHOW_TEXT,
@@ -559,6 +548,7 @@
 
   class Mark {
     constructor(ctx) {
+      this.version = '10.0.0 - built on November 28, 2022 16:08:16';
       this.ctx = ctx;
       this.cacheDict = {};
       this.ie = false;
@@ -911,9 +901,8 @@
       });
     }
     matchesExclude(elem) {
-      const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'],
-        name = elem.nodeName.toUpperCase();
-      return nodeNames.indexOf(name) !== -1 ||
+      const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
+      return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
         this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
     }
     wrapRangeInTextNode(node, start, end) {
@@ -1176,7 +1165,6 @@
           case '\\' : i++; break;
           case '[' : charsRange = true; break;
           case ']' : charsRange = false; break;
-          default : break;
         }
       }
       return groups;
@@ -1638,15 +1626,15 @@
     }
     unmark(opt) {
       this.opt = opt;
-      let sel = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
+      let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
       if (this.opt.className) {
-        sel += `.${this.opt.className}`;
+        selector += `.${this.opt.className}`;
       }
-      this.log(`Removal selector "${sel}"`);
+      this.log(`Removal selector "${selector}"`);
       this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
         this.unwrapMatches(node);
       }, node => {
-        if (DOMIterator.matches(node, sel) && !this.matchesExclude(node)) {
+        if (DOMIterator.matches(node, selector) && !this.matchesExclude(node)) {
           return NodeFilter.FILTER_ACCEPT;
         } else {
           return NodeFilter.FILTER_REJECT;
@@ -1655,23 +1643,26 @@
     }
   }
 
-  $.fn.mark = function(sv, opt) {
+  $__default["default"].fn.mark = function(sv, opt) {
     new Mark(this.get()).mark(sv, opt);
     return this;
   };
-  $.fn.markRegExp = function(regexp, opt) {
+  $__default["default"].fn.markRegExp = function(regexp, opt) {
     new Mark(this.get()).markRegExp(regexp, opt);
     return this;
   };
-  $.fn.markRanges = function(ranges, opt) {
+  $__default["default"].fn.markRanges = function(ranges, opt) {
     new Mark(this.get()).markRanges(ranges, opt);
     return this;
   };
-  $.fn.unmark = function(opt) {
+  $__default["default"].fn.unmark = function(opt) {
     new Mark(this.get()).unmark(opt);
     return this;
   };
+  $__default["default"].fn.getVersion = function() {
+    return new Mark(this.get()).version;
+  };
 
-  return $;
+  return $__default["default"];
 
-})));
+}));

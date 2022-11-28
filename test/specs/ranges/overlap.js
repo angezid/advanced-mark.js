@@ -14,7 +14,9 @@ describe('mark ranges ignoring overlapping values', function() {
       'each': function(node, range) {
         $(node).attr('data-range-start', range.start);
       },
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

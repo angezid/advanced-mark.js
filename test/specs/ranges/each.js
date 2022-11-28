@@ -15,7 +15,9 @@ describe('mark with range each callback', function() {
         $elements = $elements.add($(node));
         ranges.push(range);
       },
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 
