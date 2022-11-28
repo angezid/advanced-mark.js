@@ -55,7 +55,9 @@ describe('mark with range', function() {
             notFound = notFound.concat(item);
           },
           'each': each,
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

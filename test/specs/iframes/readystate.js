@@ -23,7 +23,9 @@ describe('mark with iframes where onload was already fired', function() {
             'each': function($m) {
               $elements = $elements.add($($m));
             },
-            'done': done
+            'done': function() {
+              done();
+            }
           });
         }
       }, 100);

@@ -18,5 +18,8 @@ export default function Mark(ctx) {
     instance.unmark(opt);
     return this;
   };
+  this.getVersion = () => {
+    return instance.version;
+  };
   return this;
 }

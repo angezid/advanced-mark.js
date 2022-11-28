@@ -10,7 +10,9 @@ describe(
       new Mark($ctx[0]).mark('lorem', {
         'diacritics': false,
         'separateWordSearch': false,
-        'done': done
+        'done': function() {
+          done();
+        }
       });
     });
 

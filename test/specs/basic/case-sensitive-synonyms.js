@@ -23,7 +23,9 @@ describe('basic mark with caseSensitive synonyms', function() {
             'one': '1',
             'two': '2'
           },
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

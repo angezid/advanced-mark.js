@@ -16,7 +16,9 @@ describe('mark with acrossElements and nested iframes', function() {
         'each': function($m) {
           $elements = $elements.add($($m));
         },
-        'done': done
+        'done': function() {
+          done();
+        }
       });
     } catch (e) {
       errCall++;

@@ -10,7 +10,9 @@ describe('mark with regular expression and ignoreGroups', function() {
       'done': function() {
         new Mark($ctx2[0]).markRegExp(/(Lor)([^]?m[\s]*)(ipsum)/gmi, {
           'ignoreGroups': 2,
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

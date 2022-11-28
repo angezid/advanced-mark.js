@@ -13,7 +13,9 @@ describe('mark with acrossElements and each callback', function() {
       'each': function() {
         eachCalled++;
       },
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

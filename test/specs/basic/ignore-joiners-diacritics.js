@@ -9,7 +9,9 @@ describe('basic mark with ignoreJoiners and diacritics', function() {
       'separateWordSearch': false,
       'ignoreJoiners': true,
       'diacritics': true,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

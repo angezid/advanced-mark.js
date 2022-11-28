@@ -67,7 +67,9 @@ describe('mark with range filter callback', function() {
         }
         return match !== skip;
       },
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

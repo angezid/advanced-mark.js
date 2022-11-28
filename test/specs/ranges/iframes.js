@@ -14,7 +14,9 @@ describe('mark with range in iframes', function() {
       { start: 82, length: 7 }
     ], {
       'iframes': true,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

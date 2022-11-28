@@ -9,7 +9,9 @@ describe('basic mark with diacritics for Vietnamese', function() {
     // behavior in combination with diacritics
     new Mark($ctx[0]).mark(['truong', 'am', 'ac'], {
       'separateWordSearch': false,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

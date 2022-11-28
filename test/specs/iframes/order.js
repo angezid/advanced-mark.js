@@ -13,7 +13,9 @@ describe('mark with iframes DOM order', function() {
       'each': function(node) {
         elements.push(node);
       },
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

@@ -13,7 +13,9 @@ describe('basic mark with accuracy complementary', function() {
         new Mark($ctx2[0]).mark(['lorem', 'ipsumtest'], {
           'accuracy': 'complementary',
           'separateWordSearch': true,
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

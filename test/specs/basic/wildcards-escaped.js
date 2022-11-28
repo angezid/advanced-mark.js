@@ -24,7 +24,9 @@ describe('basic mark with escaped wildcards', function() {
               'separateWordSearch': false,
               'diacritics': false,
               'wildcards': 'enabled',
-              'done': done
+              'done': function() {
+                done();
+              }
             });
           }
         });

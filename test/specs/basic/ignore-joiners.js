@@ -13,7 +13,9 @@ describe('basic mark with ignoreJoiners', function() {
         new Mark($ctx2[0]).mark(['ipsum'], {
           'separateWordSearch': false,
           'ignoreJoiners': false,
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

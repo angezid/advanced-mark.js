@@ -16,7 +16,9 @@ describe('basic mark with caseSenstive', function() {
           'synonyms' : {
             'lorem': 'Lorem'
           },
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

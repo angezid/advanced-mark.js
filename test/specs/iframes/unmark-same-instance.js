@@ -16,7 +16,9 @@ describe('iframes unmark and mark with the same instance', function() {
           'each': function(node) {
             $elements = $elements.add($(node));
           },
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });
