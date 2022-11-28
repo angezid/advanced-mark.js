@@ -38,7 +38,7 @@ describe('markCombinePatterns() without acrossElements option', function() {
 
   it('should mark first match of each array item', function(done) {
     new Mark($ctx[0]).mark(words, {
-      'combinePatterns' : 3,
+      'combinePatterns' : Infinity,
       'accuracy' : 'exactly',
       'filter' : function(node, term, marks, termMatchCount) {
         // 'info.execution.abort' is useless here as it will break execution

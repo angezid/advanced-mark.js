@@ -9,7 +9,9 @@ describe(
       $ctx = $('.across-elements-regexp-infinite');
       new Mark($ctx[0]).markRegExp(/(|)/gmi, {
         'acrossElements': true,
-        'done': done
+        'done': function() {
+          done();
+        }
       });
     });
 

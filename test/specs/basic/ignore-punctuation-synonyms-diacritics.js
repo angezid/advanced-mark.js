@@ -22,7 +22,9 @@ describe(
           'Sed': 'justø',
           'Dołor': 'ãmet'
         },
-        'done': done
+        'done': function() {
+          done();
+        }
       });
     });
 

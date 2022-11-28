@@ -47,7 +47,6 @@ module.exports = config => {
     plugins: [
       'karma-jasmine',
       'karma-jasmine-jquery',
-      //'karma-phantomjs-launcher',
       'karma-chrome-launcher',
       'karma-spec-reporter',
       'karma-coverage'

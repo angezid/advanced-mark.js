@@ -19,7 +19,9 @@ describe('unmark with nested iframes', function() {
         'done': function() {
           instance.unmark({
             'iframes': true,
-            'done': done
+            'done': function() {
+              done();
+            }
           });
         }
       });

@@ -7,7 +7,9 @@ describe('mark with acrossElements and regular expression', function() {
     $ctx = $('.across-elements-regexp');
     new Mark($ctx[0]).markRegExp(/lorem[\s]+ipsum/gmi, {
       'acrossElements': true,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

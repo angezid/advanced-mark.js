@@ -21,7 +21,9 @@ describe('mark with acrossElements and accuracy exactly', function() {
               'accuracy': 'exactly',
               'separateWordSearch': false,
               'acrossElements': true,
-              'done': done
+              'done': function() {
+                done();
+              }
             });
           }
         });

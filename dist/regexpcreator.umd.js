@@ -8,10 +8,10 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global.RegExpCreator = factory());
-}(this, (function () { 'use strict';
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.RegExpCreator = factory());
+})(this, (function () { 'use strict';
 
-  class RegExpCreator {
+  class RegExpCreator$1 {
     constructor(options) {
       this.opt = Object.assign({}, {
         'diacritics': true,
@@ -206,8 +206,8 @@
     }
   }
 
-  function RegExpCreator$1(options) {
-    const instance = new RegExpCreator(options);
+  function RegExpCreator(options) {
+    const instance = new RegExpCreator$1(options);
     this.create = (str, patterns) => {
       return instance.create(str, patterns);
     };
@@ -216,6 +216,6 @@
     };
   }
 
-  return RegExpCreator$1;
+  return RegExpCreator;
 
-})));
+}));

@@ -15,7 +15,9 @@ describe(
             /(Lor)([^]?m[\s]*)(ipsum)/gmi, {
               'acrossElements': true,
               'ignoreGroups': 2,
-              'done': done
+              'done': function() {
+                done();
+              }
             }
           );
         }

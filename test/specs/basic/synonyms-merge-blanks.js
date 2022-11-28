@@ -11,7 +11,9 @@ describe('basic mark with synonyms and multiple blanks', function() {
       'synonyms': {
         'dolor': 'lorem  ipsum'
       },
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

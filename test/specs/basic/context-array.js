@@ -8,7 +8,9 @@ describe('basic mark called with an array of contexts', function() {
     new Mark($ctx.get()).mark('lorem', {
       'diacritics': false,
       'separateWordSearch': false,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

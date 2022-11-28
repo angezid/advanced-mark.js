@@ -13,7 +13,9 @@ describe('basic mark with multiple blanks', function() {
         new Mark($ctx2.get()).mark('lorem ipsum', {
           'diacritics': false,
           'separateWordSearch': false,
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

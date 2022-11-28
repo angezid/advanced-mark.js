@@ -9,7 +9,9 @@ describe('nested mark', function() {
       'diacritics': false,
       'separateWordSearch': false,
       'className': 'mark',
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

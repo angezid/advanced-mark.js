@@ -8,7 +8,9 @@ describe('basic mark called with a string selector as context', function() {
     new Mark('.basic-context-string').mark('lorem', {
       'diacritics': false,
       'separateWordSearch': false,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

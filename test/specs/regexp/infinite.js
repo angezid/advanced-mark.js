@@ -12,7 +12,9 @@ describe('mark with regular expression with infinite results', function() {
         'done': function() {
           try {
             new Mark($ctx2[0]).markRegExp(/\b/gmi, {
-              'done': done
+              'done': function() {
+                done();
+              }
             });
           } catch (e) {
             errorThrown2 = true;

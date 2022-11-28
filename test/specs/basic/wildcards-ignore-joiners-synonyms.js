@@ -23,7 +23,9 @@ describe('basic mark with wildcards and synonyms', function() {
           'diacritics': true,
           'ignoreJoiners': true,
           'wildcards': 'enabled',
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

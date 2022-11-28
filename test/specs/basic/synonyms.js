@@ -21,7 +21,9 @@ describe('basic mark with synonyms', function() {
             'one': '1',
             'two': '2'
           },
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });
