@@ -27,7 +27,9 @@ describe('basic mark with wildcards between words', function() {
                   'separateWordSearch': false,
                   'diacritics': false,
                   'wildcards': 'withSpaces',
-                  'done': done
+                  'done': function() {
+                    done();
+                  }
                 });
               }
             });

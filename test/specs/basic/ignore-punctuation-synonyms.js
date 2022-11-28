@@ -30,7 +30,9 @@ describe('basic mark with ignorePunctuation and synonyms', function() {
             'one': 'uno',
             'two': 'dos'
           },
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

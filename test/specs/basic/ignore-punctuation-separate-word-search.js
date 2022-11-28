@@ -25,7 +25,9 @@ describe(
             'separateWordSearch': true,
             'diacritics': false,
             'ignorePunctuation': punctuation,
-            'done': done
+            'done': function() {
+              done();
+            }
           });
         }
       });

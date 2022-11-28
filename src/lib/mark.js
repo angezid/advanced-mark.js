@@ -17,6 +17,7 @@ class Mark {
    * element, an array of DOM elements, a NodeList or a selector
    */
   constructor(ctx) {
+    this.version = '[VI]{version} - built on {date}[/VI]';
     /**
      * The context of the instance. Either a DOM element, an array of DOM
      * elements, a NodeList or a selector
@@ -24,7 +25,11 @@ class Mark {
      * @access protected
      */
     this.ctx = ctx;
-    // used with the 'cacheTextNodes' option to improve performance
+    /**
+     * Used with the 'cacheTextNodes' option to improve performance
+     * @type {object}
+     * @access protected
+     */
     this.cacheDict = {};
     /**
      * Specifies if the current browser is a IE (necessary for the node
@@ -628,15 +633,16 @@ class Mark {
    * Checks if an element matches any of the specified exclude selectors. Also
    * it checks for elements in which no marks should be performed (e.g.
    * script and style tags) and optionally already marked elements
-   * @param  {HTMLElement} el - The element to check
+   * @param  {HTMLElement} elem - The element to check
    * @return {boolean}
    * @access protected
    */
-  matchesExclude(el) {
-    return DOMIterator.matches(el, this.opt.exclude.concat([
-      // ignores the elements itself, not their childrens (selector *)
-      'script', 'style', 'title', 'head', 'html'
-    ]));
+  matchesExclude(elem) {
+    // it's faster to check if array contains the node name than selector in 'DOMIterator.matches()'
+    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
+
+    return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
+      this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
   }
 
   /**
@@ -2120,21 +2126,21 @@ class Mark {
    */
   unmark(opt) {
     this.opt = opt;
-    let sel = this.opt.element ? this.opt.element : '*';
-    sel += '[data-markjs]';
+    let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
+
     if (this.opt.className) {
-      sel += `.${this.opt.className}`;
+      selector += `.${this.opt.className}`;
     }
-    this.log(`Removal selector "${sel}"`);
+    this.log(`Removal selector "${selector}"`);
+
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      const matchesSel = DOMIterator.matches(node, sel),
-        matchesExclude = this.matchesExclude(node);
-      if (!matchesSel || matchesExclude) {
-        return NodeFilter.FILTER_REJECT;
-      } else {
+      // calls 'matchesExclude()' only when 'DOMIterator.matches()' returns true (is mark element)
+      if (DOMIterator.matches(node, selector) && !this.matchesExclude(node)) {
         return NodeFilter.FILTER_ACCEPT;
+      } else {
+        return NodeFilter.FILTER_REJECT;
       }
     }, this.opt.done);
   }

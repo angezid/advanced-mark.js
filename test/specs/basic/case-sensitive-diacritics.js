@@ -8,7 +8,9 @@ describe('basic mark with caseSenstive and diacritics', function() {
     new Mark($ctx.get()).mark(['Dolor', 'Amet', 'Aliquam', 'Lorem ipsum'], {
       'separateWordSearch': false,
       'caseSensitive': true,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

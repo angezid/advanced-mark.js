@@ -10,7 +10,9 @@ describe('basic mark ignore empty synonyms', function() {
       },
       'separateWordSearch': false,
       'diacritics': false,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

@@ -24,7 +24,9 @@ describe('basic mark with synonyms in an array', function() {
               synonyms: {
                 'am': ['be', 'is', 'are', 'were', 'was', 'being', 'been', 'am']
               },
-              'done': done
+              'done': function() {
+                done();
+              }
             });
           }
         });

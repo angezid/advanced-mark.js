@@ -15,7 +15,9 @@ describe('basic mark with wildcards and diacritics', function() {
           'separateWordSearch': false,
           'diacritics': true,
           'wildcards': 'enabled',
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

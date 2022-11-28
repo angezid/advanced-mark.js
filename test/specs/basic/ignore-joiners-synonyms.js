@@ -23,7 +23,9 @@ describe('basic mark with ignoreJoiners and synonyms', function() {
             'one': 'uno',
             'two': 'dos'
           },
-          'done': done
+          'done': function() {
+            done();
+          }
         });
       }
     });

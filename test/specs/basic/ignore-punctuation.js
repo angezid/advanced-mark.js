@@ -29,7 +29,9 @@ describe('basic mark with ignorePunctuation', function() {
               'separateWordSearch': false,
               'diacritics': false,
               'ignorePunctuation': '',
-              'done': done
+              'done': function() {
+                done();
+              }
             });
           }
         });

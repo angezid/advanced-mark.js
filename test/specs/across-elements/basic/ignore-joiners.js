@@ -10,7 +10,9 @@ describe('mark with acrossElements and ignoreJoiners', function() {
       'separateWordSearch': false,
       'acrossElements': true,
       'ignoreJoiners': true,
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 

@@ -44,10 +44,10 @@ describe('markRegExp with acrossElements and separateGroups', function() {
           expect(group1Count).toBe(27);
           expect(group2Count).toBe(27);
           expect(group3Count).toBe(16);
-          done();
         }
       });
     }
+    done();
   });
 
   it('should count filtered separate groups', function(done) {

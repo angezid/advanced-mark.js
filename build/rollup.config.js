@@ -2,13 +2,14 @@ import pkg from '../package.json';
 import handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import cleanup from 'rollup-plugin-cleanup';
-import babel from 'rollup-plugin-babel';
-import {terser} from "rollup-plugin-terser";
+import babel from '@rollup/plugin-babel';
+import terser from "@rollup/plugin-terser";
+import versionInjector from 'rollup-plugin-version-injector';
 
-// Shared config
+// Shared config   @rollup/
 const output = {
     name: (() => {
       const str = pkg.name.split('/').pop().replace('.js', '');
@@ -69,6 +70,17 @@ const output = {
     // for external dependencies (just in case)
     resolve(),
     commonjs(),
+    versionInjector({
+      logLevel: 'warn',
+      exclude: [
+        'regexpcreator.js',
+        'regexpcreator.es6.js',
+        'regexpcreator.es6.min.js',
+        'regexpcreator.min.js',
+        'regexpcreator.umd.js',
+        'regexpcreator.umd.min.js'
+      ]
+    }),
     // remove non-license comments
     cleanup({
       comments: /^!/,
@@ -78,6 +90,7 @@ const output = {
   pluginsES5 = (() => {
     const newPlugins = plugins.slice();
     newPlugins.push(babel({
+      babelHelpers: 'bundled',
       exclude: 'node_modules/**',
       'presets': [
         ['@babel/preset-env', {

@@ -16,7 +16,9 @@ describe('mark with iframes and exclude', function() {
       'each': function($m) {
         $elements = $elements.add($($m));
       },
-      'done': done
+      'done': function() {
+        done();
+      }
     });
   });
 
