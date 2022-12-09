@@ -1,4 +1,4 @@
-/* Version: 10.0.0 - November 28, 2022 17:29:15 */
+/* Version: 10.0.0 - December 9, 2022 23:35:02 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
@@ -540,7 +540,7 @@ class RegExpCreator {
 
 class Mark {
   constructor(ctx) {
-    this.version = '10.0.0 - built on November 28, 2022 17:29:15';
+    this.version = '10.0.0 - built on December 9, 2022 23:35:02';
     this.ctx = ctx;
     this.cacheDict = {};
     this.ie = false;
@@ -559,6 +559,8 @@ class Mark {
       'separateWordSearch': true,
       'acrossElements': false,
       'separateGroups': false,
+      'combinePatterns': false,
+      'cacheTextNodes': false,
       'wrapAllRanges': false,
       'ignoreGroups': 0,
       'each': () => {},
@@ -589,6 +591,12 @@ class Mark {
     if (typeof log === 'object' && typeof log[level] === 'function') {
       log[level](`mark.js: ${msg}`);
     }
+  }
+  checkWrapAllRangesOption(opt) {
+    if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
+      opt = Object.assign({}, { 'wrapAllRanges' : true }, opt);
+    }
+    return opt;
   }
   getSeparatedKeywords(sv) {
     let stack = [];
@@ -1410,7 +1418,7 @@ class Mark {
     this.normalizeTextNode(node.nextSibling);
   }
   markRegExp(regexp, opt) {
-    this.opt = opt;
+    this.opt = this.checkWrapAllRangesOption(opt);
     let totalMarks = 0,
       fn = this.getMethodName(opt);
     if (this.opt.acrossElements) {
@@ -1436,7 +1444,7 @@ class Mark {
     });
   }
   mark(sv, opt) {
-    this.opt = opt;
+    this.opt = this.checkWrapAllRangesOption(opt);
     if (this.opt.combinePatterns) {
       this.markCombinePatterns(sv, opt);
       return;
