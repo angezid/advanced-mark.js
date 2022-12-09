@@ -23,7 +23,7 @@
     "sourceType": "module"
   },
   "rules": {
-    "no-prototype-builtins": "warn",
+    "no-prototype-builtins": "off",
     "no-template-curly-in-string": "error",
     "array-callback-return": "error",
     "block-scoped-var": "error",

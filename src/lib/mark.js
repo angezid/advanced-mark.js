@@ -62,6 +62,8 @@ class Mark {
       'separateWordSearch': true,
       'acrossElements': false,
       'separateGroups': false,
+      'combinePatterns': false,
+      'cacheTextNodes': false,
       'wrapAllRanges': false,
       'ignoreGroups': 0,
       'each': () => {},
@@ -108,6 +110,19 @@ class Mark {
     if (typeof log === 'object' && typeof log[level] === 'function') {
       log[level](`mark.js: ${msg}`);
     }
+  }
+  
+  /**
+   * The 'cacheTextNodes' option must be used with 'wrapAllRanges' when 'acrossElments' option is enabled
+   * It automatically sets 'wrapAllRanges' to avoid external dependency
+   * @param  {Mark~markRegExpOptions} [opt] - Optional options object
+   * @return {Mark~markRegExpOptions}
+   */
+  checkWrapAllRangesOption(opt) {
+    if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
+      opt = Object.assign({}, { 'wrapAllRanges' : true }, opt);
+    }
+    return opt; 
   }
 
   /**
@@ -1763,7 +1778,7 @@ class Mark {
    * @access public
    */
   markRegExp(regexp, opt) {
-    this.opt = opt;
+    this.opt = this.checkWrapAllRangesOption(opt);
 
     let totalMarks = 0,
       fn = this.getMethodName(opt);
@@ -1828,7 +1843,7 @@ class Mark {
    * @access public
    */
   mark(sv, opt) {
-    this.opt = opt;
+    this.opt = this.checkWrapAllRangesOption(opt);
 
     if (this.opt.combinePatterns) {
       this.markCombinePatterns(sv, opt);

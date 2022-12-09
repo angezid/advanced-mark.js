@@ -1,4 +1,4 @@
-/* Version: 10.0.0 - November 28, 2022 17:29:17 */
+/* Version: 10.0.0 - December 9, 2022 23:35:04 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
@@ -649,7 +649,7 @@
   var Mark$1 = /*#__PURE__*/function () {
     function Mark(ctx) {
       _classCallCheck(this, Mark);
-      this.version = '10.0.0 - built on November 28, 2022 17:29:17';
+      this.version = '10.0.0 - built on December 9, 2022 23:35:04';
       this.ctx = ctx;
       this.cacheDict = {};
       this.ie = false;
@@ -673,6 +673,8 @@
           'separateWordSearch': true,
           'acrossElements': false,
           'separateGroups': false,
+          'combinePatterns': false,
+          'cacheTextNodes': false,
           'wrapAllRanges': false,
           'ignoreGroups': 0,
           'each': function each() {},
@@ -701,6 +703,16 @@
         if (_typeof(log) === 'object' && typeof log[level] === 'function') {
           log[level]("mark.js: ".concat(msg));
         }
+      }
+    }, {
+      key: "checkWrapAllRangesOption",
+      value: function checkWrapAllRangesOption(opt) {
+        if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
+          opt = _extends({}, {
+            'wrapAllRanges': true
+          }, opt);
+        }
+        return opt;
       }
     }, {
       key: "getSeparatedKeywords",
@@ -1675,7 +1687,7 @@
       key: "markRegExp",
       value: function markRegExp(regexp, opt) {
         var _this10 = this;
-        this.opt = opt;
+        this.opt = this.checkWrapAllRangesOption(opt);
         var totalMarks = 0,
           fn = this.getMethodName(opt);
         if (this.opt.acrossElements) {
@@ -1702,7 +1714,7 @@
       key: "mark",
       value: function mark(sv, opt) {
         var _this11 = this;
-        this.opt = opt;
+        this.opt = this.checkWrapAllRangesOption(opt);
         if (this.opt.combinePatterns) {
           this.markCombinePatterns(sv, opt);
           return;
