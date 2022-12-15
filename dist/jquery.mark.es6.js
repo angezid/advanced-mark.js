@@ -1,4 +1,4 @@
-/* Version: 10.0.0 - December 9, 2022 23:35:02 */
+/* Version: 10.0.0 - December 13, 2022 09:47:50 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
@@ -383,6 +383,24 @@ class RegExpCreator {
       return new RegExp(str, `gm${this.opt.caseSensitive ? '' : 'i'}`);
     }
   }
+  createCombinePattern(array, capture) {
+    if ( !array) {
+      return null;
+    }
+    const group = capture ? '(' : '(?:';
+    let lookbehind = '',
+      pattern = '',
+      lookahead = '';
+    for (let i = 0; i < array.length; i++)  {
+      const obj = this.create(array[i], true);
+      if (i === 0) {
+        lookbehind = obj.lookbehind;
+        lookahead = obj.lookahead;
+      }
+      pattern += `${group}${obj.pattern})${i + 1 < array.length ? '|' : ''}`;
+    }
+    return { lookbehind, pattern, lookahead };
+  }
   sortByLength(arry) {
     return arry.sort((a, b) => a.length === b.length ?
       (a > b ? 1 : -1) :
@@ -540,7 +558,7 @@ class RegExpCreator {
 
 class Mark {
   constructor(ctx) {
-    this.version = '10.0.0 - built on December 9, 2022 23:35:02';
+    this.version = '10.0.0';
     this.ctx = ctx;
     this.cacheDict = {};
     this.ie = false;
@@ -592,7 +610,7 @@ class Mark {
       log[level](`mark.js: ${msg}`);
     }
   }
-  checkWrapAllRangesOption(opt) {
+  checkOption(opt) {
     if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
       opt = Object.assign({}, { 'wrapAllRanges' : true }, opt);
     }
@@ -967,7 +985,6 @@ class Mark {
         i--;
       }
     } else if (start < dict.lastTextIndex) {
-      this.log('The attempt to wrap overlapping range.');
       return;
     }
     for (i; i < dict.nodes.length; i++)  {
@@ -1115,7 +1132,7 @@ class Mark {
     if (this.opt.wrapAllRanges) {
       this.wrapRangeInMappedTextNode(dict, s, s + text.length, obj => {
         return filterCb(text, obj.node, index);
-      }, function(node, groupStart) {
+      }, (node, groupStart) => {
         eachCb(node, groupStart, index);
       });
     }
@@ -1418,7 +1435,7 @@ class Mark {
     this.normalizeTextNode(node.nextSibling);
   }
   markRegExp(regexp, opt) {
-    this.opt = this.checkWrapAllRangesOption(opt);
+    this.opt = this.checkOption(opt);
     let totalMarks = 0,
       fn = this.getMethodName(opt);
     if (this.opt.acrossElements) {
@@ -1444,7 +1461,7 @@ class Mark {
     });
   }
   mark(sv, opt) {
-    this.opt = this.checkWrapAllRangesOption(opt);
+    this.opt = this.checkOption(opt);
     if (this.opt.combinePatterns) {
       this.markCombinePatterns(sv, opt);
       return;
@@ -1487,7 +1504,7 @@ class Mark {
     }
   }
   markCombinePatterns(sv, opt) {
-    this.opt = opt;
+    this.opt = this.checkOption(opt);
     let index = 0,
       totalMarks = 0,
       totalMatches = 0,
@@ -1557,31 +1574,27 @@ class Mark {
     return ' ';
   }
   getPatterns(terms) {
-    const regexCreator = new RegExpCreator(this.opt),
-      first = regexCreator.create(terms[0], true),
+    const creator = new RegExpCreator(this.opt),
+      first = creator.create(terms[0], true),
       patterns = [],
       array = [];
     let num = 10;
     if (typeof this.opt.combinePatterns === 'number') {
       if (this.opt.combinePatterns === Infinity) {
-        num = Number.MAX_VALUE | 1;
-      } else {
-        const value = parseInt(this.opt.combinePatterns);
-        if (this.isNumeric(value)) {
-          num = value;
-        }
+        num = Math.pow(2, 31);
+      } else if (this.isNumeric(this.opt.combinePatterns)) {
+        num = parseInt(this.opt.combinePatterns);
       }
     }
     let count = Math.ceil(terms.length / num);
     for (let k = 0; k < count; k++)  {
-      let patternTerms = [],
-        pattern = first.lookbehind + '(',
-        max = Math.min(k * num + num, terms.length);
-      for (let i = k * num; i < max; i++)  {
-        const ptn = regexCreator.create(terms[i], true).pattern;
-        pattern += `(${ptn})${i < max - 1 ? '|' : ''}`;
+      let pattern = first.lookbehind + '(';
+      const patternTerms = [],
+        length = Math.min(k * num + num, terms.length);
+      for (let i = k * num; i < length; i++)  {
         patternTerms.push(terms[i]);
       }
+      pattern += creator.createCombinePattern(patternTerms, true).pattern;
       patterns.push(pattern + ')' + first.lookahead);
       array.push(patternTerms);
     }

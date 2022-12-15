@@ -7,6 +7,6 @@ describe('get mark library version', function() {
   });
 
   it('should match version pattern', function() {
-    expect(version).toMatch(/^\d+\.\d+\.\d+\s+-\s+built\son\b.+/i);
+    expect(version).toMatch(/^\d+\.\d+\.\d+$/i);
   });
 });

@@ -1,4 +1,4 @@
-/* Version: 10.0.0 - December 9, 2022 23:35:04 */
+/* Version: 10.0.0 - December 13, 2022 09:47:52 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
@@ -487,6 +487,30 @@
         }
       }
     }, {
+      key: "createCombinePattern",
+      value: function createCombinePattern(array, capture) {
+        if (!array) {
+          return null;
+        }
+        var group = capture ? '(' : '(?:';
+        var lookbehind = '',
+          pattern = '',
+          lookahead = '';
+        for (var i = 0; i < array.length; i++) {
+          var obj = this.create(array[i], true);
+          if (i === 0) {
+            lookbehind = obj.lookbehind;
+            lookahead = obj.lookahead;
+          }
+          pattern += "".concat(group).concat(obj.pattern, ")").concat(i + 1 < array.length ? '|' : '');
+        }
+        return {
+          lookbehind: lookbehind,
+          pattern: pattern,
+          lookahead: lookahead
+        };
+      }
+    }, {
       key: "sortByLength",
       value: function sortByLength(arry) {
         return arry.sort(function (a, b) {
@@ -649,7 +673,7 @@
   var Mark$1 = /*#__PURE__*/function () {
     function Mark(ctx) {
       _classCallCheck(this, Mark);
-      this.version = '10.0.0 - built on December 9, 2022 23:35:04';
+      this.version = '10.0.0';
       this.ctx = ctx;
       this.cacheDict = {};
       this.ie = false;
@@ -705,8 +729,8 @@
         }
       }
     }, {
-      key: "checkWrapAllRangesOption",
-      value: function checkWrapAllRangesOption(opt) {
+      key: "checkOption",
+      value: function checkOption(opt) {
         if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
           opt = _extends({}, {
             'wrapAllRanges': true
@@ -1175,7 +1199,6 @@
             i--;
           }
         } else if (start < dict.lastTextIndex) {
-          this.log('The attempt to wrap overlapping range.');
           return;
         }
         for (i; i < dict.nodes.length; i++) {
@@ -1687,7 +1710,7 @@
       key: "markRegExp",
       value: function markRegExp(regexp, opt) {
         var _this10 = this;
-        this.opt = this.checkWrapAllRangesOption(opt);
+        this.opt = this.checkOption(opt);
         var totalMarks = 0,
           fn = this.getMethodName(opt);
         if (this.opt.acrossElements) {
@@ -1714,7 +1737,7 @@
       key: "mark",
       value: function mark(sv, opt) {
         var _this11 = this;
-        this.opt = this.checkWrapAllRangesOption(opt);
+        this.opt = this.checkOption(opt);
         if (this.opt.combinePatterns) {
           this.markCombinePatterns(sv, opt);
           return;
@@ -1760,7 +1783,7 @@
       key: "markCombinePatterns",
       value: function markCombinePatterns(sv, opt) {
         var _this12 = this;
-        this.opt = opt;
+        this.opt = this.checkOption(opt);
         var index = 0,
           totalMarks = 0,
           totalMatches = 0,
@@ -1836,31 +1859,27 @@
     }, {
       key: "getPatterns",
       value: function getPatterns(terms) {
-        var regexCreator = new RegExpCreator(this.opt),
-          first = regexCreator.create(terms[0], true),
+        var creator = new RegExpCreator(this.opt),
+          first = creator.create(terms[0], true),
           patterns = [],
           array = [];
         var num = 10;
         if (typeof this.opt.combinePatterns === 'number') {
           if (this.opt.combinePatterns === Infinity) {
-            num = Number.MAX_VALUE | 1;
-          } else {
-            var value = parseInt(this.opt.combinePatterns);
-            if (this.isNumeric(value)) {
-              num = value;
-            }
+            num = Math.pow(2, 31);
+          } else if (this.isNumeric(this.opt.combinePatterns)) {
+            num = parseInt(this.opt.combinePatterns);
           }
         }
         var count = Math.ceil(terms.length / num);
         for (var k = 0; k < count; k++) {
+          var pattern = first.lookbehind + '(';
           var patternTerms = [],
-            pattern = first.lookbehind + '(',
-            max = Math.min(k * num + num, terms.length);
-          for (var i = k * num; i < max; i++) {
-            var ptn = regexCreator.create(terms[i], true).pattern;
-            pattern += "(".concat(ptn, ")").concat(i < max - 1 ? '|' : '');
+            length = Math.min(k * num + num, terms.length);
+          for (var i = k * num; i < length; i++) {
             patternTerms.push(terms[i]);
           }
+          pattern += creator.createCombinePattern(patternTerms, true).pattern;
           patterns.push(pattern + ')' + first.lookahead);
           array.push(patternTerms);
         }

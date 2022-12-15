@@ -92,6 +92,30 @@
         }
       }
     }, {
+      key: "createCombinePattern",
+      value: function createCombinePattern(array, capture) {
+        if (!array) {
+          return null;
+        }
+        var group = capture ? '(' : '(?:';
+        var lookbehind = '',
+          pattern = '',
+          lookahead = '';
+        for (var i = 0; i < array.length; i++) {
+          var obj = this.create(array[i], true);
+          if (i === 0) {
+            lookbehind = obj.lookbehind;
+            lookahead = obj.lookahead;
+          }
+          pattern += "".concat(group).concat(obj.pattern, ")").concat(i + 1 < array.length ? '|' : '');
+        }
+        return {
+          lookbehind: lookbehind,
+          pattern: pattern,
+          lookahead: lookahead
+        };
+      }
+    }, {
       key: "sortByLength",
       value: function sortByLength(arry) {
         return arry.sort(function (a, b) {
@@ -255,6 +279,9 @@
     var instance = new RegExpCreator$1(options);
     this.create = function (str, patterns) {
       return instance.create(str, patterns);
+    };
+    this.createCombinePattern = function (array, capture) {
+      return instance.createCombinePattern(array, capture);
     };
     this.createDiacritics = function (str) {
       return instance.createDiacriticsRegExp(str);

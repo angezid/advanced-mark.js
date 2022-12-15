@@ -51,6 +51,24 @@
         return new RegExp(str, `gm${this.opt.caseSensitive ? '' : 'i'}`);
       }
     }
+    createCombinePattern(array, capture) {
+      if ( !array) {
+        return null;
+      }
+      const group = capture ? '(' : '(?:';
+      let lookbehind = '',
+        pattern = '',
+        lookahead = '';
+      for (let i = 0; i < array.length; i++)  {
+        const obj = this.create(array[i], true);
+        if (i === 0) {
+          lookbehind = obj.lookbehind;
+          lookahead = obj.lookahead;
+        }
+        pattern += `${group}${obj.pattern})${i + 1 < array.length ? '|' : ''}`;
+      }
+      return { lookbehind, pattern, lookahead };
+    }
     sortByLength(arry) {
       return arry.sort((a, b) => a.length === b.length ?
         (a > b ? 1 : -1) :
@@ -210,6 +228,9 @@
     const instance = new RegExpCreator$1(options);
     this.create = (str, patterns) => {
       return instance.create(str, patterns);
+    };
+    this.createCombinePattern = (array, capture) => {
+      return instance.createCombinePattern(array, capture);
     };
     this.createDiacritics = (str) => {
       return instance.createDiacriticsRegExp(str);

@@ -5,15 +5,10 @@ export default function RegExpCreator(options) {
   this.create = (str, patterns) => {
     return instance.create(str, patterns);
   };
+  this.createCombinePattern = (array, capture) => {
+    return instance.createCombinePattern(array, capture);
+  };
   this.createDiacritics = (str) => {
     return instance.createDiacriticsRegExp(str);
   };
 }
-
-/*export function create(options, str, patterns) {
-    return new RegCreator(options).create(str, patterns);
-}
-
-export function createDiacritics(options, str) {
-    return new RegCreator(options).createDiacriticsRegExp(str);
-}*/
