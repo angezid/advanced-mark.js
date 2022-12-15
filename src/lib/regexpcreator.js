@@ -150,6 +150,32 @@ class RegExpCreator {
   }
 
   /**
+    * Creates a single combine pattern from the array of string considering the available option settings
+    * @param  {Array} array - The array of string
+    * @param  {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
+    * @return {RegExpCreator~patternObj}
+    */
+  createCombinePattern(array, capture) {
+    if ( !array) {
+      return null;
+    }
+    const group = capture ? '(' : '(?:';
+    let lookbehind = '',
+      pattern = '',
+      lookahead = '';
+
+    for (let i = 0; i < array.length; i++)  {
+      const obj = this.create(array[i], true);
+      if (i === 0) {
+        lookbehind = obj.lookbehind;
+        lookahead = obj.lookahead;
+      }
+      pattern += `${group}${obj.pattern})${i + 1 < array.length ? '|' : ''}`;
+    }
+    return { lookbehind, pattern, lookahead };
+  }
+
+  /**
    * Sort array from longest entry to shortest
    * @param {array} arry - The array to sort
    * @return {array}
@@ -387,9 +413,9 @@ class RegExpCreator {
     ls.forEach(limiter => {
       lsJoin += `|${this.escapeStr(limiter)}`;
     });
-    
+
     let lookbehind = '()', pattern, lookahead = '';
-    
+
     switch (val) {
       case 'partially':
       default:
@@ -405,7 +431,7 @@ class RegExpCreator {
         lookahead = `(?=$|\\s${lsJoin})`;
         break;
     }
-    
+
     if (patterns) {
       return { lookbehind, pattern, lookahead };
     } else {

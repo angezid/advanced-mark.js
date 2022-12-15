@@ -17,7 +17,7 @@ class Mark {
    * element, an array of DOM elements, a NodeList or a selector
    */
   constructor(ctx) {
-    this.version = '[VI]{version} - built on {date}[/VI]';
+    this.version = '[VI]{version}[/VI]';
     /**
      * The context of the instance. Either a DOM element, an array of DOM
      * elements, a NodeList or a selector
@@ -111,18 +111,18 @@ class Mark {
       log[level](`mark.js: ${msg}`);
     }
   }
-  
+
   /**
    * The 'cacheTextNodes' option must be used with 'wrapAllRanges' when 'acrossElments' option is enabled
    * It automatically sets 'wrapAllRanges' to avoid external dependency
    * @param  {Mark~markRegExpOptions} [opt] - Optional options object
    * @return {Mark~markRegExpOptions}
    */
-  checkWrapAllRangesOption(opt) {
+  checkOption(opt) {
     if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
       opt = Object.assign({}, { 'wrapAllRanges' : true }, opt);
     }
-    return opt; 
+    return opt;
   }
 
   /**
@@ -343,7 +343,7 @@ class Mark {
         return true;
 
       } else {
-        // loop through textNode parent nodes which are last-child
+        // loops through textNode parent nodes which are last-child
         let parent = textNode.parentNode;
         while (parent.parentNode && parent === parent.parentNode.lastChild) {
           if (checkName(parent.parentNode)) {
@@ -494,7 +494,7 @@ class Mark {
       str, str2;
 
     // the space can be safely added to the end of a text node when
-    // the node checks run across element with one of those names
+    // the node checks run across element with one of those names.
     let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
       ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
       h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
@@ -654,6 +654,7 @@ class Mark {
    */
   matchesExclude(elem) {
     // it's faster to check if array contains the node name than selector in 'DOMIterator.matches()'
+    // also it allows to use a string of selectors instead of an array with the 'exclude' option
     const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
 
     return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
@@ -804,7 +805,7 @@ class Mark {
    * @access protected
    */
   wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
-    // dict.lastIndex store last node index to avoid iteration over all
+    // dict.lastIndex stores the last node index to avoid iteration over all
     // nodes to find the one matching the positions
     let i = dict.lastIndex,
       rangeStart = true;
@@ -816,7 +817,6 @@ class Mark {
       }
 
     } else if (start < dict.lastTextIndex) {
-      this.log('The attempt to wrap overlapping range.');
       return;
     }
 
@@ -919,9 +919,9 @@ class Mark {
           end = match.indices[i][1];
 
           if (filterCb(group, node, i)) {
-            // when a group is wrapping, the text node is split at the end
-            // index, so to correct the start index of the new text node,
-            // subtract the end index of the last wrapped group - offset
+            // when a group is wrapping, a text node is split at the end index,
+            // so to correct the start index of a new text node, just subtract
+            // the end index of the last wrapped group (offset)
             node = this.wrapGroups(node, start - offset, end - start, node => {
               eachCb(node, i);
             });
@@ -935,7 +935,7 @@ class Mark {
         }
       }
     }
-    // to avoid infinite loop reset lastIndex only when any of group is wrapped
+    // to avoid infinite loop, reset the lastIndex when at least one group is wrapped
     if (isWrapped) {
       params.regex.lastIndex = 0;
 
@@ -1040,7 +1040,8 @@ class Mark {
 
       if (group) {
         start = match.indices[i][0];
-        // it prevents marking nested group - parent group is already marked
+        // wrapAllRanges option allows wrapping nested group(s)
+        // 'start >= lastIndex' prevents wrapping nested group(s) - the parent group is already wrapped
         if (this.opt.wrapAllRanges || start >= lastIndex) {
           end = match.indices[i][1];
           isWrapped = false;
@@ -1120,7 +1121,7 @@ class Mark {
     if (this.opt.wrapAllRanges) {
       this.wrapRangeInMappedTextNode(dict, s, s + text.length, obj => {
         return filterCb(text, obj.node, index);
-      }, function(node, groupStart) {
+      }, (node, groupStart) => {
         eachCb(node, groupStart, index);
       });
     }
@@ -1693,6 +1694,26 @@ class Mark {
   }
 
   /**
+   * Get the method name which will be called
+   * @param {object} [opt] - Optional options object
+   */
+  getMethodName(opt) {
+    if (opt) {
+      if (opt.acrossElements) {
+        if (opt.separateGroups) {
+          return  'wrapGroupsAcrossElements';
+        }
+        return  'wrapMatchesAcrossElements';
+      }
+      if (opt.separateGroups) {
+        return  'wrapSeparateGroups';
+      }
+    }
+    // default name
+    return 'wrapMatches';
+  }
+
+  /**
    * Callback for each marked element
    * @callback Mark~markEachCallback
    * @param {HTMLElement} element - The marked DOM element
@@ -1778,7 +1799,7 @@ class Mark {
    * @access public
    */
   markRegExp(regexp, opt) {
-    this.opt = this.checkWrapAllRangesOption(opt);
+    this.opt = this.checkOption(opt);
 
     let totalMarks = 0,
       fn = this.getMethodName(opt);
@@ -1843,7 +1864,7 @@ class Mark {
    * @access public
    */
   mark(sv, opt) {
-    this.opt = this.checkWrapAllRangesOption(opt);
+    this.opt = this.checkOption(opt);
 
     if (this.opt.combinePatterns) {
       this.markCombinePatterns(sv, opt);
@@ -1903,7 +1924,7 @@ class Mark {
    * @access protected
    */
   markCombinePatterns(sv, opt) {
-    this.opt = opt;
+    this.opt = this.checkOption(opt);
 
     let index = 0,
       totalMarks = 0,
@@ -1988,7 +2009,9 @@ class Mark {
     // length in descending order - shorter term appears more frequently
     let i = match.length;
     while (--i > 2) {
+      // the current term index is the first not null capturing group index minus three
       if (match[i]) {
+        // the first 3 groups are: match[0], lookbehind, and main group
         return terms[i-3];
       }
     }
@@ -1996,67 +2019,44 @@ class Mark {
   }
 
   /**
-   * Combines chunks of strings into RegExp patterns
+   * Splits an array of string into chunks by the specified number and
+    * combines each chunk strings into single RegExp pattern
    * @param {array} terms - The array of strings
    * @return {array} - The array of combined RegExp patterns
    */
   getPatterns(terms) {
-    const regexCreator = new RegExpCreator(this.opt),
-      first = regexCreator.create(terms[0], true),
+    const creator = new RegExpCreator(this.opt),
+      first = creator.create(terms[0], true),
       patterns = [],
       array = [];
     let num = 10;
 
     if (typeof this.opt.combinePatterns === 'number') {
       if (this.opt.combinePatterns === Infinity) {
-        num = Number.MAX_VALUE | 1;
-      } else {
-        const value = parseInt(this.opt.combinePatterns);
-        if (this.isNumeric(value)) {
-          num = value;
-        }
+        num = Math.pow(2, 31);
+      } else if (this.isNumeric(this.opt.combinePatterns)) {
+        num = parseInt(this.opt.combinePatterns);
       }
     }
-
+    // the number of chunks to be created
     let count = Math.ceil(terms.length / num);
 
     for (let k = 0; k < count; k++)  {
-      let patternTerms = [],
-        pattern = first.lookbehind + '(',
-        max = Math.min(k * num + num, terms.length);
-
-      for (let i = k * num; i < max; i++)  {
-        const ptn = regexCreator.create(terms[i], true).pattern;
-        // wrapping term pattern in capturing group is necessary to determine
-        // which term is currently matched
-        pattern += `(${ptn})${i < max - 1 ? '|' : ''}`;
+      let pattern = first.lookbehind + '(';
+      const patternTerms = [],
+        length = Math.min(k * num + num, terms.length);
+      // get a chunk of terms to create combine pattern
+      for (let i = k * num; i < length; i++)  {
         patternTerms.push(terms[i]);
       }
+      // wrapping an individual term pattern in a capturing group is necessary to determine
+      // later which term is currently matched
+      pattern += creator.createCombinePattern(patternTerms, true).pattern;
 
       patterns.push(pattern + ')' + first.lookahead);
       array.push(patternTerms);
     }
     return {  patterns, terms : array };
-  }
-
-  /**
-   * Get the method name which will be called
-   * @param {object} [opt] - Optional options object
-   */
-  getMethodName(opt) {
-    if (opt) {
-      if (opt.acrossElements) {
-        if (opt.separateGroups) {
-          return  'wrapGroupsAcrossElements';
-        }
-        return  'wrapMatchesAcrossElements';
-      }
-      if (opt.separateGroups) {
-        return  'wrapSeparateGroups';
-      }
-    }
-    // default name
-    return 'wrapMatches';
   }
 
   /**
