@@ -21,7 +21,7 @@ This library keep backward compatibility with v9.0.0 and npm package v8.11.1 on 
 Main doc - [Documentation](https://markjs.io/).
 
 ## Content
-* [Performance](performance.md)
+* [Performance](doc/performance.md)
 * [Callbacks parameters](doc/callbacks-parameters.md)
 * [Filtering matches](doc/filtering-matches.md)
 * [Highlight separate groups](doc/separate-groups.md)
