@@ -22,14 +22,14 @@ Main doc - [Documentation](https://markjs.io/).
 
 ## Content
 * [Performance](performance.md)
-* [Callbacks parameters](callbacks-parameters.md)
-* [Filtering matches](filtering-matches.md)
-* [Highlight separate groups](separate-groups.md)
-* [Highlight nesting/overlapping](nesting-overlapping.md)
-* [Elements boundaries](elements-boundaries.md)
-* [Highlight shadow DOM](shadow-dom.md)
-* [Some examples](some-examples.md)
-* [RegExpCreator module](RegExpCreator-module.md)
+* [Callbacks parameters](doc/callbacks-parameters.md)
+* [Filtering matches](doc/filtering-matches.md)
+* [Highlight separate groups](doc/separate-groups.md)
+* [Highlight nesting/overlapping](doc/nesting-overlapping.md)
+* [Elements boundaries](doc/elements-boundaries.md)
+* [Highlight shadow DOM](doc/shadow-dom.md)
+* [Some examples](doc/some-examples.md)
+* [RegExpCreator module](doc/RegExpCreator-module.md)
 
 ## Modules changes
 * \*. es6.\*.js now are real ES6 modules
