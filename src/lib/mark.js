@@ -120,7 +120,7 @@ class Mark {
    */
   checkOption(opt) {
     if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
-      opt = Object.assign({}, { 'wrapAllRanges' : true }, opt);
+      opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
     }
     return opt;
   }
@@ -1701,12 +1701,12 @@ class Mark {
     if (opt) {
       if (opt.acrossElements) {
         if (opt.separateGroups) {
-          return  'wrapGroupsAcrossElements';
+          return 'wrapGroupsAcrossElements';
         }
-        return  'wrapMatchesAcrossElements';
+        return 'wrapMatchesAcrossElements';
       }
       if (opt.separateGroups) {
-        return  'wrapSeparateGroups';
+        return 'wrapSeparateGroups';
       }
     }
     // default name

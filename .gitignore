@@ -18,4 +18,3 @@ sc-karma*.log
 # Build
 build/doc/
 build/coverage/
-mark.js

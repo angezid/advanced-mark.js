@@ -1,4 +1,4 @@
-/* Version: 10.0.0 - December 13, 2022 09:47:50 */
+/* Version: 10.0.0 - December 27, 2022 23:14:04 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
@@ -173,7 +173,7 @@
       });
     }
     createIterator(ctx, whatToShow, filter) {
-      return document.createNodeIterator(ctx, whatToShow, filter);
+      return document.createNodeIterator(ctx, whatToShow, filter, false);
     }
     iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb) {
       const showText = whatToShow === NodeFilter.SHOW_TEXT,
@@ -616,7 +616,7 @@
     }
     checkOption(opt) {
       if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
-        opt = Object.assign({}, { 'wrapAllRanges' : true }, opt);
+        opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
       }
       return opt;
     }
@@ -1438,6 +1438,20 @@
       }
       this.normalizeTextNode(node.nextSibling);
     }
+    getMethodName(opt) {
+      if (opt) {
+        if (opt.acrossElements) {
+          if (opt.separateGroups) {
+            return 'wrapGroupsAcrossElements';
+          }
+          return 'wrapMatchesAcrossElements';
+        }
+        if (opt.separateGroups) {
+          return 'wrapSeparateGroups';
+        }
+      }
+      return 'wrapMatches';
+    }
     markRegExp(regexp, opt) {
       this.opt = this.checkOption(opt);
       let totalMarks = 0,
@@ -1603,20 +1617,6 @@
         array.push(patternTerms);
       }
       return {  patterns, terms : array };
-    }
-    getMethodName(opt) {
-      if (opt) {
-        if (opt.acrossElements) {
-          if (opt.separateGroups) {
-            return  'wrapGroupsAcrossElements';
-          }
-          return  'wrapMatchesAcrossElements';
-        }
-        if (opt.separateGroups) {
-          return  'wrapSeparateGroups';
-        }
-      }
-      return 'wrapMatches';
     }
     markRanges(rawRanges, opt) {
       this.opt = opt;

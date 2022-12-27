@@ -38,13 +38,9 @@ describe('basic mark in large documents', function() {
     }
   }, 60000);
 
-  it('should not throw a recursion error', function() {
-    expect(err).toBe(false);
-  });
-  it('should wrap matches', function() {
+  it('should not throw a recursion error and be faster than ' + time + ' ms', function() {
     expect($ctx.find('mark')).toHaveLength(9569);
-  });
-  it('should be faster than ' + time + ' ms', function() {
+    expect(err).toBe(false);
     expect(diff).toBeLessThan(time);
   });
 });
