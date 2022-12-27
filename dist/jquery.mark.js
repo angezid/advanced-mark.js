@@ -1,4 +1,4 @@
-/* Version: 10.0.0 - December 13, 2022 09:47:53 */
+/* Version: 10.0.0 - December 27, 2022 23:14:06 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
@@ -222,7 +222,7 @@
     }, {
       key: "createIterator",
       value: function createIterator(ctx, whatToShow, filter) {
-        return document.createNodeIterator(ctx, whatToShow, filter);
+        return document.createNodeIterator(ctx, whatToShow, filter, false);
       }
     }, {
       key: "iterateNodesIncludeShadowDOM",
@@ -736,9 +736,9 @@
       key: "checkOption",
       value: function checkOption(opt) {
         if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
-          opt = _extends({}, {
+          opt = _extends({}, opt, {
             'wrapAllRanges': true
-          }, opt);
+          });
         }
         return opt;
       }
@@ -1711,6 +1711,22 @@
         this.normalizeTextNode(node.nextSibling);
       }
     }, {
+      key: "getMethodName",
+      value: function getMethodName(opt) {
+        if (opt) {
+          if (opt.acrossElements) {
+            if (opt.separateGroups) {
+              return 'wrapGroupsAcrossElements';
+            }
+            return 'wrapMatchesAcrossElements';
+          }
+          if (opt.separateGroups) {
+            return 'wrapSeparateGroups';
+          }
+        }
+        return 'wrapMatches';
+      }
+    }, {
       key: "markRegExp",
       value: function markRegExp(regexp, opt) {
         var _this10 = this;
@@ -1891,22 +1907,6 @@
           patterns: patterns,
           terms: array
         };
-      }
-    }, {
-      key: "getMethodName",
-      value: function getMethodName(opt) {
-        if (opt) {
-          if (opt.acrossElements) {
-            if (opt.separateGroups) {
-              return 'wrapGroupsAcrossElements';
-            }
-            return 'wrapMatchesAcrossElements';
-          }
-          if (opt.separateGroups) {
-            return 'wrapSeparateGroups';
-          }
-        }
-        return 'wrapMatches';
       }
     }, {
       key: "markRanges",

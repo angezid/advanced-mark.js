@@ -333,7 +333,7 @@ class DOMIterator {
    * @access protected
    */
   createIterator(ctx, whatToShow, filter) {
-    return document.createNodeIterator(ctx, whatToShow, filter);
+    return document.createNodeIterator(ctx, whatToShow, filter, false);
   }
 
   /**

@@ -9,27 +9,26 @@ describe('Test the random generated ranges', function() {
     ranges = generateRanges();
   });
 
-  it(text + 'valid ranges without log message', function(done) {
-    var message = '';
+  it(text + 'nesting/overlapping ranges with wrapAllRanges option', function(done) {
+    var count = 0, lastIndex = 0, success = false;
 
-    new Mark($ctx[0]).markRanges(ranges, {
-      'done' : function(totalMarks) {
-        expect(totalMarks).toBeGreaterThan(0);
-        expect(message).toBe('');
-        done();
-      },
-      'debug': true,
-      'log': function(mes) {
-        message += mes;
-      }
-    });
-  });
-
-  it(text + 'nesting/overlapping ranges with wrapAllRanges', function(done) {
     new Mark($ctx[0]).markRanges(ranges, {
       'wrapAllRanges' : true,
-      'done' : function(totalMarks) {
-        expect(totalMarks).toBeGreaterThan(0);
+      'each' : (elem, range, onfo) => {
+        if (onfo.matchStart) {
+          count++;
+        }
+        if (range.start > lastIndex) {
+          success = true;
+        }
+        if (lastIndex < range.start + range.length) {
+          lastIndex = range.start + range.length;
+        }
+      },
+      'done' : function(totalMarks, totalMatches) {
+        expect(totalMatches).toBeGreaterThan(0);
+        expect(totalMatches).toBe(count);
+        expect(success).toBe(true);
         done();
       }
     });

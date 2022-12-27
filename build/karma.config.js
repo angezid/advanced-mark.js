@@ -1,5 +1,5 @@
 'use strict';
-process.env.CHROME_BIN = require('puppeteer').executablePath()
+process.env.CHROME_BIN = require('puppeteer').executablePath();
 
 module.exports = config => {
   config.set({
@@ -7,30 +7,9 @@ module.exports = config => {
     frameworks: ['jasmine-jquery', 'jasmine'],
     files: [
       'node_modules/jquery/dist/jquery.min.js',
-      'dist/!(*.es6|*.umd|*.min).js',
+      'dist/!(*.es6|*.umd|*.min|regexpcreator).js',
       'test/specs/configuration.js',
-      'test/specs/basic/done.js',
-      'test/specs/basic/each.js',
-      'test/specs/basic/no-match.js',
-      'test/specs/basic/debug.js',
-      'test/specs/basic/main.js',
-      'test/specs/basic/unmark.js',
-      'test/specs/basic/context-array.js',
-      'test/specs/basic/context-nodelist.js',
-      'test/specs/basic/context-direct.js',
-      'test/specs/basic/context-string.js',
-      'test/specs/basic/array-keyword.js',
-      'test/specs/basic/custom-element-class.js',
-      'test/specs/basic/!(accuracy|no-options|case-sensitive|ignore-joiners|ignore-punctuation|wildcards)*.js',
-      // depends on diacritics, separateWordSearch or synonyms:
-      'test/specs/basic/accuracy*.js',
-      'test/specs/basic/case-sensitive*.js',
-      'test/specs/basic/ignore-joiners*.js',
-      'test/specs/basic/ignore-punctuation*.js',
-      'test/specs/basic/wildcards*.js',
-      'test/specs/iframes/main.js',
-      'test/specs/iframes/unmark.js',
-      'test/specs/**/!(no-options).js', {
+      'test/specs/**/*.js', {
         pattern: 'test/fixtures/**/*.html',
         included: false,
         served: true
