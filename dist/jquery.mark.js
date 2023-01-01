@@ -1,8 +1,9 @@
-/* Version: 10.0.0 - December 27, 2022 23:14:06 */
+/* Version: 10.0.0 - January 2, 2023 02:55:31 */
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
-* Copyright (c) 2014–2022, Julian Kühnel
+* Copyright (c) 2014–2023, Julian Kühnel
+* Modified by angezid
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
@@ -493,21 +494,17 @@
     }, {
       key: "createCombinePattern",
       value: function createCombinePattern(array, capture) {
-        if (!array) {
+        var _this = this;
+        if (!Array.isArray(array) || !array.length) {
           return null;
         }
-        var group = capture ? '(' : '(?:';
-        var lookbehind = '',
-          pattern = '',
-          lookahead = '';
-        for (var i = 0; i < array.length; i++) {
-          var obj = this.create(array[i], true);
-          if (i === 0) {
-            lookbehind = obj.lookbehind;
-            lookahead = obj.lookahead;
-          }
-          pattern += "".concat(group).concat(obj.pattern, ")").concat(i + 1 < array.length ? '|' : '');
-        }
+        var group = capture ? '(' : '(?:',
+          obj = this.create(array[0], true),
+          lookbehind = obj.lookbehind,
+          lookahead = obj.lookahead,
+          pattern = array.map(function (str) {
+            return "".concat(group).concat(_this.create(str, true).pattern, ")");
+          }).join('|');
         return {
           lookbehind: lookbehind,
           pattern: pattern,
@@ -529,7 +526,7 @@
     }, {
       key: "createSynonymsRegExp",
       value: function createSynonymsRegExp(str) {
-        var _this = this;
+        var _this2 = this;
         var syn = this.opt.synonyms,
           sens = this.opt.caseSensitive ? '' : 'i',
           joinerPlaceholder = this.opt.ignoreJoiners || this.opt.ignorePunctuation.length ? "\0" : '';
@@ -538,19 +535,19 @@
             var keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
             keys.unshift(index);
             keys = this.sortByLength(keys).map(function (key) {
-              if (_this.opt.wildcards !== 'disabled') {
-                key = _this.setupWildcardsRegExp(key);
+              if (_this2.opt.wildcards !== 'disabled') {
+                key = _this2.setupWildcardsRegExp(key);
               }
-              key = _this.escapeStr(key);
+              key = _this2.escapeStr(key);
               return key;
             }).filter(function (k) {
               return k !== '';
             });
             if (keys.length > 1) {
               str = str.replace(new RegExp("(".concat(keys.map(function (k) {
-                return _this.escapeStr(k);
+                return _this2.escapeStr(k);
               }).join('|'), ")"), "gm".concat(sens)), joinerPlaceholder + "(".concat(keys.map(function (k) {
-                return _this.processSynonyms(k);
+                return _this2.processSynonyms(k);
               }).join('|'), ")") + joinerPlaceholder);
             }
           }
@@ -634,14 +631,14 @@
     }, {
       key: "createAccuracyRegExp",
       value: function createAccuracyRegExp(str, patterns) {
-        var _this2 = this;
+        var _this3 = this;
         var chars = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~¡¿';
         var acc = this.opt.accuracy,
           val = typeof acc === 'string' ? acc : acc.value,
           ls = typeof acc === 'string' ? [] : acc.limiters,
           lsJoin = '';
         ls.forEach(function (limiter) {
-          lsJoin += "|".concat(_this2.escapeStr(limiter));
+          lsJoin += "|".concat(_this3.escapeStr(limiter));
         });
         var lookbehind = '()',
           pattern,
@@ -680,6 +677,7 @@
       this.version = '10.0.0';
       this.ctx = ctx;
       this.cacheDict = {};
+      this.cacheDict2 = {};
       this.ie = false;
       var ua = window.navigator.userAgent;
       if (ua.indexOf('MSIE') > -1 || ua.indexOf('Trident') > -1) {
@@ -700,10 +698,6 @@
           'iframesTimeout': 5000,
           'separateWordSearch': true,
           'acrossElements': false,
-          'separateGroups': false,
-          'combinePatterns': false,
-          'cacheTextNodes': false,
-          'wrapAllRanges': false,
           'ignoreGroups': 0,
           'each': function each() {},
           'noMatch': function noMatch() {},
@@ -740,7 +734,20 @@
             'wrapAllRanges': true
           });
         }
+        var clear = true;
+        if (opt && opt.cacheTextNodes) {
+          clear = !(opt.acrossElements ? this.cacheDict2.nodes : this.cacheDict.nodes);
+        }
+        if (clear) {
+          this.clearCacheObjects();
+        }
         return opt;
+      }
+    }, {
+      key: "clearCacheObjects",
+      value: function clearCacheObjects() {
+        this.cacheDict = {};
+        this.cacheDict2 = {};
       }
     }, {
       key: "getSeparatedKeywords",
@@ -940,10 +947,10 @@
       key: "getTextNodesAcrossElements",
       value: function getTextNodesAcrossElements(cb) {
         var _this3 = this;
-        if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
-          this.cacheDict.lastIndex = 0;
-          this.cacheDict.lastTextIndex = 0;
-          cb(this.cacheDict);
+        if (this.opt.cacheTextNodes && this.cacheDict2.nodes) {
+          this.cacheDict2.lastIndex = 0;
+          this.cacheDict2.lastTextIndex = 0;
+          cb(this.cacheDict2);
           return;
         }
         var val = '',
@@ -1078,7 +1085,7 @@
             lastTextIndex: 0
           };
           if (_this3.opt.cacheTextNodes) {
-            _this3.cacheDict = dict;
+            _this3.cacheDict2 = dict;
           }
           cb(dict);
         });
@@ -1711,33 +1718,20 @@
         this.normalizeTextNode(node.nextSibling);
       }
     }, {
-      key: "getMethodName",
-      value: function getMethodName(opt) {
-        if (opt) {
-          if (opt.acrossElements) {
-            if (opt.separateGroups) {
-              return 'wrapGroupsAcrossElements';
-            }
-            return 'wrapMatchesAcrossElements';
-          }
-          if (opt.separateGroups) {
-            return 'wrapSeparateGroups';
-          }
-        }
-        return 'wrapMatches';
-      }
-    }, {
       key: "markRegExp",
       value: function markRegExp(regexp, opt) {
         var _this10 = this;
         this.opt = this.checkOption(opt);
         var totalMarks = 0,
-          fn = this.getMethodName(opt);
+          fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
+        if (this.opt.acrossElements) {
+          fn = this.opt.separateGroups ? 'wrapGroupsAcrossElements' : 'wrapMatchesAcrossElements';
+        }
         if (this.opt.acrossElements) {
           if (!regexp.global && !regexp.sticky) {
             var splits = regexp.toString().split('/');
             regexp = new RegExp(regexp.source, 'g' + splits[splits.length - 1]);
-            this.log('RegExp is recompiled with g flag because it must have g flag');
+            this.log('RegExp was recompiled because it must have g flag');
           }
         }
         this.log("Searching with expression \"".concat(regexp, "\""));
@@ -1757,11 +1751,11 @@
       key: "mark",
       value: function mark(sv, opt) {
         var _this11 = this;
-        this.opt = this.checkOption(opt);
-        if (this.opt.combinePatterns) {
+        if (opt && opt.combinePatterns) {
           this.markCombinePatterns(sv, opt);
           return;
         }
+        this.opt = this.checkOption(opt);
         var index = 0,
           totalMarks = 0,
           totalMatches = 0;
@@ -1913,6 +1907,7 @@
       value: function markRanges(rawRanges, opt) {
         var _this13 = this;
         this.opt = opt;
+        this.clearCacheObjects();
         var totalMarks = 0,
           ranges = this.checkRanges(rawRanges);
         if (ranges && ranges.length) {
@@ -1934,6 +1929,7 @@
       value: function unmark(opt) {
         var _this14 = this;
         this.opt = opt;
+        this.clearCacheObjects();
         var selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
         if (this.opt.className) {
           selector += ".".concat(this.opt.className);

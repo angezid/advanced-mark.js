@@ -1,7 +1,8 @@
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
-* Copyright (c) 2014–2022, Julian Kühnel
+* Copyright (c) 2014–2023, Julian Kühnel
+* Modified by angezid
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
@@ -46,21 +47,14 @@ class RegExpCreator$1 {
     }
   }
   createCombinePattern(array, capture) {
-    if ( !array) {
+    if ( !Array.isArray(array) || !array.length) {
       return null;
     }
-    const group = capture ? '(' : '(?:';
-    let lookbehind = '',
-      pattern = '',
-      lookahead = '';
-    for (let i = 0; i < array.length; i++)  {
-      const obj = this.create(array[i], true);
-      if (i === 0) {
-        lookbehind = obj.lookbehind;
-        lookahead = obj.lookahead;
-      }
-      pattern += `${group}${obj.pattern})${i + 1 < array.length ? '|' : ''}`;
-    }
+    const group = capture ? '(' : '(?:',
+      obj = this.create(array[0], true),
+      lookbehind = obj.lookbehind,
+      lookahead = obj.lookahead,
+      pattern = array.map(str => `${group}${this.create(str, true).pattern})`).join('|');
     return { lookbehind, pattern, lookahead };
   }
   sortByLength(arry) {

@@ -150,31 +150,24 @@ class RegExpCreator {
   }
 
   /**
-    * Creates a single combine pattern from the array of string considering the available option settings
-    * @param  {Array} array - The array of string
-    * @param  {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
-    * @return {RegExpCreator~patternObj}
-    */
+   * Creates a single combine pattern from the array of string considering the available option settings
+   * @param  {Array} array - The array of string
+   * @param  {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
+   * @return {RegExpCreator~patternObj}
+   */
   createCombinePattern(array, capture) {
-    if ( !array) {
+    if ( !Array.isArray(array) || !array.length) {
       return null;
     }
-    const group = capture ? '(' : '(?:';
-    let lookbehind = '',
-      pattern = '',
-      lookahead = '';
+    const group = capture ? '(' : '(?:',
+      obj = this.create(array[0], true),
+      lookbehind = obj.lookbehind,
+      lookahead = obj.lookahead,
+      pattern = array.map(str => `${group}${this.create(str, true).pattern})`).join('|');
 
-    for (let i = 0; i < array.length; i++)  {
-      const obj = this.create(array[i], true);
-      if (i === 0) {
-        lookbehind = obj.lookbehind;
-        lookahead = obj.lookahead;
-      }
-      pattern += `${group}${obj.pattern})${i + 1 < array.length ? '|' : ''}`;
-    }
     return { lookbehind, pattern, lookahead };
   }
-
+  
   /**
    * Sort array from longest entry to shortest
    * @param {array} arry - The array to sort
