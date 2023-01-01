@@ -1,7 +1,8 @@
 /*!***************************************************
 * mark.js v10.0.0
 * https://markjs.io/
-* Copyright (c) 2014–2022, Julian Kühnel
+* Copyright (c) 2014–2023, Julian Kühnel
+* Modified by angezid
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
@@ -94,21 +95,17 @@
     }, {
       key: "createCombinePattern",
       value: function createCombinePattern(array, capture) {
-        if (!array) {
+        var _this = this;
+        if (!Array.isArray(array) || !array.length) {
           return null;
         }
-        var group = capture ? '(' : '(?:';
-        var lookbehind = '',
-          pattern = '',
-          lookahead = '';
-        for (var i = 0; i < array.length; i++) {
-          var obj = this.create(array[i], true);
-          if (i === 0) {
-            lookbehind = obj.lookbehind;
-            lookahead = obj.lookahead;
-          }
-          pattern += "".concat(group).concat(obj.pattern, ")").concat(i + 1 < array.length ? '|' : '');
-        }
+        var group = capture ? '(' : '(?:',
+          obj = this.create(array[0], true),
+          lookbehind = obj.lookbehind,
+          lookahead = obj.lookahead,
+          pattern = array.map(function (str) {
+            return "".concat(group).concat(_this.create(str, true).pattern, ")");
+          }).join('|');
         return {
           lookbehind: lookbehind,
           pattern: pattern,
@@ -130,7 +127,7 @@
     }, {
       key: "createSynonymsRegExp",
       value: function createSynonymsRegExp(str) {
-        var _this = this;
+        var _this2 = this;
         var syn = this.opt.synonyms,
           sens = this.opt.caseSensitive ? '' : 'i',
           joinerPlaceholder = this.opt.ignoreJoiners || this.opt.ignorePunctuation.length ? "\0" : '';
@@ -139,19 +136,19 @@
             var keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
             keys.unshift(index);
             keys = this.sortByLength(keys).map(function (key) {
-              if (_this.opt.wildcards !== 'disabled') {
-                key = _this.setupWildcardsRegExp(key);
+              if (_this2.opt.wildcards !== 'disabled') {
+                key = _this2.setupWildcardsRegExp(key);
               }
-              key = _this.escapeStr(key);
+              key = _this2.escapeStr(key);
               return key;
             }).filter(function (k) {
               return k !== '';
             });
             if (keys.length > 1) {
               str = str.replace(new RegExp("(".concat(keys.map(function (k) {
-                return _this.escapeStr(k);
+                return _this2.escapeStr(k);
               }).join('|'), ")"), "gm".concat(sens)), joinerPlaceholder + "(".concat(keys.map(function (k) {
-                return _this.processSynonyms(k);
+                return _this2.processSynonyms(k);
               }).join('|'), ")") + joinerPlaceholder);
             }
           }
@@ -235,14 +232,14 @@
     }, {
       key: "createAccuracyRegExp",
       value: function createAccuracyRegExp(str, patterns) {
-        var _this2 = this;
+        var _this3 = this;
         var chars = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~¡¿';
         var acc = this.opt.accuracy,
           val = typeof acc === 'string' ? acc : acc.value,
           ls = typeof acc === 'string' ? [] : acc.limiters,
           lsJoin = '';
         ls.forEach(function (limiter) {
-          lsJoin += "|".concat(_this2.escapeStr(limiter));
+          lsJoin += "|".concat(_this3.escapeStr(limiter));
         });
         var lookbehind = '()',
           pattern,

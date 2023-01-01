@@ -32,6 +32,12 @@ class Mark {
      */
     this.cacheDict = {};
     /**
+     * Used with the 'cacheTextNodes' and 'acrossElements' options to improve performance
+     * @type {object}
+     * @access protected
+     */
+    this.cacheDict2 = {};
+    /**
      * Specifies if the current browser is a IE (necessary for the node
      * normalization bug workaround). See {@link Mark#unwrapMatches}
      * @type {boolean}
@@ -61,10 +67,6 @@ class Mark {
       'iframesTimeout': 5000,
       'separateWordSearch': true,
       'acrossElements': false,
-      'separateGroups': false,
-      'combinePatterns': false,
-      'cacheTextNodes': false,
-      'wrapAllRanges': false,
       'ignoreGroups': 0,
       'each': () => {},
       'noMatch': () => {},
@@ -115,16 +117,32 @@ class Mark {
   /**
    * The 'cacheTextNodes' option must be used with 'wrapAllRanges' when 'acrossElments' option is enabled
    * It automatically sets 'wrapAllRanges' to avoid external dependency
-   * @param  {Mark~markRegExpOptions} [opt] - Optional options object
+   * It also checks the validity of cache objects (mark instance can calls several methods with different setting
+   *  of the acrossElments and cacheTextNodes options)
+   * @param  {object} [opt] - Optional options object
    * @return {Mark~markRegExpOptions}
    */
   checkOption(opt) {
     if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
       opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
     }
+    
+    let clear = true;
+    if (opt && opt.cacheTextNodes) {
+      clear = !(opt.acrossElements ? this.cacheDict2.nodes : this.cacheDict.nodes);
+    }
+    if (clear) {
+      this.clearCacheObjects();
+    }
+    
     return opt;
   }
-
+  
+  clearCacheObjects() {
+    this.cacheDict = {};
+    this.cacheDict2 = {};
+  }
+  
   /**
    * @typedef Mark~separatedKeywords
    * @type {object.<string>}
@@ -479,12 +497,12 @@ class Mark {
   */
   getTextNodesAcrossElements(cb) {
     // get dict from the cache if it's already built
-    if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+    if (this.opt.cacheTextNodes && this.cacheDict2.nodes) {
       // it's only requires reset two indexes
-      this.cacheDict.lastIndex = 0;
-      this.cacheDict.lastTextIndex = 0;
+      this.cacheDict2.lastIndex = 0;
+      this.cacheDict2.lastTextIndex = 0;
 
-      cb(this.cacheDict);
+      cb(this.cacheDict2);
       return;
     }
 
@@ -571,7 +589,7 @@ class Mark {
       };
 
       if (this.opt.cacheTextNodes) {
-        this.cacheDict = dict;
+        this.cacheDict2 = dict;
       }
 
       cb(dict);
@@ -1694,26 +1712,6 @@ class Mark {
   }
 
   /**
-   * Get the method name which will be called
-   * @param {object} [opt] - Optional options object
-   */
-  getMethodName(opt) {
-    if (opt) {
-      if (opt.acrossElements) {
-        if (opt.separateGroups) {
-          return 'wrapGroupsAcrossElements';
-        }
-        return 'wrapMatchesAcrossElements';
-      }
-      if (opt.separateGroups) {
-        return 'wrapSeparateGroups';
-      }
-    }
-    // default name
-    return 'wrapMatches';
-  }
-
-  /**
    * Callback for each marked element
    * @callback Mark~markEachCallback
    * @param {HTMLElement} element - The marked DOM element
@@ -1802,7 +1800,11 @@ class Mark {
     this.opt = this.checkOption(opt);
 
     let totalMarks = 0,
-      fn = this.getMethodName(opt);
+      fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
+
+    if (this.opt.acrossElements) {
+      fn = this.opt.separateGroups ? 'wrapGroupsAcrossElements' : 'wrapMatchesAcrossElements';
+    }
 
     if (this.opt.acrossElements) {
       // it solves the backward-compatibility issue but open gate for new code
@@ -1811,9 +1813,7 @@ class Mark {
         let splits = regexp.toString().split('/');
 
         regexp = new RegExp(regexp.source, 'g' + splits[splits.length-1]);
-        this.log(
-          'RegExp is recompiled with g flag because it must have g flag'
-        );
+        this.log('RegExp was recompiled because it must have g flag');
       }
     }
     this.log(`Searching with expression "${regexp}"`);
@@ -1864,12 +1864,12 @@ class Mark {
    * @access public
    */
   mark(sv, opt) {
-    this.opt = this.checkOption(opt);
-
-    if (this.opt.combinePatterns) {
+    if (opt && opt.combinePatterns) {
       this.markCombinePatterns(sv, opt);
       return;
     }
+    
+    this.opt = this.checkOption(opt);
 
     let index = 0,
       totalMarks = 0,
@@ -2009,7 +2009,7 @@ class Mark {
     // length in descending order - shorter term appears more frequently
     let i = match.length;
     while (--i > 2) {
-      // the current term index is the first not null capturing group index minus three
+      // the current term index is the first not undefined capturing group index minus three
       if (match[i]) {
         // the first 3 groups are: match[0], lookbehind, and main group
         return terms[i-3];
@@ -2108,6 +2108,8 @@ class Mark {
    */
   markRanges(rawRanges, opt) {
     this.opt = opt;
+    this.clearCacheObjects();
+    
     let totalMarks = 0,
       ranges = this.checkRanges(rawRanges);
     if (ranges && ranges.length) {
@@ -2141,6 +2143,8 @@ class Mark {
    */
   unmark(opt) {
     this.opt = opt;
+    this.clearCacheObjects();
+    
     let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
 
     if (this.opt.className) {
