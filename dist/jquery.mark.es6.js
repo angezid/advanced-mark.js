@@ -1,10 +1,10 @@
-/* Version: 10.0.0 - January 2, 2023 02:55:28 */
+/* Version: 1.0.2 - January 3, 2023 15:54:13 */
 /*!***************************************************
-* mark.js v10.0.0
-* https://markjs.io/
-* Copyright (c) 2014–2023, Julian Kühnel
-* Modified by angezid
-* Released under the MIT license https://git.io/vwTVl
+* advanced-mark.js v1.0.2
+* https://github.com/angezid/advanced-mark#readme
+* MIT licensed
+* Copyright (c) 2022–2023, angezid
+* Original author Julian Kühnel, license https://git.io/vwTVl
 *****************************************************/
 
 import './jquery.js';
@@ -552,7 +552,7 @@ class RegExpCreator {
 
 class Mark {
   constructor(ctx) {
-    this.version = '10.0.0';
+    this.version = '1.0.2';
     this.ctx = ctx;
     this.cacheDict = {};
     this.cacheDict2 = {};

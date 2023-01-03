@@ -13,8 +13,7 @@ module.exports = config => {
         pattern: 'test/fixtures/**/*.html',
         included: false,
         served: true
-      },
-      'test/specs/basic/no-options.js'
+      }
     ],
     exclude: [],
     reporters: ['spec', 'coverage'],

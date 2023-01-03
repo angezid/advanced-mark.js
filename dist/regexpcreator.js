@@ -1,9 +1,8 @@
 /*!***************************************************
-* mark.js v10.0.0
-* https://markjs.io/
+* advanced-mark.js v1.0.2
 * Copyright (c) 2014–2023, Julian Kühnel
-* Modified by angezid
 * Released under the MIT license https://git.io/vwTVl
+* Modified by angezid
 *****************************************************/
 
 (function (global, factory) {

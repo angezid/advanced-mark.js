@@ -11,15 +11,12 @@ import versionInjector from 'rollup-plugin-version-injector';
 
 // Shared config   @rollup/
 const output = {
-    name: (() => {
-      const str = pkg.name.split('/').pop().replace('.js', '');
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    })(),
+    name: 'Mark',
     file: pkg.main,
     format: 'umd',
     extend: true,
     banner: handlebars.compile(fs.readFileSync(path.join(
-      __dirname, 'templates/copyright.hbs'
+      __dirname, 'templates/copyright2.hbs'
     ), 'utf8'))({
       name: pkg.name.split('/').pop(),
       version: `v${pkg.version}`,
@@ -27,22 +24,37 @@ const output = {
       author: pkg.author.name,
       license: pkg.license,
       year: (() => {
-        const startYear = 2014,
+        const startYear = 2022,
           year = new Date().getFullYear();
         return year > startYear ? `${startYear}–${year}` : year;
       })()
     })
   },
+  banner_reg = handlebars.compile(fs.readFileSync(path.join(
+    __dirname, 'templates/copyright.hbs'
+  ), 'utf8'))({
+    name: pkg.name.split('/').pop(),
+    version: `v${pkg.version}`,
+    author: "Julian Kühnel",
+    license: pkg.license,
+    year: (() => {
+      const startYear = 2014,
+        year = new Date().getFullYear();
+      return year > startYear ? `${startYear}–${year}` : year;
+    })()
+  }),
   outputRegCreator = Object.assign({}, output, {
     name: 'RegExpCreator',
     file: 'dist/regexpcreator.js',
+    banner: banner_reg
   }),
   output_es6 = Object.assign({}, output, {
     format : 'es'
   }),
   outputRegCreator_es6 = Object.assign({}, output_es6, {
     name: 'RegExpCreator',
-    file: 'dist/regexpcreator.js'
+    file: 'dist/regexpcreator.js',
+    banner: banner_reg
   }),
   outputJquery_es6 = Object.assign({}, output_es6, {
     file: (() => {
