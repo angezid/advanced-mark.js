@@ -118,9 +118,9 @@ class Mark {
    * The 'cacheTextNodes' option must be used with 'wrapAllRanges' when 'acrossElments' option is enabled
    * It automatically sets 'wrapAllRanges' to avoid external dependency
    * It also checks the validity of cache objects (mark instance can calls several methods with different setting
-   *  of the acrossElments and cacheTextNodes options)
+   * of the cacheTextNodes option, which breaks the relation of the DOM nodes and cache object nodes)
    * @param  {object} [opt] - Optional options object
-   * @return {Mark~markRegExpOptions}
+   * @return {object}
    */
   checkOption(opt) {
     if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
@@ -1920,7 +1920,7 @@ class Mark {
    * Marks the specified search terms
    * @param {string|string[]} [sv] - Search value, either a search string or an
    * array containing multiple search strings
-   * @param  {Mark~markOptions} [opt] - Optional options object
+   * @param  {Mark~markCombinePatternsOptions} [opt] - Optional options object
    * @access protected
    */
   markCombinePatterns(sv, opt) {

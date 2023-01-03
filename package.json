@@ -1,12 +1,12 @@
 {
-  "name": "mark.js",
-  "version": "10.0.0",
+  "name": "advanced-mark.js",
+  "version": "1.0.2",
   "keywords": [
+    "advanced-mark.js",
     "mark.js",
     "markjs",
     "mark",
     "jquery.mark",
-    "jmHighlight",
     "highlight",
     "search",
     "jquery",
@@ -15,16 +15,19 @@
     "keyword"
   ],
   "license": "MIT",
-  "homepage": "https://markjs.io/",
   "author": {
-    "name": "Julian Kühnel",
-    "url": "https://github.com/julmot"
+    "name": "angezid",
+    "url": "https://github.com/angezid"
   },
   "description": "Highlight keywords using JavaScript. Intended for every use case. Can e.g. be used to mark text in search results.",
   "main": "dist/mark.js",
-  "repository": "julmot/mark.js",
+  "repository": "angezid/advanced-mark.js",
   "bugs": {
-    "url": "https://github.com/julmot/mark.js/issues"
+    "url": "https://github.com/angezid/advanced-mark.js/issues"
+  },
+  "homepage": "https://github.com/angezid/advanced-mark#readme",
+  "publishConfig": {
+     "@angezid:registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "eslint": "eslint src/ test/",
@@ -60,7 +63,6 @@
     "karma-spec-reporter": "^0.0.34",
     "karma-summary-reporter": "^3.1.1",
     "nodemon": "^1.14.10",
-    "puppeteer": "^13.0.0",
     "rollup": "^2.68.0",
     "rollup-plugin-cleanup": "^3.0.0",
     "rollup-plugin-version-injector": "^1.3.3"
