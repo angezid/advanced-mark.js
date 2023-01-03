@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-test/
 package-lock.json
 
 # Personal
@@ -8,6 +7,8 @@ TODO
 npm-debug.log*
 sc-karma*.log
 
-# Build
+# Directories
 build/doc/
 build/coverage/
+test/
+.github/

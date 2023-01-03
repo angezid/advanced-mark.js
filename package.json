@@ -19,20 +19,16 @@
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "Highlight keywords using JavaScript. Intended for every use case. Can e.g. be used to mark text in search results.",
+  "description": "Highlight words, terms, or text on browser page using JavaScript.",
   "main": "dist/mark.js",
   "repository": "angezid/advanced-mark.js",
   "bugs": {
     "url": "https://github.com/angezid/advanced-mark.js/issues"
   },
   "homepage": "https://github.com/angezid/advanced-mark#readme",
-  "publishConfig": {
-     "@angezid:registry": "https://npm.pkg.github.com"
-  },
   "scripts": {
     "eslint": "eslint src/ test/",
     "karma": "karma start build/karma.config.js",
-    "karma-ci": "karma start build/karma.config-ci.js",
     "jsdoc": "jsdoc src/lib/ -d build/doc -R README.md -P package.json -r",
     "compile": "rollup -c build/rollup.config.js",
     "build": "npm run eslint && npm run compile && npm run karma && npm run jsdoc",

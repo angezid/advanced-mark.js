@@ -1,7 +1,8 @@
-# mark.js
+# advanced-mark.js
 
-##### Highlight keywords using JavaScript. Intended for every use case.  
-Can e.g. be used to mark text in search results.
+[![npm](https://img.shields.io/npm/v/advanced-mark.js)](https://www.npmjs.com/package/advanced-mark.js)
+
+#### Highlight words, terms, or text on browser page using JavaScript.
 
 To play with this library - [Markjs-playground](https://github.com/angezid/Markjs-playground). It requires minimum installation and provides full functionality.
 Also, it has built-in examples. 
@@ -16,7 +17,7 @@ What's done:
 * `blockElementsBoundary` option - limits matches within HTML block elements or custom elements
 * `shadowDOM` option - allows highlighting shadow DOM
 
-This library keep backward compatibility with v9.0.0 and npm package v8.11.1 on public API level.
+This library keeps backward compatibility with `mark.js` v9.0.0 and npm package v8.11.1 on public API level.
 
 Main doc - [Documentation](https://markjs.io/).
 
