@@ -8,7 +8,7 @@ The `create(string, true)` method with the second parameter set to true returns 
 * {string} `pattern` - a string pattern
 * {string} `lookahead` - is real lookahead assertion pattern; is non empty string only with `accuracy : 'exactly'` or `{ 'value': 'exactly', 'limiters': [..] }`
 
-Those options can be used: `accuracy`, `diacritics`, `synonyms`, `caseSensitive`, `ignoreJoiners`, `ignorePunctuation`, `and` `wildcards`.
+Those options can be used: `accuracy`, `diacritics`, `synonyms`, `caseSensitive`, `ignoreJoiners`, `ignorePunctuation`, and `wildcards`.
 
 ``` js
 import RegExpCreator from './regexpcreator.es6.js';

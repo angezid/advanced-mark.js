@@ -21,6 +21,7 @@
   },
   "description": "Highlight words, terms, or text on browser page using JavaScript.",
   "main": "dist/mark.js",
+  "types": "types/mark/index.d.ts",
   "repository": "angezid/advanced-mark.js",
   "bugs": {
     "url": "https://github.com/angezid/advanced-mark.js/issues"
