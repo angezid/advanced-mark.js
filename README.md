@@ -29,6 +29,7 @@ Main doc - [Documentation](https://markjs.io/).
 * [Highlight nesting/overlapping](doc/nesting-overlapping.md)
 * [Elements boundaries](doc/elements-boundaries.md)
 * [Highlight shadow DOM](doc/shadow-dom.md)
+* [TypeScript types](doc/TypeScript-types.md)
 * [Some examples](doc/some-examples.md)
 * [RegExpCreator module](doc/RegExpCreator-module.md)
 
