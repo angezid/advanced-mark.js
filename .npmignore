@@ -1,14 +1,18 @@
-# Dependencies
-node_modules/
+# Files
 package-lock.json
+.editorconfig
+.gitattributes
+.gitignore
+.jsbeautifyrc
+.eslintrc.json
 
 # Personal
 TODO
 npm-debug.log*
-sc-karma*.log
 
 # Directories
-build/doc/
-build/coverage/
+node_modules/
+build/
 test/
+.git/
 .github/

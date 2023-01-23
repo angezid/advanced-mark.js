@@ -91,7 +91,7 @@ class RegExpCreator {
   /**
    * @typedef RegExpCreator~patternObj
    * @type {object}
-   * @property {string} lookbehind - A lookbehind group
+   * @property {string} lookbehind - A lookbehind capturing group
    * @property {string} pattern - A term pattern
    * @property {string} lookahead - A positive lookahead assertion
    */
@@ -133,6 +133,7 @@ class RegExpCreator {
       str = this.createDiacriticsRegExp(str);
     }
     str = this.createMergedBlanksRegExp(str);
+
     if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
       str = this.createJoinersRegExp(str);
     }
@@ -167,7 +168,7 @@ class RegExpCreator {
 
     return { lookbehind, pattern, lookahead };
   }
-  
+
   /**
    * Sort array from longest entry to shortest
    * @param {array} arry - The array to sort
@@ -198,11 +199,8 @@ class RegExpCreator {
    */
   createSynonymsRegExp(str) {
     const syn = this.opt.synonyms,
-      sens = this.opt.caseSensitive ? '' : 'i',
-      // add replacement character placeholder before and after the
-      // synonym group
-      joinerPlaceholder = this.opt.ignoreJoiners ||
-      this.opt.ignorePunctuation.length ? '\u0000' : '';
+      sens = this.opt.caseSensitive ? '' : 'i';
+
     for (let index in syn) {
       if (syn.hasOwnProperty(index)) {
         let keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
@@ -214,30 +212,12 @@ class RegExpCreator {
           key = this.escapeStr(key);
           return key;
         }).filter(k => k !== '');
+
         if (keys.length > 1) {
-          str = str.replace(
-            new RegExp(
-              `(${keys.map(k => this.escapeStr(k)).join('|')})`,
-              `gm${sens}`
-            ),
-            joinerPlaceholder +
-            `(${keys.map(k => this.processSynonyms(k)).join('|')})` +
-            joinerPlaceholder
-          );
+          const pattern = keys.map(k => this.escapeStr(k)).join('|');
+          str = str.replace(new RegExp(`(?:${pattern})`, `gm${sens}`), `(?:${keys.join('|')})`);
         }
       }
-    }
-    return str;
-  }
-
-  /**
-   * Setup synonyms to work with ignoreJoiners and or ignorePunctuation
-   * @param {string} str - synonym key or value to process
-   * @return {string} - processed synonym string
-   */
-  processSynonyms(str) {
-    if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
-      str = this.setupIgnoreJoinersRegExp(str);
     }
     return str;
   }
@@ -282,23 +262,16 @@ class RegExpCreator {
   }
 
   /**
-   * Sets up the regular expression string to allow later insertion of
-   * designated characters (soft hyphens & zero width characters)
+   * Creates placeholders in the regular expression string to allow later insertion of
+   * designated characters (soft hyphens, zero width characters, and punctuation)
    * @param  {string} str - The search term to be used
    * @return {string}
    */
   setupIgnoreJoinersRegExp(str) {
-    // adding a "null" unicode character as it will not be modified by the
-    // other "create" regular expression functions
-    return str.replace(/[^(|)\\]/g, (val, indx, original) => {
-      // don't add a null after an opening "(", around a "|" or before
-      // a closing "(", or between an escapement (e.g. \+)
-      let nextChar = original.charAt(indx + 1);
-      if (/[(|)\\]/.test(nextChar) || nextChar === '') {
-        return val;
-      } else {
-        return val + '\u0000';
-      }
+    // It's not added '\0' after `(?:` grouping construct, around `|`, before `)` chars, and at the end of a string,
+    // not breaks the grouping construct `(?:`
+    return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
+      return gr1 || typeof gr2 !== 'undefined' ? m : m + '\u0000';
     });
   }
 
@@ -334,45 +307,30 @@ class RegExpCreator {
    * @return {string}
    */
   createDiacriticsRegExp(str) {
-    const sens = this.opt.caseSensitive ? '' : 'i',
-      dct = this.opt.caseSensitive ? [
+    const caseSensitive = this.opt.caseSensitive,
+      array = [
         'aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ',
-        'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ',
-        'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ',
-        'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń',
-        'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ',
-        'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ',
-        'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ',
+        'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ',
+        'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ',
+        'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rř', 'RŘ',
+        'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ',
         'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'
-      ] : [
-        'aàáảãạăằắẳẵặâầấẩẫậäåāąAÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćčCÇĆČ',
-        'dđďDĐĎ', 'eèéẻẽẹêềếểễệëěēęEÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ',
-        'iìíỉĩịîïīIÌÍỈĨỊÎÏĪ', 'lłLŁ', 'nñňńNÑŇŃ',
-        'oòóỏõọôồốổỗộơởỡớờợöøōOÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rřRŘ',
-        'sšśșşSŠŚȘŞ', 'tťțţTŤȚŢ',
-        'uùúủũụưừứửữựûüůūUÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿYÝỲỶỸỴŸ', 'zžżźZŽŻŹ'
       ];
-    let handled = [];
-    str.split('').forEach(ch => {
-      dct.every(dct => {
-        // Check if the character is inside a diacritics list
-        if (dct.indexOf(ch) !== -1) {
-          // Check if the related diacritics list was not
-          // handled yet
-          if (handled.indexOf(dct) > -1) {
-            return false;
+
+    return str.split('').map(ch => {
+      for (let i = 0; i < array.length; i += 2)  {
+        if (caseSensitive) {
+          if (array[i].indexOf(ch) !== -1) {
+            return '[' + array[i] + ']';
+          } else if (array[i+1].indexOf(ch) !== -1) {
+            return '[' + array[i+1] + ']';
           }
-          // Make sure that the character OR any other
-          // character in the diacritics list will be matched
-          str = str.replace(
-            new RegExp(`[${dct}]`, `gm${sens}`), `[${dct}]`
-          );
-          handled.push(dct);
+        } else if (array[i].indexOf(ch) !== -1 || array[i+1].indexOf(ch) !== -1) {
+          return '[' + array[i] + array[i+1] + ']';
         }
-        return true;
-      });
-    });
-    return str;
+      }
+      return ch;
+    }).join('');
   }
 
   /**
@@ -383,7 +341,7 @@ class RegExpCreator {
    * @return {string}
    */
   createMergedBlanksRegExp(str) {
-    return str.replace(/[\s]+/gmi, '[\\s]+');
+    return str.replace(/\s+/g, '[\\s]+');
   }
 
   /**

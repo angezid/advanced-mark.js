@@ -1,5 +1,6 @@
 
-// Type definitions for advanced-mark.js 1.0.2
+// Type definitions for advanced-mark.js v1.0.3
+// Based on "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/mark.js"
 
 /// <reference types="jquery"/>
 

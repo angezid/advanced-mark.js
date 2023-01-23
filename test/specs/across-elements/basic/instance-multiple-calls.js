@@ -7,7 +7,7 @@ describe('when one instance calls multiple methods', function() {
 
     $ctx = $('.across-elements');
     exception = false;
-    count = 0; 
+    count = 0;
 
     var instance = new Mark($ctx[0]);
 
@@ -31,7 +31,15 @@ describe('when one instance calls multiple methods', function() {
                 'cacheTextNodes' : true,
                 'done' : function(_, matches) {
                   count += matches;
-                  done();
+
+                  instance.mark('sit', {
+                    'acrossElements' : true,
+                    'cacheTextNodes' : true,
+                    'done' : function(_, matches) {
+                      count += matches;
+                      done();
+                    }
+                  });
                 }
               });
             }
@@ -44,8 +52,8 @@ describe('when one instance calls multiple methods', function() {
     }
   });
 
-  it('should not throw exception with different settings of cacheTextNodes/acrossElements options', function() {
-    expect(count).toBe(12);
+  it('should not throw an exception with different settings of the cacheTextNodes options', function() {
+    expect(count).toBe(16);
     expect(exception).toBe(false);
   });
 });

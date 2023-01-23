@@ -32,12 +32,6 @@ class Mark {
      */
     this.cacheDict = {};
     /**
-     * Used with the 'cacheTextNodes' and 'acrossElements' options to improve performance
-     * @type {object}
-     * @access protected
-     */
-    this.cacheDict2 = {};
-    /**
      * Specifies if the current browser is a IE (necessary for the node
      * normalization bug workaround). See {@link Mark#unwrapMatches}
      * @type {boolean}
@@ -126,23 +120,26 @@ class Mark {
     if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
       opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
     }
-    
+
     let clear = true;
-    if (opt && opt.cacheTextNodes) {
-      clear = !(opt.acrossElements ? this.cacheDict2.nodes : this.cacheDict.nodes);
+    // It allows using cache object if the type and cacheTextNodes option doesn't change
+    if (opt && opt.cacheTextNodes && this.cacheDict.type) {
+      if (opt.acrossElements) {
+        if (this.cacheDict.type === 'across') {
+          clear = false;
+        }
+
+      } else if (this.cacheDict.type === 'every') {
+        clear = false;
+      }
     }
     if (clear) {
-      this.clearCacheObjects();
+      this.cacheDict = {};
     }
-    
+
     return opt;
   }
-  
-  clearCacheObjects() {
-    this.cacheDict = {};
-    this.cacheDict2 = {};
-  }
-  
+
   /**
    * @typedef Mark~separatedKeywords
    * @type {object.<string>}
@@ -497,12 +494,12 @@ class Mark {
   */
   getTextNodesAcrossElements(cb) {
     // get dict from the cache if it's already built
-    if (this.opt.cacheTextNodes && this.cacheDict2.nodes) {
+    if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
       // it's only requires reset two indexes
-      this.cacheDict2.lastIndex = 0;
-      this.cacheDict2.lastTextIndex = 0;
+      this.cacheDict.lastIndex = 0;
+      this.cacheDict.lastTextIndex = 0;
 
-      cb(this.cacheDict2);
+      cb(this.cacheDict);
       return;
     }
 
@@ -589,7 +586,8 @@ class Mark {
       };
 
       if (this.opt.cacheTextNodes) {
-        this.cacheDict2 = dict;
+        this.cacheDict = dict;
+        this.cacheDict.type = 'across';
       }
 
       cb(dict);
@@ -656,6 +654,7 @@ class Mark {
 
       if (this.opt.cacheTextNodes) {
         this.cacheDict = dict;
+        this.cacheDict.type = 'every';
       }
 
       cb(dict);
@@ -1225,7 +1224,7 @@ class Mark {
    * Callback for each wrapped element
    * @callback Mark~wrapSeparateGroupsEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object containing the match
+   * @param {Mark~eachInfoObject} eachInfo - The object containing the match
    * information
    */
 
@@ -1311,7 +1310,7 @@ class Mark {
    * Callback for each wrapped element
    * @callback Mark~wrapMatchesEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object containing the match
+   * @param {Mark~eachInfoObject} eachInfo - The object containing the match
    * information
    */
 
@@ -1430,7 +1429,7 @@ class Mark {
    * It is necessary to translate the local node indexes to the absolute ones.
    */
   /**
-   * @typedef Mark~matchInfoObject
+   * @typedef Mark~eachInfoObject
    * @type {object}
    * @property {array} match - The result of RegExp exec() method
    * @property {boolean} matchStart - indicate the start of match
@@ -1453,7 +1452,7 @@ class Mark {
    * Callback for each wrapped element
    * @callback Mark~wrapGroupsAcrossElementsEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object containing the match
+   * @param {Mark~eachInfoObject} eachInfo - The object containing the match
    * information
    */
   /**
@@ -1523,7 +1522,7 @@ class Mark {
    * Callback for each wrapped element
    * @callback Mark~wrapMatchesAcrossElementsEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object containing the match
+   * @param {Mark~eachInfoObject} eachInfo - The object containing the match
    * information
    */
   /**
@@ -1773,7 +1772,7 @@ class Mark {
    * Callback for each marked element
    * @callback Mark~markRegExpEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~matchInfoObject} matchInfo - The object containing the match
+   * @param {Mark~eachInfoObject} eachInfo - The object containing the match
    * information.
    */
 
@@ -1821,9 +1820,9 @@ class Mark {
     this[fn](regexp, this.opt.ignoreGroups, (match, node, filterInfo) => {
       return this.opt.filter(node, match, totalMarks, filterInfo);
 
-    }, (element, matchInfo) => {
+    }, (element, eachInfo) => {
       totalMarks++;
-      this.opt.each(element, matchInfo);
+      this.opt.each(element, eachInfo);
 
     }, (totalMatches) => {
       if (totalMatches === 0) {
@@ -1868,7 +1867,7 @@ class Mark {
       this.markCombinePatterns(sv, opt);
       return;
     }
-    
+
     this.opt = this.checkOption(opt);
 
     let index = 0,
@@ -1888,10 +1887,10 @@ class Mark {
         this[fn](regex, 1, (t, node, filterInfo) => { // filter
           return this.opt.filter(node, term, totalMarks, matches, filterInfo);
 
-        }, (element, matchInfo) => { // each
+        }, (element, eachInfo) => { // each
           matches++;
           totalMarks++;
-          this.opt.each(element, matchInfo);
+          this.opt.each(element, eachInfo);
 
         }, (count) => { // end
           totalMatches += count;
@@ -1955,17 +1954,17 @@ class Mark {
         // termStats[term] is the number of wrapped matches so far for the term
         return this.opt.filter(node, term, totalMarks, termStats[term], filterInfo);
 
-      }, (element, matchInfo) => { // each
+      }, (element, eachInfo) => { // each
         totalMarks++;
 
         if (across) {
-          if (matchInfo.matchStart) {
+          if (eachInfo.matchStart) {
             termStats[term] += 1;
           }
         } else {
           termStats[term] += 1;
         }
-        this.opt.each(element, matchInfo);
+        this.opt.each(element, eachInfo);
 
       }, (count) => { // end
         totalMatches += count;
@@ -2108,8 +2107,8 @@ class Mark {
    */
   markRanges(rawRanges, opt) {
     this.opt = opt;
-    this.clearCacheObjects();
-    
+    this.cacheDict = {};
+
     let totalMarks = 0,
       ranges = this.checkRanges(rawRanges);
     if (ranges && ranges.length) {
@@ -2143,8 +2142,8 @@ class Mark {
    */
   unmark(opt) {
     this.opt = opt;
-    this.clearCacheObjects();
-    
+    this.cacheDict = {};
+
     let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
 
     if (this.opt.className) {

@@ -1,6 +1,5 @@
 
-// Type definitions for advanced-mark.js 1.0.2
-// Project: https://github.com/angezid/advanced-mark.js/
+// Type definitions for advanced-mark.js v1.0.3
 
 declare namespace RegExpCreator {
   
