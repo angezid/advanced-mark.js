@@ -83,6 +83,11 @@ const output = {
     resolve(),
     commonjs(),
     versionInjector({
+      injectInComments: {
+        fileRegexp: /\.(js|ts|html|css)$/,
+        tag: 'Version: {version} - {date}',
+        dateFormat: 'mmmm d, yyyy'
+      },
       logLevel: 'warn',
       exclude: [
         'regexpcreator.js',

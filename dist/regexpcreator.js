@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v1.0.2
+* advanced-mark.js v1.0.3
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -128,8 +128,7 @@
       value: function createSynonymsRegExp(str) {
         var _this2 = this;
         var syn = this.opt.synonyms,
-          sens = this.opt.caseSensitive ? '' : 'i',
-          joinerPlaceholder = this.opt.ignoreJoiners || this.opt.ignorePunctuation.length ? "\0" : '';
+          sens = this.opt.caseSensitive ? '' : 'i';
         for (var index in syn) {
           if (syn.hasOwnProperty(index)) {
             var keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
@@ -144,21 +143,12 @@
               return k !== '';
             });
             if (keys.length > 1) {
-              str = str.replace(new RegExp("(".concat(keys.map(function (k) {
+              var pattern = keys.map(function (k) {
                 return _this2.escapeStr(k);
-              }).join('|'), ")"), "gm".concat(sens)), joinerPlaceholder + "(".concat(keys.map(function (k) {
-                return _this2.processSynonyms(k);
-              }).join('|'), ")") + joinerPlaceholder);
+              }).join('|');
+              str = str.replace(new RegExp("(?:".concat(pattern, ")"), "gm".concat(sens)), "(?:".concat(keys.join('|'), ")"));
             }
           }
-        }
-        return str;
-      }
-    }, {
-      key: "processSynonyms",
-      value: function processSynonyms(str) {
-        if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
-          str = this.setupIgnoreJoinersRegExp(str);
         }
         return str;
       }
@@ -181,13 +171,8 @@
     }, {
       key: "setupIgnoreJoinersRegExp",
       value: function setupIgnoreJoinersRegExp(str) {
-        return str.replace(/[^(|)\\]/g, function (val, indx, original) {
-          var nextChar = original.charAt(indx + 1);
-          if (/[(|)\\]/.test(nextChar) || nextChar === '') {
-            return val;
-          } else {
-            return val + "\0";
-          }
+        return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, function (m, gr1, gr2) {
+          return gr1 || typeof gr2 !== 'undefined' ? m : m + "\0";
         });
       }
     }, {
@@ -206,27 +191,27 @@
     }, {
       key: "createDiacriticsRegExp",
       value: function createDiacriticsRegExp(str) {
-        var sens = this.opt.caseSensitive ? '' : 'i',
-          dct = this.opt.caseSensitive ? ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'] : ['aàáảãạăằắẳẵặâầấẩẫậäåāąAÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćčCÇĆČ', 'dđďDĐĎ', 'eèéẻẽẹêềếểễệëěēęEÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïīIÌÍỈĨỊÎÏĪ', 'lłLŁ', 'nñňńNÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøōOÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rřRŘ', 'sšśșşSŠŚȘŞ', 'tťțţTŤȚŢ', 'uùúủũụưừứửữựûüůūUÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿYÝỲỶỸỴŸ', 'zžżźZŽŻŹ'];
-        var handled = [];
-        str.split('').forEach(function (ch) {
-          dct.every(function (dct) {
-            if (dct.indexOf(ch) !== -1) {
-              if (handled.indexOf(dct) > -1) {
-                return false;
+        var caseSensitive = this.opt.caseSensitive,
+          array = ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'];
+        return str.split('').map(function (ch) {
+          for (var i = 0; i < array.length; i += 2) {
+            if (caseSensitive) {
+              if (array[i].indexOf(ch) !== -1) {
+                return '[' + array[i] + ']';
+              } else if (array[i + 1].indexOf(ch) !== -1) {
+                return '[' + array[i + 1] + ']';
               }
-              str = str.replace(new RegExp("[".concat(dct, "]"), "gm".concat(sens)), "[".concat(dct, "]"));
-              handled.push(dct);
+            } else if (array[i].indexOf(ch) !== -1 || array[i + 1].indexOf(ch) !== -1) {
+              return '[' + array[i] + array[i + 1] + ']';
             }
-            return true;
-          });
-        });
-        return str;
+          }
+          return ch;
+        }).join('');
       }
     }, {
       key: "createMergedBlanksRegExp",
       value: function createMergedBlanksRegExp(str) {
-        return str.replace(/[\s]+/gmi, '[\\s]+');
+        return str.replace(/\s+/g, '[\\s]+');
       }
     }, {
       key: "createAccuracyRegExp",

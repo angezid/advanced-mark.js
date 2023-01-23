@@ -1,6 +1,6 @@
-/* Version: 1.0.2 - January 3, 2023 18:58:35 */
+/* Version: 1.0.3 - January 23, 2023 */
 /*!***************************************************
-* advanced-mark.js v1.0.2
+* advanced-mark.js v1.0.3
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -404,9 +404,7 @@ class RegExpCreator {
   }
   createSynonymsRegExp(str) {
     const syn = this.opt.synonyms,
-      sens = this.opt.caseSensitive ? '' : 'i',
-      joinerPlaceholder = this.opt.ignoreJoiners ||
-      this.opt.ignorePunctuation.length ? '\u0000' : '';
+      sens = this.opt.caseSensitive ? '' : 'i';
     for (let index in syn) {
       if (syn.hasOwnProperty(index)) {
         let keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
@@ -419,23 +417,10 @@ class RegExpCreator {
           return key;
         }).filter(k => k !== '');
         if (keys.length > 1) {
-          str = str.replace(
-            new RegExp(
-              `(${keys.map(k => this.escapeStr(k)).join('|')})`,
-              `gm${sens}`
-            ),
-            joinerPlaceholder +
-            `(${keys.map(k => this.processSynonyms(k)).join('|')})` +
-            joinerPlaceholder
-          );
+          const pattern = keys.map(k => this.escapeStr(k)).join('|');
+          str = str.replace(new RegExp(`(?:${pattern})`, `gm${sens}`), `(?:${keys.join('|')})`);
         }
       }
-    }
-    return str;
-  }
-  processSynonyms(str) {
-    if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
-      str = this.setupIgnoreJoinersRegExp(str);
     }
     return str;
   }
@@ -454,13 +439,8 @@ class RegExpCreator {
       .replace(/\u0002/g, spaces ? '[\\S\\s]*?' : '\\S*');
   }
   setupIgnoreJoinersRegExp(str) {
-    return str.replace(/[^(|)\\]/g, (val, indx, original) => {
-      let nextChar = original.charAt(indx + 1);
-      if (/[(|)\\]/.test(nextChar) || nextChar === '') {
-        return val;
-      } else {
-        return val + '\u0000';
-      }
+    return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
+      return gr1 || typeof gr2 !== 'undefined' ? m : m + '\u0000';
     });
   }
   createJoinersRegExp(str) {
@@ -477,43 +457,32 @@ class RegExpCreator {
       str;
   }
   createDiacriticsRegExp(str) {
-    const sens = this.opt.caseSensitive ? '' : 'i',
-      dct = this.opt.caseSensitive ? [
+    const caseSensitive = this.opt.caseSensitive,
+      array = [
         'aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ',
-        'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ',
-        'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ',
-        'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń',
-        'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ',
-        'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ',
-        'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ',
+        'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ',
+        'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ',
+        'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rř', 'RŘ',
+        'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ',
         'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'
-      ] : [
-        'aàáảãạăằắẳẵặâầấẩẫậäåāąAÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćčCÇĆČ',
-        'dđďDĐĎ', 'eèéẻẽẹêềếểễệëěēęEÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ',
-        'iìíỉĩịîïīIÌÍỈĨỊÎÏĪ', 'lłLŁ', 'nñňńNÑŇŃ',
-        'oòóỏõọôồốổỗộơởỡớờợöøōOÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rřRŘ',
-        'sšśșşSŠŚȘŞ', 'tťțţTŤȚŢ',
-        'uùúủũụưừứửữựûüůūUÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿYÝỲỶỸỴŸ', 'zžżźZŽŻŹ'
       ];
-    let handled = [];
-    str.split('').forEach(ch => {
-      dct.every(dct => {
-        if (dct.indexOf(ch) !== -1) {
-          if (handled.indexOf(dct) > -1) {
-            return false;
+    return str.split('').map(ch => {
+      for (let i = 0; i < array.length; i += 2)  {
+        if (caseSensitive) {
+          if (array[i].indexOf(ch) !== -1) {
+            return '[' + array[i] + ']';
+          } else if (array[i+1].indexOf(ch) !== -1) {
+            return '[' + array[i+1] + ']';
           }
-          str = str.replace(
-            new RegExp(`[${dct}]`, `gm${sens}`), `[${dct}]`
-          );
-          handled.push(dct);
+        } else if (array[i].indexOf(ch) !== -1 || array[i+1].indexOf(ch) !== -1) {
+          return '[' + array[i] + array[i+1] + ']';
         }
-        return true;
-      });
-    });
-    return str;
+      }
+      return ch;
+    }).join('');
   }
   createMergedBlanksRegExp(str) {
-    return str.replace(/[\s]+/gmi, '[\\s]+');
+    return str.replace(/\s+/g, '[\\s]+');
   }
   createAccuracyRegExp(str, patterns) {
     const chars = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~¡¿';
@@ -550,10 +519,9 @@ class RegExpCreator {
 
 class Mark$1 {
   constructor(ctx) {
-    this.version = '1.0.2';
+    this.version = '1.0.3';
     this.ctx = ctx;
     this.cacheDict = {};
-    this.cacheDict2 = {};
     this.ie = false;
     const ua = window.navigator.userAgent;
     if (ua.indexOf('MSIE') > -1 || ua.indexOf('Trident') > -1) {
@@ -604,17 +572,19 @@ class Mark$1 {
       opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
     }
     let clear = true;
-    if (opt && opt.cacheTextNodes) {
-      clear = !(opt.acrossElements ? this.cacheDict2.nodes : this.cacheDict.nodes);
+    if (opt && opt.cacheTextNodes && this.cacheDict.type) {
+      if (opt.acrossElements) {
+        if (this.cacheDict.type === 'across') {
+          clear = false;
+        }
+      } else if (this.cacheDict.type === 'every') {
+        clear = false;
+      }
     }
     if (clear) {
-      this.clearCacheObjects();
+      this.cacheDict = {};
     }
     return opt;
-  }
-  clearCacheObjects() {
-    this.cacheDict = {};
-    this.cacheDict2 = {};
   }
   getSeparatedKeywords(sv) {
     let stack = [];
@@ -800,10 +770,10 @@ class Mark$1 {
     return str;
   }
   getTextNodesAcrossElements(cb) {
-    if (this.opt.cacheTextNodes && this.cacheDict2.nodes) {
-      this.cacheDict2.lastIndex = 0;
-      this.cacheDict2.lastTextIndex = 0;
-      cb(this.cacheDict2);
+    if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+      this.cacheDict.lastIndex = 0;
+      this.cacheDict.lastTextIndex = 0;
+      cb(this.cacheDict);
       return;
     }
     let val = '', start, text, endBySpace, type, offset,
@@ -880,7 +850,8 @@ class Mark$1 {
         lastTextIndex: 0
       };
       if (this.opt.cacheTextNodes) {
-        this.cacheDict2 = dict;
+        this.cacheDict = dict;
+        this.cacheDict.type = 'across';
       }
       cb(dict);
     });
@@ -914,6 +885,7 @@ class Mark$1 {
       };
       if (this.opt.cacheTextNodes) {
         this.cacheDict = dict;
+        this.cacheDict.type = 'every';
       }
       cb(dict);
     });
@@ -1451,9 +1423,9 @@ class Mark$1 {
     this.log(`Searching with expression "${regexp}"`);
     this[fn](regexp, this.opt.ignoreGroups, (match, node, filterInfo) => {
       return this.opt.filter(node, match, totalMarks, filterInfo);
-    }, (element, matchInfo) => {
+    }, (element, eachInfo) => {
       totalMarks++;
-      this.opt.each(element, matchInfo);
+      this.opt.each(element, eachInfo);
     }, (totalMatches) => {
       if (totalMatches === 0) {
         this.opt.noMatch(regexp);
@@ -1481,10 +1453,10 @@ class Mark$1 {
         this.log(`Searching with expression "${regex}"`);
         this[fn](regex, 1, (t, node, filterInfo) => {
           return this.opt.filter(node, term, totalMarks, matches, filterInfo);
-        }, (element, matchInfo) => {
+        }, (element, eachInfo) => {
           matches++;
           totalMarks++;
-          this.opt.each(element, matchInfo);
+          this.opt.each(element, eachInfo);
         }, (count) => {
           totalMatches += count;
           if (count === 0) {
@@ -1530,16 +1502,16 @@ class Mark$1 {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
         }
         return this.opt.filter(node, term, totalMarks, termStats[term], filterInfo);
-      }, (element, matchInfo) => {
+      }, (element, eachInfo) => {
         totalMarks++;
         if (across) {
-          if (matchInfo.matchStart) {
+          if (eachInfo.matchStart) {
             termStats[term] += 1;
           }
         } else {
           termStats[term] += 1;
         }
-        this.opt.each(element, matchInfo);
+        this.opt.each(element, eachInfo);
       }, (count) => {
         totalMatches += count;
         const array = patternTerms.filter((term) => termStats[term] === 0);
@@ -1603,7 +1575,7 @@ class Mark$1 {
   }
   markRanges(rawRanges, opt) {
     this.opt = opt;
-    this.clearCacheObjects();
+    this.cacheDict = {};
     let totalMarks = 0,
       ranges = this.checkRanges(rawRanges);
     if (ranges && ranges.length) {
@@ -1627,7 +1599,7 @@ class Mark$1 {
   }
   unmark(opt) {
     this.opt = opt;
-    this.clearCacheObjects();
+    this.cacheDict = {};
     let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
     if (this.opt.className) {
       selector += `.${this.opt.className}`;

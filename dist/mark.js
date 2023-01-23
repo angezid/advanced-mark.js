@@ -1,6 +1,6 @@
-/* Version: 1.0.2 - January 3, 2023 18:58:37 */
+/* Version: 1.0.3 - January 23, 2023 */
 /*!***************************************************
-* advanced-mark.js v1.0.2
+* advanced-mark.js v1.0.3
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -524,8 +524,7 @@
       value: function createSynonymsRegExp(str) {
         var _this2 = this;
         var syn = this.opt.synonyms,
-          sens = this.opt.caseSensitive ? '' : 'i',
-          joinerPlaceholder = this.opt.ignoreJoiners || this.opt.ignorePunctuation.length ? "\0" : '';
+          sens = this.opt.caseSensitive ? '' : 'i';
         for (var index in syn) {
           if (syn.hasOwnProperty(index)) {
             var keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
@@ -540,21 +539,12 @@
               return k !== '';
             });
             if (keys.length > 1) {
-              str = str.replace(new RegExp("(".concat(keys.map(function (k) {
+              var pattern = keys.map(function (k) {
                 return _this2.escapeStr(k);
-              }).join('|'), ")"), "gm".concat(sens)), joinerPlaceholder + "(".concat(keys.map(function (k) {
-                return _this2.processSynonyms(k);
-              }).join('|'), ")") + joinerPlaceholder);
+              }).join('|');
+              str = str.replace(new RegExp("(?:".concat(pattern, ")"), "gm".concat(sens)), "(?:".concat(keys.join('|'), ")"));
             }
           }
-        }
-        return str;
-      }
-    }, {
-      key: "processSynonyms",
-      value: function processSynonyms(str) {
-        if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
-          str = this.setupIgnoreJoinersRegExp(str);
         }
         return str;
       }
@@ -577,13 +567,8 @@
     }, {
       key: "setupIgnoreJoinersRegExp",
       value: function setupIgnoreJoinersRegExp(str) {
-        return str.replace(/[^(|)\\]/g, function (val, indx, original) {
-          var nextChar = original.charAt(indx + 1);
-          if (/[(|)\\]/.test(nextChar) || nextChar === '') {
-            return val;
-          } else {
-            return val + "\0";
-          }
+        return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, function (m, gr1, gr2) {
+          return gr1 || typeof gr2 !== 'undefined' ? m : m + "\0";
         });
       }
     }, {
@@ -602,27 +587,27 @@
     }, {
       key: "createDiacriticsRegExp",
       value: function createDiacriticsRegExp(str) {
-        var sens = this.opt.caseSensitive ? '' : 'i',
-          dct = this.opt.caseSensitive ? ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'] : ['aàáảãạăằắẳẵặâầấẩẫậäåāąAÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćčCÇĆČ', 'dđďDĐĎ', 'eèéẻẽẹêềếểễệëěēęEÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïīIÌÍỈĨỊÎÏĪ', 'lłLŁ', 'nñňńNÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøōOÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rřRŘ', 'sšśșşSŠŚȘŞ', 'tťțţTŤȚŢ', 'uùúủũụưừứửữựûüůūUÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿYÝỲỶỸỴŸ', 'zžżźZŽŻŹ'];
-        var handled = [];
-        str.split('').forEach(function (ch) {
-          dct.every(function (dct) {
-            if (dct.indexOf(ch) !== -1) {
-              if (handled.indexOf(dct) > -1) {
-                return false;
+        var caseSensitive = this.opt.caseSensitive,
+          array = ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'];
+        return str.split('').map(function (ch) {
+          for (var i = 0; i < array.length; i += 2) {
+            if (caseSensitive) {
+              if (array[i].indexOf(ch) !== -1) {
+                return '[' + array[i] + ']';
+              } else if (array[i + 1].indexOf(ch) !== -1) {
+                return '[' + array[i + 1] + ']';
               }
-              str = str.replace(new RegExp("[".concat(dct, "]"), "gm".concat(sens)), "[".concat(dct, "]"));
-              handled.push(dct);
+            } else if (array[i].indexOf(ch) !== -1 || array[i + 1].indexOf(ch) !== -1) {
+              return '[' + array[i] + array[i + 1] + ']';
             }
-            return true;
-          });
-        });
-        return str;
+          }
+          return ch;
+        }).join('');
       }
     }, {
       key: "createMergedBlanksRegExp",
       value: function createMergedBlanksRegExp(str) {
-        return str.replace(/[\s]+/gmi, '[\\s]+');
+        return str.replace(/\s+/g, '[\\s]+');
       }
     }, {
       key: "createAccuracyRegExp",
@@ -670,10 +655,9 @@
   var Mark$1 = /*#__PURE__*/function () {
     function Mark(ctx) {
       _classCallCheck(this, Mark);
-      this.version = '1.0.2';
+      this.version = '1.0.3';
       this.ctx = ctx;
       this.cacheDict = {};
-      this.cacheDict2 = {};
       this.ie = false;
       var ua = window.navigator.userAgent;
       if (ua.indexOf('MSIE') > -1 || ua.indexOf('Trident') > -1) {
@@ -731,19 +715,19 @@
           });
         }
         var clear = true;
-        if (opt && opt.cacheTextNodes) {
-          clear = !(opt.acrossElements ? this.cacheDict2.nodes : this.cacheDict.nodes);
+        if (opt && opt.cacheTextNodes && this.cacheDict.type) {
+          if (opt.acrossElements) {
+            if (this.cacheDict.type === 'across') {
+              clear = false;
+            }
+          } else if (this.cacheDict.type === 'every') {
+            clear = false;
+          }
         }
         if (clear) {
-          this.clearCacheObjects();
+          this.cacheDict = {};
         }
         return opt;
-      }
-    }, {
-      key: "clearCacheObjects",
-      value: function clearCacheObjects() {
-        this.cacheDict = {};
-        this.cacheDict2 = {};
       }
     }, {
       key: "getSeparatedKeywords",
@@ -943,10 +927,10 @@
       key: "getTextNodesAcrossElements",
       value: function getTextNodesAcrossElements(cb) {
         var _this3 = this;
-        if (this.opt.cacheTextNodes && this.cacheDict2.nodes) {
-          this.cacheDict2.lastIndex = 0;
-          this.cacheDict2.lastTextIndex = 0;
-          cb(this.cacheDict2);
+        if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+          this.cacheDict.lastIndex = 0;
+          this.cacheDict.lastTextIndex = 0;
+          cb(this.cacheDict);
           return;
         }
         var val = '',
@@ -1081,7 +1065,8 @@
             lastTextIndex: 0
           };
           if (_this3.opt.cacheTextNodes) {
-            _this3.cacheDict2 = dict;
+            _this3.cacheDict = dict;
+            _this3.cacheDict.type = 'across';
           }
           cb(dict);
         });
@@ -1118,6 +1103,7 @@
           };
           if (_this4.opt.cacheTextNodes) {
             _this4.cacheDict = dict;
+            _this4.cacheDict.type = 'every';
           }
           cb(dict);
         });
@@ -1733,9 +1719,9 @@
         this.log("Searching with expression \"".concat(regexp, "\""));
         this[fn](regexp, this.opt.ignoreGroups, function (match, node, filterInfo) {
           return _this10.opt.filter(node, match, totalMarks, filterInfo);
-        }, function (element, matchInfo) {
+        }, function (element, eachInfo) {
           totalMarks++;
-          _this10.opt.each(element, matchInfo);
+          _this10.opt.each(element, eachInfo);
         }, function (totalMatches) {
           if (totalMatches === 0) {
             _this10.opt.noMatch(regexp);
@@ -1766,10 +1752,10 @@
             _this11.log("Searching with expression \"".concat(regex, "\""));
             _this11[fn](regex, 1, function (t, node, filterInfo) {
               return _this11.opt.filter(node, term, totalMarks, matches, filterInfo);
-            }, function (element, matchInfo) {
+            }, function (element, eachInfo) {
               matches++;
               totalMarks++;
-              _this11.opt.each(element, matchInfo);
+              _this11.opt.each(element, eachInfo);
             }, function (count) {
               totalMatches += count;
               if (count === 0) {
@@ -1818,16 +1804,16 @@
               term = _this12.getCurrentTerm(filterInfo.match, patternTerms);
             }
             return _this12.opt.filter(node, term, totalMarks, termStats[term], filterInfo);
-          }, function (element, matchInfo) {
+          }, function (element, eachInfo) {
             totalMarks++;
             if (across) {
-              if (matchInfo.matchStart) {
+              if (eachInfo.matchStart) {
                 termStats[term] += 1;
               }
             } else {
               termStats[term] += 1;
             }
-            _this12.opt.each(element, matchInfo);
+            _this12.opt.each(element, eachInfo);
           }, function (count) {
             totalMatches += count;
             var array = patternTerms.filter(function (term) {
@@ -1903,7 +1889,7 @@
       value: function markRanges(rawRanges, opt) {
         var _this13 = this;
         this.opt = opt;
-        this.clearCacheObjects();
+        this.cacheDict = {};
         var totalMarks = 0,
           ranges = this.checkRanges(rawRanges);
         if (ranges && ranges.length) {
@@ -1925,7 +1911,7 @@
       value: function unmark(opt) {
         var _this14 = this;
         this.opt = opt;
-        this.clearCacheObjects();
+        this.cacheDict = {};
         var selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
         if (this.opt.className) {
           selector += ".".concat(this.opt.className);

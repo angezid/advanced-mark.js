@@ -1,24 +1,75 @@
 
 ## Code examples
 
+See [Callbacks parameters](callbacks-parameters.md) doc about `info` object properties.
+
 ### The `mark()` method code example with `acrossElements` option 
 ``` js
 let matchCount = 0;
 
-context.mark(['AB CD', 'EF'], {
-    'separateWordSearch' : true,
+instance.mark(['AB CD', 'EF'], {
     'acrossElements' : true,
     'each' : (elem, info) => {
-        // for external counter 
+        // sets external counter 
         matchCount = info.count;
     
         // internal use
         if (info.count ..) {}
+        
+        // if start of the match
+        if(info.matchStart) {
+            elem.className = 'start-1';
+            // elem.setAttribute('data-markjs', 'start-1'); // to use the attribute instead of class
+            
+            // matchCount++; // to use the custom counter instead of info.count
+        }
     },
     'done' : (totalMarks, totalMatches, termStats) => {
         for (const term in termStats) {
             console.log(term + ' = ' + termStats[term]);
         }
+    }
+});
+```
+
+### The `mark()` method code example without `acrossElements` option 
+``` js
+let matchCount = 0;
+
+context.mark('AB CD EF', {
+    'separateWordSearch' : true,
+    'each' : function(elem, info) {
+        // for external counter
+        matchCount = info.count; // also possible matchCount++;
+        
+        // for internal use
+        if(info.count ..) {}
+    },
+    'done' : function(totalMarks, totalMatches, termStats) {
+        console.log('Total matches = ' + totalMatches);
+        
+        for(var term in termStats) {
+            console.log(term + ' = ' + termStats[term]);
+        }
+    }
+});
+```
+
+### The `markRegExp()` method code example with `acrossElements` option
+``` js
+let matchCount = 0;
+
+instance.markRegExp(/.../gi, {
+    'acrossElements' : true,
+    'each' : function(elem, info) {
+        // usage of info.count and custom counter are the same
+        // as in mark() method with `acrossElements` option
+        
+        // use of info.count as a unique match identifier
+        elem.setAttribute('data-markjs', info.count);
+    },
+    'done' : function(totalMarks, totalMatches) {
+        console.log('Total matches = ' + totalMatches);
     }
 });
 ```
