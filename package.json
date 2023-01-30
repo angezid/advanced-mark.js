@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "keywords": [
     "advanced-mark.js",
     "mark.js",
@@ -32,9 +32,9 @@
     "karma": "karma start build/karma.config.js",
     "jsdoc": "jsdoc src/lib/ -d build/doc -R README.md -P package.json -r",
     "compile": "rollup -c build/rollup.config.js",
-    "build": "npm run eslint && npm run compile && npm run karma && npm run jsdoc",
+    "build": "npm run test && npm run jsdoc",
     "dev": "nodemon --exec \"npm run eslint && npm run compile\" --watch src/ --watch test/ -e js,html",
-    "test": "npm run build"
+    "test": "npm run eslint && npm run compile && npm run karma"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",

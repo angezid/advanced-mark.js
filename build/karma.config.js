@@ -9,13 +9,18 @@ module.exports = config => {
       'node_modules/jquery/dist/jquery.min.js',
       'dist/!(*.es6|*.umd|*.min|regexpcreator).js',
       'test/specs/configuration.js',
-      'test/specs/**/*.js', {
+      'test/specs/**/*.js',
+      {
         pattern: 'test/fixtures/**/*.html',
         included: false,
         served: true
       }
     ],
-    exclude: [],
+    exclude: [
+      //'test/specs/!(across-elements)/**/*.js',
+      //'test/specs/!(basic)/*.js',
+      //'test/specs/across-elements/**/*.js'
+    ],
     reporters: ['spec', 'coverage'],
     port: 9876,
     colors: true,

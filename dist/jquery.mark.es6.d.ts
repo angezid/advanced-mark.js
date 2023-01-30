@@ -8,6 +8,7 @@ declare namespace Mark {
 
   interface BoundaryObject {
     tags?: string[];
+    extend?: boolean;
     char?: string;
   }
 

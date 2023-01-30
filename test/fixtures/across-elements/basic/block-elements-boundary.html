@@ -1,12 +1,17 @@
 <div class="block-elements-boundary">
     <h1><b>Block</b> elements</h1>boundary
     <h2><b>block elements</b></h2>boundary
-    <p>block elements boundary</p>
+    <p>block elements boundary</p>  <!-- 1, 2, 3 -->
     <p><span>block <b>elements</b></span></p>boundary
-    <p>block elements<br>boundary</p>
+    <p>block elements<br>boundary</p>  <!-- 1, 2, 3 -->
     <ul>
         <li>block<div>elements</div>boundary</li>
-        <li>block elements</li>
+        <li>block elements</li>  <!-- 2 -->
         <li>boundary</li>
     </ul>
+    <p>block elements <custom-tag>boundary</custom-tag></p>  <!--1, 2 -->
 </div>
+
+<!-- 1 mark across -->
+<!-- 2 mark only custom elements -->
+<!-- 3 mark add custom elements to the default elements -->

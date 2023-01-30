@@ -1,6 +1,6 @@
-/* Version: 1.0.3 - January 23, 2023 */
+/* Version: 1.1.0 - January 31, 2023 */
 /*!***************************************************
-* advanced-mark.js v1.0.3
+* advanced-mark.js v1.1.0
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -529,7 +529,7 @@
 
   class Mark {
     constructor(ctx) {
-      this.version = '1.0.3';
+      this.version = '1.1.0';
       this.ctx = ctx;
       this.cacheDict = {};
       this.ie = false;
@@ -758,26 +758,20 @@
         }
       }
     }
-    prepare(tags) {
-      let str = '\u0001 ', boundary = this.opt.blockElementsBoundary;
-      if (boundary.tagNames && boundary.tagNames.length) {
-        let elements = {};
-        for (let key in boundary.tagNames) {
-          elements[boundary.tagNames[key].toLowerCase()] = 1;
-        }
-        for (let key in elements) {
+    setType(tags) {
+      const boundary = this.opt.blockElementsBoundary,
+        custom = Array.isArray(boundary.tagNames) && boundary.tagNames.length;
+      if (custom) {
+        boundary.tagNames.map(name => name.toLowerCase()).forEach(name => {
+          tags[name] = 2;
+        });
+      }
+      if ( !custom || boundary.extend) {
+        for (const key in tags) {
           tags[key] = 2;
         }
-      } else {
-        for (let key in tags) {
-          tags[key] = 2;
-        }
-        tags['br'] = 1;
       }
-      if (boundary.char) {
-        str = boundary.char.charAt(0) + ' ';
-      }
-      return str;
+      tags['br'] = 1;
     }
     getTextNodesAcrossElements(cb) {
       if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
@@ -787,10 +781,11 @@
         return;
       }
       let val = '', start, text, endBySpace, type, offset,
-        startOffset = 0, nodes = [],
-        boundary = this.opt.blockElementsBoundary,
-        str, str2;
-      let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
+        startOffset = 0,
+        str = '\u0001 ', str2;
+      const nodes = [],
+        boundary = this.opt.blockElementsBoundary;
+      const tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
         ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
         h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
         pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
@@ -801,7 +796,10 @@
         map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
         body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
       if (boundary) {
-        str = this.prepare(tags);
+        this.setType(tags);
+        if (boundary.char) {
+          str = boundary.char.charAt(0) + ' ';
+        }
         str2 = ' ' + str;
       }
       this.iterator.forEachNode(NodeFilter.SHOW_TEXT, node => {
