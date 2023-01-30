@@ -1,6 +1,6 @@
-/* Version: 1.0.3 - January 23, 2023 */
+/* Version: 1.1.0 - January 31, 2023 */
 /*!***************************************************
-* advanced-mark.js v1.0.3
+* advanced-mark.js v1.1.0
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -655,7 +655,7 @@
   var Mark$1 = /*#__PURE__*/function () {
     function Mark(ctx) {
       _classCallCheck(this, Mark);
-      this.version = '1.0.3';
+      this.version = '1.1.0';
       this.ctx = ctx;
       this.cacheDict = {};
       this.ie = false;
@@ -900,28 +900,23 @@
         }
       }
     }, {
-      key: "prepare",
-      value: function prepare(tags) {
-        var str = "\x01 ",
-          boundary = this.opt.blockElementsBoundary;
-        if (boundary.tagNames && boundary.tagNames.length) {
-          var elements = {};
-          for (var key in boundary.tagNames) {
-            elements[boundary.tagNames[key].toLowerCase()] = 1;
-          }
-          for (var _key in elements) {
-            tags[_key] = 2;
-          }
-        } else {
-          for (var _key2 in tags) {
-            tags[_key2] = 2;
-          }
-          tags['br'] = 1;
+      key: "setType",
+      value: function setType(tags) {
+        var boundary = this.opt.blockElementsBoundary,
+          custom = Array.isArray(boundary.tagNames) && boundary.tagNames.length;
+        if (custom) {
+          boundary.tagNames.map(function (name) {
+            return name.toLowerCase();
+          }).forEach(function (name) {
+            tags[name] = 2;
+          });
         }
-        if (boundary["char"]) {
-          str = boundary["char"].charAt(0) + ' ';
+        if (!custom || boundary.extend) {
+          for (var key in tags) {
+            tags[key] = 2;
+          }
         }
-        return str;
+        tags['br'] = 1;
       }
     }, {
       key: "getTextNodesAcrossElements",
@@ -940,10 +935,10 @@
           type,
           offset,
           startOffset = 0,
-          nodes = [],
-          boundary = this.opt.blockElementsBoundary,
-          str,
+          str = "\x01 ",
           str2;
+        var nodes = [],
+          boundary = this.opt.blockElementsBoundary;
         var tags = {
           div: 1,
           p: 1,
@@ -1006,7 +1001,10 @@
           svg: 1
         };
         if (boundary) {
-          str = this.prepare(tags);
+          this.setType(tags);
+          if (boundary["char"]) {
+            str = boundary["char"].charAt(0) + ' ';
+          }
           str2 = ' ' + str;
         }
         this.iterator.forEachNode(NodeFilter.SHOW_TEXT, function (node) {

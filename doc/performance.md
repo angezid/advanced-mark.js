@@ -28,6 +28,7 @@ There are two options to boost performance :
   Also, this option changes the behavior of marking strings, e.g. `['word1 word2 word3', 'word2']`, without this option, 'word2' be marked, with - don't.
 
 * `cacheTextNodes` : collecting text nodes information on every run is expensive. Caching this information improves performance with a large array.
+  The performance gain gradually grows, starting with an array containing 2-3 items and doubled with 4-5 items.
   Note: this option does not change behavior as the `combinePatterns` option does. It can be used with existing code to improve performance.
   
 In Firefox marking an array of 500 words on a 1 MB page, 26500 text nodes, `diacritics : false` and ~7600 highlighted words :

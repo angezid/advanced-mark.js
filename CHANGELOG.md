@@ -1,4 +1,8 @@
 
+### 1.1.0
+
+* Added ability to extend the default boundary elements with custom elements (`blockElementsBoundary` option)
+
 ### 1.0.3
 
 * Added TypeScript types declaration files.

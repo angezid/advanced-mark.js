@@ -428,36 +428,38 @@ class Mark {
       }
     }
   }
-
+  
   /**
-  * Prepare tags
-  * @param {object} tags - The object containing HTMLElement names
-  * @return {string}
+   * @typedef Mark~blockElementsBoundaryObject
+   * @type {object}
+   * @property {array} [tagNames] - The array of custom tag names
+   * @property {boolean} [extend] - Whether to extend the default boundary elements with custom elements
+   * or set only custom elements to boundary type
+   * @property {string} [char] - The custom separating char
+   */
+  /**
+  * Sets type: 1 - separate by space, 2 - separate by boundary char with space(s)
+  * @param {object} tags - The object containing HTML element tag names
   */
-  prepare(tags) {
-    let str = '\u0001 ', boundary = this.opt.blockElementsBoundary;
+  setType(tags) {
+    const boundary = this.opt.blockElementsBoundary, 
+      custom = Array.isArray(boundary.tagNames) && boundary.tagNames.length;
 
-    if (boundary.tagNames && boundary.tagNames.length) {
-      // normalize custom block elements names
-      let elements = {};
-      for (let key in boundary.tagNames) {
-        elements[boundary.tagNames[key].toLowerCase()] = 1;
-      }
-      // it also allows adding custom element names
-      for (let key in elements) {
+    if (custom) {
+      // normalizes custom elements names and adds to the tags object with boundary type value
+      boundary.tagNames.map(name => name.toLowerCase()).forEach(name => {
+        tags[name] = 2;
+      });
+    }
+    // if not extend, the only custom tag names are set to a boundary type
+    if ( !custom || boundary.extend) {
+      // sets all tags value to the boundary type
+      for (const key in tags) {
         tags[key] = 2;
       }
-    } else {
-      for (let key in tags) {
-        tags[key] = 2;
-      }
-      // br is an inline element.
-      tags['br'] = 1;
     }
-    if (boundary.char) {
-      str = boundary.char.charAt(0) + ' ';
-    }
-    return str;
+    // br is an inline element.
+    tags['br'] = 1;
   }
 
   /**
@@ -504,13 +506,14 @@ class Mark {
     }
 
     let val = '', start, text, endBySpace, type, offset,
-      startOffset = 0, nodes = [],
-      boundary = this.opt.blockElementsBoundary,
-      str, str2;
+      startOffset = 0,
+      str = '\u0001 ', str2;
+    const nodes = [],
+      boundary = this.opt.blockElementsBoundary;
 
     // the space can be safely added to the end of a text node when
     // the node checks run across element with one of those names.
-    let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
+    const tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
       ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
       h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
       pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
@@ -522,7 +525,10 @@ class Mark {
       body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
 
     if (boundary) {
-      str = this.prepare(tags);
+      this.setType(tags);
+      if (boundary.char) {
+        str = boundary.char.charAt(0) + ' ';
+      }
       str2 = ' ' + str;
     }
 
