@@ -110,10 +110,6 @@
         "after": true
       }
     ],
-    "complexity": [
-      "error",
-      12
-    ],
     "max-depth": [
       "error",
       8

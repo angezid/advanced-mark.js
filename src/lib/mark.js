@@ -31,17 +31,6 @@ class Mark {
      * @access protected
      */
     this.cacheDict = {};
-    /**
-     * Specifies if the current browser is a IE (necessary for the node
-     * normalization bug workaround). See {@link Mark#unwrapMatches}
-     * @type {boolean}
-     * @access protected
-     */
-    this.ie = false;
-    const ua = window.navigator.userAgent;
-    if (ua.indexOf('MSIE') > -1 || ua.indexOf('Trident') > -1) {
-      this.ie = true;
-    }
   }
 
   /**
@@ -82,13 +71,7 @@ class Mark {
    */
   get iterator() {
     // always return new instance in case there were option changes
-    return new DOMIterator(
-      this.ctx,
-      this.opt.iframes,
-      this.opt.exclude,
-      this.opt.iframesTimeout,
-      this.opt.shadowDOM
-    );
+    return new DOMIterator(this.ctx, this.opt);
   }
 
   /**
@@ -678,9 +661,9 @@ class Mark {
   matchesExclude(elem) {
     // it's faster to check if array contains the node name than selector in 'DOMIterator.matches()'
     // also it allows to use a string of selectors instead of an array with the 'exclude' option
-    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
+    const nodeNames = ['script', 'style', 'title', 'head', 'html'];
 
-    return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
+    return nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 ||
       this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
   }
 
@@ -1671,49 +1654,62 @@ class Mark {
       endCb(count);
     });
   }
-
+  
   /**
    * Unwraps the specified DOM node with its content (text nodes or HTML)
-   * without destroying possibly present events (using innerHTML) and normalizes
-   * the parent at the end (merge splitted text nodes)
+   * without destroying possibly present events (using innerHTML) and normalizes text nodes
    * @param  {HTMLElement} node - The DOM node to unwrap
    * @access protected
    */
   unwrapMatches(node) {
-    const parent = node.parentNode;
-    let docFrag = document.createDocumentFragment();
-    while (node.firstChild) {
-      docFrag.appendChild(node.removeChild(node.firstChild));
-    }
-    parent.replaceChild(docFrag, node);
-    if (!this.ie) { // use browser's normalize method
-      parent.normalize();
-    } else { // custom method (needs more time)
-      this.normalizeTextNode(parent);
-    }
-  }
+    const parent = node.parentNode,
+      first = node.firstChild;
 
-  /**
-   * Normalizes text nodes. It's a workaround for the native normalize method
-   * that has a bug in IE (see attached link). Should only be used in IE
-   * browsers as it's slower than the native method.
-   * @see {@link http://tinyurl.com/z5asa8c}
-   * @param {HTMLElement} node - The DOM node to normalize
-   * @access protected
-   */
-  normalizeTextNode(node) {
-    if (!node) {
-      return;
-    }
-    if (node.nodeType === 3) {
-      while (node.nextSibling && node.nextSibling.nodeType === 3) {
-        node.nodeValue += node.nextSibling.nodeValue;
-        node.parentNode.removeChild(node.nextSibling);
+    if (node.childNodes.length === 1) {
+      // unwraps and normalizes text nodes
+      if (first.nodeType === 3) {
+        // the most common case - mark element with child text node
+        const previous = node.previousSibling,
+          next = node.nextSibling;
+
+        if (previous && previous.nodeType === 3) {
+          if (next && next.nodeType === 3) {
+            previous.nodeValue += first.nodeValue + next.nodeValue;
+            parent.removeChild(next);
+
+          } else {
+            previous.nodeValue += first.nodeValue;
+          }
+
+        } else if (next && next.nodeType === 3) {
+          next.nodeValue = first.nodeValue + next.nodeValue;
+
+        } else {
+          parent.replaceChild(node.firstChild, node);
+          return;
+        }
+        parent.removeChild(node);
+
+      } else {
+        // most likely is a nested mark element or modified by user element
+        parent.replaceChild(node.firstChild, node);
       }
+      
     } else {
-      this.normalizeTextNode(node.firstChild);
+      if ( !first) {
+        // an empty mark element
+        parent.removeChild(node);
+        
+      } else {
+        // most likely is a nested mark element(s) with sibling text node(s) or modified by user element(s)
+        let docFrag = document.createDocumentFragment();
+        while (node.firstChild) {
+          docFrag.appendChild(node.removeChild(node.firstChild));
+        }
+        parent.replaceChild(docFrag, node);
+      } 
+      parent.normalize();
     }
-    this.normalizeTextNode(node.nextSibling);
   }
 
   /**

@@ -1,6 +1,6 @@
-/* Version: 1.1.0 - January 31, 2023 */
+/* Version: 2.0.0 - February 14, 2023 */
 /*!***************************************************
-* advanced-mark.js v1.1.0
+* advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -8,12 +8,10 @@
 *****************************************************/
 
 class DOMIterator {
-  constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000, shadowDOM = false) {
+  constructor(ctx, opt) {
     this.ctx = ctx;
-    this.iframes = iframes;
-    this.exclude = exclude;
-    this.iframesTimeout = iframesTimeout;
-    this.shadowDOM = shadowDOM;
+    this.opt = opt;
+    this.attrName = 'data-markjsListener';
   }
   static matches(element, selector) {
     const selectors = typeof selector === 'string' ? [selector] : selector;
@@ -28,23 +26,10 @@ class DOMIterator {
       element.oMatchesSelector ||
       element.webkitMatchesSelector
     );
-    if (fn) {
-      let match = false;
-      selectors.every(sel => {
-        if (fn.call(element, sel)) {
-          match = true;
-          return false;
-        }
-        return true;
-      });
-      return match;
-    } else {
-      return false;
-    }
+    return fn ? selectors.some(sel => fn.call(element, sel) === true) : false;
   }
   getContexts() {
-    let ctx,
-      filteredCtx = [];
+    let ctx;
     if (typeof this.ctx === 'undefined' || !this.ctx) {
       ctx = [];
     } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
@@ -52,35 +37,28 @@ class DOMIterator {
     } else if (Array.isArray(this.ctx)) {
       ctx = this.ctx;
     } else if (typeof this.ctx === 'string') {
-      ctx = Array.prototype.slice.call(
-        document.querySelectorAll(this.ctx)
-      );
+      ctx = Array.prototype.slice.call(document.querySelectorAll(this.ctx));
     } else {
       ctx = [this.ctx];
     }
-    ctx.forEach(ctx => {
-      const isDescendant = filteredCtx.filter(contexts => {
-        return contexts.contains(ctx);
-      }).length > 0;
-      if (filteredCtx.indexOf(ctx) === -1 && !isDescendant) {
-        filteredCtx.push(ctx);
+    const array = [];
+    ctx.forEach(elem => {
+      if (array.indexOf(elem) === -1 && !array.some(node => node.contains(elem))) {
+        array.push(elem);
       }
     });
-    return filteredCtx;
+    return array;
   }
-  getIframeContents(ifr, successFn, errorFn = () => {}) {
-    let doc;
+  getIframeContents(iframe, successFn, errorFn) {
     try {
-      const ifrWin = ifr.contentWindow;
-      doc = ifrWin.document;
-      if (!ifrWin || !doc) {
-        throw new Error('iframe inaccessible');
+      const doc = iframe.contentWindow.document;
+      if (doc) {
+        iframe.setAttribute(this.attrName, 'completed');
+        successFn({ iframe : iframe, context : doc });
       }
     } catch (e) {
-      errorFn();
-    }
-    if (doc) {
-      successFn(doc);
+      iframe.setAttribute(this.attrName, 'error');
+      errorFn({ iframe : iframe, error : e });
     }
   }
   isIframeBlank(ifr) {
@@ -90,25 +68,18 @@ class DOMIterator {
     return href === bl && src !== bl && src;
   }
   observeIframeLoad(ifr, successFn, errorFn) {
-    let called = false,
-      tout = null;
+    if (ifr.hasAttribute(this.attrName)) {
+      return;
+    }
+    let id = null;
     const listener = () => {
-      if (called) {
-        return;
-      }
-      called = true;
-      clearTimeout(tout);
-      try {
-        if (!this.isIframeBlank(ifr)) {
-          ifr.removeEventListener('load', listener);
-          this.getIframeContents(ifr, successFn, errorFn);
-        }
-      } catch (e) {
-        errorFn();
-      }
+      clearTimeout(id);
+      ifr.removeEventListener('load', listener);
+      this.getIframeContents(ifr, successFn, errorFn);
     };
     ifr.addEventListener('load', listener);
-    tout = setTimeout(listener, this.iframesTimeout);
+    ifr.setAttribute(this.attrName, true);
+    id = setTimeout(listener, this.opt.iframesTimeout);
   }
   onIframeReady(ifr, successFn, errorFn) {
     try {
@@ -122,77 +93,65 @@ class DOMIterator {
         this.observeIframeLoad(ifr, successFn, errorFn);
       }
     } catch (e) {
-      errorFn();
+      errorFn(e);
     }
   }
-  waitForIframes(ctx, done) {
-    let eachCalled = 0;
-    this.forEachIframe(ctx, () => true, ifr => {
-      eachCalled++;
-      this.waitForIframes(ifr.querySelector('html'), () => {
-        if (!(--eachCalled)) {
-          done();
-        }
-      });
-    }, handled => {
-      if (!handled) {
-        done();
-      }
-    });
-  }
-  forEachIframe(ctx, filter, each, end = () => {}) {
-    let ifr = ctx.querySelectorAll('iframe'),
-      open = ifr.length,
-      handled = 0;
-    ifr = Array.prototype.slice.call(ifr);
-    const checkEnd = () => {
-      if (--open <= 0) {
-        end(handled);
+  waitForAllIframes(ctx, doneCb) {
+    let count = 0,
+      iframes = [],
+      array = [],
+      fired = false;
+    const id = setTimeout(() => {
+      fired = true;
+      doneCb();
+    }, this.opt.iframesTimeout);
+    const done = () => {
+      clearTimeout(id);
+      if ( !fired) {
+        doneCb();
       }
     };
-    if (!open) {
-      checkEnd();
-    }
-    ifr.forEach(ifr => {
-      if (DOMIterator.matches(ifr, this.exclude)) {
-        checkEnd();
-      } else {
-        this.onIframeReady(ifr, con => {
-          if (filter(ifr)) {
-            handled++;
-            each(con);
-          }
-          checkEnd();
-        }, checkEnd);
+    const checkDone = () => {
+      if (count === iframes.filter(ifr => !this.hasAttributeValue(ifr, this.attrName, 'error')).length) {
+        done();
       }
-    });
+    };
+    const loop = (obj) => {
+      if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
+        array = [];
+        obj.context.querySelectorAll(obj.iframe ? 'body iframe' : 'iframe').forEach(iframe => {
+          if ( !DOMIterator.matches(iframe, this.opt.exclude)) {
+            iframes.push(iframe);
+            if ( !iframe.hasAttribute(this.attrName)) {
+              array.push(iframe);
+            }
+          }
+        });
+        if ( !obj.iframe && !array.length) {
+          done();
+          return;
+        }
+      }
+      if (array.length) {
+        array.forEach(iframe => {
+          this.onIframeReady(iframe, obj => {
+            count++;
+            loop(obj);
+          }, obj => {
+            if (this.opt.debug) {
+              console.log(obj.error);
+            }
+            checkDone();
+          });
+        });
+      } else {
+        checkDone();
+      }
+    };
+    loop({ context : ctx });
   }
   createIterator(ctx, whatToShow, filter) {
     return document.createNodeIterator(ctx, whatToShow, filter, false);
-  }
-  iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb) {
-    const showText = whatToShow === NodeFilter.SHOW_TEXT,
-      style = this.shadowDOM.style ? this.createStyleElement() : null;
-    if (showText) {
-      whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
-    }
-    const traverse = node => {
-      const iterator = this.createIterator(node, whatToShow);
-      while ((node = iterator.nextNode())) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-            eachCb(node);
-          }
-          if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            this.addRemoveStyle(node.shadowRoot, style, showText);
-            traverse(node.shadowRoot);
-          }
-        } else if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-          eachCb(node);
-        }
-      }
-    };
-    traverse(ctx);
   }
   addRemoveStyle(root, style, add) {
     if (add) {
@@ -210,106 +169,46 @@ class DOMIterator {
   createStyleElement() {
     const style = document.createElement('style');
     style.setAttribute('data-markjs', 'true');
-    style.textContent = this.shadowDOM.style;
+    style.textContent = this.opt.shadowDOM.style;
     return style;
   }
-  createInstanceOnIframe(contents) {
-    return new DOMIterator(contents.querySelector('html'), this.iframes);
+  hasAttributeValue(node, name, value) {
+    return node.hasAttribute(name) && node.getAttribute(name) === value;
   }
-  compareNodeIframe(node, prevNode, ifr) {
-    const compCurr = node.compareDocumentPosition(ifr),
-      prev = Node.DOCUMENT_POSITION_PRECEDING;
-    if (compCurr & prev) {
-      if (prevNode !== null) {
-        const compPrev = prevNode.compareDocumentPosition(ifr),
-          after = Node.DOCUMENT_POSITION_FOLLOWING;
-        if (compPrev & after) {
-          return true;
+  iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
+    const shadow = this.opt.shadowDOM,
+      iframe = this.opt.iframes;
+    if (iframe || shadow) {
+      const showElement = (whatToShow & NodeFilter.SHOW_ELEMENT) !== 0,
+        showText = (whatToShow & NodeFilter.SHOW_TEXT) !== 0,
+        style = shadow && shadow.style ? this.createStyleElement() : null;
+      if (showText) {
+        whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+      }
+      const traverse = node => {
+        const iterator = this.createIterator(node, whatToShow);
+        while ((node = iterator.nextNode())) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if (showElement && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+              eachCb(node);
+            }
+            if (iframe && node.nodeName.toUpperCase() === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
+              if (this.hasAttributeValue(node, this.attrName, 'completed')) {
+                this.getIframeContents(node, obj => {
+                  traverse(obj.context);
+                }, () => {});
+              }
+            }
+            if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
+              this.addRemoveStyle(node.shadowRoot, style, showText);
+              traverse(node.shadowRoot);
+            }
+          } else  if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+            eachCb(node);
+          }
         }
-      } else {
-        return true;
-      }
-    }
-    return false;
-  }
-  getIteratorNode(itr) {
-    const prevNode = itr.previousNode();
-    let node;
-    if (prevNode === null) {
-      node = itr.nextNode();
-    } else {
-      node = itr.nextNode() && itr.nextNode();
-    }
-    return {
-      prevNode,
-      node
-    };
-  }
-  checkIframeFilter(node, prevNode, currIfr, ifr) {
-    let key = false,
-      handled = false;
-    ifr.forEach((ifrDict, i) => {
-      if (ifrDict.val === currIfr) {
-        key = i;
-        handled = ifrDict.handled;
-      }
-    });
-    if (this.compareNodeIframe(node, prevNode, currIfr)) {
-      if (key === false && !handled) {
-        ifr.push({
-          val: currIfr,
-          handled: true
-        });
-      } else if (key !== false && !handled) {
-        ifr[key].handled = true;
-      }
-      return true;
-    }
-    if (key === false) {
-      ifr.push({
-        val: currIfr,
-        handled: false
-      });
-    }
-    return false;
-  }
-  handleOpenIframes(ifr, whatToShow, eCb, fCb) {
-    ifr.forEach(ifrDict => {
-      if (!ifrDict.handled) {
-        this.getIframeContents(ifrDict.val, con => {
-          this.createInstanceOnIframe(con).forEachNode(
-            whatToShow, eCb, fCb
-          );
-        });
-      }
-    });
-  }
-  iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
-    if (this.iframes) {
-      let ifr = [],
-        nodes = [];
-      const itr = this.createIterator(ctx, whatToShow, filterCb);
-      let node, prevNode;
-      const retrieveNodes = () => {
-        ({ prevNode, node } = this.getIteratorNode(itr));
-        return node;
       };
-      while (retrieveNodes()) {
-        this.forEachIframe(ctx, currIfr => {
-          return this.checkIframeFilter(node, prevNode, currIfr, ifr);
-        }, con => {
-          this.createInstanceOnIframe(con).forEachNode(
-            whatToShow, ifrNode => nodes.push(ifrNode), filterCb
-          );
-        });
-        nodes.push(node);
-      }
-      nodes.forEach(node => {
-        eachCb(node);
-      });
-      this.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
-    } else if (this.shadowDOM) {
-      this.iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb);
+      traverse(ctx);
     } else {
       const iterator = this.createIterator(ctx, whatToShow, filterCb);
       let node;
@@ -322,19 +221,20 @@ class DOMIterator {
   forEachNode(whatToShow, each, filter, done = () => {}) {
     const contexts = this.getContexts();
     let open = contexts.length;
-    if (!open) {
+    if ( !open) {
       done();
     }
     contexts.forEach(ctx => {
+      open--;
       const ready = () => {
-        this.iterateThroughNodes(whatToShow, ctx, each, filter, () => {
-          if (--open <= 0) {
+        this.iterateThroughNodes(ctx, whatToShow, filter, each, () => {
+          if (open <= 0) {
             done();
           }
         });
       };
-      if (this.iframes) {
-        this.waitForIframes(ctx, ready);
+      if (this.opt.iframes) {
+        this.waitForAllIframes(ctx, ready);
       } else {
         ready();
       }
@@ -519,14 +419,9 @@ class RegExpCreator {
 
 class Mark$1 {
   constructor(ctx) {
-    this.version = '1.1.0';
+    this.version = '2.0.0';
     this.ctx = ctx;
     this.cacheDict = {};
-    this.ie = false;
-    const ua = window.navigator.userAgent;
-    if (ua.indexOf('MSIE') > -1 || ua.indexOf('Trident') > -1) {
-      this.ie = true;
-    }
   }
   set opt(val) {
     this._opt = Object.assign({}, {
@@ -550,13 +445,7 @@ class Mark$1 {
     return this._opt;
   }
   get iterator() {
-    return new DOMIterator(
-      this.ctx,
-      this.opt.iframes,
-      this.opt.exclude,
-      this.opt.iframesTimeout,
-      this.opt.shadowDOM
-    );
+    return new DOMIterator(this.ctx, this.opt);
   }
   log(msg, level = 'debug') {
     const log = this.opt.log;
@@ -889,8 +778,8 @@ class Mark$1 {
     });
   }
   matchesExclude(elem) {
-    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
-    return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
+    const nodeNames = ['script', 'style', 'title', 'head', 'html'];
+    return nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 ||
       this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
   }
   wrapRangeInTextNode(node, start, end) {
@@ -1378,31 +1267,41 @@ class Mark$1 {
     });
   }
   unwrapMatches(node) {
-    const parent = node.parentNode;
-    let docFrag = document.createDocumentFragment();
-    while (node.firstChild) {
-      docFrag.appendChild(node.removeChild(node.firstChild));
-    }
-    parent.replaceChild(docFrag, node);
-    if (!this.ie) {
-      parent.normalize();
-    } else {
-      this.normalizeTextNode(parent);
-    }
-  }
-  normalizeTextNode(node) {
-    if (!node) {
-      return;
-    }
-    if (node.nodeType === 3) {
-      while (node.nextSibling && node.nextSibling.nodeType === 3) {
-        node.nodeValue += node.nextSibling.nodeValue;
-        node.parentNode.removeChild(node.nextSibling);
+    const parent = node.parentNode,
+      first = node.firstChild;
+    if (node.childNodes.length === 1) {
+      if (first.nodeType === 3) {
+        const previous = node.previousSibling,
+          next = node.nextSibling;
+        if (previous && previous.nodeType === 3) {
+          if (next && next.nodeType === 3) {
+            previous.nodeValue += first.nodeValue + next.nodeValue;
+            parent.removeChild(next);
+          } else {
+            previous.nodeValue += first.nodeValue;
+          }
+        } else if (next && next.nodeType === 3) {
+          next.nodeValue = first.nodeValue + next.nodeValue;
+        } else {
+          parent.replaceChild(node.firstChild, node);
+          return;
+        }
+        parent.removeChild(node);
+      } else {
+        parent.replaceChild(node.firstChild, node);
       }
     } else {
-      this.normalizeTextNode(node.firstChild);
+      if ( !first) {
+        parent.removeChild(node);
+      } else {
+        let docFrag = document.createDocumentFragment();
+        while (node.firstChild) {
+          docFrag.appendChild(node.removeChild(node.firstChild));
+        }
+        parent.replaceChild(docFrag, node);
+      }
+      parent.normalize();
     }
-    this.normalizeTextNode(node.nextSibling);
   }
   markRegExp(regexp, opt) {
     this.opt = this.checkOption(opt);

@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "keywords": [
     "advanced-mark.js",
     "mark.js",
@@ -30,9 +30,10 @@
   "scripts": {
     "eslint": "eslint src/ test/",
     "karma": "karma start build/karma.config.js",
+    "copy-files": "node build/copy-types-files.js",
     "jsdoc": "jsdoc src/lib/ -d build/doc -R README.md -P package.json -r",
     "compile": "rollup -c build/rollup.config.js",
-    "build": "npm run test && npm run jsdoc",
+    "build": "npm run test && npm run copy-files && npm run jsdoc",
     "dev": "nodemon --exec \"npm run eslint && npm run compile\" --watch src/ --watch test/ -e js,html",
     "test": "npm run eslint && npm run compile && npm run karma"
   },

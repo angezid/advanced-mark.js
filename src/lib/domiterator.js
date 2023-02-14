@@ -16,24 +16,15 @@
  * }, () => {
  *     console.log("DONE");
  * });
- * @todo Outsource into separate repository
  */
 class DOMIterator {
 
   /**
    * @param {HTMLElement|HTMLElement[]|NodeList|string} ctx - The context DOM
    * element, an array of DOM elements, a NodeList or a selector
-   * @param {boolean} [iframes=true] - A boolean indicating if iframes should
-   * be handled
-   * @param {string[]} [exclude=[]] - An array containing exclusion selectors
-   * for iframes
-   * @param {number} [iframesTimeout=5000] - A number indicating the ms to
-   * wait before an iframe should be skipped, in case the load event isn't
-   * fired. This also applies if the user is offline and the resource of the
-   * iframe is online (either by the browsers "offline" mode or because
-   * there's no internet connection)
+   * @param  {object} opt - Options object
    */
-  constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000, shadowDOM = false) {
+  constructor(ctx, opt) {
     /**
      * The context of the instance. Either a DOM element, an array of DOM
      * elements, a NodeList or a selector
@@ -42,27 +33,17 @@ class DOMIterator {
      */
     this.ctx = ctx;
     /**
-     * Boolean indicating if iframe support is enabled
-     * @type {boolean}
+     * The object containig Mark options
+     * @type {object}
      * @access protected
      */
-    this.iframes = iframes;
+    this.opt = opt;
     /**
-     * An array containing exclusion selectors for iframes
-     * @type {string[]}
-     */
-    this.exclude = exclude;
-    /**
-     * The maximum ms to wait for a load event before skipping an iframe
-     * @type {number}
-     */
-    this.iframesTimeout = iframesTimeout;
-    /**
-     * Boolean indicating if Shadow DOM support is enabled
-     * @type {boolean}
+     * The name of an attribute, which added to iframes, to indicate iframe state
+     * @type {string}
      * @access protected
      */
-    this.shadowDOM = shadowDOM;
+    this.attrName = 'data-markjsListener';
   }
 
   /**
@@ -86,29 +67,16 @@ class DOMIterator {
       element.oMatchesSelector ||
       element.webkitMatchesSelector
     );
-    if (fn) {
-      let match = false;
-      selectors.every(sel => {
-        if (fn.call(element, sel)) {
-          match = true;
-          return false;
-        }
-        return true;
-      });
-      return match;
-    } else { // may be false e.g. when el is a textNode
-      return false;
-    }
+    return fn ? selectors.some(sel => fn.call(element, sel) === true) : false;
   }
 
   /**
-   * Returns all contexts filtered by duplicates (even nested)
+   * Returns all contexts filtered by duplicates or nested elements
    * @return {HTMLElement[]} - An array containing DOM contexts
    * @access protected
    */
   getContexts() {
-    let ctx,
-      filteredCtx = [];
+    let ctx;
     if (typeof this.ctx === 'undefined' || !this.ctx) { // e.g. null
       ctx = [];
     } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
@@ -116,22 +84,19 @@ class DOMIterator {
     } else if (Array.isArray(this.ctx)) {
       ctx = this.ctx;
     } else if (typeof this.ctx === 'string') {
-      ctx = Array.prototype.slice.call(
-        document.querySelectorAll(this.ctx)
-      );
+      ctx = Array.prototype.slice.call(document.querySelectorAll(this.ctx));
     } else { // e.g. HTMLElement or element inside iframe
       ctx = [this.ctx];
     }
-    // filter duplicate text nodes
-    ctx.forEach(ctx => {
-      const isDescendant = filteredCtx.filter(contexts => {
-        return contexts.contains(ctx);
-      }).length > 0;
-      if (filteredCtx.indexOf(ctx) === -1 && !isDescendant) {
-        filteredCtx.push(ctx);
+
+    // filters duplicate/nested elements
+    const array = [];
+    ctx.forEach(elem => {
+      if (array.indexOf(elem) === -1 && !array.some(node => node.contains(elem))) {
+        array.push(elem);
       }
     });
-    return filteredCtx;
+    return array;
   }
 
   /**
@@ -146,19 +111,16 @@ class DOMIterator {
    * @param {function} [errorFn]
    * @access protected
    */
-  getIframeContents(ifr, successFn, errorFn = () => {}) {
-    let doc;
+  getIframeContents(iframe, successFn, errorFn) {
     try {
-      const ifrWin = ifr.contentWindow;
-      doc = ifrWin.document;
-      if (!ifrWin || !doc) { // no permission = null. Undefined in Phantom
-        throw new Error('iframe inaccessible');
+      const doc = iframe.contentWindow.document;
+      if (doc) {
+        iframe.setAttribute(this.attrName, 'completed');
+        successFn({ iframe : iframe, context : doc });
       }
     } catch (e) {
-      errorFn();
-    }
-    if (doc) {
-      successFn(doc);
+      iframe.setAttribute(this.attrName, 'error');
+      errorFn({ iframe : iframe, error : e });
     }
   }
 
@@ -186,25 +148,21 @@ class DOMIterator {
    * @access protected
    */
   observeIframeLoad(ifr, successFn, errorFn) {
-    let called = false,
-      tout = null;
+    // an event listener is already added to the iframe
+    if (ifr.hasAttribute(this.attrName)) {
+      return;
+    }
+    let id = null;
+
     const listener = () => {
-      if (called) {
-        return;
-      }
-      called = true;
-      clearTimeout(tout);
-      try {
-        if (!this.isIframeBlank(ifr)) {
-          ifr.removeEventListener('load', listener);
-          this.getIframeContents(ifr, successFn, errorFn);
-        }
-      } catch (e) { // isIframeBlank maybe throws throws an error
-        errorFn();
-      }
+      clearTimeout(id);
+      ifr.removeEventListener('load', listener);
+      this.getIframeContents(ifr, successFn, errorFn);
     };
+
     ifr.addEventListener('load', listener);
-    tout = setTimeout(listener, this.iframesTimeout);
+    ifr.setAttribute(this.attrName, true);
+    id = setTimeout(listener, this.opt.iframesTimeout);
   }
 
   /**
@@ -238,7 +196,7 @@ class DOMIterator {
         this.observeIframeLoad(ifr, successFn, errorFn);
       }
     } catch (e) { // accessing document failed
-      errorFn();
+      errorFn(e);
     }
   }
 
@@ -252,75 +210,71 @@ class DOMIterator {
    * @param {HTMLElement} ctx - The context DOM element
    * @param {DOMIterator~waitForIframesDoneCallback} done - Done callback
    */
-  waitForIframes(ctx, done) {
-    let eachCalled = 0;
-    this.forEachIframe(ctx, () => true, ifr => {
-      eachCalled++;
-      this.waitForIframes(ifr.querySelector('html'), () => {
-        if (!(--eachCalled)) {
-          done();
-        }
-      });
-    }, handled => {
-      if (!handled) {
-        done();
-      }
-    });
-  }
+  waitForAllIframes(ctx, doneCb) {
+    let count = 0,
+      iframes = [],
+      array = [],
+      fired = false;
+    // not sure about this timeout; it should guarantee a single done callback, if something went wrong
+    const id = setTimeout(() => {
+      fired = true;
+      doneCb();
+    }, this.opt.iframesTimeout);
 
-  /**
-   * Callback allowing to filter an iframe. Must return true when the element
-   * should remain, otherwise false
-   * @callback DOMIterator~forEachIframeFilterCallback
-   * @param {HTMLElement} iframe - The iframe DOM element
-   */
-  /**
-   * Callback for each iframe content
-   * @callback DOMIterator~forEachIframeEachCallback
-   * @param {HTMLElement} content - The iframe document
-   */
-  /**
-   * Callback if all iframes inside the context were handled
-   * @callback DOMIterator~forEachIframeEndCallback
-   * @param {number} handled - The number of handled iframes (those who
-   * wheren't filtered)
-   */
-  /**
-   * Iterates over all iframes inside the specified context and calls the
-   * callbacks when they're ready. Filters iframes based on the instance
-   * exclusion selectors
-   * @param {HTMLElement} ctx - The context DOM element
-   * @param {DOMIterator~forEachIframeFilterCallback} filter - Filter callback
-   * @param {DOMIterator~forEachIframeEachCallback} each - Each callback
-   * @param {DOMIterator~forEachIframeEndCallback} [end] - End callback
-   * @access protected
-   */
-  forEachIframe(ctx, filter, each, end = () => {}) {
-    let ifr = ctx.querySelectorAll('iframe'),
-      open = ifr.length,
-      handled = 0;
-    ifr = Array.prototype.slice.call(ifr);
-    const checkEnd = () => {
-      if (--open <= 0) {
-        end(handled);
+    const done = () => {
+      clearTimeout(id);
+
+      if ( !fired) {
+        doneCb();
       }
     };
-    if (!open) {
-      checkEnd();
-    }
-    ifr.forEach(ifr => {
-      if (DOMIterator.matches(ifr, this.exclude)) {
-        checkEnd();
-      } else {
-        this.onIframeReady(ifr, con => {
-          if (filter(ifr)) {
-            handled++;
-            each(con);
-          }
-          checkEnd();
-        }, checkEnd);
+
+    const checkDone = () => {
+      if (count === iframes.filter(ifr => !this.hasAttributeValue(ifr, this.attrName, 'error')).length) {
+        done();
       }
-    });
+    };
+
+    const loop = (obj) => {
+      if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
+        array = [];
+
+        obj.context.querySelectorAll(obj.iframe ? 'body iframe' : 'iframe').forEach(iframe => {
+          if ( !DOMIterator.matches(iframe, this.opt.exclude)) {
+            iframes.push(iframe);
+
+            if ( !iframe.hasAttribute(this.attrName)) {
+              array.push(iframe);
+            }
+          }
+        });
+        // case when the main context has no iframes or iframes were already handled, e.g. by unmark() method
+        if ( !obj.iframe && !array.length) {
+          done();
+          return;
+        }
+      }
+
+      if (array.length) {
+        array.forEach(iframe => {
+          this.onIframeReady(iframe, obj => {
+            count++;
+            loop(obj);
+
+          }, obj => {
+            if (this.opt.debug) {
+              console.log(obj.error);
+            }
+            checkDone();
+          });
+        });
+
+      } else {
+        checkDone();
+      }
+    };
+
+    loop({ context : ctx });
   }
 
   /**
@@ -334,48 +288,6 @@ class DOMIterator {
    */
   createIterator(ctx, whatToShow, filter) {
     return document.createNodeIterator(ctx, whatToShow, filter, false);
-  }
-
-  /**
-   * Collects required normal and shadow DOM nodes
-   * @param {HTMLElement} ctx - The context DOM element
-   * @param {DOMIterator~whatToShow} whatToShow
-   * @param {DOMIterator~filterCb} filter
-   * @return {Array}
-   * @access protected
-   */
-  iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb) {
-    const showText = whatToShow === NodeFilter.SHOW_TEXT,
-      style = this.shadowDOM.style ? this.createStyleElement() : null;
-
-    if (showText) {
-      whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
-    }
-
-    const traverse = node => {
-      const iterator = this.createIterator(node, whatToShow);
-
-      while ((node = iterator.nextNode())) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          if ( !showText && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-            eachCb(node);
-          }
-
-          // currently there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'
-          // is not work neither for 'shadowRoot' no for element itself
-          if (node.shadowRoot && node.shadowRoot.mode === 'open') {
-            this.addRemoveStyle(node.shadowRoot, style, showText);
-
-            traverse(node.shadowRoot);
-          }
-
-        } else if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
-          eachCb(node);
-        }
-      }
-    };
-
-    traverse(ctx);
   }
 
   /**
@@ -407,195 +319,70 @@ class DOMIterator {
   createStyleElement() {
     const style = document.createElement('style');
     style.setAttribute('data-markjs', 'true');
-    style.textContent = this.shadowDOM.style;
+    style.textContent = this.opt.shadowDOM.style;
     return style;
   }
 
   /**
-   * Creates an instance of DOMIterator in an iframe
-   * @param {HTMLDocument} contents - Iframe document
-   * @return {DOMIterator}
-   * @access protected
+   * Checks whether the node has attribute with the specified name and value
+   * @return {Boolean}
    */
-  createInstanceOnIframe(contents) {
-    return new DOMIterator(contents.querySelector('html'), this.iframes);
+  hasAttributeValue(node, name, value) {
+    return node.hasAttribute(name) && node.getAttribute(name) === value;
   }
 
   /**
-   * Checks if an iframe occurs between two nodes, more specifically if an
-   * iframe occurs before the specified node and after the specified prevNode
-   * @param {HTMLElement} node - The node that should occur after the iframe
-   * @param {HTMLElement} prevNode - The node that should occur before the
-   * iframe
-   * @param {HTMLElement} ifr - The iframe to check against
-   * @return {boolean}
-   * @access protected
-   */
-  compareNodeIframe(node, prevNode, ifr) {
-    const compCurr = node.compareDocumentPosition(ifr),
-      prev = Node.DOCUMENT_POSITION_PRECEDING;
-    if (compCurr & prev) {
-      if (prevNode !== null) {
-        const compPrev = prevNode.compareDocumentPosition(ifr),
-          after = Node.DOCUMENT_POSITION_FOLLOWING;
-        if (compPrev & after) {
-          return true;
-        }
-      } else {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * @typedef {DOMIterator~getIteratorNodeReturn}
-   * @type {object.<string>}
-   * @property {HTMLElement} prevNode - The previous node or null if there is
-   * no
-   * @property {HTMLElement} node - The current node
-   */
-  /**
-   * Returns the previous and current node of the specified iterator
-   * @param {NodeIterator} itr - The iterator
-   * @return {DOMIterator~getIteratorNodeReturn}
-   * @access protected
-   */
-  getIteratorNode(itr) {
-    const prevNode = itr.previousNode();
-    let node;
-    if (prevNode === null) {
-      node = itr.nextNode();
-    } else {
-      node = itr.nextNode() && itr.nextNode();
-    }
-    return {
-      prevNode,
-      node
-    };
-  }
-
-  /**
-   * An array containing objects. The object key "val" contains an iframe
-   * DOM element. The object key "handled" contains a boolean indicating if
-   * the iframe was handled already.
-   * It wouldn't be enough to save all open or all already handled iframes.
-   * The information of open iframes is necessary because they may occur after
-   * all other text nodes (and compareNodeIframe would never be true). The
-   * information of already handled iframes is necessary as otherwise they may
-   * be handled multiple times
-   * @typedef DOMIterator~checkIframeFilterIfr
-   * @type {object[]}
-   */
-  /**
-   * Checks if an iframe wasn't handled already and if so, calls
-   * {@link DOMIterator#compareNodeIframe} to check if it should be handled.
-   * Information whether an iframe was or wasn't handled is given within the
-   * <code>ifr</code> dictionary
-   * @param {HTMLElement} node - The node that should occur after the iframe
-   * @param {HTMLElement} prevNode - The node that should occur before the
-   * iframe
-   * @param {HTMLElement} currIfr - The iframe to check
-   * @param {DOMIterator~checkIframeFilterIfr} ifr - The iframe dictionary.
-   * Will be manipulated (by reference)
-   * @return {boolean} Returns true when it should be handled, otherwise false
-   * @access protected
-   */
-  checkIframeFilter(node, prevNode, currIfr, ifr) {
-    let key = false, // false === doesn't exist
-      handled = false;
-    ifr.forEach((ifrDict, i) => {
-      if (ifrDict.val === currIfr) {
-        key = i;
-        handled = ifrDict.handled;
-      }
-    });
-    if (this.compareNodeIframe(node, prevNode, currIfr)) {
-      if (key === false && !handled) {
-        ifr.push({
-          val: currIfr,
-          handled: true
-        });
-      } else if (key !== false && !handled) {
-        ifr[key].handled = true;
-      }
-      return true;
-    }
-    if (key === false) {
-      ifr.push({
-        val: currIfr,
-        handled: false
-      });
-    }
-    return false;
-  }
-
-  /**
-   * Creates an iterator on all open iframes in the specified array and calls
-   * the end callback when finished
-   * @param {DOMIterator~checkIframeFilterIfr} ifr
-   * @param {DOMIterator~whatToShow} whatToShow
-   * @param  {DOMIterator~forEachNodeCallback} eCb - Each callback
-   * @param {DOMIterator~filterCb} fCb
-   * @access protected
-   */
-  handleOpenIframes(ifr, whatToShow, eCb, fCb) {
-    ifr.forEach(ifrDict => {
-      if (!ifrDict.handled) {
-        this.getIframeContents(ifrDict.val, con => {
-          this.createInstanceOnIframe(con).forEachNode(
-            whatToShow, eCb, fCb
-          );
-        });
-      }
-    });
-  }
-
-  /**
-   * Iterates through all nodes in the specified context and handles iframe
-   * nodes at the correct position
-   * @param {DOMIterator~whatToShow} whatToShow
+   * Iterates through all nodes, including shadow DOM nodes, in the specified context
    * @param {HTMLElement} ctx - The context
-   * @param  {DOMIterator~forEachNodeCallback} eachCb - Each callback
+   * @param {DOMIterator~whatToShow} whatToShow
    * @param {DOMIterator~filterCb} filterCb - Filter callback
+   * @param  {DOMIterator~forEachNodeCallback} eachCb - Each callback
    * @param {DOMIterator~forEachNodeEndCallback} doneCb - End callback
    * @access protected
    */
-  iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
+  iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
+    const shadow = this.opt.shadowDOM,
+      iframe = this.opt.iframes;
 
-    if (this.iframes) {
-      let ifr = [],
-        nodes = [];
-      const itr = this.createIterator(ctx, whatToShow, filterCb);
-      let node, prevNode;
+    if (iframe || shadow) {
+      const showElement = (whatToShow & NodeFilter.SHOW_ELEMENT) !== 0,
+        showText = (whatToShow & NodeFilter.SHOW_TEXT) !== 0,
+        style = shadow && shadow.style ? this.createStyleElement() : null;
 
-      const retrieveNodes = () => {
-        ({ prevNode, node } = this.getIteratorNode(itr));
-        return node;
-      };
-
-      while (retrieveNodes()) {
-        this.forEachIframe(ctx, currIfr => {
-          // note that ifr will be manipulated here
-          return this.checkIframeFilter(node, prevNode, currIfr, ifr);
-        }, con => {
-          this.createInstanceOnIframe(con).forEachNode(
-            whatToShow, ifrNode => nodes.push(ifrNode), filterCb
-          );
-        });
-        // it's faster to call the each callback in an array loop
-        // than in this while loop
-        nodes.push(node);
+      if (showText) {
+        whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
       }
 
-      nodes.forEach(node => {
-        eachCb(node);
-      });
+      const traverse = node => {
+        const iterator = this.createIterator(node, whatToShow);
 
-      this.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
+        while ((node = iterator.nextNode())) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if (showElement && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+              eachCb(node);
+            }
 
-    } else if (this.shadowDOM) {
-      this.iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb);
+            if (iframe && node.nodeName.toUpperCase() === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
+              if (this.hasAttributeValue(node, this.attrName, 'completed')) {
+                this.getIframeContents(node, obj => {
+                  traverse(obj.context);
+                }, () => {});
+              }
+            }
+            // there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'
+            // is not working neither for 'shadowRoot' no for the element itself
+            if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
+              this.addRemoveStyle(node.shadowRoot, style, showText);
+              traverse(node.shadowRoot);
+            }
+
+          } else  if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+            eachCb(node);
+          }
+        }
+      };
+
+      traverse(ctx);
 
     } else {
       const iterator = this.createIterator(ctx, whatToShow, filterCb);
@@ -610,17 +397,27 @@ class DOMIterator {
   }
 
   /**
+   * @typedef DOMIterator~whatToShow
+   * @see {@link http://tinyurl.com/zfqqkx2}
+   * @type {number}
+   */
+  /**
+   * Callback to filter nodes. Can return e.g. NodeFilter.FILTER_ACCEPT or NodeFilter.FILTER_REJECT
+   * @see {@link http://tinyurl.com/zdczmm2}
+   * @callback DOMIterator~filterCb
+   * @param {Text|HTMLElement} node - The node to filter
+   */
+  /**
    * Callback for each node
    * @callback DOMIterator~forEachNodeCallback
-   * @param {HTMLElement} node - The DOM text node element
+   * @param {Text|HTMLElement} node - The node node to process
    */
   /**
    * Callback if all contexts were handled
    * @callback DOMIterator~forEachNodeEndCallback
    */
   /**
-   * Iterates over all contexts and initializes
-   * {@link DOMIterator#iterateThroughNodes iterateThroughNodes} on them
+   * Iterates over all contexts
    * @param {DOMIterator~whatToShow} whatToShow
    * @param  {DOMIterator~forEachNodeCallback} each - Each callback
    * @param {DOMIterator~filterCb} filter - Filter callback
@@ -630,42 +427,28 @@ class DOMIterator {
   forEachNode(whatToShow, each, filter, done = () => {}) {
     const contexts = this.getContexts();
     let open = contexts.length;
-    if (!open) {
+    if ( !open) {
       done();
     }
+
     contexts.forEach(ctx => {
+      open--;
+
       const ready = () => {
-        this.iterateThroughNodes(whatToShow, ctx, each, filter, () => {
-          if (--open <= 0) { // call end all contexts were handled
+        this.iterateThroughNodes(ctx, whatToShow, filter, each, () => {
+          if (open <= 0) { // call end all contexts were handled
             done();
           }
         });
       };
-      // wait for iframes to avoid recursive calls, otherwise this would
-      // perhaps reach the recursive function call limit with many nodes
-      if (this.iframes) {
-        // 'waitForIframes()' is buggy; it not waits for all iframes as it claims
-        // if the context contains multiple iframes, it calls multiple 'done' callbacks instead of single one,
-        // as a result, the same matches are wrapped in multiple mark elements
-        this.waitForIframes(ctx, ready);
+
+      if (this.opt.iframes) {
+        this.waitForAllIframes(ctx, ready);
       } else {
         ready();
       }
     });
   }
-
-  /**
-   * Callback to filter nodes. Can return e.g. NodeFilter.FILTER_ACCEPT or
-   * NodeFilter.FILTER_REJECT
-   * @see {@link http://tinyurl.com/zdczmm2}
-   * @callback DOMIterator~filterCb
-   * @param {HTMLElement} node - The node to filter
-   */
-  /**
-   * @typedef DOMIterator~whatToShow
-   * @see {@link http://tinyurl.com/zfqqkx2}
-   * @type {number}
-   */
 }
 
 export default DOMIterator;
