@@ -1,0 +1,23 @@
+<div class="unmark">
+    <p id="normal">
+        <span>Lorem ipsum dolor</span> sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
+        invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+        At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
+        gubergren, no sea takimata sanctus est <span><b>Lorem</b> <b> ipsum</b> <b>dolor </b></span> sit. <span>Lorem ipsum</span>
+        dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
+        invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+        At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
+        gubergren, no sea takimata sanctus <span>est Lorem</span> ipsum dolor sit amet.
+    </p>
+    <!-- code 'coverageReporter' is not works correctly with 'mark => done => unmark' calls -->
+    <p id="marked">
+      <mark data-markjs=true></mark> <!-- empty -->
+      <span>text <mark data-markjs=true>word</mark> text</span> <!-- previous next -->
+      <span>text <mark data-markjs=true>word</mark></span> <!-- previous -->
+      <span><mark data-markjs=true>word</mark> text</span> <!-- next -->
+      <span><mark data-markjs=true>word</mark></span> <!-- single -->
+      <mark data-markjs=true><b>word</b></mark> <!-- element -->
+      <mark data-markjs=true>text <b>word</b></mark> <!-- text + element -->
+      <mark data-markjs=true><b>word</b> text</mark> <!-- element + text -->
+    </p>
+</div>
