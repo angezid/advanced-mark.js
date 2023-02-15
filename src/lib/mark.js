@@ -324,95 +324,6 @@ class Mark {
   }
 
   /**
-  * Filter callback
-  * @callback Mark~checkParentsCallback
-  * @param {HTMLElement} node - The DOM element
-  */
-  /**
-  * It searches through the parents of the textNode in the DOM tree until
-  * it finds a block element or text node
-  * @param {HTMLElement} textNode - The DOM text node element
-  * @param  {Mark~checkParentsCallback} checkName
-  * @return {boolean}
-  */
-  checkParents(textNode, checkName) {
-    if (textNode === textNode.parentNode.lastChild) {
-      if (checkName(textNode.parentNode)) {
-        return true;
-
-      } else {
-        // loops through textNode parent nodes which are last-child
-        let parent = textNode.parentNode;
-        while (parent.parentNode && parent === parent.parentNode.lastChild) {
-          if (checkName(parent.parentNode)) {
-            return true;
-          }
-          parent = parent.parentNode;
-        }
-      }
-      // textNode is the last child of an inline element,
-      // so check parent next sibling
-      let node = textNode.parentNode.nextSibling;
-      if (node) {
-        if (node.nodeType === 1) {
-          if ((checkName(node))) {
-            return true;
-          }
-        } else {
-          // the most likely next sibling is a text node
-          // return true to avoid next sibling search
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-  * Filter callback
-  * @callback Mark~checkNextSiblingsCallback
-  * @param {HTMLElement} node - The DOM element
-  */
-  /**
-  * It searches through the next sibling's firstChild in the DOM tree until
-  * it finds a block element or text node
-  * @param {HTMLElement} node - The DOM node element
-  * @param  {Mark~checkNextSiblingsCallback} checkName
-  */
-  checkNextSiblings(node, checkName) {
-    if (node && node.nodeType === 1) {
-      if (checkName(node)) {
-        return;
-
-      } else if (node.firstChild) {
-        // traverse through firstChilds until condition is met
-        let prevFirstChild, child = node.firstChild;
-        while (child) {
-          if (child.nodeType === 1) {
-            if (checkName(child)) {
-              return;
-            }
-            prevFirstChild = child;
-            child = child.firstChild;
-            continue;
-          }
-          // the most likely child is a text node
-          return;
-        }
-        // prevFirstChild has no child nodes, so check next sibling
-        this.checkNextSiblings(prevFirstChild.nextSibling, checkName);
-      }
-      if (node !== node.parentNode.lastChild) {
-        // node has no child nodes, so check next sibling
-        this.checkNextSiblings(node.nextSibling, checkName);
-
-      } else {
-        checkName(node.parentNode);
-      }
-    }
-  }
-  
-  /**
    * @typedef Mark~blockElementsBoundaryObject
    * @type {object}
    * @property {array} [tagNames] - The array of custom tag names
@@ -425,7 +336,7 @@ class Mark {
   * @param {object} tags - The object containing HTML element tag names
   */
   setType(tags) {
-    const boundary = this.opt.blockElementsBoundary, 
+    const boundary = this.opt.blockElementsBoundary,
       custom = Array.isArray(boundary.tagNames) && boundary.tagNames.length;
 
     if (custom) {
@@ -446,39 +357,38 @@ class Mark {
   }
 
   /**
-  * @typedef Mark~getTextNodesAcrossElementsDict
-  * @type {object.<string>}
-  * @property {string} value - The composite value of all text nodes
-  * @property {object[]} nodes - An array of objects
-  * @property {number} lastIndex - The property used to store the nodes last
-  * index
-  * @property {number} lastTextIndex - The property used to store the string
-  * last index
-  * @property {number} nodes.start - The start position within the composite
-  * value
-  * @property {number} nodes.end - The end position within the composite
-  * value
-  * @property {number} nodes.offset - The offset is used to correct position
-  * if space or string was added to the end of the text node
-  * @property {number} nodes.startOffset - The length of spaces/strings that
-  * were added to the composite string. It has a negative value.
-  * @property {HTMLElement} nodes.node - The DOM text node element
-  */
+   * @typedef Mark~nodeInfoAcross
+   * @property {Text} node - The DOM text node
+   * @property {number} start - The start index within the composite string
+   * @property {number} end - The end index within the composite string
+   * @property {number} offset - The offset is used to correct position
+   * if space or string was added to the end of the text node
+   * @property {number} startOffset - The length of spaces/strings that were added
+   * to the composite string before this node. It has a negative value.
+   */
 
   /**
-  * Callback
-  * @callback Mark~getTextNodesAcrossElementsCallback
-  * @param {Mark~getTextNodesAcrossElementsDict}
-  */
+   * @typedef Mark~getTextNodesAcrossDict
+   * @type {object.<string>}
+   * @property {string} text - The composite string of all text nodes
+   * @property {Mark~nodeInfoAcross[]} nodes - An array of node info objects
+   * @property {number} lastIndex - The property used to store the nodes last index
+   * @property {number} lastTextIndex - The property used to store the composite string last index
+   */
+
   /**
-  * Calls the callback with an object containing all text nodes (including
-  * iframe text nodes) with start and end positions and the composite value
-  * of them (string)
-  * @param {Mark~getTextNodesAcrossElementsCallback} cb - Callback
-  * @access protected
-  */
-  getTextNodesAcrossElements(cb) {
-    // get dict from the cache if it's already built
+   * Callback
+   * @callback Mark~getTextNodesAcrossCallback
+   * @param {Mark~getTextNodesAcrossDict}
+   */
+  /**
+   * Calls the callback with an object containing all text nodes (including iframe text nodes)
+   * with start and end positions and the composite value of them (string)
+   * @param {Mark~getTextNodesAcrossCallback} cb - Callback
+   * @access protected
+   */
+  getTextNodesAcross(cb) {
+    // uses cache dict if it's already built
     if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
       // it's only requires reset two indexes
       this.cacheDict.lastIndex = 0;
@@ -488,15 +398,9 @@ class Mark {
       return;
     }
 
-    let val = '', start, text, endBySpace, type, offset,
-      startOffset = 0,
-      str = '\u0001 ', str2;
-    const nodes = [],
-      boundary = this.opt.blockElementsBoundary;
-
-    // the space can be safely added to the end of a text node when
-    // the node checks run across element with one of those names.
-    const tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
+    // a space or string can be safely added to the end of a text node when two text nodes
+    // are 'separated' by element with one of these names
+    let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
       ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
       h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
       pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
@@ -507,69 +411,59 @@ class Mark {
       map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
       body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
 
+    const boundary = this.opt.blockElementsBoundary;
+    let str = '\x01', temp, prevNode, currNode, type;
+
     if (boundary) {
       this.setType(tags);
+
       if (boundary.char) {
-        str = boundary.char.charAt(0) + ' ';
+        str = boundary.char.charAt(0);
       }
-      str2 = ' ' + str;
     }
 
-    this.iterator.forEachNode(NodeFilter.SHOW_TEXT, node => {
-      offset = 0;
-      start = val.length;
-      text = node.textContent;
-      endBySpace = /\s/.test(text[text.length - 1]);
+    const obj = {
+      nodes : [], text : '', tags : tags,
+      boundary : boundary, startOffset : 0,
+      str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
+    };
 
-      // in this implementation, a space or string can be added only to the end
-      // of a text and lookahead is the only way to check parents and siblings
-      if (boundary || !endBySpace) {
-        let success = this.checkParents(node, nd => {
-          type = tags[nd.nodeName.toLowerCase()];
-          return type;
-        });
-        if ( !success) {
-          this.checkNextSiblings(node.nextSibling, nd => {
-            type = tags[nd.nodeName.toLowerCase()];
-            return type;
-          });
-        }
-        if (type) {
-          if ( !endBySpace) {
-            if (type === 1) {
-              val += text + ' ';
-              offset = 1;
-            } else if (type === 2) {
-              val += text + str2;
-              offset = 3;
-            }
-          } else if (type === 2) {
-            val += text + str;
-            offset = 2;
+    this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, node => { // each
+      if ( !currNode) {
+        prevNode = currNode = node;
+
+      } else {
+        currNode = node;
+
+        this.getNodeInfo(prevNode, node, type, obj);
+        prevNode = node;
+        type = null;
+      }
+
+    }, node => { // filter
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if ( !type) {
+          type = tags[node.nodeName.toLowerCase()];
+
+        } else {
+          // sets the nearest parent node that meets the condition
+          if ((temp = tags[node.nodeName.toLowerCase()]) && temp === 2) {
+            type = temp;
           }
         }
-      }
-      if (offset === 0) {
-        val += text;
-      }
-      nodes.push({
-        start: start,
-        end: val.length - offset,
-        offset : offset,
-        startOffset : startOffset,
-        node: node
-      });
-      startOffset -= offset;
-    }, node => {
-      if (this.matchesExclude(node.parentNode)) {
         return NodeFilter.FILTER_REJECT;
-      } else {
-        return NodeFilter.FILTER_ACCEPT;
       }
-    }, () => {
+      return this.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+
+    }, () => { // done
+      // processes the last node
+      if (currNode) {
+        this.getNodeInfo(prevNode, currNode, type, obj);
+      }
+
       const dict = {
-        value: val,
-        nodes: nodes,
+        text : obj.text,
+        nodes: obj.nodes,
         lastIndex: 0,
         lastTextIndex: 0
       };
@@ -578,25 +472,94 @@ class Mark {
         this.cacheDict = dict;
         this.cacheDict.type = 'across';
       }
-
       cb(dict);
     });
   }
 
   /**
+   * Creates object
+   * @param {Text} prevNode - The previous DOM text node
+   * @param {Text} node - The current DOM text node
+   * @param {number|null} type - define how to separate the previous and current text nodes textContent;
+   * is null when nodes doesn't separated by block elements
+   * @param {object} obj - The auxiliary object to pass multiple parameters to the method
+   */
+  getNodeInfo(prevNode, node, type, obj) {
+    let offset = 0;
+    const start = obj.text.length,
+      text = prevNode.textContent;
+
+    if (prevNode !== node) {
+      const endSpace = /\s/.test(text[text.length - 1]),
+        startSpace = /\s/.test(node.textContent[0]);
+
+      if (obj.boundary || !endSpace && !startSpace) {
+        let separate = type;
+
+        if ( !type) {
+          // searches for the first parent of the previous text node that met condition
+          // and checks does they have the same parent or the parent contains the current text node
+          let parent = prevNode.parentNode;
+          while (parent) {
+            type = obj.tags[parent.nodeName.toLowerCase()];
+            if (type) {
+              separate = !(parent === node.parentNode || parent.contains(node));
+              break;
+            }
+            parent = parent.parentNode;
+          }
+        }
+
+        if (separate) {
+          if ( !endSpace && !startSpace) {
+            if (type === 1) {
+              obj.text += text + ' ';
+              offset = 1;
+
+            } else if (type === 2) {
+              obj.text += text + obj.str3;
+              offset = 3;
+            }
+
+          } else if (type === 2) {
+            let str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
+            obj.text += text + str;
+            offset = str.length;
+          }
+        }
+      }
+    }
+
+    if (offset === 0) {
+      obj.text += text;
+    }
+    obj.nodes.push(this.createInfo(prevNode, start, obj.text.length - offset, offset, obj.startOffset));
+    obj.startOffset -= offset;
+  }
+
+  /**
+   * Creates object
+   * @param {object} tags - The object containing HTMLElement names
+   */
+  createInfo(node, start, end, offset, startOffset) {
+    return { node, start, end, offset, startOffset };
+  }
+
+  /**
+   * @typedef Mark~nodeInfo
+   * @property {Text} node - The DOM text node
+   * @property {number} start - The start index within the composite string
+   * @property {number} end - The end index within the composite string
+   * @property {number} offset - This property is required for compatibility with [Mark~nodeInfoAcross]
+   */
+
+  /**
    * @typedef Mark~getTextNodesDict
    * @type {object.<string>}
-   * @property {string} value - The composite value of all text nodes
-   * @property {object[]} nodes - An array of objects
-   * @property {number} lastIndex - The property used to store the nodes last
-   * index
-   * @property {number} lastTextIndex - The property used to store the string
-    * last index
-   * @property {number} nodes.start - The start position within the composite
-   * value
-   * @property {number} nodes.end - The end position within the composite
-   * value
-   * @property {HTMLElement} nodes.node - The DOM text node element
+   * @property {string} text - The composite value of all text nodes
+   * @property {Mark~nodeInfo[]} nodes - The array of objects
+   * @property {number} lastIndex - The property used to store the nodes the last index
+   * @property {number} lastTextIndex - This property is required for compatibility with [Mark~getTextNodesAcrossDict]
    */
 
   /**
@@ -628,7 +591,7 @@ class Mark {
         node: node
       });
     }, node => {
-      if (this.matchesExclude(node.parentNode)) {
+      if (this.excludeElements(node.parentNode)) {
         return NodeFilter.FILTER_REJECT;
       } else {
         return NodeFilter.FILTER_ACCEPT;
@@ -658,7 +621,7 @@ class Mark {
    * @return {boolean}
    * @access protected
    */
-  matchesExclude(elem) {
+  excludeElements(elem) {
     // it's faster to check if array contains the node name than selector in 'DOMIterator.matches()'
     // also it allows to use a string of selectors instead of an array with the 'exclude' option
     const nodeNames = ['script', 'style', 'title', 'head', 'html'];
@@ -767,24 +730,15 @@ class Mark {
     return { retNode, markNode, increment };
   }
 
-  /* eslint-disable complexity */
   /**
    * @typedef Mark~wrapRangeInMappedTextNodeDict
    * @type {object.<string>}
-   * @property {string} value - The composite value of all text nodes
-   * @property {object[]} nodes - An array of objects
-   * @property {number} lastIndex - The property used to store the nodes last
-   * index
-   * @property {number} nodes.start - The start position within the composite
-   * value
-   * @property {number} nodes.end - The end position within the composite
-   * value
-   * @property {number} nodes.offset - The offset is used to correct position
-   * if space or string was added to the end of the text node
-   * @property {number} nodes.startOffset - The length of spaces/strings that
-   * were added to the composite string.
-   * @property {HTMLElement} nodes.node - The DOM text node element
+   * @property {string} text - The composite string of all text nodes
+   * @property {Mark~nodeInfoAcross[]} nodes - An array of node info objects
+   * @property {number} lastIndex - The property used to store the nodes last index
+   * @property {number} lastTextIndex - The property used to store the string last index
    */
+  
   /**
    * Each callback
    * @callback Mark~wrapRangeInMappedTextNodeEachCallback
@@ -872,7 +826,6 @@ class Mark {
       }
     }
   }
-  /* eslint-enable complexity */
 
   /**
   * @param {HTMLElement} node - The text node where the match occurs
@@ -1156,7 +1109,6 @@ class Mark {
     }
   }
 
-  /* eslint-disable complexity */
   /**
   * It parses the RegExp pattern and collects main groups indexes - children
   * of the group[0]
@@ -1199,7 +1151,6 @@ class Mark {
     }
     return groups;
   }
-  /* eslint-enable complexity */
 
   /**
    * Group filter callback before each wrapping
@@ -1286,7 +1237,6 @@ class Mark {
     });
   }
 
-  /* eslint-disable complexity */
   /**
    * Filter callback before each wrapping
    * @callback Mark~wrapMatchesFilterCallback
@@ -1394,7 +1344,6 @@ class Mark {
       endCb(count);
     });
   }
-  /* eslint-enable complexity */
 
   /**
    * @typedef Mark~paramsObject
@@ -1471,11 +1420,8 @@ class Mark {
 
     let match, matchStart, eMatchStart, count = 0;
 
-    this.getTextNodesAcrossElements(dict => {
-      while (
-        (match = regex.exec(dict.value)) !== null &&
-        (regex.hasIndices || match[0] !== '')
-      ) {
+    this.getTextNodesAcross(dict => {
+      while ((match = regex.exec(dict.text)) !== null && (regex.hasIndices || match[0] !== '')) {
         filterInfo.match = match;
         matchStart = eMatchStart = true;
 
@@ -1547,15 +1493,12 @@ class Mark {
 
     let match, matchStart, count = 0;
 
-    this.getTextNodesAcrossElements(dict => {
-      while (
-        (match = regex.exec(dict.value)) !== null &&
-        match[index] !== ''
-      ) {
+    this.getTextNodesAcross(dict => {
+      while ((match = regex.exec(dict.text)) !== null && match[index] !== '') {
         filterInfo.match = match;
         matchStart = true;
 
-        // calculate range inside dict.value
+        // calculate range inside dict.text
         let start = match.index;
         if (index !== 0) {
           for (let i = 1; i < index; i++) {
@@ -1654,7 +1597,7 @@ class Mark {
       endCb(count);
     });
   }
-  
+
   /**
    * Unwraps the specified DOM node with its content (text nodes or HTML)
    * without destroying possibly present events (using innerHTML) and normalizes text nodes
@@ -1694,12 +1637,12 @@ class Mark {
         // most likely is a nested mark element or modified by user element
         parent.replaceChild(node.firstChild, node);
       }
-      
+
     } else {
       if ( !first) {
         // an empty mark element
         parent.removeChild(node);
-        
+
       } else {
         // most likely is a nested mark element(s) with sibling text node(s) or modified by user element(s)
         let docFrag = document.createDocumentFragment();
@@ -1707,7 +1650,7 @@ class Mark {
           docFrag.appendChild(node.removeChild(node.firstChild));
         }
         parent.replaceChild(docFrag, node);
-      } 
+      }
       parent.normalize();
     }
   }
@@ -2157,7 +2100,7 @@ class Mark {
       this.unwrapMatches(node);
     }, node => {
       // calls 'matchesExclude()' only when 'DOMIterator.matches()' returns true (is mark element)
-      if (DOMIterator.matches(node, selector) && !this.matchesExclude(node)) {
+      if (DOMIterator.matches(node, selector) && !this.excludeElements(node)) {
         return NodeFilter.FILTER_ACCEPT;
       } else {
         return NodeFilter.FILTER_REJECT;

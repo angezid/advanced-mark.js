@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 14, 2023 */
+/* Version: 2.0.0 - February 16, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -729,63 +729,6 @@
         };
       }
     }, {
-      key: "checkParents",
-      value: function checkParents(textNode, checkName) {
-        if (textNode === textNode.parentNode.lastChild) {
-          if (checkName(textNode.parentNode)) {
-            return true;
-          } else {
-            var parent = textNode.parentNode;
-            while (parent.parentNode && parent === parent.parentNode.lastChild) {
-              if (checkName(parent.parentNode)) {
-                return true;
-              }
-              parent = parent.parentNode;
-            }
-          }
-          var node = textNode.parentNode.nextSibling;
-          if (node) {
-            if (node.nodeType === 1) {
-              if (checkName(node)) {
-                return true;
-              }
-            } else {
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-    }, {
-      key: "checkNextSiblings",
-      value: function checkNextSiblings(node, checkName) {
-        if (node && node.nodeType === 1) {
-          if (checkName(node)) {
-            return;
-          } else if (node.firstChild) {
-            var prevFirstChild,
-              child = node.firstChild;
-            while (child) {
-              if (child.nodeType === 1) {
-                if (checkName(child)) {
-                  return;
-                }
-                prevFirstChild = child;
-                child = child.firstChild;
-                continue;
-              }
-              return;
-            }
-            this.checkNextSiblings(prevFirstChild.nextSibling, checkName);
-          }
-          if (node !== node.parentNode.lastChild) {
-            this.checkNextSiblings(node.nextSibling, checkName);
-          } else {
-            checkName(node.parentNode);
-          }
-        }
-      }
-    }, {
       key: "setType",
       value: function setType(tags) {
         var boundary = this.opt.blockElementsBoundary,
@@ -805,8 +748,8 @@
         tags['br'] = 1;
       }
     }, {
-      key: "getTextNodesAcrossElements",
-      value: function getTextNodesAcrossElements(cb) {
+      key: "getTextNodesAcross",
+      value: function getTextNodesAcross(cb) {
         var _this3 = this;
         if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
           this.cacheDict.lastIndex = 0;
@@ -814,17 +757,6 @@
           cb(this.cacheDict);
           return;
         }
-        var val = '',
-          start,
-          text,
-          endBySpace,
-          type,
-          offset,
-          startOffset = 0,
-          str = "\x01 ",
-          str2;
-        var nodes = [],
-          boundary = this.opt.blockElementsBoundary;
         var tags = {
           div: 1,
           p: 1,
@@ -886,65 +818,57 @@
           object: 1,
           svg: 1
         };
+        var boundary = this.opt.blockElementsBoundary;
+        var str = '\x01',
+          temp,
+          prevNode,
+          currNode,
+          type;
         if (boundary) {
           this.setType(tags);
           if (boundary["char"]) {
-            str = boundary["char"].charAt(0) + ' ';
+            str = boundary["char"].charAt(0);
           }
-          str2 = ' ' + str;
         }
-        this.iterator.forEachNode(NodeFilter.SHOW_TEXT, function (node) {
-          offset = 0;
-          start = val.length;
-          text = node.textContent;
-          endBySpace = /\s/.test(text[text.length - 1]);
-          if (boundary || !endBySpace) {
-            var success = _this3.checkParents(node, function (nd) {
-              type = tags[nd.nodeName.toLowerCase()];
-              return type;
-            });
-            if (!success) {
-              _this3.checkNextSiblings(node.nextSibling, function (nd) {
-                type = tags[nd.nodeName.toLowerCase()];
-                return type;
-              });
-            }
-            if (type) {
-              if (!endBySpace) {
-                if (type === 1) {
-                  val += text + ' ';
-                  offset = 1;
-                } else if (type === 2) {
-                  val += text + str2;
-                  offset = 3;
-                }
-              } else if (type === 2) {
-                val += text + str;
-                offset = 2;
+        var obj = {
+          nodes: [],
+          text: '',
+          tags: tags,
+          boundary: boundary,
+          startOffset: 0,
+          str: str,
+          str1: ' ' + str,
+          str2: str + ' ',
+          str3: ' ' + str + ' '
+        };
+        this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, function (node) {
+          if (!currNode) {
+            prevNode = currNode = node;
+          } else {
+            currNode = node;
+            _this3.getNodeInfo(prevNode, node, type, obj);
+            prevNode = node;
+            type = null;
+          }
+        }, function (node) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if (!type) {
+              type = tags[node.nodeName.toLowerCase()];
+            } else {
+              if ((temp = tags[node.nodeName.toLowerCase()]) && temp === 2) {
+                type = temp;
               }
             }
-          }
-          if (offset === 0) {
-            val += text;
-          }
-          nodes.push({
-            start: start,
-            end: val.length - offset,
-            offset: offset,
-            startOffset: startOffset,
-            node: node
-          });
-          startOffset -= offset;
-        }, function (node) {
-          if (_this3.matchesExclude(node.parentNode)) {
             return NodeFilter.FILTER_REJECT;
-          } else {
-            return NodeFilter.FILTER_ACCEPT;
           }
+          return _this3.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
         }, function () {
+          if (currNode) {
+            _this3.getNodeInfo(prevNode, currNode, type, obj);
+          }
           var dict = {
-            value: val,
-            nodes: nodes,
+            text: obj.text,
+            nodes: obj.nodes,
             lastIndex: 0,
             lastTextIndex: 0
           };
@@ -954,6 +878,62 @@
           }
           cb(dict);
         });
+      }
+    }, {
+      key: "getNodeInfo",
+      value: function getNodeInfo(prevNode, node, type, obj) {
+        var offset = 0;
+        var start = obj.text.length,
+          text = prevNode.textContent;
+        if (prevNode !== node) {
+          var endSpace = /\s/.test(text[text.length - 1]),
+            startSpace = /\s/.test(node.textContent[0]);
+          if (obj.boundary || !endSpace && !startSpace) {
+            var separate = type;
+            if (!type) {
+              var parent = prevNode.parentNode;
+              while (parent) {
+                type = obj.tags[parent.nodeName.toLowerCase()];
+                if (type) {
+                  separate = !(parent === node.parentNode || parent.contains(node));
+                  break;
+                }
+                parent = parent.parentNode;
+              }
+            }
+            if (separate) {
+              if (!endSpace && !startSpace) {
+                if (type === 1) {
+                  obj.text += text + ' ';
+                  offset = 1;
+                } else if (type === 2) {
+                  obj.text += text + obj.str3;
+                  offset = 3;
+                }
+              } else if (type === 2) {
+                var str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
+                obj.text += text + str;
+                offset = str.length;
+              }
+            }
+          }
+        }
+        if (offset === 0) {
+          obj.text += text;
+        }
+        obj.nodes.push(this.createInfo(prevNode, start, obj.text.length - offset, offset, obj.startOffset));
+        obj.startOffset -= offset;
+      }
+    }, {
+      key: "createInfo",
+      value: function createInfo(node, start, end, offset, startOffset) {
+        return {
+          node: node,
+          start: start,
+          end: end,
+          offset: offset,
+          startOffset: startOffset
+        };
       }
     }, {
       key: "getTextNodes",
@@ -973,7 +953,7 @@
             node: node
           });
         }, function (node) {
-          if (_this4.matchesExclude(node.parentNode)) {
+          if (_this4.excludeElements(node.parentNode)) {
             return NodeFilter.FILTER_REJECT;
           } else {
             return NodeFilter.FILTER_ACCEPT;
@@ -993,8 +973,8 @@
         });
       }
     }, {
-      key: "matchesExclude",
-      value: function matchesExclude(elem) {
+      key: "excludeElements",
+      value: function excludeElements(elem) {
         var nodeNames = ['script', 'style', 'title', 'head', 'html'];
         return nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 || this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
       }
@@ -1447,8 +1427,8 @@
           matchStart,
           eMatchStart,
           count = 0;
-        this.getTextNodesAcrossElements(function (dict) {
-          while ((match = regex.exec(dict.value)) !== null && (regex.hasIndices || match[0] !== '')) {
+        this.getTextNodesAcross(function (dict) {
+          while ((match = regex.exec(dict.text)) !== null && (regex.hasIndices || match[0] !== '')) {
             filterInfo.match = match;
             matchStart = eMatchStart = true;
             _this7[fn](dict, match, params, function (group, node, groupIndex) {
@@ -1490,8 +1470,8 @@
         var match,
           matchStart,
           count = 0;
-        this.getTextNodesAcrossElements(function (dict) {
-          while ((match = regex.exec(dict.value)) !== null && match[index] !== '') {
+        this.getTextNodesAcross(function (dict) {
+          while ((match = regex.exec(dict.text)) !== null && match[index] !== '') {
             filterInfo.match = match;
             matchStart = true;
             var start = match.index;
@@ -1812,7 +1792,7 @@
         this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, function (node) {
           _this14.unwrapMatches(node);
         }, function (node) {
-          if (DOMIterator.matches(node, selector) && !_this14.matchesExclude(node)) {
+          if (DOMIterator.matches(node, selector) && !_this14.excludeElements(node)) {
             return NodeFilter.FILTER_ACCEPT;
           } else {
             return NodeFilter.FILTER_REJECT;

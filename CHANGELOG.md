@@ -1,4 +1,10 @@
 
+### 2.0.0
+
+Rewrote `DOMIterator` iframe related code.
+Rewrote `unwrapMatches()` method for performance reason.
+Rewrote `getTextNodesAcross()` method (previous named as 'getTextNodesAcrossElements') to change the logic which determines does the two text nodes are separated by block element.
+
 ### 1.1.0
 
 * Added ability to extend the default boundary elements with custom elements (`blockElementsBoundary` option)
