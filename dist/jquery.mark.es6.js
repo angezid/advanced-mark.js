@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 14, 2023 */
+/* Version: 2.0.0 - February 16, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -587,58 +587,6 @@ class Mark {
       valid: valid
     };
   }
-  checkParents(textNode, checkName) {
-    if (textNode === textNode.parentNode.lastChild) {
-      if (checkName(textNode.parentNode)) {
-        return true;
-      } else {
-        let parent = textNode.parentNode;
-        while (parent.parentNode && parent === parent.parentNode.lastChild) {
-          if (checkName(parent.parentNode)) {
-            return true;
-          }
-          parent = parent.parentNode;
-        }
-      }
-      let node = textNode.parentNode.nextSibling;
-      if (node) {
-        if (node.nodeType === 1) {
-          if ((checkName(node))) {
-            return true;
-          }
-        } else {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-  checkNextSiblings(node, checkName) {
-    if (node && node.nodeType === 1) {
-      if (checkName(node)) {
-        return;
-      } else if (node.firstChild) {
-        let prevFirstChild, child = node.firstChild;
-        while (child) {
-          if (child.nodeType === 1) {
-            if (checkName(child)) {
-              return;
-            }
-            prevFirstChild = child;
-            child = child.firstChild;
-            continue;
-          }
-          return;
-        }
-        this.checkNextSiblings(prevFirstChild.nextSibling, checkName);
-      }
-      if (node !== node.parentNode.lastChild) {
-        this.checkNextSiblings(node.nextSibling, checkName);
-      } else {
-        checkName(node.parentNode);
-      }
-    }
-  }
   setType(tags) {
     const boundary = this.opt.blockElementsBoundary,
       custom = Array.isArray(boundary.tagNames) && boundary.tagNames.length;
@@ -654,19 +602,14 @@ class Mark {
     }
     tags['br'] = 1;
   }
-  getTextNodesAcrossElements(cb) {
+  getTextNodesAcross(cb) {
     if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
       this.cacheDict.lastIndex = 0;
       this.cacheDict.lastTextIndex = 0;
       cb(this.cacheDict);
       return;
     }
-    let val = '', start, text, endBySpace, type, offset,
-      startOffset = 0,
-      str = '\u0001 ', str2;
-    const nodes = [],
-      boundary = this.opt.blockElementsBoundary;
-    const tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
+    let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
       ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
       h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
       pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
@@ -676,65 +619,47 @@ class Mark {
       button : 1, header : 1, footer : 1, address : 1, area : 1, canvas : 1,
       map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
       body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
+    const boundary = this.opt.blockElementsBoundary;
+    let str = '\x01', temp, prevNode, currNode, type;
     if (boundary) {
       this.setType(tags);
       if (boundary.char) {
-        str = boundary.char.charAt(0) + ' ';
+        str = boundary.char.charAt(0);
       }
-      str2 = ' ' + str;
     }
-    this.iterator.forEachNode(NodeFilter.SHOW_TEXT, node => {
-      offset = 0;
-      start = val.length;
-      text = node.textContent;
-      endBySpace = /\s/.test(text[text.length - 1]);
-      if (boundary || !endBySpace) {
-        let success = this.checkParents(node, nd => {
-          type = tags[nd.nodeName.toLowerCase()];
-          return type;
-        });
-        if ( !success) {
-          this.checkNextSiblings(node.nextSibling, nd => {
-            type = tags[nd.nodeName.toLowerCase()];
-            return type;
-          });
-        }
-        if (type) {
-          if ( !endBySpace) {
-            if (type === 1) {
-              val += text + ' ';
-              offset = 1;
-            } else if (type === 2) {
-              val += text + str2;
-              offset = 3;
-            }
-          } else if (type === 2) {
-            val += text + str;
-            offset = 2;
+    const obj = {
+      nodes : [], text : '', tags : tags,
+      boundary : boundary, startOffset : 0,
+      str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
+    };
+    this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, node => {
+      if ( !currNode) {
+        prevNode = currNode = node;
+      } else {
+        currNode = node;
+        this.getNodeInfo(prevNode, node, type, obj);
+        prevNode = node;
+        type = null;
+      }
+    }, node => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if ( !type) {
+          type = tags[node.nodeName.toLowerCase()];
+        } else {
+          if ((temp = tags[node.nodeName.toLowerCase()]) && temp === 2) {
+            type = temp;
           }
         }
-      }
-      if (offset === 0) {
-        val += text;
-      }
-      nodes.push({
-        start: start,
-        end: val.length - offset,
-        offset : offset,
-        startOffset : startOffset,
-        node: node
-      });
-      startOffset -= offset;
-    }, node => {
-      if (this.matchesExclude(node.parentNode)) {
         return NodeFilter.FILTER_REJECT;
-      } else {
-        return NodeFilter.FILTER_ACCEPT;
       }
+      return this.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
     }, () => {
+      if (currNode) {
+        this.getNodeInfo(prevNode, currNode, type, obj);
+      }
       const dict = {
-        value: val,
-        nodes: nodes,
+        text : obj.text,
+        nodes: obj.nodes,
         lastIndex: 0,
         lastTextIndex: 0
       };
@@ -744,6 +669,52 @@ class Mark {
       }
       cb(dict);
     });
+  }
+  getNodeInfo(prevNode, node, type, obj) {
+    let offset = 0;
+    const start = obj.text.length,
+      text = prevNode.textContent;
+    if (prevNode !== node) {
+      const endSpace = /\s/.test(text[text.length - 1]),
+        startSpace = /\s/.test(node.textContent[0]);
+      if (obj.boundary || !endSpace && !startSpace) {
+        let separate = type;
+        if ( !type) {
+          let parent = prevNode.parentNode;
+          while (parent) {
+            type = obj.tags[parent.nodeName.toLowerCase()];
+            if (type) {
+              separate = !(parent === node.parentNode || parent.contains(node));
+              break;
+            }
+            parent = parent.parentNode;
+          }
+        }
+        if (separate) {
+          if ( !endSpace && !startSpace) {
+            if (type === 1) {
+              obj.text += text + ' ';
+              offset = 1;
+            } else if (type === 2) {
+              obj.text += text + obj.str3;
+              offset = 3;
+            }
+          } else if (type === 2) {
+            let str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
+            obj.text += text + str;
+            offset = str.length;
+          }
+        }
+      }
+    }
+    if (offset === 0) {
+      obj.text += text;
+    }
+    obj.nodes.push(this.createInfo(prevNode, start, obj.text.length - offset, offset, obj.startOffset));
+    obj.startOffset -= offset;
+  }
+  createInfo(node, start, end, offset, startOffset) {
+    return { node, start, end, offset, startOffset };
   }
   getTextNodes(cb) {
     if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
@@ -760,7 +731,7 @@ class Mark {
         node: node
       });
     }, node => {
-      if (this.matchesExclude(node.parentNode)) {
+      if (this.excludeElements(node.parentNode)) {
         return NodeFilter.FILTER_REJECT;
       } else {
         return NodeFilter.FILTER_ACCEPT;
@@ -779,7 +750,7 @@ class Mark {
       cb(dict);
     });
   }
-  matchesExclude(elem) {
+  excludeElements(elem) {
     const nodeNames = ['script', 'style', 'title', 'head', 'html'];
     return nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 ||
       this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
@@ -1163,11 +1134,8 @@ class Mark {
       execution = { abort : false },
       filterInfo = { execution : execution };
     let match, matchStart, eMatchStart, count = 0;
-    this.getTextNodesAcrossElements(dict => {
-      while (
-        (match = regex.exec(dict.value)) !== null &&
-        (regex.hasIndices || match[0] !== '')
-      ) {
+    this.getTextNodesAcross(dict => {
+      while ((match = regex.exec(dict.text)) !== null && (regex.hasIndices || match[0] !== '')) {
         filterInfo.match = match;
         matchStart = eMatchStart = true;
         this[fn](dict, match, params, (group, node, groupIndex) => {
@@ -1200,11 +1168,8 @@ class Mark {
       execution = { abort : false },
       filterInfo = { execution : execution };
     let match, matchStart, count = 0;
-    this.getTextNodesAcrossElements(dict => {
-      while (
-        (match = regex.exec(dict.value)) !== null &&
-        match[index] !== ''
-      ) {
+    this.getTextNodesAcross(dict => {
+      while ((match = regex.exec(dict.text)) !== null && match[index] !== '') {
         filterInfo.match = match;
         matchStart = true;
         let start = match.index;
@@ -1507,7 +1472,7 @@ class Mark {
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      if (DOMIterator.matches(node, selector) && !this.matchesExclude(node)) {
+      if (DOMIterator.matches(node, selector) && !this.excludeElements(node)) {
         return NodeFilter.FILTER_ACCEPT;
       } else {
         return NodeFilter.FILTER_REJECT;
