@@ -90,7 +90,7 @@ describe('mark with range', function() {
     expect(JSON.stringify(notFound)).toBe(JSON.stringify([
       {start: 10, length: 0},
       {start: 20, length: 0},
-      {start: 30, length: 0.6}
+      {start: 30, length: 0}
     ]));
   });
 });

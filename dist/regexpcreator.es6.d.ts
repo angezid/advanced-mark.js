@@ -1,9 +1,8 @@
 
-// Type definitions for advanced-mark.js 1.0.2
-// Project: https://github.com/angezid/advanced-mark.js/
+// Type definitions for advanced-mark.js v2.0.0
 
 declare namespace RegExpCreator {
-  
+
   interface AccuracyObject {
     value: 'exactly' | 'complementary';
     limiters: string[];
@@ -28,7 +27,7 @@ declare namespace RegExpCreator {
 
 declare class RegExpCreator {
   constructor(options?: RegExpCreator.RegExpCreatorOptions);
-  
+
   /**
    * Creates a regular expression to match the specified search term considering the available option settings
    * @param str - The search term to be used

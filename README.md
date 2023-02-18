@@ -19,7 +19,7 @@ What is done:
 * `blockElementsBoundary` option - limits matches within HTML block elements, when highlighting phrases or RegExp groups with `acrossElements` option
 * `shadowDOM` option - allows highlighting shadow DOM ('mode: open' and is already built)
 
-This library keeps backward compatibility with `mark.js` v9.0.0 and npm package v8.11.1 on public API level.
+This library from v2.0.0 doesn't guaranty backward compatibility with `mark.js` v9.0.0 and npm package v8.11.1.
 
 Main doc - [Documentation](https://markjs.io/). Note that this doc is for old `mark.js`.
 
@@ -36,10 +36,10 @@ Main doc - [Documentation](https://markjs.io/). Note that this doc is for old `m
 * [RegExpCreator module](doc/RegExpCreator-module.md)
 
 ## Modules changes
-* \*. es6.\*.js now are real ES6 modules
-* \*.umd.\*.js are UMD modules, previously was named as \*. es6.\*.js
+* \*. es6.\*.js now are real ES6 modules. They are actually UMD modules in `mark.js` v9.0.0 and npm package v8.11.1.
+
 ``` js
 import Mark from './mark.es6.js';
 // import Mark from './jquery.mark.es6.js';
 ```
-**Warning:** UMD modules will be removed in the next release - they are kept for backward compatibility.
+UMD modules are removed from v2.0.0.

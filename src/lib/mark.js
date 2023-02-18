@@ -92,6 +92,26 @@ class Mark {
   }
 
   /**
+   * @typedef Mark~logObject
+   * @type {object}
+   * @property {string} message - The message
+   * @property {object} obj - The object
+   */
+
+  /**
+   * Logs errors and info
+   * @param {array} array - The array of objects
+   */
+  report(array) {
+    array.forEach(item => {
+      this.log(`${item.text} ${JSON.stringify(item.obj)}`, item.level ? item.level : 'debug');
+      if ( !item.skip) {
+        this.opt.noMatch(item.obj);
+      }
+    });
+  }
+
+  /**
    * The 'cacheTextNodes' option must be used with 'wrapAllRanges' when 'acrossElments' option is enabled
    * It automatically sets 'wrapAllRanges' to avoid external dependency
    * It also checks the validity of cache objects (mark instance can calls several methods with different setting
@@ -174,153 +194,69 @@ class Mark {
   }
 
   /**
-   * @typedef Mark~rangeObject
-   * @type {object}
-   * @property {number} start - The start position within the composite value
-   * @property {number} length - The length of the string to mark within the
-   * composite value.
+   * Checks if an obj is an Object
+   * @param {any} obj - the value to check;
+   * @return {boolean}
    */
+  isObject(obj) {
+    return Object.prototype.toString.call(obj) === '[object Object]';
+  }
 
   /**
-   * @typedef Mark~setOfRanges
-   * @type {object[]}
-   * @property {Mark~rangeObject}
+   * Checks if an obj is an array and has at least one object
+   * @param {any} array - the value to check;
+   * @return {boolean}
    */
+  isArrayOfObjects(array) {
+    return Array.isArray(array) && array.some(item => this.isObject(item));
+  }
+
   /**
-   * Returns a processed list of integer offset indexes that do not overlap
-   * each other, and remove any string values or additional elements
+   * Filters valid ranges, sorts and, if wrapAllRanges option is false, filters out nesting/overlapping ranges
    * @param {Mark~setOfRanges} array - unprocessed raw array
-   * @return {Mark~setOfRanges} - processed array with any invalid entries
-   * removed
-   * @throws Will throw an error if an array of objects is not passed
+   * @param {Mark~logObject} logs - The array of logs objects
+   * @return {Mark~setOfRanges} - processed array with any invalid entries removed
    * @access protected
    */
-  checkRanges(array) {
-    // start and length indexes are included in an array of objects
-    // [{start: 0, length: 1}, {start: 4, length: 5}]
-    // quick validity check of the first entry only
-    if (
-      !Array.isArray(array) ||
-      Object.prototype.toString.call(array[0]) !== '[object Object]'
-    ) {
-      this.log('markRanges() will only accept an array of objects');
-      this.opt.noMatch(array);
-      return [];
-    }
-    const stack = [];
-    let last = 0;
-    array
-    // ensure there is no overlap in start & end offsets
-      .sort((a, b) => {
-        return a.start - b.start;
-      })
-      .forEach(item => {
-        let {start, end, valid} = this.callNoMatchOnInvalidRanges(item, last);
-        if (valid) {
-          // preserve item in case there are extra key:values within
-          item.start = start;
-          item.length = end - start;
-          stack.push(item);
-          // with wrapAllRanges option, it keeps nesting & overlapping ranges
-          if ( !this.opt.wrapAllRanges) {
-            last = end;
-          }
+  checkRanges(array, logs, max) {
+    // a range object must have the start and length properties with numeric values
+    // [{start: 0, length: 5}, ..]
+    const level = 'error';
+
+    // filters and sorts valid ranges
+    const ranges = array.filter(range => {
+      let valid = false;
+
+      if (this.isNumeric(range.start) && this.isNumeric(range.length)) {
+        range.start = parseInt(range.start);
+        range.length = parseInt(range.length);
+
+        if (range.start >= 0 && range.start < max && range.length > 0) {
+          valid = true;
         }
-      });
-    return stack;
-  }
-
-  /**
-   * @typedef Mark~validObject
-   * @type {object}
-   * @property {number} start - The start position within the composite value
-   * @property {number} end - The calculated end position within the composite
-   * value.
-   * @property {boolean} valid - boolean value indicating that the start and
-   * calculated end range is valid
-   */
-  /**
-   * Initial validation of ranges for markRanges. Preliminary checks are done
-   * to ensure the start and length values exist and are not zero or non-
-   * numeric
-   * @param {Mark~rangeObject} range - the current range object
-   * @param {number} last - last index of range
-   * @return {Mark~validObject}
-   * @access protected
-   */
-  callNoMatchOnInvalidRanges(range, last) {
-    let start, end,
-      valid = false;
-    if (range && typeof range.start !== 'undefined') {
-      start = parseInt(range.start, 10);
-      end = start + parseInt(range.length, 10);
-      // ignore overlapping values & non-numeric entries
-      if (
-        this.isNumeric(range.start) &&
-        this.isNumeric(range.length) &&
-        start >= last &&
-        end > start
-      ) {
-        valid = true;
-      } else {
-        this.log(
-          'Ignoring invalid or overlapping range: ' +
-          `${JSON.stringify(range)}`
-        );
-        this.opt.noMatch(range);
       }
-    } else {
-      this.log(`Ignoring invalid range: ${JSON.stringify(range)}`);
-      this.opt.noMatch(range);
-    }
-    return {
-      start: start,
-      end: end,
-      valid: valid
-    };
-  }
+      if ( !valid) {
+        logs.push({ text : 'Ignoring invalid range: ', obj : range, level });
+        return false;
+      }
+      return true;
+    }).sort((a, b) => a.start - b.start);
 
-  /**
-   * Check valid range for markRanges. Check ranges with access to the context
-   * string. Range values are double checked, lengths that extend the mark
-   * beyond the string length are limited and ranges containing only
-   * whitespace are ignored
-   * @param {Mark~rangeObject} range - the current range object
-   * @param {number} originalLength - original length of the context string
-   * @param {string} string - current content string
-   * @return {Mark~validObject}
-   * @access protected
-   */
-  checkWhitespaceRanges(range, originalLength, string) {
-    let end,
-      valid = true,
-      // the max value changes after the DOM is manipulated
-      max = string.length,
-      // adjust offset to account for wrapped text node
-      offset = originalLength - max,
-      start = parseInt(range.start, 10) - offset;
-    // make sure to stop at max
-    start = start > max ? max : start;
-    end = start + parseInt(range.length, 10);
-    if (end > max) {
-      end = max;
-      this.log(`End range automatically set to the max value of ${max}`);
+    if (this.opt.wrapAllRanges) {
+      return ranges;
     }
-    if (start < 0 || end - start <= 0) {
-      valid = false;
-      this.log(`Invalid range: ${JSON.stringify(range)}`);
-      this.opt.noMatch(range);
-    } else if ( !/\S/.test(string.substring(start, end))) {
-      valid = false;
-      // whitespace only; even if wrapped it is not visible
-      this.log('Skipping whitespace only range: ' + JSON.stringify(range));
-      this.opt.noMatch(range);
-    }
-    return {
-      start: start,
-      end: end,
-      valid: valid
-    };
+
+    let lastIndex = 0, type;
+    // filters out nesting/overlapping ranges
+    return ranges.filter(range => {
+      if (range.start >= lastIndex) {
+        lastIndex = range.start + range.length;
+        return true;
+      }
+      type = range.start + range.length < lastIndex ? 'nesting' : 'overlapping';
+      logs.push({ text : `Ignoring ${type} range: `, obj : range, level });
+      return false;
+    });
   }
 
   /**
@@ -738,7 +674,7 @@ class Mark {
    * @property {number} lastIndex - The property used to store the nodes last index
    * @property {number} lastTextIndex - The property used to store the string last index
    */
-  
+
   /**
    * Each callback
    * @callback Mark~wrapRangeInMappedTextNodeEachCallback
@@ -1534,67 +1470,77 @@ class Mark {
 
   /**
    * Callback for each wrapped element
-   * @callback Mark~wrapRangeFromIndexEachCallback
+   * @callback Mark~wrapRangesEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~rangeObject} range - the current range object; provided
-   * start and length values will be numeric integers modified from the
-   * provided original ranges.
-   * @param {Mark~rangeInfoObject} rangeInfo - The object containing the range
-    * information
+   * @param {Mark~rangeObject} range - the current range object; provided start and length values
+   * are numeric integers modified from the provided original ranges.
+   * @param {Mark~rangeInfoObject} rangeInfo - The object containing the range information
    */
   /**
    * Filter callback before each wrapping
-   * @callback Mark~wrapRangeFromIndexFilterCallback
-   * @param {HTMLElement} node - The text node which includes the range
+   * @callback Mark~wrapRangesFilterCallback
+   * @param {Text} node - The text node which includes the range or is part of the range
    * @param {Mark~rangeObject} range - the current range object
-   * @param {string} match - string extracted from the matching range
-   * @param {number} counter - The current range index
+   * @param {string} substr - string extracted from the matching range
+   * @param {number} index - The current range index
    */
 
   /**
    * Callback on end
-   * @callback Mark~wrapRangeFromIndexEndCallback
+   * @callback Mark~wrapRangesEndCallback
    * @param {number} count - The number of wrapped ranges
+   * @param {Mark~logObject[]} logs - The array of objects
    */
   /**
    * Wraps the indicated ranges across all HTML elements in all contexts
    * @param {Mark~setOfRanges} ranges
-   * @param {Mark~wrapRangeFromIndexFilterCallback} filterCb
-   * @param {Mark~wrapRangeFromIndexEachCallback} eachCb
-   * @param {Mark~wrapRangeFromIndexEndCallback} endCb
+   * @param {Mark~wrapRangesFilterCallback} filterCb
+   * @param {Mark~wrapRangesEachCallback} eachCb
+   * @param {Mark~wrapRangesEndCallback} endCb
    * @access protected
    */
-  wrapRangeFromIndex(ranges, filterCb, eachCb, endCb) {
+  wrapRanges(ranges, filterCb, eachCb, endCb) {
+    const logs = [],
+      skipped = [],
+      level = 'warn';
     let count = 0;
 
     this.getTextNodes(dict => {
-      const originalLength = dict.value.length;
-      ranges.forEach((range, counter) => {
-        let {start, end, valid} = this.checkWhitespaceRanges(
-          range,
-          originalLength,
-          dict.value
-        );
-        if (valid) {
-          this.wrapRangeInMappedTextNode(dict, start, end, obj => {
-            return filterCb(
-              obj.node,
-              range,
-              dict.value.substring(start, end),
-              counter
-            );
-          }, (node, rangeStart) => {
+      const max = dict.value.length,
+        array = this.checkRanges(ranges, logs, max);
+
+      array.forEach((range, index) => {
+        let end = range.start + range.length;
+
+        if (end > max) {
+          // with wrapAllRanges option, there can be several report of limited ranges
+          logs.push({ text : `Range length was limited to: ${end - max}`, obj : range, skip : true, level });
+          end = max;
+        }
+        const substr = dict.value.substring(range.start, end);
+
+        if (substr.trim()) {
+          this.wrapRangeInMappedTextNode(dict, range.start, end, obj => {    // filter
+            return filterCb(obj.node, range, substr, index);
+
+          }, (node, rangeStart) => {    // each
             if (rangeStart) {
               count++;
             }
             eachCb(node, range, {
-              matchStart: rangeStart,
-              count: count
+              matchStart : rangeStart,
+              count : count
             });
           });
+        } else {
+          // whitespace only; even if wrapped it is not visible
+          logs.push({ text : 'Skipping whitespace only range: ', obj : range, level });
+          skipped.push(range);
         }
       });
-      endCb(count);
+
+      this.log(`Valid ranges: ${JSON.stringify(array.filter(range => skipped.indexOf(range) === -1))}`);
+      endCb(count, logs);
     });
   }
 
@@ -2004,17 +1950,45 @@ class Mark {
   }
 
   /**
-   * @typedef Mark~rangeInfoObject
+   * @typedef Mark~rangeObject
    * @type {object}
-   * @property {boolean} matchStart - indicate the start of range
-   * @property {number} count - The current number of wrapped ranges
+   * @property {number} start - The start index within the composite string
+   * @property {number} length - The length of the string to mark within the composite string.
+   */
+  /**
+   * @typedef Mark~setOfRanges
+   * @type {object[]}
+   * @property {Mark~rangeObject}
    */
 
+  /**
+   * @typedef Mark~rangeInfoObject
+   * @type {object}
+   * @property {boolean} matchStart - Indicate the start of range
+   * @property {number} count - The current number of wrapped ranges
+   */
+  /**
+   * These options also include the common options from {@link Mark~commonOptions}
+   * @typedef Mark~markRangesOptions
+   * @type {object.<string>}
+   * @property {Mark~markRangesEachCallback} [each]
+   * @property {Mark~markRangesNoMatchCallback} [noMatch]
+   * @property {Mark~markRangesFilterCallback} [filter]
+   */
+
+  /**
+   * Callback to filter matches
+   * @callback Mark~markRangesFilterCallback
+   * @param {Text} node - The text node which includes the range or is part of the range
+   * @param {Mark~rangeObject} range - The range object
+   * @param {string} match - string extracted from the matching range
+   * @param {number} index - The current range index
+   */
   /**
    * Callback for each marked element
    * @callback Mark~markRangesEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {array} range - array of range start and end points
+   * @param {Mark~rangeObject} range - The range object
    * @param {Mark~rangeInfoObject}  - The object containing the range
    * information
    */
@@ -2022,65 +1996,42 @@ class Mark {
    * Callback if a processed range is invalid, out-of-bounds, overlaps another
    * range, or only matches whitespace
    * @callback Mark~markRangesNoMatchCallback
-   * @param {Mark~rangeObject} range - a range object
-   */
-  /**
-   * Callback to filter matches
-   * @callback Mark~markRangesFilterCallback
-   * @param {HTMLElement} node - The text node which includes the range
-   * @param {array} range - array of range start and end points
-   * @param {string} match - string extracted from the matching range
-   * @param {number} counter - The current range index
+   * @param {Mark~rangeObject} range - The range object
    */
 
   /**
-   * These options also include the common options from
-   * {@link Mark~commonOptions} without the each and noMatch callback
-   * @typedef Mark~markRangesOptions
-   * @type {object.<string>}
-   * @property {Mark~markRangesEachCallback} [each]
-   * @property {Mark~markRangesNoMatchCallback} [noMatch]
-   * @property {Mark~markRangesFilterCallback} [filter]
-   */
-  /**
-   * Marks an array of objects containing a start with an end or length of the
-   * string to mark
-   * @param  {Mark~setOfRanges} rawRanges - The original (preprocessed)
-   * array of objects
+   * Marks an array of objects containing start and length properties
+   * @param  {Mark~setOfRanges} ranges - The original array of objects
    * @param  {Mark~markRangesOptions} [opt] - Optional options object
    * @access public
    */
-  markRanges(rawRanges, opt) {
+  markRanges(ranges, opt) {
     this.opt = opt;
     this.cacheDict = {};
 
-    let totalMarks = 0,
-      ranges = this.checkRanges(rawRanges);
-    if (ranges && ranges.length) {
-      this.log(
-        'Starting to mark with the following ranges: ' +
-        JSON.stringify(ranges)
-      );
-      this.wrapRangeFromIndex(
-        ranges, (node, range, match, counter) => { // filter
-          return this.opt.filter(node, range, match, counter);
+    if (this.isArrayOfObjects(ranges)) {
+      let totalMarks = 0;
 
-        }, (element, range, rangeInfo) => { // each
-          totalMarks++;
-          this.opt.each(element, range, rangeInfo);
+      this.wrapRanges(ranges, (node, range, match, index) => { // filter
+        return this.opt.filter(node, range, match, index);
 
-        }, (totalMatches) => { // end
-          this.opt.done(totalMarks, totalMatches);
-        }
-      );
+      }, (elem, range, rangeInfo) => { // each
+        totalMarks++;
+        this.opt.each(elem, range, rangeInfo);
+
+      }, (totalRanges, logs) => { // end
+        this.report(logs);
+        this.opt.done(totalMarks, totalRanges);
+      });
+
     } else {
+      this.report([{ text : 'markRanges() accept an array of objects: ', obj : ranges, level : 'error' }]);
       this.opt.done(0, 0);
     }
   }
 
   /**
-   * Removes all marked elements inside the context with their HTML and
-   * normalizes the parent at the end
+   * Removes all marked elements inside the context with their HTML and normalizes text nodes
    * @param  {Mark~commonOptions} [opt] - Optional options object without each,
    * noMatch and acrossElements properties
    * @access public
@@ -2096,15 +2047,11 @@ class Mark {
     }
     this.log(`Removal selector "${selector}"`);
 
-    this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
+    this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => { // each
       this.unwrapMatches(node);
-    }, node => {
-      // calls 'matchesExclude()' only when 'DOMIterator.matches()' returns true (is mark element)
-      if (DOMIterator.matches(node, selector) && !this.excludeElements(node)) {
-        return NodeFilter.FILTER_ACCEPT;
-      } else {
-        return NodeFilter.FILTER_REJECT;
-      }
+    }, node => { // filter
+      const accept = DOMIterator.matches(node, selector) && !this.excludeElements(node);
+      return accept ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
     }, this.opt.done);
   }
 }

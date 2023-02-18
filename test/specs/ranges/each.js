@@ -21,11 +21,11 @@ describe('mark with range each callback', function() {
     });
   });
 
-  it('should call the each callback for each range element', function() {
-    expect($elements).toHaveLength(2);
-  });
-  it('should pass the correct parameters', function() {
+  it('should call the each callback and pass the correct parameters', function() {
     var textOpts = ['ipsum', 'elitr'];
+    
+    expect($elements).toHaveLength(2);
+    
     $elements.each(function() {
       expect($.inArray($(this).text(), textOpts)).toBeGreaterThan(-1);
     });
