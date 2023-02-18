@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 16, 2023 */
+/* Version: 2.0.0 - February 18, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -456,6 +456,14 @@ class Mark$1 {
       log[level](`mark.js: ${msg}`);
     }
   }
+  report(array) {
+    array.forEach(item => {
+      this.log(`${item.text} ${JSON.stringify(item.obj)}`, item.level ? item.level : 'debug');
+      if ( !item.skip) {
+        this.opt.noMatch(item.obj);
+      }
+    });
+  }
   checkOption(opt) {
     if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
       opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
@@ -500,90 +508,42 @@ class Mark$1 {
   isNumeric(value) {
     return Number(parseFloat(value)) == value;
   }
-  checkRanges(array) {
-    if (
-      !Array.isArray(array) ||
-      Object.prototype.toString.call(array[0]) !== '[object Object]'
-    ) {
-      this.log('markRanges() will only accept an array of objects');
-      this.opt.noMatch(array);
-      return [];
-    }
-    const stack = [];
-    let last = 0;
-    array
-      .sort((a, b) => {
-        return a.start - b.start;
-      })
-      .forEach(item => {
-        let {start, end, valid} = this.callNoMatchOnInvalidRanges(item, last);
-        if (valid) {
-          item.start = start;
-          item.length = end - start;
-          stack.push(item);
-          if ( !this.opt.wrapAllRanges) {
-            last = end;
-          }
+  isObject(obj) {
+    return Object.prototype.toString.call(obj) === '[object Object]';
+  }
+  isArrayOfObjects(array) {
+    return Array.isArray(array) && array.some(item => this.isObject(item));
+  }
+  checkRanges(array, logs, max) {
+    const level = 'error';
+    const ranges = array.filter(range => {
+      let valid = false;
+      if (this.isNumeric(range.start) && this.isNumeric(range.length)) {
+        range.start = parseInt(range.start);
+        range.length = parseInt(range.length);
+        if (range.start >= 0 && range.start < max && range.length > 0) {
+          valid = true;
         }
-      });
-    return stack;
-  }
-  callNoMatchOnInvalidRanges(range, last) {
-    let start, end,
-      valid = false;
-    if (range && typeof range.start !== 'undefined') {
-      start = parseInt(range.start, 10);
-      end = start + parseInt(range.length, 10);
-      if (
-        this.isNumeric(range.start) &&
-        this.isNumeric(range.length) &&
-        start >= last &&
-        end > start
-      ) {
-        valid = true;
-      } else {
-        this.log(
-          'Ignoring invalid or overlapping range: ' +
-          `${JSON.stringify(range)}`
-        );
-        this.opt.noMatch(range);
       }
-    } else {
-      this.log(`Ignoring invalid range: ${JSON.stringify(range)}`);
-      this.opt.noMatch(range);
+      if ( !valid) {
+        logs.push({ text : 'Ignoring invalid range: ', obj : range, level });
+        return false;
+      }
+      return true;
+    }).sort((a, b) => a.start - b.start);
+    if (this.opt.wrapAllRanges) {
+      return ranges;
     }
-    return {
-      start: start,
-      end: end,
-      valid: valid
-    };
-  }
-  checkWhitespaceRanges(range, originalLength, string) {
-    let end,
-      valid = true,
-      max = string.length,
-      offset = originalLength - max,
-      start = parseInt(range.start, 10) - offset;
-    start = start > max ? max : start;
-    end = start + parseInt(range.length, 10);
-    if (end > max) {
-      end = max;
-      this.log(`End range automatically set to the max value of ${max}`);
-    }
-    if (start < 0 || end - start <= 0) {
-      valid = false;
-      this.log(`Invalid range: ${JSON.stringify(range)}`);
-      this.opt.noMatch(range);
-    } else if ( !/\S/.test(string.substring(start, end))) {
-      valid = false;
-      this.log('Skipping whitespace only range: ' + JSON.stringify(range));
-      this.opt.noMatch(range);
-    }
-    return {
-      start: start,
-      end: end,
-      valid: valid
-    };
+    let lastIndex = 0, type;
+    return ranges.filter(range => {
+      if (range.start >= lastIndex) {
+        lastIndex = range.start + range.length;
+        return true;
+      }
+      type = range.start + range.length < lastIndex ? 'nesting' : 'overlapping';
+      logs.push({ text : `Ignoring ${type} range: `, obj : range, level });
+      return false;
+    });
   }
   setType(tags) {
     const boundary = this.opt.blockElementsBoundary,
@@ -1199,36 +1159,40 @@ class Mark$1 {
       endCb(count);
     });
   }
-  wrapRangeFromIndex(ranges, filterCb, eachCb, endCb) {
+  wrapRanges(ranges, filterCb, eachCb, endCb) {
+    const logs = [],
+      skipped = [],
+      level = 'warn';
     let count = 0;
     this.getTextNodes(dict => {
-      const originalLength = dict.value.length;
-      ranges.forEach((range, counter) => {
-        let {start, end, valid} = this.checkWhitespaceRanges(
-          range,
-          originalLength,
-          dict.value
-        );
-        if (valid) {
-          this.wrapRangeInMappedTextNode(dict, start, end, obj => {
-            return filterCb(
-              obj.node,
-              range,
-              dict.value.substring(start, end),
-              counter
-            );
+      const max = dict.value.length,
+        array = this.checkRanges(ranges, logs, max);
+      array.forEach((range, index) => {
+        let end = range.start + range.length;
+        if (end > max) {
+          logs.push({ text : `Range length was limited to: ${end - max}`, obj : range, skip : true, level });
+          end = max;
+        }
+        const substr = dict.value.substring(range.start, end);
+        if (substr.trim()) {
+          this.wrapRangeInMappedTextNode(dict, range.start, end, obj => {
+            return filterCb(obj.node, range, substr, index);
           }, (node, rangeStart) => {
             if (rangeStart) {
               count++;
             }
             eachCb(node, range, {
-              matchStart: rangeStart,
-              count: count
+              matchStart : rangeStart,
+              count : count
             });
           });
+        } else {
+          logs.push({ text : 'Skipping whitespace only range: ', obj : range, level });
+          skipped.push(range);
         }
       });
-      endCb(count);
+      this.log(`Valid ranges: ${JSON.stringify(array.filter(range => skipped.indexOf(range) === -1))}`);
+      endCb(count, logs);
     });
   }
   unwrapMatches(node) {
@@ -1435,27 +1399,22 @@ class Mark$1 {
     }
     return {  patterns, terms : array };
   }
-  markRanges(rawRanges, opt) {
+  markRanges(ranges, opt) {
     this.opt = opt;
     this.cacheDict = {};
-    let totalMarks = 0,
-      ranges = this.checkRanges(rawRanges);
-    if (ranges && ranges.length) {
-      this.log(
-        'Starting to mark with the following ranges: ' +
-        JSON.stringify(ranges)
-      );
-      this.wrapRangeFromIndex(
-        ranges, (node, range, match, counter) => {
-          return this.opt.filter(node, range, match, counter);
-        }, (element, range, rangeInfo) => {
-          totalMarks++;
-          this.opt.each(element, range, rangeInfo);
-        }, (totalMatches) => {
-          this.opt.done(totalMarks, totalMatches);
-        }
-      );
+    if (this.isArrayOfObjects(ranges)) {
+      let totalMarks = 0;
+      this.wrapRanges(ranges, (node, range, match, index) => {
+        return this.opt.filter(node, range, match, index);
+      }, (elem, range, rangeInfo) => {
+        totalMarks++;
+        this.opt.each(elem, range, rangeInfo);
+      }, (totalRanges, logs) => {
+        this.report(logs);
+        this.opt.done(totalMarks, totalRanges);
+      });
     } else {
+      this.report([{ text : 'markRanges() accept an array of objects: ', obj : ranges, level : 'error' }]);
       this.opt.done(0, 0);
     }
   }
@@ -1470,11 +1429,8 @@ class Mark$1 {
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      if (DOMIterator.matches(node, selector) && !this.excludeElements(node)) {
-        return NodeFilter.FILTER_ACCEPT;
-      } else {
-        return NodeFilter.FILTER_REJECT;
-      }
+      const accept = DOMIterator.matches(node, selector) && !this.excludeElements(node);
+      return accept ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
     }, this.opt.done);
   }
 }
