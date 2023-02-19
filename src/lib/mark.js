@@ -144,40 +144,31 @@ class Mark {
   }
 
   /**
-   * @typedef Mark~separatedKeywords
-   * @type {object.<string>}
-   * @property {array.<string>} keywords - The list of keywords
-   * @property {number} length - The length
-   */
-  /**
-   * Returns a list of keywords dependent on whether separate word search
-   * was defined. Also it filters empty keywords
-   * @param {array} sv - The array of keywords
-   * @return {Mark~separatedKeywords}
+   * Splits string into separate words if separate word search was defined.
+   * Removes duplicate or empty entries and sort by the length in descending order.
+   * @param {string|string[]} [sv] - Search value, either a string or an array of strings
+   * @return {array}
    * @access protected
    */
   getSeparatedKeywords(sv) {
-    let stack = [];
-    sv.forEach(kw => {
-      if (!this.opt.separateWordSearch) {
-        if (kw.trim() && stack.indexOf(kw) === -1) {
-          stack.push(kw);
+    const search = this.isString(sv) ? [sv] : sv, 
+      array = [],
+      add = str => {
+        if (str.trim() && array.indexOf(str) === -1) {
+          array.push(str);
         }
+      };
+
+    search.forEach(str => {
+      if (this.opt.separateWordSearch) {
+        str.split(' ').forEach(word => add(word));
       } else {
-        kw.split(' ').forEach(kwSplitted => {
-          if (kwSplitted.trim() && stack.indexOf(kwSplitted) === -1) {
-            stack.push(kwSplitted);
-          }
-        });
+        add(str);
       }
     });
-    return {
-      // sort because of https://git.io/v6USg
-      'keywords': stack.sort((a, b) => {
-        return b.length - a.length;
-      }),
-      'length': stack.length
-    };
+    // sort because of https://git.io/v6USg
+    array.sort((a, b) => b.length - a.length);
+    return array;
   }
 
   /**
@@ -191,6 +182,15 @@ class Mark {
     // http://stackoverflow.com/a/16655847/145346
     // eslint-disable-next-line eqeqeq
     return Number(parseFloat(value)) == value;
+  }
+
+  /**
+   * Checks if an obj is a string
+   * @param {any} obj - the value to check;
+   * @return {boolean}
+   */
+  isString(obj) {
+    return typeof obj === 'string';
   }
 
   /**
@@ -550,16 +550,14 @@ class Mark {
   }
 
   /**
-   * Checks if an element matches any of the specified exclude selectors. Also
-   * it checks for elements in which no marks should be performed (e.g.
-   * script and style tags) and optionally already marked elements
+   * Checks if an element matches any of the specified exclude selectors.
    * @param  {HTMLElement} elem - The element to check
    * @return {boolean}
    * @access protected
    */
   excludeElements(elem) {
-    // it's faster to check if array contains the node name than selector in 'DOMIterator.matches()'
-    // also it allows to use a string of selectors instead of an array with the 'exclude' option
+    // it's faster to check if an array contains the node name than a selector in 'DOMIterator.matches()'
+    // also it allows using a string of selectors instead of an array with the 'exclude' option
     const nodeNames = ['script', 'style', 'title', 'head', 'html'];
 
     return nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 ||
@@ -813,7 +811,7 @@ class Mark {
         if (start >= lastIndex) {
           end = match.indices[i][1];
 
-          if (filterCb(group, node, i)) {
+          if (filterCb(node, group, i)) {
             // when a group is wrapping, a text node is split at the end index,
             // so to correct the start index of a new text node, just subtract
             // the end index of the last wrapped group (offset)
@@ -879,7 +877,7 @@ class Mark {
         start = node.textContent.indexOf(group, startIndex);
 
         if (start !== -1) {
-          if (filterCb(group, node, index)) {
+          if (filterCb(node, group, index)) {
             node = this.wrapGroups(node, start, group.length, node => {
               eachCb(node, index);
             });
@@ -942,7 +940,7 @@ class Mark {
           isWrapped = false;
 
           this.wrapRangeInMappedTextNode(dict, start, end, obj => {
-            return filterCb(group, obj.node, i);
+            return filterCb(obj.node, group, i);
           }, (node, groupStart) => {
             isWrapped = true;
             eachCb(node, groupStart, i);
@@ -1015,7 +1013,7 @@ class Mark {
     //a way to mark nesting groups, it first wraps the whole match as a group 0
     if (this.opt.wrapAllRanges) {
       this.wrapRangeInMappedTextNode(dict, s, s + text.length, obj => {
-        return filterCb(text, obj.node, index);
+        return filterCb(obj.node, text, index);
       }, (node, groupStart) => {
         eachCb(node, groupStart, index);
       });
@@ -1035,7 +1033,7 @@ class Mark {
 
         if (start !== -1) {
           this.wrapRangeInMappedTextNode(dict, s + start, s + end, obj => {
-            return filterCb(group, obj.node, index);
+            return filterCb(obj.node, group, index);
           }, (node, groupStart) => {
             eachCb(node, groupStart, index);
           });
@@ -1142,11 +1140,11 @@ class Mark {
           filterInfo.match = match;
           matchStart = eMatchStart = true;
 
-          node = this[fn](node, match, params, (group, node, groupIndex) => {
+          node = this[fn](node, match, params, (node, group, groupIndex) => {
             filterInfo.matchStart = matchStart;
             filterInfo.groupIndex = groupIndex;
             matchStart = false;
-            return  filterCb(group, node, filterInfo);
+            return  filterCb(node, group, filterInfo);
 
           }, (node, groupIndex) => {
             if (eMatchStart) {
@@ -1225,7 +1223,7 @@ class Mark {
           filterInfo.match = match;
           filterInfo.offset = info.start;
 
-          if (!filterCb(match[index], node, filterInfo)) {
+          if (!filterCb(node, match[index], filterInfo)) {
             continue;
           }
 
@@ -1361,11 +1359,11 @@ class Mark {
         filterInfo.match = match;
         matchStart = eMatchStart = true;
 
-        this[fn](dict, match, params, (group, node, groupIndex) => {
+        this[fn](dict, match, params, (node, group, groupIndex) => {
           filterInfo.matchStart = matchStart;
           filterInfo.groupIndex = groupIndex;
           matchStart = false;
-          return  filterCb(group, node, filterInfo);
+          return  filterCb(node, group, filterInfo);
 
         }, (node, groupStart, groupIndex) => {
           if (eMatchStart) {
@@ -1391,14 +1389,14 @@ class Mark {
 
   /**
    * Callback for each wrapped element
-   * @callback Mark~wrapMatchesAcrossElementsEachCallback
+   * @callback Mark~wrapMatchesAcrossEachCallback
    * @param {HTMLElement} element - The marked DOM element
    * @param {Mark~eachInfoObject} eachInfo - The object containing the match
    * information
    */
   /**
    * Filter callback before each wrapping
-   * @callback Mark~wrapMatchesAcrossElementsFilterCallback
+   * @callback Mark~wrapMatchesAcrossFilterCallback
    * @param {string} match - The matching string
    * @param {HTMLElement} node - The text node where the match occurs
    * @param {Mark~filterInfoObject} filterInfo - The object containing
@@ -1407,7 +1405,7 @@ class Mark {
 
   /**
    * Callback on end
-   * @callback Mark~wrapMatchesAcrossElementsEndCallback
+   * @callback Mark~wrapMatchesAcrossEndCallback
    * @param {number} count - The number of matches
    */
   /**
@@ -1416,13 +1414,13 @@ class Mark {
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} ignoreGroups - A number indicating the amount of RegExp
    * matching groups to ignore
-   * @param {Mark~wrapMatchesAcrossElementsFilterCallback} filterCb - Filter
+   * @param {Mark~wrapMatchesAcrossFilterCallback} filterCb - Filter
    * callback
-   * @param {Mark~wrapMatchesAcrossElementsEachCallback} eachCb - Each callback
-   * @param {Mark~wrapMatchesAcrossElementsEndCallback} endCb
+   * @param {Mark~wrapMatchesAcrossEachCallback} eachCb - Each callback
+   * @param {Mark~wrapMatchesAcrossEndCallback} endCb
    * @access protected
    */
-  wrapMatchesAcrossElements(regex, ignoreGroups, filterCb, eachCb, endCb) {
+  wrapMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort : false },
       filterInfo = { execution : execution };
@@ -1447,7 +1445,7 @@ class Mark {
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;
-          return filterCb(match[index], obj.node, filterInfo);
+          return filterCb(obj.node, match[index], filterInfo);
 
         }, (node, matchStart) => {
           if (matchStart) {
@@ -1693,7 +1691,7 @@ class Mark {
       fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
 
     if (this.opt.acrossElements) {
-      fn = this.opt.separateGroups ? 'wrapGroupsAcrossElements' : 'wrapMatchesAcrossElements';
+      fn = this.opt.separateGroups ? 'wrapGroupsAcrossElements' : 'wrapMatchesAcross';
     }
 
     if (this.opt.acrossElements) {
@@ -1701,14 +1699,13 @@ class Mark {
       // to slip in without g flag
       if ( !regexp.global && !regexp.sticky) {
         let splits = regexp.toString().split('/');
-
         regexp = new RegExp(regexp.source, 'g' + splits[splits.length-1]);
         this.log('RegExp was recompiled because it must have g flag');
       }
     }
     this.log(`Searching with expression "${regexp}"`);
 
-    this[fn](regexp, this.opt.ignoreGroups, (match, node, filterInfo) => {
+    this[fn](regexp, this.opt.ignoreGroups, (node, match, filterInfo) => {
       return this.opt.filter(node, match, totalMarks, filterInfo);
 
     }, (element, eachInfo) => {
@@ -1726,20 +1723,27 @@ class Mark {
   /**
    * Callback to filter matches
    * @callback Mark~markFilterCallback
-   * @param {HTMLElement} textNode - The text node which includes the match
-   * @param {string} match - The matching term
-   * @param {number} totalCounter - A counter indicating the number of all
-   * marks
-   * @param {number} termCounter - A counter indicating the number of marks
-   * for the specific match
-   * @param {Mark~filterInfoObject} filterInfo - The object containing
-   * the match information.
+   * @param {Text} node - The text node which includes the match or with acrossElements option can be part of the match
+   * @param {string} term - The current term
+   * @param {number} allMatches - The number of all wrapped matches so far
+   * @param {number} termMatches - The number of wrapped matches for the current term so far
+   * @param {Mark~filterInfoObject} filterInfo - The object containing the match information.
+   */
+  /**
+   * Callback for each marked element
+   * @callback Mark~markEachCallback
+   * @param {HTMLElement} element - The marked DOM element
+   * @param {Mark~filterInfoObject} filterInfo - The object containing the match information.
+   */
+  /**
+   * Callback if there were no matches
+   * @callback Mark~markNoMatchCallback
+   * @param {RegExp} term - The search term that was not found
    */
 
   /**
-   * These options also include the common options from
-   * {@link Mark~commonOptions} and the options from
-   * {@link RegExpCreator~options}
+   * These options also include the common options from {@link Mark~commonOptions}
+   * and the options from {@link RegExpCreator~options}
    * @typedef Mark~markOptions
    * @type {object.<string>}
    * @property {boolean} [separateWordSearch=true] - Whether to search for
@@ -1763,56 +1767,57 @@ class Mark {
 
     let index = 0,
       totalMarks = 0,
+      allMatches = 0,
       totalMatches = 0;
-    const fn =
-      this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
-      termStats = {};
+    const regCreator = new RegExpCreator(this.opt),
+      fn = this.opt.acrossElements ? 'wrapMatchesAcross' : 'wrapMatches',
+      termStats = {},
+      terms = this.getSeparatedKeywords(sv);
 
-    const { keywords, length } =
-      this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),
-      handler = term => { // async function calls as iframes are async too
-        const regex = new RegExpCreator(this.opt).create(term);
-        let matches = 0;
-        this.log(`Searching with expression "${regex}"`);
+    const loop = term => {
+      const regex = regCreator.create(term);
+      let termMatches = 0;
+      this.log(`Searching with expression "${regex}"`);
 
-        this[fn](regex, 1, (t, node, filterInfo) => { // filter
-          return this.opt.filter(node, term, totalMarks, matches, filterInfo);
+      this[fn](regex, 1, (node, t, filterInfo) => { // filter
+        allMatches = totalMatches + termMatches;
+        return this.opt.filter(node, term, allMatches, termMatches, filterInfo);
 
-        }, (element, eachInfo) => { // each
-          matches++;
-          totalMarks++;
-          this.opt.each(element, eachInfo);
+      }, (element, eachInfo) => { // each
+        termMatches = eachInfo.count;
+        totalMarks++;
+        this.opt.each(element, eachInfo);
 
-        }, (count) => { // end
-          totalMatches += count;
+      }, (count) => { // end
+        totalMatches += count;
 
-          if (count === 0) {
-            this.opt.noMatch(term);
-          }
-          termStats[term] = count;
+        if (count === 0) {
+          this.opt.noMatch(term);
+        }
+        termStats[term] = count;
 
-          if (++index < length) {
-            handler(keywords[index]);
-          } else {
-            this.opt.done(totalMarks, totalMatches, termStats);
-          }
-        });
-      };
+        if (++index < terms.length) {
+          loop(terms[index]);
+        } else {
+          this.opt.done(totalMarks, totalMatches, termStats);
+        }
+      });
+    };
 
-    if (length === 0) {
+    if (terms.length === 0) {
       this.opt.done(0, 0, termStats);
     } else {
-      handler(keywords[index]);
+      loop(terms[index]);
     }
   }
 
   /**
-   * Marks the specified search terms
-   * @param {string|string[]} [sv] - Search value, either a search string or an
-   * array containing multiple search strings
-   * @param  {Mark~markCombinePatternsOptions} [opt] - Optional options object
-   * @access protected
-   */
+    * Marks the specified search terms
+    * @param {string|string[]} [sv] - Search value, either a search string or an
+    * array containing multiple search strings
+    * @param  {Mark~markCombinePatterns} [opt] - Optional options object
+    * @access protected
+    */
   markCombinePatterns(sv, opt) {
     this.opt = this.checkOption(opt);
 
@@ -1820,21 +1825,22 @@ class Mark {
       totalMarks = 0,
       totalMatches = 0,
       patterns = [],
-      terms = [],
-      term;
+      termsParts = [],
+      term,
+      termMatches;
     const across = this.opt.acrossElements,
-      fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+      fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
       flags = `gm${this.opt.caseSensitive ? '' : 'i'}`,
       termStats = {},
-      obj = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv);
+      terms = this.getSeparatedKeywords(sv);
 
-    const handler = pattern => {
+    const loop = pattern => {
       const regex = new RegExp(pattern, flags),
-        patternTerms = terms[index];
+        patternTerms = termsParts[index];
 
       this.log(`Searching with expression "${regex}"`);
 
-      this[fn](regex, 1, (t, node, filterInfo) => { // filter
+      this[fn](regex, 1, (node, t, filterInfo) => { // filter
         if (across) {
           if (filterInfo.matchStart) {
             term = this.getCurrentTerm(filterInfo.match, patternTerms);
@@ -1843,7 +1849,8 @@ class Mark {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
         }
         // termStats[term] is the number of wrapped matches so far for the term
-        return this.opt.filter(node, term, totalMarks, termStats[term], filterInfo);
+        termMatches = termStats[term];
+        return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
 
       }, (element, eachInfo) => { // each
         totalMarks++;
@@ -1866,37 +1873,37 @@ class Mark {
         }
 
         if (++index < patterns.length) {
-          handler(patterns[index]);
+          loop(patterns[index]);
         } else {
           this.opt.done(totalMarks, totalMatches, termStats);
         }
       });
     };
 
-    if (obj.length === 0) {
+    if (terms.length === 0) {
       this.opt.done(0, 0, termStats);
 
     } else {
       // initializes term statistics properties
-      obj.keywords.forEach(term => {
+      terms.forEach(term => {
         termStats[term] = 0;
       });
-      const o = this.getPatterns(obj.keywords);
-      terms = o.terms;
-      patterns = o.patterns;
+      const obj = this.getPatterns(terms);
+      termsParts = obj.termsParts;
+      patterns = obj.patterns;
 
-      handler(patterns[index]);
+      loop(patterns[index]);
     }
   }
 
   /**
-   * @param {array} match - The result of RegExp exec() method
-   * @param {array} terms - The array of strings
-   * @return {string} - The matched term
-   */
+    * @param {array} match - The result of RegExp exec() method
+    * @param {array} terms - The array of strings
+    * @return {string} - The matched term
+    */
   getCurrentTerm(match, terms) {
     // it's better to search from the end of array because the terms sorted by
-    // length in descending order - shorter term appears more frequently
+    // their length in descending order - shorter term appears more frequently
     let i = match.length;
     while (--i > 2) {
       // the current term index is the first not undefined capturing group index minus three
@@ -1909,11 +1916,11 @@ class Mark {
   }
 
   /**
-   * Splits an array of string into chunks by the specified number and
+    * Splits an array of string into chunks by the specified number and
     * combines each chunk strings into single RegExp pattern
-   * @param {array} terms - The array of strings
-   * @return {array} - The array of combined RegExp patterns
-   */
+    * @param {array} terms - The array of strings
+    * @return {array} - The array of combined RegExp patterns
+    */
   getPatterns(terms) {
     const creator = new RegExpCreator(this.opt),
       first = creator.create(terms[0], true),
@@ -1946,7 +1953,7 @@ class Mark {
       patterns.push(pattern + ')' + first.lookahead);
       array.push(patternTerms);
     }
-    return {  patterns, terms : array };
+    return {  patterns, termsParts : array };
   }
 
   /**

@@ -13,35 +13,32 @@ describe('mark with acrossElements and filter callback', function() {
         'ipsum': 0,
         'dolor': 0
       },
-      totalCounter = 0,
-      calls = 0;
+      totalCounter = 0;
     try {
       new Mark($ctx[0]).mark(Object.keys(counter), {
         'diacritics': false,
         'separateWordSearch': false,
         'acrossElements': true,
-        'filter': function(node, term, totalMatches, matches) {
+        'filter': function(node, term, totalMatches, matches, info) {
           expect(node.nodeType).toBe(3);
-          expect($.inArray(
-            term,
-            Object.keys(counter)
-          )).toBeGreaterThan(-1);
+
+          expect($.inArray(term, Object.keys(counter))).toBeGreaterThan(-1);
+
           expect(totalCounter).toBe(totalMatches);
           expect(counter[term]).toBe(matches);
-          if (++calls !== 3) {
+
+          if (info.matchStart) {
             counter[term]++;
             totalCounter++;
-            return true;
-          } else {
-            return false;
           }
+          return true;
         },
         'done': function() {
-          expect($ctx.find('mark')).toHaveLength(15);
+          expect($ctx.find('mark').length).toBe(14);
           done();
         }
       });
-    } catch (e){
+    } catch (e) {
       done.fail(e.message);
     }
   });

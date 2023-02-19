@@ -21,12 +21,12 @@ describe('basic mark with filter callback', function() {
         'separateWordSearch': false,
         'filter': function(node, term, totalMatches, matches) {
           expect(node.nodeType).toBe(3);
-          expect($.inArray(
-            term,
-            Object.keys(counter)
-          )).toBeGreaterThan(-1);
+
+          expect($.inArray(term, Object.keys(counter))).toBeGreaterThan(-1);
+
           expect(totalCounter).toBe(totalMatches);
           expect(counter[term]).toBe(matches);
+
           if (++calls !== 3) {
             counter[term]++;
             totalCounter++;

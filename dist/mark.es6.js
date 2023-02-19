@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 18, 2023 */
+/* Version: 2.0.0 - February 19, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -484,29 +484,28 @@ class Mark$1 {
     return opt;
   }
   getSeparatedKeywords(sv) {
-    let stack = [];
-    sv.forEach(kw => {
-      if (!this.opt.separateWordSearch) {
-        if (kw.trim() && stack.indexOf(kw) === -1) {
-          stack.push(kw);
+    const search = this.isString(sv) ? [sv] : sv,
+      array = [],
+      add = str => {
+        if (str.trim() && array.indexOf(str) === -1) {
+          array.push(str);
         }
+      };
+    search.forEach(str => {
+      if (this.opt.separateWordSearch) {
+        str.split(' ').forEach(word => add(word));
       } else {
-        kw.split(' ').forEach(kwSplitted => {
-          if (kwSplitted.trim() && stack.indexOf(kwSplitted) === -1) {
-            stack.push(kwSplitted);
-          }
-        });
+        add(str);
       }
     });
-    return {
-      'keywords': stack.sort((a, b) => {
-        return b.length - a.length;
-      }),
-      'length': stack.length
-    };
+    array.sort((a, b) => b.length - a.length);
+    return array;
   }
   isNumeric(value) {
     return Number(parseFloat(value)) == value;
+  }
+  isString(obj) {
+    return typeof obj === 'string';
   }
   isObject(obj) {
     return Object.prototype.toString.call(obj) === '[object Object]';
@@ -828,7 +827,7 @@ class Mark$1 {
         start = match.indices[i][0];
         if (start >= lastIndex) {
           end = match.indices[i][1];
-          if (filterCb(group, node, i)) {
+          if (filterCb(node, group, i)) {
             node = this.wrapGroups(node, start - offset, end - start, node => {
               eachCb(node, i);
             });
@@ -859,7 +858,7 @@ class Mark$1 {
       if (group) {
         start = node.textContent.indexOf(group, startIndex);
         if (start !== -1) {
-          if (filterCb(group, node, index)) {
+          if (filterCb(node, group, index)) {
             node = this.wrapGroups(node, start, group.length, node => {
               eachCb(node, index);
             });
@@ -889,7 +888,7 @@ class Mark$1 {
           end = match.indices[i][1];
           isWrapped = false;
           this.wrapRangeInMappedTextNode(dict, start, end, obj => {
-            return filterCb(group, obj.node, i);
+            return filterCb(obj.node, group, i);
           }, (node, groupStart) => {
             isWrapped = true;
             eachCb(node, groupStart, i);
@@ -921,7 +920,7 @@ class Mark$1 {
       text = match[0];
     if (this.opt.wrapAllRanges) {
       this.wrapRangeInMappedTextNode(dict, s, s + text.length, obj => {
-        return filterCb(text, obj.node, index);
+        return filterCb(obj.node, text, index);
       }, (node, groupStart) => {
         eachCb(node, groupStart, index);
       });
@@ -934,7 +933,7 @@ class Mark$1 {
         end = start + group.length;
         if (start !== -1) {
           this.wrapRangeInMappedTextNode(dict, s + start, s + end, obj => {
-            return filterCb(group, obj.node, index);
+            return filterCb(obj.node, group, index);
           }, (node, groupStart) => {
             eachCb(node, groupStart, index);
           });
@@ -995,11 +994,11 @@ class Mark$1 {
         ) {
           filterInfo.match = match;
           matchStart = eMatchStart = true;
-          node = this[fn](node, match, params, (group, node, groupIndex) => {
+          node = this[fn](node, match, params, (node, group, groupIndex) => {
             filterInfo.matchStart = matchStart;
             filterInfo.groupIndex = groupIndex;
             matchStart = false;
-            return  filterCb(group, node, filterInfo);
+            return  filterCb(node, group, filterInfo);
           }, (node, groupIndex) => {
             if (eMatchStart) {
               count++;
@@ -1036,7 +1035,7 @@ class Mark$1 {
         ) {
           filterInfo.match = match;
           filterInfo.offset = info.start;
-          if (!filterCb(match[index], node, filterInfo)) {
+          if (!filterCb(node, match[index], filterInfo)) {
             continue;
           }
           let len = match[index].length,
@@ -1096,11 +1095,11 @@ class Mark$1 {
       while ((match = regex.exec(dict.text)) !== null && (regex.hasIndices || match[0] !== '')) {
         filterInfo.match = match;
         matchStart = eMatchStart = true;
-        this[fn](dict, match, params, (group, node, groupIndex) => {
+        this[fn](dict, match, params, (node, group, groupIndex) => {
           filterInfo.matchStart = matchStart;
           filterInfo.groupIndex = groupIndex;
           matchStart = false;
-          return  filterCb(group, node, filterInfo);
+          return  filterCb(node, group, filterInfo);
         }, (node, groupStart, groupIndex) => {
           if (eMatchStart) {
             count++;
@@ -1121,7 +1120,7 @@ class Mark$1 {
       endCb(count);
     });
   }
-  wrapMatchesAcrossElements(regex, ignoreGroups, filterCb, eachCb, endCb) {
+  wrapMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort : false },
       filterInfo = { execution : execution };
@@ -1141,7 +1140,7 @@ class Mark$1 {
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;
-          return filterCb(match[index], obj.node, filterInfo);
+          return filterCb(obj.node, match[index], filterInfo);
         }, (node, matchStart) => {
           if (matchStart) {
             count++;
@@ -1237,7 +1236,7 @@ class Mark$1 {
     let totalMarks = 0,
       fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
     if (this.opt.acrossElements) {
-      fn = this.opt.separateGroups ? 'wrapGroupsAcrossElements' : 'wrapMatchesAcrossElements';
+      fn = this.opt.separateGroups ? 'wrapGroupsAcrossElements' : 'wrapMatchesAcross';
     }
     if (this.opt.acrossElements) {
       if ( !regexp.global && !regexp.sticky) {
@@ -1247,7 +1246,7 @@ class Mark$1 {
       }
     }
     this.log(`Searching with expression "${regexp}"`);
-    this[fn](regexp, this.opt.ignoreGroups, (match, node, filterInfo) => {
+    this[fn](regexp, this.opt.ignoreGroups, (node, match, filterInfo) => {
       return this.opt.filter(node, match, totalMarks, filterInfo);
     }, (element, eachInfo) => {
       totalMarks++;
@@ -1267,39 +1266,40 @@ class Mark$1 {
     this.opt = this.checkOption(opt);
     let index = 0,
       totalMarks = 0,
+      allMatches = 0,
       totalMatches = 0;
-    const fn =
-      this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
-      termStats = {};
-    const { keywords, length } =
-      this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv),
-      handler = term => {
-        const regex = new RegExpCreator(this.opt).create(term);
-        let matches = 0;
-        this.log(`Searching with expression "${regex}"`);
-        this[fn](regex, 1, (t, node, filterInfo) => {
-          return this.opt.filter(node, term, totalMarks, matches, filterInfo);
-        }, (element, eachInfo) => {
-          matches++;
-          totalMarks++;
-          this.opt.each(element, eachInfo);
-        }, (count) => {
-          totalMatches += count;
-          if (count === 0) {
-            this.opt.noMatch(term);
-          }
-          termStats[term] = count;
-          if (++index < length) {
-            handler(keywords[index]);
-          } else {
-            this.opt.done(totalMarks, totalMatches, termStats);
-          }
-        });
-      };
-    if (length === 0) {
+    const regCreator = new RegExpCreator(this.opt),
+      fn = this.opt.acrossElements ? 'wrapMatchesAcross' : 'wrapMatches',
+      termStats = {},
+      terms = this.getSeparatedKeywords(sv);
+    const loop = term => {
+      const regex = regCreator.create(term);
+      let termMatches = 0;
+      this.log(`Searching with expression "${regex}"`);
+      this[fn](regex, 1, (node, t, filterInfo) => {
+        allMatches = totalMatches + termMatches;
+        return this.opt.filter(node, term, allMatches, termMatches, filterInfo);
+      }, (element, eachInfo) => {
+        termMatches = eachInfo.count;
+        totalMarks++;
+        this.opt.each(element, eachInfo);
+      }, (count) => {
+        totalMatches += count;
+        if (count === 0) {
+          this.opt.noMatch(term);
+        }
+        termStats[term] = count;
+        if (++index < terms.length) {
+          loop(terms[index]);
+        } else {
+          this.opt.done(totalMarks, totalMatches, termStats);
+        }
+      });
+    };
+    if (terms.length === 0) {
       this.opt.done(0, 0, termStats);
     } else {
-      handler(keywords[index]);
+      loop(terms[index]);
     }
   }
   markCombinePatterns(sv, opt) {
@@ -1308,18 +1308,19 @@ class Mark$1 {
       totalMarks = 0,
       totalMatches = 0,
       patterns = [],
-      terms = [],
-      term;
+      termsParts = [],
+      term,
+      termMatches;
     const across = this.opt.acrossElements,
-      fn = across ? 'wrapMatchesAcrossElements' : 'wrapMatches',
+      fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
       flags = `gm${this.opt.caseSensitive ? '' : 'i'}`,
       termStats = {},
-      obj = this.getSeparatedKeywords(typeof sv === 'string' ? [sv] : sv);
-    const handler = pattern => {
+      terms = this.getSeparatedKeywords(sv);
+    const loop = pattern => {
       const regex = new RegExp(pattern, flags),
-        patternTerms = terms[index];
+        patternTerms = termsParts[index];
       this.log(`Searching with expression "${regex}"`);
-      this[fn](regex, 1, (t, node, filterInfo) => {
+      this[fn](regex, 1, (node, t, filterInfo) => {
         if (across) {
           if (filterInfo.matchStart) {
             term = this.getCurrentTerm(filterInfo.match, patternTerms);
@@ -1327,7 +1328,8 @@ class Mark$1 {
         } else {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
         }
-        return this.opt.filter(node, term, totalMarks, termStats[term], filterInfo);
+        termMatches = termStats[term];
+        return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
       }, (element, eachInfo) => {
         totalMarks++;
         if (across) {
@@ -1345,22 +1347,22 @@ class Mark$1 {
           this.opt.noMatch(array);
         }
         if (++index < patterns.length) {
-          handler(patterns[index]);
+          loop(patterns[index]);
         } else {
           this.opt.done(totalMarks, totalMatches, termStats);
         }
       });
     };
-    if (obj.length === 0) {
+    if (terms.length === 0) {
       this.opt.done(0, 0, termStats);
     } else {
-      obj.keywords.forEach(term => {
+      terms.forEach(term => {
         termStats[term] = 0;
       });
-      const o = this.getPatterns(obj.keywords);
-      terms = o.terms;
-      patterns = o.patterns;
-      handler(patterns[index]);
+      const obj = this.getPatterns(terms);
+      termsParts = obj.termsParts;
+      patterns = obj.patterns;
+      loop(patterns[index]);
     }
   }
   getCurrentTerm(match, terms) {
@@ -1397,7 +1399,7 @@ class Mark$1 {
       patterns.push(pattern + ')' + first.lookahead);
       array.push(patternTerms);
     }
-    return {  patterns, terms : array };
+    return {  patterns, termsParts : array };
   }
   markRanges(ranges, opt) {
     this.opt = opt;
