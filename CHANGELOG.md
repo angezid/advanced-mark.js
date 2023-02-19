@@ -5,6 +5,7 @@ Rewrote `DOMIterator` iframe related code.
 Rewrote `unwrapMatches()` method for performance reason.
 Rewrote `getTextNodesAcross()` method (previously named as 'getTextNodesAcrossElements') to change the logic which determines does the two text nodes are separated by block element.
 Rewrote `markRanges` related code (to simplify the code).
+Changes in `mark()` and `markCombinePatterns()` methods (important: in `filter` callback the parameters that count mark elements now count matches - affects code that uses `acrossElements` option), simplified `getSeparatedKeywords()` method.
 
 ### 1.1.0
 
