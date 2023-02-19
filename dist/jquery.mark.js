@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 19, 2023 */
+/* Version: 2.0.0 - February 20, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -920,17 +920,6 @@
         obj.startOffset -= offset;
       }
     }, {
-      key: "createInfo",
-      value: function createInfo(node, start, end, offset, startOffset) {
-        return {
-          node: node,
-          start: start,
-          end: end,
-          offset: offset,
-          startOffset: startOffset
-        };
-      }
-    }, {
       key: "getTextNodes",
       value: function getTextNodes(cb) {
         var _this6 = this;
@@ -974,16 +963,70 @@
         return nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 || this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
       }
     }, {
-      key: "wrapRangeInTextNode",
-      value: function wrapRangeInTextNode(node, start, end) {
-        var startNode = node.splitText(start),
-          retNode = startNode.splitText(end - start);
-        this.createMarkElement(startNode);
-        return retNode;
+      key: "wrapRangeInsert",
+      value: function wrapRangeInsert(dict, n, s, e, start, index) {
+        var empty = document.createTextNode(''),
+          ended = e === n.node.textContent.length;
+        var type = 0,
+          retNode,
+          textNode;
+        if (s === 0) {
+          if (ended) {
+            var node = this.wrapTextNode(n.node);
+            n.node = node.childNodes[0];
+            return {
+              markNode: node,
+              nodeInfo: this.createInfo(empty, n.end, n.end, n.offset, 0),
+              increment: 0
+            };
+          } else {
+            retNode = n.node.splitText(e);
+            textNode = n.node;
+            type = 1;
+          }
+        } else if (ended) {
+          textNode = n.node.splitText(s);
+          retNode = empty;
+          type = 2;
+        } else {
+          textNode = n.node.splitText(s);
+          retNode = textNode.splitText(e - s);
+          type = 3;
+        }
+        var markNode = this.wrapTextNode(textNode),
+          markInfo = this.createInfo(markNode.childNodes[0], type === 1 ? n.start : start, n.start + e, 0, n.startOffset),
+          nodeInfo = this.createInfo(retNode, type === 2 ? n.end : n.start + e, n.end, n.offset, n.startOffset);
+        if (type === 1) {
+          dict.nodes.splice(index, 1, markInfo, nodeInfo);
+        } else {
+          if (type === 2) {
+            dict.nodes.splice(index + 1, 0, markInfo);
+          } else {
+            dict.nodes.splice(index + 1, 0, markInfo, nodeInfo);
+          }
+          n.end = start;
+          n.offset = 0;
+        }
+        return {
+          markNode: markNode,
+          nodeInfo: nodeInfo,
+          increment: type < 3 ? 1 : 2
+        };
       }
     }, {
-      key: "createMarkElement",
-      value: function createMarkElement(node) {
+      key: "createInfo",
+      value: function createInfo(node, start, end, offset, startOffset) {
+        return {
+          node: node,
+          start: start,
+          end: end,
+          offset: offset,
+          startOffset: startOffset
+        };
+      }
+    }, {
+      key: "wrapTextNode",
+      value: function wrapTextNode(node) {
         var name = !this.opt.element ? 'mark' : this.opt.element;
         var markNode = document.createElement(name);
         markNode.setAttribute('data-markjs', 'true');
@@ -995,55 +1038,32 @@
         return markNode;
       }
     }, {
-      key: "wrapRangeInTextNodeInsert",
-      value: function wrapRangeInTextNodeInsert(dict, n, s, e, start, index) {
-        var ended = e === n.node.textContent.length;
-        if (s === 0 && ended) {
-          var _markNode = this.createMarkElement(n.node);
-          n.node = _markNode.childNodes[0];
-          return {
-            retNode: n,
-            markNode: _markNode,
-            increment: 0
-          };
-        }
-        var node = n.node.splitText(s),
-          restNode = node.splitText(e - s),
-          markNode = this.createMarkElement(node),
-          increment = 1;
-        var mNode = {
-            start: start,
-            end: n.start + e,
-            offset: 0,
-            node: markNode.childNodes[0]
-          },
-          retNode = {
-            start: n.start + e,
-            end: n.end,
-            offset: n.offset,
-            node: restNode
-          };
-        if (s === 0) {
-          dict.nodes.splice(index, 1, mNode, retNode);
-        } else {
+      key: "wrapRange",
+      value: function wrapRange(node, start, end) {
+        var retNode = document.createTextNode(''),
+          ended = end === node.textContent.length,
+          textNode;
+        if (start === 0) {
           if (ended) {
-            dict.nodes.splice(index + 1, 0, mNode);
+            textNode = node;
           } else {
-            dict.nodes.splice(index + 1, 0, mNode, retNode);
-            increment = 2;
+            retNode = node.splitText(end);
+            textNode = node;
           }
-          n.end = start;
-          n.offset = 0;
+        } else if (ended) {
+          textNode = node.splitText(start);
+        } else {
+          textNode = node.splitText(start);
+          retNode = textNode.splitText(end - start);
         }
         return {
-          retNode: retNode,
-          markNode: markNode,
-          increment: increment
+          markNode: this.wrapTextNode(textNode),
+          node: retNode
         };
       }
     }, {
-      key: "wrapRangeInMappedTextNode",
-      value: function wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
+      key: "wrapRangeAcross",
+      value: function wrapRangeAcross(dict, start, end, filterCb, eachCb) {
         var i = dict.lastIndex,
           rangeStart = true;
         if (this.opt.wrapAllRanges) {
@@ -1066,14 +1086,15 @@
               e = (end > n.end ? n.end : end) - n.start;
             if (s >= 0 && e > s) {
               if (this.opt.wrapAllRanges) {
-                var ret = this.wrapRangeInTextNodeInsert(dict, n, s, e, start, i);
-                n = ret.retNode;
-                eachCb(ret.markNode, rangeStart);
+                var obj = this.wrapRangeInsert(dict, n, s, e, start, i);
+                n = obj.nodeInfo;
+                eachCb(obj.markNode, rangeStart);
               } else {
-                n.node = this.wrapRangeInTextNode(n.node, s, e);
+                var _obj = this.wrapRange(n.node, s, e);
+                n.node = _obj.node;
                 n.start += e;
                 dict.lastTextIndex = n.start;
-                eachCb(n.node.previousSibling, rangeStart);
+                eachCb(_obj.markNode, rangeStart);
               }
               rangeStart = false;
             }
@@ -1085,13 +1106,6 @@
             }
           }
         }
-      }
-    }, {
-      key: "wrapGroups",
-      value: function wrapGroups(node, pos, len, eachCb) {
-        node = this.wrapRangeInTextNode(node, pos, pos + len);
-        eachCb(node.previousSibling);
-        return node;
       }
     }, {
       key: "separateGroupsD",
@@ -1110,9 +1124,9 @@
             if (start >= lastIndex) {
               end = match.indices[i][1];
               if (filterCb(node, group, i)) {
-                node = this.wrapGroups(node, start - offset, end - start, function (node) {
-                  eachCb(node, i);
-                });
+                var obj = this.wrapRange(node, start - offset, end - offset);
+                node = obj.node;
+                eachCb(obj.markNode, i);
                 if (end > lastIndex) {
                   lastIndex = end;
                 }
@@ -1145,9 +1159,9 @@
             start = node.textContent.indexOf(group, startIndex);
             if (start !== -1) {
               if (filterCb(node, group, index)) {
-                node = this.wrapGroups(node, start, group.length, function (node) {
-                  eachCb(node, index);
-                });
+                var obj = this.wrapRange(node, start, start + group.length);
+                node = obj.node;
+                eachCb(obj.markNode, index);
                 startIndex = 0;
                 isWrapped = true;
               } else {
@@ -1177,7 +1191,7 @@
             if (this.opt.wrapAllRanges || start >= lastIndex) {
               end = match.indices[i][1];
               isWrapped = false;
-              this.wrapRangeInMappedTextNode(dict, start, end, function (obj) {
+              this.wrapRangeAcross(dict, start, end, function (obj) {
                 return filterCb(obj.node, group, i);
               }, function (node, groupStart) {
                 isWrapped = true;
@@ -1215,7 +1229,7 @@
         var s = match.index,
           text = match[0];
         if (this.opt.wrapAllRanges) {
-          this.wrapRangeInMappedTextNode(dict, s, s + text.length, function (obj) {
+          this.wrapRangeAcross(dict, s, s + text.length, function (obj) {
             return filterCb(obj.node, text, index);
           }, function (node, groupStart) {
             eachCb(node, groupStart, index);
@@ -1228,7 +1242,7 @@
             start = text.indexOf(group, startIndex);
             end = start + group.length;
             if (start !== -1) {
-              this.wrapRangeInMappedTextNode(dict, s + start, s + end, function (obj) {
+              this.wrapRangeAcross(dict, s + start, s + end, function (obj) {
                 return filterCb(obj.node, group, index);
               }, function (node, groupStart) {
                 eachCb(node, groupStart, index);
@@ -1246,13 +1260,13 @@
           i = -1,
           index = 1,
           brackets = 0,
-          charsRange = false,
+          charsSet = false,
           str = regex.source,
           reg = /^\(\?<(?![=!])|^\((?!\?)/;
         while (++i < str.length) {
           switch (str[i]) {
             case '(':
-              if (!charsRange) {
+              if (!charsSet) {
                 if (reg.test(str.substring(i))) {
                   stack.push(1);
                   if (brackets === 0) {
@@ -1266,7 +1280,7 @@
               }
               break;
             case ')':
-              if (!charsRange && stack.pop() === 1) {
+              if (!charsSet && stack.pop() === 1) {
                 brackets--;
               }
               break;
@@ -1274,10 +1288,10 @@
               i++;
               break;
             case '[':
-              charsRange = true;
+              charsSet = true;
               break;
             case ']':
-              charsRange = false;
+              charsSet = false;
               break;
           }
         }
@@ -1346,50 +1360,45 @@
           },
           filterInfo = {
             execution: execution
-          };
+          },
+          eachInfo = {};
         var info,
           node,
           match,
+          str,
           count = 0;
         this.getTextNodes(function (dict) {
           for (var k = 0; k < dict.nodes.length; k++) {
             info = dict.nodes[k];
             node = info.node;
-            while ((match = regex.exec(node.textContent)) !== null && match[index] !== '') {
-              filterInfo.match = match;
+            while ((match = regex.exec(node.textContent)) !== null && (str = match[index]) !== '') {
+              filterInfo.match = eachInfo.match = match;
               filterInfo.offset = info.start;
-              if (!filterCb(node, match[index], filterInfo)) {
+              if (!filterCb(node, str, filterInfo)) {
                 continue;
               }
-              var len = match[index].length,
+              var i = 0,
                 start = match.index;
-              if (index !== 0) {
-                for (var i = 1; i < index; i++) {
-                  start += match[i].length;
-                }
+              while (++i < index) {
+                start += match[i].length;
               }
+              var end = start + str.length;
               if (_this8.opt.cacheTextNodes) {
-                var ret = _this8.wrapRangeInTextNodeInsert(dict, info, start, start + len, info.start + start, k);
-                count++;
-                eachCb(ret.markNode, {
-                  match: match,
-                  count: count
-                });
-                if (ret.increment === 0) {
+                var obj = _this8.wrapRangeInsert(dict, info, start, end, info.start + start, k);
+                eachInfo.count = ++count;
+                eachCb(obj.markNode, eachInfo);
+                if (obj.increment === 0) {
                   regex.lastIndex = 0;
                   break;
                 }
-                k += ret.increment;
-                info = ret.retNode;
+                k += obj.increment;
+                info = obj.nodeInfo;
                 node = info.node;
               } else {
-                node = _this8.wrapGroups(node, start, len, function (node) {
-                  count++;
-                  eachCb(node, {
-                    match: match,
-                    count: count
-                  });
-                });
+                var _obj2 = _this8.wrapRange(node, start, end);
+                node = _obj2.node;
+                eachInfo.count = ++count;
+                eachCb(_obj2.markNode, eachInfo);
               }
               regex.lastIndex = 0;
               if (execution.abort) {
@@ -1476,7 +1485,7 @@
               }
             }
             var end = start + match[index].length;
-            _this10.wrapRangeInMappedTextNode(dict, start, end, function (obj) {
+            _this10.wrapRangeAcross(dict, start, end, function (obj) {
               filterInfo.matchStart = matchStart;
               filterInfo.offset = obj.startOffset;
               matchStart = false;
@@ -1522,7 +1531,7 @@
             }
             var substr = dict.value.substring(range.start, end);
             if (substr.trim()) {
-              _this11.wrapRangeInMappedTextNode(dict, range.start, end, function (obj) {
+              _this11.wrapRangeAcross(dict, range.start, end, function (obj) {
                 return filterCb(obj.node, range, substr, index);
               }, function (node, rangeStart) {
                 if (rangeStart) {

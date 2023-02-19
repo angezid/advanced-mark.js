@@ -45,7 +45,7 @@ declare namespace Mark {
     shadowDOM?: boolean | ShadowObject;
 
     filter?(
-      textNode: Text, term: string, totalMarksSoFar: number, termMarksSoFar: number, filterInfo: MarkFilterInfo
+      textNode: Text, term: string, totalMatchesSoFar: number, termMatchesSoFar: number, filterInfo: MarkFilterInfo
     ) : boolean;
     each?(element: Element, eachInfo: MarkEachInfo) : void;
     done?(totalMarks: number, totalMatches: number, termStats: TermStats) : void;

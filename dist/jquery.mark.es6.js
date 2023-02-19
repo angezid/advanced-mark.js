@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 19, 2023 */
+/* Version: 2.0.0 - February 20, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -672,9 +672,6 @@ class Mark {
     obj.nodes.push(this.createInfo(prevNode, start, obj.text.length - offset, offset, obj.startOffset));
     obj.startOffset -= offset;
   }
-  createInfo(node, start, end, offset, startOffset) {
-    return { node, start, end, offset, startOffset };
-  }
   getTextNodes(cb) {
     if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
       cb(this.cacheDict);
@@ -714,13 +711,50 @@ class Mark {
     return nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 ||
       this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
   }
-  wrapRangeInTextNode(node, start, end) {
-    const startNode = node.splitText(start),
-      retNode = startNode.splitText(end - start);
-    this.createMarkElement(startNode);
-    return  retNode;
+  wrapRangeInsert(dict, n, s, e, start, index) {
+    const empty = document.createTextNode(''),
+      ended = e === n.node.textContent.length;
+    let type = 0,
+      retNode, textNode;
+    if (s === 0) {
+      if (ended) {
+        const node = this.wrapTextNode(n.node);
+        n.node = node.childNodes[0];
+        return { markNode : node, nodeInfo : this.createInfo(empty, n.end, n.end, n.offset, 0), increment : 0 };
+      } else {
+        retNode = n.node.splitText(e);
+        textNode = n.node;
+        type = 1;
+      }
+    } else if (ended) {
+      textNode = n.node.splitText(s);
+      retNode = empty;
+      type = 2;
+    } else {
+      textNode = n.node.splitText(s);
+      retNode = textNode.splitText(e - s);
+      type = 3;
+    }
+    const markNode = this.wrapTextNode(textNode),
+      markInfo = this.createInfo(markNode.childNodes[0], type === 1 ? n.start : start, n.start + e, 0, n.startOffset),
+      nodeInfo = this.createInfo(retNode, type === 2 ? n.end : n.start + e, n.end, n.offset, n.startOffset);
+    if (type === 1) {
+      dict.nodes.splice(index, 1, markInfo, nodeInfo);
+    } else {
+      if (type === 2) {
+        dict.nodes.splice(index + 1, 0, markInfo);
+      } else {
+        dict.nodes.splice(index + 1, 0, markInfo, nodeInfo);
+      }
+      n.end = start;
+      n.offset = 0;
+    }
+    return { markNode, nodeInfo, increment : type < 3 ? 1 : 2 };
   }
-  createMarkElement(node) {
+  createInfo(node, start, end, offset, startOffset) {
+    return { node, start, end, offset, startOffset };
+  }
+  wrapTextNode(node) {
     const name = !this.opt.element ? 'mark' : this.opt.element;
     let markNode = document.createElement(name);
     markNode.setAttribute('data-markjs', 'true');
@@ -729,46 +763,28 @@ class Mark {
     }
     markNode.textContent = node.textContent;
     node.parentNode.replaceChild(markNode, node);
-    return  markNode;
+    return markNode;
   }
-  wrapRangeInTextNodeInsert(dict, n, s, e, start, index) {
-    let ended = e === n.node.textContent.length;
-    if (s === 0 && ended) {
-      let markNode = this.createMarkElement(n.node);
-      n.node = markNode.childNodes[0];
-      return { retNode : n, markNode, increment : 0 };
-    }
-    let node = n.node.splitText(s),
-      restNode = node.splitText(e - s),
-      markNode = this.createMarkElement(node),
-      increment = 1;
-    let mNode = {
-        start: start,
-        end: n.start + e,
-        offset: 0,
-        node: markNode.childNodes[0]
-      },
-      retNode = {
-        start: n.start + e,
-        end: n.end,
-        offset: n.offset,
-        node: restNode
-      };
-    if (s === 0) {
-      dict.nodes.splice(index, 1, mNode, retNode);
-    } else {
+  wrapRange(node, start, end) {
+    let retNode = document.createTextNode(''),
+      ended = end === node.textContent.length,
+      textNode;
+    if (start === 0) {
       if (ended) {
-        dict.nodes.splice(index + 1, 0, mNode);
+        textNode = node;
       } else {
-        dict.nodes.splice(index + 1, 0, mNode, retNode);
-        increment = 2;
+        retNode = node.splitText(end);
+        textNode = node;
       }
-      n.end = start;
-      n.offset = 0;
+    } else if (ended) {
+      textNode = node.splitText(start);
+    } else {
+      textNode = node.splitText(start);
+      retNode = textNode.splitText(end - start);
     }
-    return { retNode, markNode, increment };
+    return { markNode : this.wrapTextNode(textNode), node : retNode };
   }
-  wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
+  wrapRangeAcross(dict, start, end, filterCb, eachCb) {
     let i = dict.lastIndex,
       rangeStart = true;
     if (this.opt.wrapAllRanges) {
@@ -781,7 +797,7 @@ class Mark {
     for (i; i < dict.nodes.length; i++)  {
       if (i + 1 === dict.nodes.length || dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
-        if (!filterCb(n)) {
+        if ( !filterCb(n)) {
           if (i > dict.lastIndex) {
             dict.lastIndex = i;
           }
@@ -791,15 +807,15 @@ class Mark {
           e = (end > n.end ? n.end : end) - n.start;
         if (s >= 0 && e > s) {
           if (this.opt.wrapAllRanges) {
-            let ret =
-              this.wrapRangeInTextNodeInsert(dict, n, s, e, start, i);
-            n = ret.retNode;
-            eachCb(ret.markNode, rangeStart);
+            const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
+            n = obj.nodeInfo;
+            eachCb(obj.markNode, rangeStart);
           } else {
-            n.node = this.wrapRangeInTextNode(n.node, s, e);
+            const obj = this.wrapRange(n.node, s, e);
+            n.node = obj.node;
             n.start += e;
             dict.lastTextIndex = n.start;
-            eachCb(n.node.previousSibling, rangeStart);
+            eachCb(obj.markNode, rangeStart);
           }
           rangeStart = false;
         }
@@ -811,11 +827,6 @@ class Mark {
         }
       }
     }
-  }
-  wrapGroups(node, pos, len, eachCb) {
-    node = this.wrapRangeInTextNode(node, pos, pos + len);
-    eachCb(node.previousSibling);
-    return node;
   }
   separateGroupsD(node, match, params, filterCb, eachCb) {
     let lastIndex = 0,
@@ -830,9 +841,9 @@ class Mark {
         if (start >= lastIndex) {
           end = match.indices[i][1];
           if (filterCb(node, group, i)) {
-            node = this.wrapGroups(node, start - offset, end - start, node => {
-              eachCb(node, i);
-            });
+            const obj = this.wrapRange(node, start - offset, end - offset);
+            node = obj.node;
+            eachCb(obj.markNode, i);
             if (end > lastIndex) {
               lastIndex = end;
             }
@@ -861,9 +872,9 @@ class Mark {
         start = node.textContent.indexOf(group, startIndex);
         if (start !== -1) {
           if (filterCb(node, group, index)) {
-            node = this.wrapGroups(node, start, group.length, node => {
-              eachCb(node, index);
-            });
+            const obj = this.wrapRange(node, start, start + group.length);
+            node = obj.node;
+            eachCb(obj.markNode, index);
             startIndex = 0;
             isWrapped = true;
           } else {
@@ -889,7 +900,7 @@ class Mark {
         if (this.opt.wrapAllRanges || start >= lastIndex) {
           end = match.indices[i][1];
           isWrapped = false;
-          this.wrapRangeInMappedTextNode(dict, start, end, obj => {
+          this.wrapRangeAcross(dict, start, end, obj => {
             return filterCb(obj.node, group, i);
           }, (node, groupStart) => {
             isWrapped = true;
@@ -921,7 +932,7 @@ class Mark {
     const s = match.index,
       text = match[0];
     if (this.opt.wrapAllRanges) {
-      this.wrapRangeInMappedTextNode(dict, s, s + text.length, obj => {
+      this.wrapRangeAcross(dict, s, s + text.length, obj => {
         return filterCb(obj.node, text, index);
       }, (node, groupStart) => {
         eachCb(node, groupStart, index);
@@ -934,7 +945,7 @@ class Mark {
         start = text.indexOf(group, startIndex);
         end = start + group.length;
         if (start !== -1) {
-          this.wrapRangeInMappedTextNode(dict, s + start, s + end, obj => {
+          this.wrapRangeAcross(dict, s + start, s + end, obj => {
             return filterCb(obj.node, group, index);
           }, (node, groupStart) => {
             eachCb(node, groupStart, index);
@@ -946,13 +957,13 @@ class Mark {
   }
   collectRegexGroupIndexes(regex) {
     let groups = [], stack = [],
-      i = -1, index = 1, brackets = 0, charsRange = false,
+      i = -1, index = 1, brackets = 0, charsSet = false,
       str = regex.source,
       reg = /^\(\?<(?![=!])|^\((?!\?)/;
     while (++i < str.length) {
       switch (str[i]) {
         case '(':
-          if ( !charsRange) {
+          if ( !charsSet) {
             if (reg.test(str.substring(i))) {
               stack.push(1);
               if (brackets === 0) {
@@ -966,13 +977,13 @@ class Mark {
           }
           break;
         case ')':
-          if ( !charsRange && stack.pop() === 1) {
+          if ( !charsSet && stack.pop() === 1) {
             brackets--;
           }
           break;
         case '\\' : i++; break;
-        case '[' : charsRange = true; break;
-        case ']' : charsRange = false; break;
+        case '[' : charsSet = true; break;
+        case ']' : charsSet = false; break;
       }
     }
     return groups;
@@ -1025,52 +1036,40 @@ class Mark {
   wrapMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort : false },
-      filterInfo = { execution : execution };
-    let info, node, match, count = 0;
+      filterInfo = { execution : execution },
+      eachInfo = {};
+    let info, node, match, str, count = 0;
     this.getTextNodes(dict => {
       for (let k = 0; k < dict.nodes.length; k++) {
         info = dict.nodes[k];
         node = info.node;
-        while (
-          (match = regex.exec(node.textContent)) !== null &&
-          match[index] !== ''
-        ) {
-          filterInfo.match = match;
+        while ((match = regex.exec(node.textContent)) !== null && (str = match[index]) !== '') {
+          filterInfo.match = eachInfo.match = match;
           filterInfo.offset = info.start;
-          if (!filterCb(node, match[index], filterInfo)) {
+          if ( !filterCb(node, str, filterInfo)) {
             continue;
           }
-          let len = match[index].length,
-            start = match.index;
-          if (index !== 0) {
-            for (let i = 1; i < index; i++) {
-              start += match[i].length;
-            }
+          let i = 0, start = match.index;
+          while (++i < index) {
+            start += match[i].length;
           }
+          const end = start + str.length;
           if (this.opt.cacheTextNodes) {
-            const ret = this.wrapRangeInTextNodeInsert(
-              dict, info, start, start + len, info.start + start, k
-            );
-            count++;
-            eachCb(ret.markNode, {
-              match : match,
-              count : count,
-            });
-            if (ret.increment === 0) {
+            const obj = this.wrapRangeInsert(dict, info, start, end, info.start + start, k);
+            eachInfo.count = ++count;
+            eachCb(obj.markNode, eachInfo);
+            if (obj.increment === 0) {
               regex.lastIndex = 0;
               break;
             }
-            k += ret.increment;
-            info = ret.retNode;
+            k += obj.increment;
+            info = obj.nodeInfo;
             node = info.node;
           } else {
-            node = this.wrapGroups(node, start, len, node => {
-              count++;
-              eachCb(node, {
-                match : match,
-                count : count,
-              });
-            });
+            const obj = this.wrapRange(node, start, end);
+            node = obj.node;
+            eachInfo.count = ++count;
+            eachCb(obj.markNode, eachInfo);
           }
           regex.lastIndex = 0;
           if (execution.abort) {
@@ -1138,7 +1137,7 @@ class Mark {
           }
         }
         const end = start + match[index].length;
-        this.wrapRangeInMappedTextNode(dict, start, end, obj => {
+        this.wrapRangeAcross(dict, start, end, obj => {
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;
@@ -1176,7 +1175,7 @@ class Mark {
         }
         const substr = dict.value.substring(range.start, end);
         if (substr.trim()) {
-          this.wrapRangeInMappedTextNode(dict, range.start, end, obj => {
+          this.wrapRangeAcross(dict, range.start, end, obj => {
             return filterCb(obj.node, range, substr, index);
           }, (node, rangeStart) => {
             if (rangeStart) {
