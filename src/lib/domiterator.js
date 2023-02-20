@@ -55,10 +55,10 @@ class DOMIterator {
    * @access public
    */
   static matches(element, selector) {
-    const selectors = typeof selector === 'string' ? [selector] : selector;
-    if ( !selectors) {
+    if ( !selector || !selector.length) {
       return false;
     }
+    const selectors = typeof selector === 'string' ? [selector] : selector;
     const fn = (
       element.matches ||
       element.matchesSelector ||
@@ -67,7 +67,7 @@ class DOMIterator {
       element.oMatchesSelector ||
       element.webkitMatchesSelector
     );
-    return fn ? selectors.some(sel => fn.call(element, sel) === true) : false;
+    return fn && selectors.some(sel => fn.call(element, sel) === true);
   }
 
   /**
