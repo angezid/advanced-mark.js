@@ -29,7 +29,7 @@ module.exports = config => {
     failOnEmptyTestSuite: false,
     plugins: [
       'karma-jasmine',
-      'karma-jasmine-jquery',
+      '@metahub/karma-jasmine-jquery',
       'karma-chrome-launcher',
       'karma-spec-reporter',
       'karma-coverage'
