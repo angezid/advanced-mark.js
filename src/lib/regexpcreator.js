@@ -24,14 +24,12 @@ class RegExpCreator {
    *   <li><i>complementary</i>: When searching for "lor" the whole word
    *   "lorem" will be marked</li>
    *   <li><i>exactly</i>: When searching for "lor" only those exact words
-   *   will be marked. In this example nothing inside "lorem". This value
-   *   is equivalent to the previous option <i>wordBoundary</i></li>
+   *   will be marked. In this example nothing inside "lorem".
    * </ul>
    * Or an object containing two properties:
    * <ul>
-   *   <li><i>value</i>: One of the above named string values</li>
-   *   <li><i>limiters</i>: A custom array of string limiters for accuracy
-   *   "exactly" or "complementary"</li>
+   *   <li><i>value</i>: The value must be "exactly" or "complementary"</li>
+   *   <li><i>limiters</i>: A custom array of string limiters</li>
    * </ul>
    */
   /**
@@ -80,8 +78,7 @@ class RegExpCreator {
    * @property {object.<string|string[]>} [synonyms] - An object with synonyms.
    * The key will be a synonym for the value and the value for the key
    * @property {RegExpCreator~accuracy} [accuracy]
-   * @property {boolean} [caseSensitive=false] - Whether to search case
-   * sensitive
+   * @property {boolean} [caseSensitive=false] - Whether to search case sensitive
    * @property {boolean} [ignoreJoiners=false] - Whether to ignore word
    * joiners inside of key words. These include soft-hyphens, zero-width
    * space, zero-width non-joiners and zero-width joiners.
@@ -92,7 +89,7 @@ class RegExpCreator {
    * @typedef RegExpCreator~patternObj
    * @type {object}
    * @property {string} lookbehind - A lookbehind capturing group
-   * @property {string} pattern - A term pattern
+   * @property {string} pattern - A string pattern
    * @property {string} lookahead - A positive lookahead assertion
    */
   /**
@@ -114,48 +111,48 @@ class RegExpCreator {
    * Creates a regular expression to match the specified search term considering
    * the available option settings
    * @param  {string} str - The search term to be used
-   * @param  {boolean} patterns - Whether to return an object with pattern
-   * parts or RegExp object
-   * @return {RegExp|RegExpCreator~patternObj}
+   * @param  {boolean} patterns - Whether to return an object with pattern parts or RegExp object
+   * @return {RegExpCreator~patternObj|RegExp}
    */
   create(str, patterns) {
-    if (this.opt.wildcards !== 'disabled') {
-      str = this.setupWildcardsRegExp(str);
-    }
-    str = this.escapeStr(str);
+    str = this.checkWildcardsEscape(str);
+
     if (Object.keys(this.opt.synonyms).length) {
-      str = this.createSynonymsRegExp(str);
+      str = this.createSynonyms(str);
     }
-    if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
-      str = this.setupIgnoreJoinersRegExp(str);
+
+    const joiners = this.getJoinersPunctuation();
+
+    if (joiners) {
+      str = this.setupIgnoreJoiners(str);
     }
+
     if (this.opt.diacritics) {
-      str = this.createDiacriticsRegExp(str);
+      str = this.createDiacritics(str);
     }
-    str = this.createMergedBlanksRegExp(str);
+    str = str.replace(/\s+/g, '[\\s]+');
 
-    if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
-      str = this.createJoinersRegExp(str);
+    if (joiners) {
+      str = this.createJoiners(str, joiners);
     }
+
     if (this.opt.wildcards !== 'disabled') {
-      str = this.createWildcardsRegExp(str);
+      str = this.createWildcards(str);
     }
 
-    if (patterns) {
-      return this.createAccuracyRegExp(str, true);
+    const obj = this.createAccuracy(str);
 
-    } else {
-      str = this.createAccuracyRegExp(str, false);
-      return new RegExp(str, `gm${this.opt.caseSensitive ? '' : 'i'}`);
-    }
+    return (patterns
+      ? obj
+      : new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, `g${this.opt.caseSensitive ? '' : 'i'}`));
   }
 
   /**
-   * Creates a single combine pattern from the array of string considering the available option settings
-   * @param  {Array} array - The array of string
-   * @param  {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
-   * @return {RegExpCreator~patternObj}
-   */
+    * Creates a single combine pattern from an array of string considering the available option settings
+    * @param  {Array} array - The array of string
+    * @param  {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
+    * @return {RegExpCreator~patternObj|null}
+    */
   createCombinePattern(array, capture) {
     if ( !Array.isArray(array) || !array.length) {
       return null;
@@ -164,7 +161,7 @@ class RegExpCreator {
       obj = this.create(array[0], true),
       lookbehind = obj.lookbehind,
       lookahead = obj.lookahead,
-      pattern = array.map(str => `${group}${this.create(str, true).pattern})`).join('|');
+      pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
 
     return { lookbehind, pattern, lookahead };
   }
@@ -183,13 +180,46 @@ class RegExpCreator {
   }
 
   /**
-   * Escapes a string for usage within a regular expression
+   * Escapes RegExp special characters
    * @param {string} str - The string to escape
    * @return {string}
    */
-  escapeStr(str) {
-    // eslint-disable-next-line no-useless-escape
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+  escape(str) {
+    return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
+  }
+
+  /**
+   * In a characters set only '-^]\\' characters must be escaped;
+   * the characters '^' at the beginning, '-' in the middle affects characters set
+   * @param {string} str - The string to escape
+   * @return {string}
+   */
+  escapeCharsSet(str) {
+    return str.replace(/[-^\]\\]/g, '\\$&');
+  }
+
+  /**
+   * Splits string if par is string, removes duplicates
+   * @param {array|string} par - The parameter to process
+   * @return {array}
+   */
+  toArrayIfString(par) {
+    return par && par.length ? this.distinct(typeof par === 'string' ? par.split('') : par) : [];
+  }
+
+  /**
+   * Removes duplicate or empty entries
+   * @param {array} array - The array to process
+   * @return {array}
+   */
+  distinct(array) {
+    const result = [];
+    array.forEach(item => {
+      if (item.trim() && result.indexOf(item) === -1) {
+        result.push(item);
+      }
+    });
+    return result;
   }
 
   /**
@@ -197,25 +227,19 @@ class RegExpCreator {
    * @param  {string} str - The search term to be used
    * @return {string}
    */
-  createSynonymsRegExp(str) {
+  createSynonyms(str) {
     const syn = this.opt.synonyms,
-      sens = this.opt.caseSensitive ? '' : 'i';
+      flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
 
-    for (let index in syn) {
-      if (syn.hasOwnProperty(index)) {
-        let keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
-        keys.unshift(index);
-        keys = this.sortByLength(keys).map(key => {
-          if (this.opt.wildcards !== 'disabled') {
-            key = this.setupWildcardsRegExp(key);
-          }
-          key = this.escapeStr(key);
-          return key;
-        }).filter(k => k !== '');
+    for (const key in syn) {
+      if (syn.hasOwnProperty(key)) {
+        let array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
+        array.unshift(key);
+        array = this.sortByLength(this.distinct(array)).map(term => this.checkWildcardsEscape(term));
 
-        if (keys.length > 1) {
-          const pattern = keys.map(k => this.escapeStr(k)).join('|');
-          str = str.replace(new RegExp(`(?:${pattern})`, `gm${sens}`), `(?:${keys.join('|')})`);
+        if (array.length > 1) {
+          const pattern = array.map(k => this.escape(k)).join('|');
+          str = str.replace(new RegExp(pattern, flags), `(?:${array.join('|')})`);
         }
       }
     }
@@ -223,29 +247,27 @@ class RegExpCreator {
   }
 
   /**
-   * Sets up the regular expression string to allow later insertion of wildcard
-   * regular expression matches
-   * @param  {string} str - The search term to be used
+   * Check wildcards option creates placeholders in the regular expression string to allow later
+   * insertion of wildcard patterns and escapes RegExp special characters
+   * @param {string} str - The search term
    * @return {string}
    */
-  setupWildcardsRegExp(str) {
-    // replace single character wildcard with unicode 0001
-    str = str.replace(/(?:\\)*\?/g, val => {
-      return val.charAt(0) === '\\' ? '?' : '\u0001';
-    });
-    // replace multiple character wildcard with unicode 0002
-    return str.replace(/(?:\\)*\*/g, val => {
-      return val.charAt(0) === '\\' ? '*' : '\u0002';
-    });
+  checkWildcardsEscape(str) {
+    if (this.opt.wildcards !== 'disabled') {
+      // replace single character wildcard with unicode 0001
+      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\u0001')
+      // replace multiple character wildcard with unicode 0002
+        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\u0002');
+    }
+    return this.escape(str);
   }
 
   /**
-   * Sets up the regular expression string to allow later insertion of wildcard
-   * regular expression matches
+   * Replaces the wildcard placeholders in a regular expression string
    * @param  {string} str - The search term to be used
    * @return {string}
    */
-  createWildcardsRegExp(str) {
+  createWildcards(str) {
     // default to "enable" (i.e. to not include spaces)
     // "withSpaces" uses `[\\S\\s]` instead of `.` because the latter
     // does not match new line characters
@@ -267,7 +289,7 @@ class RegExpCreator {
    * @param  {string} str - The search term to be used
    * @return {string}
    */
-  setupIgnoreJoinersRegExp(str) {
+  setupIgnoreJoiners(str) {
     // It's not added '\0' after `(?:` grouping construct, around `|`, before `)` chars, and at the end of a string,
     // not breaks the grouping construct `(?:`
     return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
@@ -276,29 +298,37 @@ class RegExpCreator {
   }
 
   /**
-   * Creates a regular expression string to allow ignoring of designated
-   * characters (soft hyphens, zero width characters & punctuation) based on the
+   * Replaces '\u0000' placeholders in a regular expression string by designated
+   * characters (soft hyphens, zero width characters, and punctuation) based on the
    * specified option values of <code>ignorePunctuation</code> and
    * <code>ignoreJoiners</code>
    * @param  {string} str - The search term to be used
    * @return {string}
    */
-  createJoinersRegExp(str) {
-    let joiner = [];
-    const ignorePunctuation = this.opt.ignorePunctuation;
-    if (Array.isArray(ignorePunctuation) && ignorePunctuation.length) {
-      joiner.push(this.escapeStr(ignorePunctuation.join('')));
+  createJoiners(str, joiners) {
+    return str.split(/\u0000+/).join(`[${joiners}]*`);
+  }
+
+  /**
+   * Creates a punctuation and/or joiners pattern
+   * @return {string}
+   */
+  getJoinersPunctuation() {
+    let punct = this.toArrayIfString(this.opt.ignorePunctuation),
+      str = '';
+
+    if (punct.length) {
+      str = this.escapeCharsSet(punct.join(''));
     }
+
     if (this.opt.ignoreJoiners) {
       // u+00ad = soft hyphen
       // u+200b = zero-width space
       // u+200c = zero-width non-joiner
       // u+200d = zero-width joiner
-      joiner.push('\\u00ad\\u200b\\u200c\\u200d');
+      str += '\\u00ad\\u200b\\u200c\\u200d';
     }
-    return joiner.length ?
-      str.split(/\u0000+/).join(`[${joiner.join('')}]*`) :
-      str;
+    return str;
   }
 
   /**
@@ -306,7 +336,7 @@ class RegExpCreator {
    * @param  {string} str - The search term to be used
    * @return {string}
    */
-  createDiacriticsRegExp(str) {
+  createDiacritics(str) {
     const caseSensitive = this.opt.caseSensitive,
       array = [
         'aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ',
@@ -334,60 +364,38 @@ class RegExpCreator {
   }
 
   /**
-   * Creates a regular expression string that merges whitespaces characters
-   * including subsequent ones into a single pattern, one or multiple
-   * whitespaces
-   * @param  {string} str - The search term to be used
-   * @return {string}
-   */
-  createMergedBlanksRegExp(str) {
-    return str.replace(/\s+/g, '[\\s]+');
-  }
-
-  /**
    * Creates a regular expression string to match the specified string with the
    * defined accuracy. As in the regular expression of "exactly" can be a group
    * containing a blank at the beginning, all regular expressions will be
    * created with two groups. The first group can be ignored (may contain
    * the said blank), the second contains the actual match
    * @param  {string} str - The searm term to be used
-   * @param  {boolean} patterns - Whether to return an object with pattern
-   * parts or the whole pattern
-   * @return {string|RegExpCreator~patternObj}
+   * @return {RegExpCreator~patternObj}
    */
-  createAccuracyRegExp(str, patterns) {
-    const chars = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~¡¿';
-    let acc = this.opt.accuracy,
-      val = typeof acc === 'string' ? acc : acc.value,
-      ls = typeof acc === 'string' ? [] : acc.limiters,
-      lsJoin = '';
-    ls.forEach(limiter => {
-      lsJoin += `|${this.escapeStr(limiter)}`;
-    });
+  createAccuracy(str) {
+    const chars = '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+    let accuracy = this.opt.accuracy,
+      lookbehind = '()',
+      pattern = str,
+      lookahead = '',
+      limiters;
 
-    let lookbehind = '()', pattern, lookahead = '';
-
-    switch (val) {
-      case 'partially':
-      default:
-        pattern = str;
-        break;
-      case 'complementary':
-        lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-        pattern = `[^${lsJoin}]*${str}[^${lsJoin}]*`;
-        break;
-      case 'exactly':
-        lookbehind = `(^|\\s${lsJoin})`;
-        pattern = str,
-        lookahead = `(?=$|\\s${lsJoin})`;
-        break;
+    if (typeof accuracy !== 'string') {
+      limiters = this.toArrayIfString(accuracy.limiters);
+      limiters = limiters.length ? limiters : null;
+      accuracy = accuracy.value;
     }
 
-    if (patterns) {
-      return { lookbehind, pattern, lookahead };
-    } else {
-      return `${lookbehind}(${pattern})${lookahead}`;
+    if (accuracy === 'complementary') {
+      let joins ='\\s' + (limiters ? this.escapeCharsSet(limiters.join('')) : chars);
+      pattern = `[^${joins}]*${str}[^${joins}]*`;
+
+    } else if (accuracy === 'exactly') {
+      let joins = limiters ? '|' + limiters.map(ch => this.escape(ch)).join('|') : '';
+      lookbehind = `(^|\\s${joins})`;
+      lookahead = `(?=$|\\s${joins})`;
     }
+    return { lookbehind, pattern, lookahead };
   }
 }
 

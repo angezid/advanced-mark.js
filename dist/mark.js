@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 20, 2023 */
+/* Version: 2.0.0 - February 21, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -351,32 +351,26 @@
     _createClass(RegExpCreator, [{
       key: "create",
       value: function create(str, patterns) {
-        if (this.opt.wildcards !== 'disabled') {
-          str = this.setupWildcardsRegExp(str);
-        }
-        str = this.escapeStr(str);
+        str = this.checkWildcardsEscape(str);
         if (Object.keys(this.opt.synonyms).length) {
-          str = this.createSynonymsRegExp(str);
+          str = this.createSynonyms(str);
         }
-        if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
-          str = this.setupIgnoreJoinersRegExp(str);
+        var joiners = this.getJoinersPunctuation();
+        if (joiners) {
+          str = this.setupIgnoreJoiners(str);
         }
         if (this.opt.diacritics) {
-          str = this.createDiacriticsRegExp(str);
+          str = this.createDiacritics(str);
         }
-        str = this.createMergedBlanksRegExp(str);
-        if (this.opt.ignoreJoiners || this.opt.ignorePunctuation.length) {
-          str = this.createJoinersRegExp(str);
+        str = str.replace(/\s+/g, '[\\s]+');
+        if (joiners) {
+          str = this.createJoiners(str, joiners);
         }
         if (this.opt.wildcards !== 'disabled') {
-          str = this.createWildcardsRegExp(str);
+          str = this.createWildcards(str);
         }
-        if (patterns) {
-          return this.createAccuracyRegExp(str, true);
-        } else {
-          str = this.createAccuracyRegExp(str, false);
-          return new RegExp(str, "gm".concat(this.opt.caseSensitive ? '' : 'i'));
-        }
+        var obj = this.createAccuracy(str);
+        return patterns ? obj : new RegExp("".concat(obj.lookbehind, "(").concat(obj.pattern, ")").concat(obj.lookahead), "g".concat(this.opt.caseSensitive ? '' : 'i'));
       }
     }, {
       key: "createCombinePattern",
@@ -389,9 +383,9 @@
           obj = this.create(array[0], true),
           lookbehind = obj.lookbehind,
           lookahead = obj.lookahead,
-          pattern = array.map(function (str) {
+          pattern = this.distinct(array.map(function (str) {
             return "".concat(group).concat(_this.create(str, true).pattern, ")");
-          }).join('|');
+          })).join('|');
         return {
           lookbehind: lookbehind,
           pattern: pattern,
@@ -406,78 +400,100 @@
         });
       }
     }, {
-      key: "escapeStr",
-      value: function escapeStr(str) {
-        return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+      key: "escape",
+      value: function escape(str) {
+        return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
       }
     }, {
-      key: "createSynonymsRegExp",
-      value: function createSynonymsRegExp(str) {
+      key: "escapeCharsSet",
+      value: function escapeCharsSet(str) {
+        return str.replace(/[-^\]\\]/g, '\\$&');
+      }
+    }, {
+      key: "toArrayIfString",
+      value: function toArrayIfString(par) {
+        return par && par.length ? this.distinct(typeof par === 'string' ? par.split('') : par) : [];
+      }
+    }, {
+      key: "distinct",
+      value: function distinct(array) {
+        var result = [];
+        array.forEach(function (item) {
+          if (item.trim() && result.indexOf(item) === -1) {
+            result.push(item);
+          }
+        });
+        return result;
+      }
+    }, {
+      key: "createSynonyms",
+      value: function createSynonyms(str) {
         var _this2 = this;
         var syn = this.opt.synonyms,
-          sens = this.opt.caseSensitive ? '' : 'i';
-        for (var index in syn) {
-          if (syn.hasOwnProperty(index)) {
-            var keys = Array.isArray(syn[index]) ? syn[index] : [syn[index]];
-            keys.unshift(index);
-            keys = this.sortByLength(keys).map(function (key) {
-              if (_this2.opt.wildcards !== 'disabled') {
-                key = _this2.setupWildcardsRegExp(key);
-              }
-              key = _this2.escapeStr(key);
-              return key;
-            }).filter(function (k) {
-              return k !== '';
+          flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
+        for (var key in syn) {
+          if (syn.hasOwnProperty(key)) {
+            var array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
+            array.unshift(key);
+            array = this.sortByLength(this.distinct(array)).map(function (term) {
+              return _this2.checkWildcardsEscape(term);
             });
-            if (keys.length > 1) {
-              var pattern = keys.map(function (k) {
-                return _this2.escapeStr(k);
+            if (array.length > 1) {
+              var pattern = array.map(function (k) {
+                return _this2.escape(k);
               }).join('|');
-              str = str.replace(new RegExp("(?:".concat(pattern, ")"), "gm".concat(sens)), "(?:".concat(keys.join('|'), ")"));
+              str = str.replace(new RegExp(pattern, flags), "(?:".concat(array.join('|'), ")"));
             }
           }
         }
         return str;
       }
     }, {
-      key: "setupWildcardsRegExp",
-      value: function setupWildcardsRegExp(str) {
-        str = str.replace(/(?:\\)*\?/g, function (val) {
-          return val.charAt(0) === '\\' ? '?' : "\x01";
-        });
-        return str.replace(/(?:\\)*\*/g, function (val) {
-          return val.charAt(0) === '\\' ? '*' : "\x02";
-        });
+      key: "checkWildcardsEscape",
+      value: function checkWildcardsEscape(str) {
+        if (this.opt.wildcards !== 'disabled') {
+          str = str.replace(/(\\)*\?/g, function (m, gr1) {
+            return gr1 ? '?' : "\x01";
+          }).replace(/(\\)*\*/g, function (m, gr1) {
+            return gr1 ? '*' : "\x02";
+          });
+        }
+        return this.escape(str);
       }
     }, {
-      key: "createWildcardsRegExp",
-      value: function createWildcardsRegExp(str) {
+      key: "createWildcards",
+      value: function createWildcards(str) {
         var spaces = this.opt.wildcards === 'withSpaces';
         return str.replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?').replace(/\u0002/g, spaces ? '[\\S\\s]*?' : '\\S*');
       }
     }, {
-      key: "setupIgnoreJoinersRegExp",
-      value: function setupIgnoreJoinersRegExp(str) {
+      key: "setupIgnoreJoiners",
+      value: function setupIgnoreJoiners(str) {
         return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, function (m, gr1, gr2) {
           return gr1 || typeof gr2 !== 'undefined' ? m : m + "\0";
         });
       }
     }, {
-      key: "createJoinersRegExp",
-      value: function createJoinersRegExp(str) {
-        var joiner = [];
-        var ignorePunctuation = this.opt.ignorePunctuation;
-        if (Array.isArray(ignorePunctuation) && ignorePunctuation.length) {
-          joiner.push(this.escapeStr(ignorePunctuation.join('')));
-        }
-        if (this.opt.ignoreJoiners) {
-          joiner.push("\\u00ad\\u200b\\u200c\\u200d");
-        }
-        return joiner.length ? str.split(/\u0000+/).join("[".concat(joiner.join(''), "]*")) : str;
+      key: "createJoiners",
+      value: function createJoiners(str, joiners) {
+        return str.split(/\u0000+/).join("[".concat(joiners, "]*"));
       }
     }, {
-      key: "createDiacriticsRegExp",
-      value: function createDiacriticsRegExp(str) {
+      key: "getJoinersPunctuation",
+      value: function getJoinersPunctuation() {
+        var punct = this.toArrayIfString(this.opt.ignorePunctuation),
+          str = '';
+        if (punct.length) {
+          str = this.escapeCharsSet(punct.join(''));
+        }
+        if (this.opt.ignoreJoiners) {
+          str += "\\u00ad\\u200b\\u200c\\u200d";
+        }
+        return str;
+      }
+    }, {
+      key: "createDiacritics",
+      value: function createDiacritics(str) {
         var caseSensitive = this.opt.caseSensitive,
           array = ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøō', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌ', 'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůū', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪ', 'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'];
         return str.split('').map(function (ch) {
@@ -496,48 +512,35 @@
         }).join('');
       }
     }, {
-      key: "createMergedBlanksRegExp",
-      value: function createMergedBlanksRegExp(str) {
-        return str.replace(/\s+/g, '[\\s]+');
-      }
-    }, {
-      key: "createAccuracyRegExp",
-      value: function createAccuracyRegExp(str, patterns) {
+      key: "createAccuracy",
+      value: function createAccuracy(str) {
         var _this3 = this;
-        var chars = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~¡¿';
-        var acc = this.opt.accuracy,
-          val = typeof acc === 'string' ? acc : acc.value,
-          ls = typeof acc === 'string' ? [] : acc.limiters,
-          lsJoin = '';
-        ls.forEach(function (limiter) {
-          lsJoin += "|".concat(_this3.escapeStr(limiter));
-        });
-        var lookbehind = '()',
-          pattern,
-          lookahead = '';
-        switch (val) {
-          case 'partially':
-          default:
-            pattern = str;
-            break;
-          case 'complementary':
-            lsJoin = '\\s' + (lsJoin ? lsJoin : this.escapeStr(chars));
-            pattern = "[^".concat(lsJoin, "]*").concat(str, "[^").concat(lsJoin, "]*");
-            break;
-          case 'exactly':
-            lookbehind = "(^|\\s".concat(lsJoin, ")");
-            pattern = str, lookahead = "(?=$|\\s".concat(lsJoin, ")");
-            break;
+        var chars = '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+        var accuracy = this.opt.accuracy,
+          lookbehind = '()',
+          pattern = str,
+          lookahead = '',
+          limiters;
+        if (typeof accuracy !== 'string') {
+          limiters = this.toArrayIfString(accuracy.limiters);
+          limiters = limiters.length ? limiters : null;
+          accuracy = accuracy.value;
         }
-        if (patterns) {
-          return {
-            lookbehind: lookbehind,
-            pattern: pattern,
-            lookahead: lookahead
-          };
-        } else {
-          return "".concat(lookbehind, "(").concat(pattern, ")").concat(lookahead);
+        if (accuracy === 'complementary') {
+          var joins = '\\s' + (limiters ? this.escapeCharsSet(limiters.join('')) : chars);
+          pattern = "[^".concat(joins, "]*").concat(str, "[^").concat(joins, "]*");
+        } else if (accuracy === 'exactly') {
+          var _joins = limiters ? '|' + limiters.map(function (ch) {
+            return _this3.escape(ch);
+          }).join('|') : '';
+          lookbehind = "(^|\\s".concat(_joins, ")");
+          lookahead = "(?=$|\\s".concat(_joins, ")");
         }
+        return {
+          lookbehind: lookbehind,
+          pattern: pattern,
+          lookahead: lookahead
+        };
       }
     }]);
     return RegExpCreator;
@@ -1680,7 +1683,7 @@
           termMatches;
         var across = this.opt.acrossElements,
           fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
-          flags = "gm".concat(this.opt.caseSensitive ? '' : 'i'),
+          flags = "g".concat(this.opt.caseSensitive ? '' : 'i'),
           termStats = {},
           terms = this.getSeachTerms(sv);
         var loop = function loop(pattern) {
