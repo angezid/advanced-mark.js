@@ -1,4 +1,4 @@
-/* Version: 1.1.0 - January 31, 2023 */
+/* Version: 1.1.0 - February 21, 2023 */
 /*!***************************************************
 * advanced-mark.js v1.1.0
 * https://github.com/angezid/advanced-mark#readme
@@ -33,7 +33,7 @@
       descriptor.enumerable = descriptor.enumerable || false;
       descriptor.configurable = true;
       if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
+      Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor);
     }
   }
   function _createClass(Constructor, protoProps, staticProps) {
@@ -57,6 +57,20 @@
       return target;
     };
     return _extends.apply(this, arguments);
+  }
+  function _toPrimitive(input, hint) {
+    if (typeof input !== "object" || input === null) return input;
+    var prim = input[Symbol.toPrimitive];
+    if (prim !== undefined) {
+      var res = prim.call(input, hint || "default");
+      if (typeof res !== "object") return res;
+      throw new TypeError("@@toPrimitive must return a primitive value.");
+    }
+    return (hint === "string" ? String : Number)(input);
+  }
+  function _toPropertyKey(arg) {
+    var key = _toPrimitive(arg, "string");
+    return typeof key === "symbol" ? key : String(key);
   }
 
   var DOMIterator = /*#__PURE__*/function () {
@@ -356,39 +370,37 @@
       value: function iterateThroughNodes(whatToShow, ctx, eachCb, filterCb, doneCb) {
         var _this6 = this;
         if (this.iframes) {
-          (function () {
-            var ifr = [],
-              nodes = [];
-            var itr = _this6.createIterator(ctx, whatToShow, filterCb);
-            var node, prevNode;
-            var retrieveNodes = function retrieveNodes() {
-              var _this6$getIteratorNod = _this6.getIteratorNode(itr);
-              prevNode = _this6$getIteratorNod.prevNode;
-              node = _this6$getIteratorNod.node;
-              return node;
-            };
-            while (retrieveNodes()) {
-              _this6.forEachIframe(ctx, function (currIfr) {
-                return _this6.checkIframeFilter(node, prevNode, currIfr, ifr);
-              }, function (con) {
-                _this6.createInstanceOnIframe(con).forEachNode(whatToShow, function (ifrNode) {
-                  return nodes.push(ifrNode);
-                }, filterCb);
-              });
-              nodes.push(node);
-            }
-            nodes.forEach(function (node) {
-              eachCb(node);
+          var ifr = [],
+            nodes = [];
+          var itr = this.createIterator(ctx, whatToShow, filterCb);
+          var node, prevNode;
+          var retrieveNodes = function retrieveNodes() {
+            var _this6$getIteratorNod = _this6.getIteratorNode(itr);
+            prevNode = _this6$getIteratorNod.prevNode;
+            node = _this6$getIteratorNod.node;
+            return node;
+          };
+          while (retrieveNodes()) {
+            this.forEachIframe(ctx, function (currIfr) {
+              return _this6.checkIframeFilter(node, prevNode, currIfr, ifr);
+            }, function (con) {
+              _this6.createInstanceOnIframe(con).forEachNode(whatToShow, function (ifrNode) {
+                return nodes.push(ifrNode);
+              }, filterCb);
             });
-            _this6.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
-          })();
+            nodes.push(node);
+          }
+          nodes.forEach(function (node) {
+            eachCb(node);
+          });
+          this.handleOpenIframes(ifr, whatToShow, eachCb, filterCb);
         } else if (this.shadowDOM) {
           this.iterateNodesIncludeShadowDOM(ctx, whatToShow, filterCb, eachCb);
         } else {
           var iterator = this.createIterator(ctx, whatToShow, filterCb);
-          var node;
-          while (node = iterator.nextNode()) {
-            eachCb(node);
+          var _node;
+          while (_node = iterator.nextNode()) {
+            eachCb(_node);
           }
         }
         doneCb();
