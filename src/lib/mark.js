@@ -1789,7 +1789,7 @@ class Mark {
       termMatches;
     const across = this.opt.acrossElements,
       fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
-      flags = `gm${this.opt.caseSensitive ? '' : 'i'}`,
+      flags = `g${this.opt.caseSensitive ? '' : 'i'}`,
       termStats = {},
       terms = this.getSeachTerms(sv);
 
