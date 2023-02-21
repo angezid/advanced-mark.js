@@ -1598,11 +1598,10 @@
         var _this12 = this;
         this.opt = this.checkOption(opt);
         var totalMarks = 0,
+          matchesSoFar = 0,
           fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
         if (this.opt.acrossElements) {
           fn = this.opt.separateGroups ? 'wrapSeparateGroupsAcross' : 'wrapMatchesAcross';
-        }
-        if (this.opt.acrossElements) {
           if (!regexp.global && !regexp.sticky) {
             var splits = regexp.toString().split('/');
             regexp = new RegExp(regexp.source, 'g' + splits[splits.length - 1]);
@@ -1611,8 +1610,9 @@
         }
         this.log("Searching with expression \"".concat(regexp, "\""));
         this[fn](regexp, this.opt.ignoreGroups, function (node, match, filterInfo) {
-          return _this12.opt.filter(node, match, totalMarks, filterInfo);
+          return _this12.opt.filter(node, match, matchesSoFar, filterInfo);
         }, function (element, eachInfo) {
+          matchesSoFar = eachInfo.count;
           totalMarks++;
           _this12.opt.each(element, eachInfo);
         }, function (totalMatches) {

@@ -20,7 +20,7 @@ declare namespace Mark {
 
   interface AccuracyObject {
     value: 'exactly' | 'complementary';
-    limiters: string[];
+    limiters: string | string[];
   }
 
   interface MarkOptions {
@@ -34,7 +34,7 @@ declare namespace Mark {
     synonyms?: { [index: string] : string };
     caseSensitive?: boolean;
     ignoreJoiners?: boolean;
-    ignorePunctuation?: string[];
+    ignorePunctuation?: string | string[];
     wildcards?: 'disabled' | 'enabled' | 'withSpaces';
     iframes?: boolean;
     iframesTimeout?: number;
@@ -86,7 +86,7 @@ declare namespace Mark {
     blockElementsBoundary?: boolean | BoundaryObject;
     shadowDOM?: boolean | ShadowObject;
 
-    filter?(textNode: Text, term: string, totalMarksSoFar: number, filterInfo: RegExpFilterInfo) : boolean;
+    filter?(textNode: Text, term: string, matchesSoFar: number, filterInfo: RegExpFilterInfo) : boolean;
     each?(element: Element, eachInfo: RegExpEachInfo) : void;
     done?(totalMarks: number, totalMatches: number) : void;
 
