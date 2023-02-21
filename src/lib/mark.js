@@ -1609,7 +1609,7 @@ class Mark {
    * 1) without 'ignoreGroups' and 'separateGroups' options - the whole match.
    * 2) with 'ignoreGroups' - The match[ignoreGroups+1] group matching string.
    * 3) with 'separateGroups' option - the current group matching string
-   * @param {number} totalMarks - A counter indicating the number of all marks so far
+   * @param {number} matchesSoFar - The number of wrapped matches so far
    * @param {Mark~filterInfoObject} filterInfo - The object containing the match information.
    */
 
@@ -1640,13 +1640,11 @@ class Mark {
     this.opt = this.checkOption(opt);
 
     let totalMarks = 0,
+      matchesSoFar = 0,
       fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
 
     if (this.opt.acrossElements) {
       fn = this.opt.separateGroups ? 'wrapSeparateGroupsAcross' : 'wrapMatchesAcross';
-    }
-
-    if (this.opt.acrossElements) {
       // it solves the backward-compatibility issue but open gate for new code to slip in without g flag
       if ( !regexp.global && !regexp.sticky) {
         let splits = regexp.toString().split('/');
@@ -1657,9 +1655,10 @@ class Mark {
     this.log(`Searching with expression "${regexp}"`);
 
     this[fn](regexp, this.opt.ignoreGroups, (node, match, filterInfo) => { // filter
-      return this.opt.filter(node, match, totalMarks, filterInfo);
+      return this.opt.filter(node, match, matchesSoFar, filterInfo);
 
     }, (element, eachInfo) => { // each
+      matchesSoFar = eachInfo.count;
       totalMarks++;
       this.opt.each(element, eachInfo);
 

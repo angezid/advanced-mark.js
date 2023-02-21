@@ -1220,11 +1220,10 @@ class Mark$1 {
   markRegExp(regexp, opt) {
     this.opt = this.checkOption(opt);
     let totalMarks = 0,
+      matchesSoFar = 0,
       fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
     if (this.opt.acrossElements) {
       fn = this.opt.separateGroups ? 'wrapSeparateGroupsAcross' : 'wrapMatchesAcross';
-    }
-    if (this.opt.acrossElements) {
       if ( !regexp.global && !regexp.sticky) {
         let splits = regexp.toString().split('/');
         regexp = new RegExp(regexp.source, 'g' + splits[splits.length-1]);
@@ -1233,8 +1232,9 @@ class Mark$1 {
     }
     this.log(`Searching with expression "${regexp}"`);
     this[fn](regexp, this.opt.ignoreGroups, (node, match, filterInfo) => {
-      return this.opt.filter(node, match, totalMarks, filterInfo);
+      return this.opt.filter(node, match, matchesSoFar, filterInfo);
     }, (element, eachInfo) => {
+      matchesSoFar = eachInfo.count;
       totalMarks++;
       this.opt.each(element, eachInfo);
     }, (totalMatches) => {
