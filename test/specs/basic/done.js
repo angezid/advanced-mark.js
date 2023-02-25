@@ -25,7 +25,7 @@ describe('basic mark with done callback', function() {
     setTimeout(function() {
       expect(doneCalled).toBe(1);
       done();
-    }, 3000);
+    }, 300);
   });
   it('should call the done callback with total matches', function() {
     expect(totalMarks).toBe(totalMatches);

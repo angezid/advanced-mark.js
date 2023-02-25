@@ -1,10 +1,7 @@
 'use strict';
 describe('basic mark with ignorePunctuation and synonyms', function() {
   function getPunctuation() {
-    return ':;.,-–—‒_(){}[]!\'"+='
-      // eslint-disable-next-line no-useless-escape
-      .replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
-      .split('');
+    return '^:;.,-–—‒_(){}[]!\'"+='.split('');
   }
   var $ctx1, $ctx2,
     punctuation = getPunctuation();

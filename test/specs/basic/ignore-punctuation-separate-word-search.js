@@ -2,9 +2,8 @@
 describe(
   'basic mark with ignorePunctuation and separateWordSearch', function() {
     function getPunctuation() {
-      return ':;.,-–—‒_(){}[]!\'"+='
-        // eslint-disable-next-line no-useless-escape
-        .replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
+      return '^:;.,-–—‒_(){}[]!\'"+='
+        .replace(/[-^\]\\]/g, '\\$&')
         .split('');
     }
     var $ctx1, $ctx2, $container,
@@ -35,6 +34,7 @@ describe(
 
     it('should find separate matches', function() {
       expect($ctx1.find('mark')).toHaveLength(11);
+
       var count = 0,
         regex = /^(lorem|ipsum)$/i;
       $ctx1.find('mark').each(function() {
@@ -44,6 +44,7 @@ describe(
       });
       expect(count).toBe(11);
       expect($ctx2.find('mark')).toHaveLength(8);
+
       count = 0;
       regex = /^(ipsum|amet)$/i;
       $ctx2.find('mark').each(function() {
