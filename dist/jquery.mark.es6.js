@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 21, 2023 */
+/* Version: 2.0.0 - February 25, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme

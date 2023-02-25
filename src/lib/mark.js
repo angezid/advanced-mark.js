@@ -38,7 +38,7 @@ class Mark {
      */
     this.empty = document.createTextNode('');
     /**
-     * The array of node names which must be excluded from search 
+     * The array of node names which must be excluded from search
      * @type {array}
      * @access protected
      */
@@ -290,7 +290,7 @@ class Mark {
       return false;
     });
   }
-
+  
   /**
    * @typedef Mark~blockElementsBoundaryObject
    * @type {object}
@@ -329,9 +329,9 @@ class Mark {
    * @property {Text} node - The DOM text node
    * @property {number} start - The start index within the composite string
    * @property {number} end - The end index within the composite string
-   * @property {number} offset - The offset is used to correct position
-   * if space or string was added to the end of the text node
-   * @property {number} startOffset - The length of spaces/strings that were added
+   * @property {number} offset - The offset is used to correct position if space or string
+   * was added to end of composite string after this node textContent
+   * @property {number} startOffset - The sum of all offsets that were added
    * to the composite string before this node. It has a negative value.
    */
 
@@ -582,7 +582,7 @@ class Mark {
 
   /**
    * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
-   * Creates info object(s) related newly created node(s) and inserts into dict.nodes or replace an existing one
+   * Creates info object(s) related to the newly created node(s) and inserts into dict.nodes or replace an existing one
    * It doesn't create empty sibling text nodes when `Text.splitText()` method splits a text node at the start/end
    * @param {Mark~wrapRangeInsertDict} dict - The dictionary
    * @param {object} n - The currently processed info object
@@ -645,6 +645,12 @@ class Mark {
 
   /**
    * Creates object
+   * @param  {Text} node - The DOM text node
+   * @param  {number} start - The position where to start wrapping
+   * @param  {number} end - The position where to end wrapping
+   * @param  {number} offset - The length of space/string that is added to end of composite string
+   * after this node textContent
+   * @param  {number} startOffset - The sum of all offsets that were added before this node 
    */
   createInfo(node, start, end, offset, startOffset) {
     return { node, start, end, offset, startOffset };
@@ -669,6 +675,12 @@ class Mark {
 
     return markNode;
   }
+  
+  /**
+   * Each callback
+   * @callback Mark~wrapRangeEachCallback
+   * @param {HTMLElement} node - The wrapped DOM element
+   */
 
   /**
    * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
@@ -676,8 +688,8 @@ class Mark {
    * @param  {Text} node - The DOM text node
    * @param  {number} start - The position where to start wrapping
    * @param  {number} end - The position where to end wrapping
-   * @return {object} Returns an object containing the mark element and the split text node
-   * that will appear after the wrapped text node
+   * @param  {Mark~wrapRangeEachCallback} eachCb - Each callback
+   * @return {Text}
    * @access protected
    */
   wrapRange(node, start, end, eachCb) {
@@ -701,11 +713,11 @@ class Mark {
       textNode = node.splitText(start);
       retNode = textNode.splitText(end - start);
     }
-    
+
     eachCb(this.wrapTextNode(textNode));
     return retNode;
   }
-  
+
   /**
    * @typedef Mark~wrapRangeAcrossDict
    * @type {object.<string>}
@@ -974,7 +986,7 @@ class Mark {
             node = this.wrapRange(node, start - offset, end - offset, node => {
               eachCb(node, i);
             });
-            
+
             if (end > lastIndex) {
               lastIndex = end;
             }
@@ -1607,7 +1619,7 @@ class Mark {
    * @param {Text} node - The text node which includes the match or with acrossElements option can be part of the match
    * @param {string} match - The matching string:
    * 1) without 'ignoreGroups' and 'separateGroups' options - the whole match.
-   * 2) with 'ignoreGroups' - The match[ignoreGroups+1] group matching string.
+   * 2) with 'ignoreGroups' option - the match[ignoreGroups+1] group matching string.
    * 3) with 'separateGroups' option - the current group matching string
    * @param {number} matchesSoFar - The number of wrapped matches so far
    * @param {Mark~filterInfoObject} filterInfo - The object containing the match information.

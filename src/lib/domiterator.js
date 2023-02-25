@@ -88,7 +88,7 @@ class DOMIterator {
     } else { // e.g. HTMLElement or element inside iframe
       ctx = [this.ctx];
     }
-
+    
     // filters duplicate/nested elements
     const array = [];
     ctx.forEach(elem => {

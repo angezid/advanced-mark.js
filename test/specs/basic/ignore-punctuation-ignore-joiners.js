@@ -2,8 +2,7 @@
 describe('basic mark with ignorePunctuation and ignoreJoiners', function() {
   function getPunctuation() {
     return ':;.,-–—‒_(){}[]!\'"+='
-      // eslint-disable-next-line no-useless-escape
-      .replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
+      .replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')
       .split('');
   }
   var $ctx1, $ctx2, $container,

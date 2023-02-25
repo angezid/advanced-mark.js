@@ -7,8 +7,6 @@ describe('mark with regular expression and done callback', function() {
     totalMatches = doneCalled = 0;
     $ctx = $('.regexp > div:first-child');
     new Mark($ctx[0]).markRegExp(/lorem/gmi, {
-      'diacritics': false,
-      'separateWordSearch': false,
       'done': function(counter) {
         doneCalled++;
         totalMatches = counter;

@@ -3,10 +3,7 @@ describe(
   'basic mark with ignorePunctuation and synonyms with diacritics',
   function() {
     function getPunctuation() {
-      return ':;.,-–—‒_(){}[]!\'"+='
-        // eslint-disable-next-line no-useless-escape
-        .replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
-        .split('');
+      return '^:;.,-–—‒_(){}[]!\'"+='.split('');
     }
     var $ctx,
       punctuation = getPunctuation();

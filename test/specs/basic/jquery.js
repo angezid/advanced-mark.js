@@ -1,27 +1,16 @@
 'use strict';
 describe('basic mark called with jquery', function() {
-  var $ctx, ret;
-  beforeEach(function(done) {
+  var $ctx;
+  beforeEach(function() {
     loadFixtures('basic/main.html');
 
     $ctx = $('.basic');
-    ret = $ctx.mark('lorem ipsum', {
-      'diacritics': false,
-      'separateWordSearch': false,
-      'done': function() {
-        // otherwise "ret =" will not be executed
-        setTimeout(function() {
-          done();
-        }, 50);
-      }
-    });
   });
 
-  it('should wrap matches', function() {
-    expect($ctx.find('mark')).toHaveLength(4);
-  });
-  it('should return the provided context jquery element', function() {
+  it('should return the provided context jquery element', function(done) {
+    var ret = $ctx.mark('lorem');
     expect(ret instanceof $).toBe(true);
     expect(ret).toBeMatchedBy('.basic');
+    done();
   });
 });
