@@ -189,12 +189,12 @@ class RegExpCreator {
   }
 
   /**
-   * In a characters set only '-^]\\' characters must be escaped;
-   * the characters '^' at the beginning, '-' in the middle affects characters set
+   * In a character set only '-^]\\' characters must be escaped;
+   * the characters '^' at the beginning, '-' in the middle affects character set
    * @param {string} str - The string to escape
    * @return {string}
    */
-  escapeCharsSet(str) {
+  escapeCharSet(str) {
     return str.replace(/[-^\]\\]/g, '\\$&');
   }
 
@@ -318,7 +318,7 @@ class RegExpCreator {
       str = '';
 
     if (punct.length) {
-      str = this.escapeCharsSet(punct.join(''));
+      str = this.escapeCharSet(punct.join(''));
     }
 
     if (this.opt.ignoreJoiners) {
@@ -387,7 +387,7 @@ class RegExpCreator {
     }
 
     if (accuracy === 'complementary') {
-      let joins ='\\s' + (limiters ? this.escapeCharsSet(limiters.join('')) : chars);
+      let joins ='\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
       pattern = `[^${joins}]*${str}[^${joins}]*`;
 
     } else if (accuracy === 'exactly') {

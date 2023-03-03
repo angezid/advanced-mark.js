@@ -132,8 +132,8 @@
         return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
       }
     }, {
-      key: "escapeCharsSet",
-      value: function escapeCharsSet(str) {
+      key: "escapeCharSet",
+      value: function escapeCharSet(str) {
         return str.replace(/[-^\]\\]/g, '\\$&');
       }
     }, {
@@ -211,7 +211,7 @@
         var punct = this.toArrayIfString(this.opt.ignorePunctuation),
           str = '';
         if (punct.length) {
-          str = this.escapeCharsSet(punct.join(''));
+          str = this.escapeCharSet(punct.join(''));
         }
         if (this.opt.ignoreJoiners) {
           str += "\\u00ad\\u200b\\u200c\\u200d";
@@ -254,7 +254,7 @@
           accuracy = accuracy.value;
         }
         if (accuracy === 'complementary') {
-          var joins = '\\s' + (limiters ? this.escapeCharsSet(limiters.join('')) : chars);
+          var joins = '\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
           pattern = "[^".concat(joins, "]*").concat(str, "[^").concat(joins, "]*");
         } else if (accuracy === 'exactly') {
           var _joins = limiters ? '|' + limiters.map(function (ch) {

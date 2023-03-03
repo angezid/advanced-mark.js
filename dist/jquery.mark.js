@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 25, 2023 */
+/* Version: 2.0.0 - March 3, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -87,13 +87,15 @@
     _createClass(DOMIterator, [{
       key: "getContexts",
       value: function getContexts() {
-        var ctx;
+        var ctx,
+          sort = false;
         if (typeof this.ctx === 'undefined' || !this.ctx) {
           ctx = [];
         } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
           ctx = Array.prototype.slice.call(this.ctx);
         } else if (Array.isArray(this.ctx)) {
           ctx = this.ctx;
+          sort = true;
         } else if (typeof this.ctx === 'string') {
           ctx = Array.prototype.slice.call(document.querySelectorAll(this.ctx));
         } else {
@@ -107,6 +109,11 @@
             array.push(elem);
           }
         });
+        if (sort) {
+          array.sort(function (a, b) {
+            return (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
+          });
+        }
         return array;
       }
     }, {
@@ -423,8 +430,8 @@
         return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
       }
     }, {
-      key: "escapeCharsSet",
-      value: function escapeCharsSet(str) {
+      key: "escapeCharSet",
+      value: function escapeCharSet(str) {
         return str.replace(/[-^\]\\]/g, '\\$&');
       }
     }, {
@@ -502,7 +509,7 @@
         var punct = this.toArrayIfString(this.opt.ignorePunctuation),
           str = '';
         if (punct.length) {
-          str = this.escapeCharsSet(punct.join(''));
+          str = this.escapeCharSet(punct.join(''));
         }
         if (this.opt.ignoreJoiners) {
           str += "\\u00ad\\u200b\\u200c\\u200d";
@@ -545,7 +552,7 @@
           accuracy = accuracy.value;
         }
         if (accuracy === 'complementary') {
-          var joins = '\\s' + (limiters ? this.escapeCharsSet(limiters.join('')) : chars);
+          var joins = '\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
           pattern = "[^".concat(joins, "]*").concat(str, "[^").concat(joins, "]*");
         } else if (accuracy === 'exactly') {
           var _joins = limiters ? '|' + limiters.map(function (ch) {
@@ -1269,13 +1276,13 @@
           i = -1,
           index = 1,
           brackets = 0,
-          charsSet = false,
+          charSet = false,
           str = regex.source,
           reg = /^\(\?<(?![=!])|^\((?!\?)/;
         while (++i < str.length) {
           switch (str[i]) {
             case '(':
-              if (!charsSet) {
+              if (!charSet) {
                 if (reg.test(str.substring(i))) {
                   stack.push(1);
                   if (brackets === 0) {
@@ -1289,7 +1296,7 @@
               }
               break;
             case ')':
-              if (!charsSet && stack.pop() === 1) {
+              if (!charSet && stack.pop() === 1) {
                 brackets--;
               }
               break;
@@ -1297,10 +1304,10 @@
               i++;
               break;
             case '[':
-              charsSet = true;
+              charSet = true;
               break;
             case ']':
-              charsSet = false;
+              charSet = false;
               break;
           }
         }
@@ -1771,15 +1778,15 @@
       value: function getPatterns(terms) {
         var creator = new RegExpCreator(this.opt),
           first = creator.create(terms[0], true),
+          option = this.opt.combinePatterns,
           patterns = [],
           array = [];
-        var num = 10;
-        if (typeof this.opt.combinePatterns === 'number') {
-          if (this.opt.combinePatterns === Infinity) {
-            num = Math.pow(2, 31);
-          } else if (this.isNumeric(this.opt.combinePatterns)) {
-            num = parseInt(this.opt.combinePatterns);
-          }
+        var num = 10,
+          value;
+        if (option === Infinity) {
+          num = Math.pow(2, 31);
+        } else if (this.isNumeric(option) && (value = parseInt(option)) > 0) {
+          num = value;
         }
         var count = Math.ceil(terms.length / num);
         for (var k = 0; k < count; k++) {

@@ -1,11 +1,12 @@
 
 ### 2.0.0
 
-* Rewrote `DOMIterator` iframe related code.
+* Rewrote `DOMIterator` iframe related code. Added code sorting a custom array of elements by the DOM order -  can affect `markRanges()` method.
 * Rewrote `unwrapMatches()` method for performance reason.
 * Rewrote `getTextNodesAcross()` method (previously named as 'getTextNodesAcrossElements') to change the logic which determines does the two text nodes are separated by block element.
 * Rewrote `markRanges` related code (to simplify the code).
-* Changes in `mark()` and `markCombinePatterns()` methods (important: in `filter` callback the parameters that count mark elements now count matches - affects code that uses `acrossElements` option), simplified `getSeparatedKeywords()` method.
+* Changes in `mark()` and `markRegExp()` methods: the `filter` callback parameters that count mark elements has been changed to count matches. It can affect the old code that uses `acrossElements` option.
+* Simplified `getSeparatedKeywords()` method.
 * Got rid of empty sibling text nodes that are created when `Text.splitText()` method splits a text node at the start or/and at the end.
 
 ### 1.1.0
