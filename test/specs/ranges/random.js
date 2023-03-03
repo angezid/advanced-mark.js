@@ -86,6 +86,7 @@ describe('Test the random generated ranges', function() {
       }
       ranges.push({ start: start, length: length });
     }
+    ranges.push({ start: 0, length: 'undefined' });
     ranges.push({ start: null, length: null });
     ranges.push({ length: 15 });
     ranges.push({ start: 15 });

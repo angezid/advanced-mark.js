@@ -1095,7 +1095,7 @@ class Mark {
    */
   collectRegexGroupIndexes(regex) {
     let groups = [], stack = [],
-      i = -1, index = 1, brackets = 0, charsSet = false,
+      i = -1, index = 1, brackets = 0, charSet = false,
       str = regex.source,
       // matches the start of capturing groups (?<, (
       reg = /^\(\?<(?![=!])|^\((?!\?)/;
@@ -1103,7 +1103,7 @@ class Mark {
     while (++i < str.length) {
       switch (str[i]) {
         case '(':
-          if ( !charsSet) {
+          if ( !charSet) {
             if (reg.test(str.substring(i))) {
               stack.push(1);
               if (brackets === 0) {
@@ -1117,13 +1117,13 @@ class Mark {
           }
           break;
         case ')':
-          if ( !charsSet && stack.pop() === 1) {
+          if ( !charSet && stack.pop() === 1) {
             brackets--;
           }
           break;
         case '\\' : i++; break;
-        case '[' : charsSet = true; break;
-        case ']' : charsSet = false; break;
+        case '[' : charSet = true; break;
+        case ']' : charSet = false; break;
         default : break;
       }
     }
@@ -1141,8 +1141,8 @@ class Mark {
    * @property {object} execution - The helper object for early abort. Contains
    * boolean 'abort' property.
    * @property {number} offset - With the 'acrossElements' option: the length
-   * of spaces/strings that were added to the composite string.
-   * Without this option: the absolute start index of a text node.
+   * of spaces/strings that were added to the composite string so far.
+   * Without this option: the absolute start index of a text node in joined contexts.
    * It is necessary to translate the local node indexes to the absolute ones.
    */
   /**
@@ -1152,7 +1152,7 @@ class Mark {
    * @property {boolean} matchStart - Indicate the start of match. It's only available
    * with the 'acrossElements' option
    * @property {number} count - The current number of matches
-   * @property {number} groupIndex - The index of match group. It's only
+   * @property {number} groupIndex - The index of current match group. It's only
    * available with 'separateGroups' option
    * @property {boolean} groupStart - Indicate the start of group. It's only
    * available with both 'acrossElements' and 'separateGroups' options
@@ -1479,8 +1479,8 @@ class Mark {
    * Callback for each wrapped element
    * @callback Mark~wrapRangesEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~rangeObject} range - the current range object; provided start and length values
-   * are numeric integers modified from the provided original ranges.
+   * @param {Mark~rangeObject} range - the current range object; the start and length values can be
+   * modified if they are not numeric integers
    * @param {Mark~rangeInfoObject} rangeInfo - The object containing the range information
    */
   /**
@@ -1609,11 +1609,6 @@ class Mark {
   }
 
   /**
-   * Callback if there were no matches
-   * @callback Mark~markRegExpNoMatchCallback
-   * @param {RegExp} regexp - The regular expression
-   */
-  /**
    * Callback to filter matches
    * @callback Mark~markRegExpFilterCallback
    * @param {Text} node - The text node which includes the match or with acrossElements option can be part of the match
@@ -1624,19 +1619,23 @@ class Mark {
    * @param {number} matchesSoFar - The number of wrapped matches so far
    * @param {Mark~filterInfoObject} filterInfo - The object containing the match information.
    */
-
   /**
    * Callback for each marked element
    * @callback Mark~markRegExpEachCallback
    * @param {HTMLElement} element - The marked DOM element
    * @param {Mark~eachInfoObject} eachInfo - The object containing the match information.
    */
+  /**
+   * Callback if there were no matches
+   * @callback Mark~markRegExpNoMatchCallback
+   * @param {RegExp} regexp - The regular expression
+   */
 
   /**
    * These options also include the common options from {@link Mark~commonOptions}
    * @typedef Mark~markRegExpOptions
    * @type {object.<string>}
-   * @property {number} [ignoreGroups=0] - A number indicating the amount of RegExp matching groups to ignore
+   * @property {number} [ignoreGroups=0] - A number of RegExp capturing groups to ignore from the beginning of a match
    * @property {boolean} [separateGroups] - Whether to mark RegExp capturing groups instead of whole match
    * @property {Mark~markRegExpNoMatchCallback} [noMatch]
    * @property {Mark~markRegExpFilterCallback} [filter]
@@ -1706,7 +1705,7 @@ class Mark {
    * Callback when finished
    * @callback Mark~commonDoneCallback
    * @param {number} totalMarks - The total number of marked elements
-   * @param {number} totalMatches - The exact number of total matches
+   * @param {number} totalMatches - The total number of matches
    * @param {object} termStats - The object containing an individual term's
    * matches counts for {@link Mark#mark} method.
    */
@@ -1716,8 +1715,8 @@ class Mark {
    * and the options from {@link RegExpCreator~options}
    * @typedef Mark~markOptions
    * @type {object.<string>}
-   * @property {boolean} [separateWordSearch=true] - Whether to search for
-   * each word separated by a blank instead of the complete term
+   * @property {boolean} [separateWordSearch=true] - Whether to break term into words
+   * and search for individual word instead of the complete term
    * @property {Mark~markFilterCallback} [filter]
    */
   /**
@@ -1894,17 +1893,18 @@ class Mark {
   getPatterns(terms) {
     const creator = new RegExpCreator(this.opt),
       first = creator.create(terms[0], true),
+      option = this.opt.combinePatterns,
       patterns = [],
       array = [];
-    let num = 10;
+    let num = 10,
+      value;
 
-    if (typeof this.opt.combinePatterns === 'number') {
-      if (this.opt.combinePatterns === Infinity) {
-        num = Math.pow(2, 31);
-      } else if (this.isNumeric(this.opt.combinePatterns)) {
-        num = parseInt(this.opt.combinePatterns);
-      }
+    if (option === Infinity) {
+      num = Math.pow(2, 31);
+    } else if (this.isNumeric(option) && (value = parseInt(option)) > 0) {
+      num = value;
     }
+
     // the number of chunks to be created
     let count = Math.ceil(terms.length / num);
 
@@ -1958,7 +1958,7 @@ class Mark {
    * @callback Mark~markRangesFilterCallback
    * @param {Text} node - The text node which includes the range or is part of the range
    * @param {Mark~rangeObject} range - The range object
-   * @param {string} match - string extracted from the matching range
+   * @param {string} match - The current range matching string
    * @param {number} index - The current range index
    */
   /**
@@ -1966,8 +1966,7 @@ class Mark {
    * @callback Mark~markRangesEachCallback
    * @param {HTMLElement} element - The marked DOM element
    * @param {Mark~rangeObject} range - The range object
-   * @param {Mark~rangeInfoObject}  - The object containing the range
-   * information
+   * @param {Mark~rangeInfoObject}  - The object containing the range information
    */
   /**
    * Callback if a processed range is invalid, out-of-bounds, overlaps another

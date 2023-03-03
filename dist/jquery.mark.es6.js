@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - February 25, 2023 */
+/* Version: 2.0.0 - March 3, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -31,13 +31,15 @@ class DOMIterator {
     return fn && selectors.some(sel => fn.call(element, sel) === true);
   }
   getContexts() {
-    let ctx;
+    let ctx,
+      sort = false;
     if (typeof this.ctx === 'undefined' || !this.ctx) {
       ctx = [];
     } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
       ctx = Array.prototype.slice.call(this.ctx);
     } else if (Array.isArray(this.ctx)) {
       ctx = this.ctx;
+      sort = true;
     } else if (typeof this.ctx === 'string') {
       ctx = Array.prototype.slice.call(document.querySelectorAll(this.ctx));
     } else {
@@ -49,6 +51,11 @@ class DOMIterator {
         array.push(elem);
       }
     });
+    if (sort) {
+      array.sort((a, b) => {
+        return (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
+      });
+    }
     return array;
   }
   getIframeContents(iframe, successFn, errorFn) {
@@ -300,7 +307,7 @@ class RegExpCreator {
   escape(str) {
     return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
   }
-  escapeCharsSet(str) {
+  escapeCharSet(str) {
     return str.replace(/[-^\]\\]/g, '\\$&');
   }
   toArrayIfString(par) {
@@ -356,7 +363,7 @@ class RegExpCreator {
     let punct = this.toArrayIfString(this.opt.ignorePunctuation),
       str = '';
     if (punct.length) {
-      str = this.escapeCharsSet(punct.join(''));
+      str = this.escapeCharSet(punct.join(''));
     }
     if (this.opt.ignoreJoiners) {
       str += '\\u00ad\\u200b\\u200c\\u200d';
@@ -401,7 +408,7 @@ class RegExpCreator {
       accuracy = accuracy.value;
     }
     if (accuracy === 'complementary') {
-      let joins ='\\s' + (limiters ? this.escapeCharsSet(limiters.join('')) : chars);
+      let joins ='\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
       pattern = `[^${joins}]*${str}[^${joins}]*`;
     } else if (accuracy === 'exactly') {
       let joins = limiters ? '|' + limiters.map(ch => this.escape(ch)).join('|') : '';
@@ -944,13 +951,13 @@ class Mark {
   }
   collectRegexGroupIndexes(regex) {
     let groups = [], stack = [],
-      i = -1, index = 1, brackets = 0, charsSet = false,
+      i = -1, index = 1, brackets = 0, charSet = false,
       str = regex.source,
       reg = /^\(\?<(?![=!])|^\((?!\?)/;
     while (++i < str.length) {
       switch (str[i]) {
         case '(':
-          if ( !charsSet) {
+          if ( !charSet) {
             if (reg.test(str.substring(i))) {
               stack.push(1);
               if (brackets === 0) {
@@ -964,13 +971,13 @@ class Mark {
           }
           break;
         case ')':
-          if ( !charsSet && stack.pop() === 1) {
+          if ( !charSet && stack.pop() === 1) {
             brackets--;
           }
           break;
         case '\\' : i++; break;
-        case '[' : charsSet = true; break;
-        case ']' : charsSet = false; break;
+        case '[' : charSet = true; break;
+        case ']' : charSet = false; break;
       }
     }
     return groups;
@@ -1365,15 +1372,15 @@ class Mark {
   getPatterns(terms) {
     const creator = new RegExpCreator(this.opt),
       first = creator.create(terms[0], true),
+      option = this.opt.combinePatterns,
       patterns = [],
       array = [];
-    let num = 10;
-    if (typeof this.opt.combinePatterns === 'number') {
-      if (this.opt.combinePatterns === Infinity) {
-        num = Math.pow(2, 31);
-      } else if (this.isNumeric(this.opt.combinePatterns)) {
-        num = parseInt(this.opt.combinePatterns);
-      }
+    let num = 10,
+      value;
+    if (option === Infinity) {
+      num = Math.pow(2, 31);
+    } else if (this.isNumeric(option) && (value = parseInt(option)) > 0) {
+      num = value;
     }
     let count = Math.ceil(terms.length / num);
     for (let k = 0; k < count; k++)  {

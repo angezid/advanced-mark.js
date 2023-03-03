@@ -76,19 +76,22 @@ class DOMIterator {
    * @access protected
    */
   getContexts() {
-    let ctx;
+    let ctx,
+      sort = false;
+
     if (typeof this.ctx === 'undefined' || !this.ctx) { // e.g. null
       ctx = [];
     } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
       ctx = Array.prototype.slice.call(this.ctx);
     } else if (Array.isArray(this.ctx)) {
       ctx = this.ctx;
+      sort = true;
     } else if (typeof this.ctx === 'string') {
       ctx = Array.prototype.slice.call(document.querySelectorAll(this.ctx));
     } else { // e.g. HTMLElement or element inside iframe
       ctx = [this.ctx];
     }
-    
+
     // filters duplicate/nested elements
     const array = [];
     ctx.forEach(elem => {
@@ -96,6 +99,13 @@ class DOMIterator {
         array.push(elem);
       }
     });
+    // elements in the custom array can be in any order
+    // sorts elements by the DOM order
+    if (sort) {
+      array.sort((a, b) => {
+        return (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
+      });
+    }
     return array;
   }
 

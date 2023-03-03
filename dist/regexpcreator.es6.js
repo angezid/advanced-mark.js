@@ -61,7 +61,7 @@ class RegExpCreator$1 {
   escape(str) {
     return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
   }
-  escapeCharsSet(str) {
+  escapeCharSet(str) {
     return str.replace(/[-^\]\\]/g, '\\$&');
   }
   toArrayIfString(par) {
@@ -117,7 +117,7 @@ class RegExpCreator$1 {
     let punct = this.toArrayIfString(this.opt.ignorePunctuation),
       str = '';
     if (punct.length) {
-      str = this.escapeCharsSet(punct.join(''));
+      str = this.escapeCharSet(punct.join(''));
     }
     if (this.opt.ignoreJoiners) {
       str += '\\u00ad\\u200b\\u200c\\u200d';
@@ -162,7 +162,7 @@ class RegExpCreator$1 {
       accuracy = accuracy.value;
     }
     if (accuracy === 'complementary') {
-      let joins ='\\s' + (limiters ? this.escapeCharsSet(limiters.join('')) : chars);
+      let joins ='\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
       pattern = `[^${joins}]*${str}[^${joins}]*`;
     } else if (accuracy === 'exactly') {
       let joins = limiters ? '|' + limiters.map(ch => this.escape(ch)).join('|') : '';
