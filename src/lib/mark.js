@@ -87,6 +87,7 @@ class Mark {
       'noMatch': () => {},
       'filter': () => true,
       'done': () => {},
+      'allDone': () => {},
       'debug': false,
       'log': window.console
     }, val);
@@ -242,6 +243,15 @@ class Mark {
   isArrayOfObjects(array) {
     return Array.isArray(array) && array.some(item => this.isObject(item));
   }
+  
+  /**
+   * Checks if an obj is a RegExp
+   * @param {any} obj - the value to check;
+   * @return {boolean}
+   */
+  isRegExp(obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+  }
 
   /**
    * Filters valid ranges, sorts and, if wrapAllRanges option is false, filters out nesting/overlapping ranges
@@ -391,7 +401,7 @@ class Mark {
     }
 
     const obj = {
-      nodes : [], text : '', tags : tags,
+      nodes : [], text : '', regex : /\s/, tags : tags,
       boundary : boundary, startOffset : 0,
       str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
     };
@@ -456,8 +466,8 @@ class Mark {
       text = prevNode.textContent;
 
     if (prevNode !== node) {
-      const endSpace = /\s/.test(text[text.length - 1]),
-        startSpace = /\s/.test(node.textContent[0]);
+      const endSpace = obj.regex.test(text[text.length - 1]),
+        startSpace = obj.regex.test(node.textContent[0]);
 
       if (obj.boundary || !endSpace && !startSpace) {
         let separate = type;
@@ -1140,9 +1150,9 @@ class Mark {
    * with 'separateGroups' option
    * @property {object} execution - The helper object for early abort. Contains
    * boolean 'abort' property.
-   * @property {number} offset - With the 'acrossElements' option: the length
-   * of spaces/strings that were added to the composite string so far.
-   * Without this option: the absolute start index of a text node in joined contexts.
+   * @property {number} offset - With the 'acrossElements' option: the the sum of lengths of
+   * separated spaces or boundary strings that were added to the composite string so far.
+   * Without this option: the absolute start index of a text node in joined context.
    * It is necessary to translate the local node indexes to the absolute ones.
    */
   /**
@@ -1605,6 +1615,147 @@ class Mark {
         parent.replaceChild(docFrag, node);
       }
       parent.normalize();
+    }
+  }
+  
+  /**
+   * Marks an array of objects
+   * @param {array} The array of objects
+   * @param {Mark~markObjectsOptions} [opt] - Optional options object
+   * @param {number} [index] - Optional start index
+   * @access public
+   */
+  markObjects(array, opt, index) {
+    this.opt = opt;
+
+    if ( !this.isArrayOfObjects(array)) {
+      this.log(`Is not array of objects ${JSON.stringify(array)}`, 'error');
+      this.opt.allDone(0, 0, {});
+      return;
+    }
+
+    if (typeof index === 'undefined') {
+      index = 0;
+    }
+    const errors = [],
+      stats = { marks : 0, matches : 0, termStats : {} };
+
+    this.processArray(array, opt, index, stats, errors);
+  }
+
+  /**
+   * Recursively processes an array of objects
+   * @param {array} The array of objects
+   * @param {Mark~markArrayOfObjectsOptions} opt - Options object or undefined
+   * @param {number} index - The array start index
+   * @param {object} stats - The object containing aggregated statistics
+   * @param {Mark~logObject} errors - The array of error objects
+   * @access public
+   */
+  processArray(array, opt, index, stats, errors) {
+    this.opt = opt;
+
+    const obj = array[index],
+      addError = (text, obj) => {
+        errors.push({ text : `Non-valid ${text} - `, obj, skip : true, level : 'error' });
+        nextObject();
+      },
+      nextObject = () => {
+        if (array[index + 1]) {
+          this.processArray(array, opt, index + 1, stats, errors);
+
+        } else {
+          this.report(errors);
+          this.opt.allDone(stats.marks, stats.matches, stats.termStats);
+        }
+      };
+
+    if ( !obj || !this.isObject(obj)) {
+      addError(`object at index ${index}`, obj);
+      return;
+    }
+
+    const method = obj.method ? obj.method : 'mark',
+      search = obj.search,
+      place = ` in '${method}' method at index ${index} - `,
+      options = Object.assign({}, opt, obj.options),
+      done = options.done;
+    
+    if (obj.context) {
+      this.ctx = obj.context;
+      this.cacheDict = {};
+    }
+    
+    options.done = (marks, matches, termStats) => {
+      if (method !== 'unmark') {
+        // aggregates statistics needed for allDone callback
+        stats.marks += marks;
+        stats.matches += matches;
+
+        if (termStats) {
+          for (const term in termStats) {
+            if (typeof stats.termStats[term] === 'undefined') {
+              stats.termStats[term] = 0;
+            }
+            stats.termStats[term] += termStats[term];
+          }
+        }
+      }
+      
+      if (typeof done === 'function') {
+        if (method !== 'unmark') {
+          done(marks, matches, termStats);
+
+        } else {
+          done();
+        }
+      }
+      nextObject();
+    };
+
+    switch (method) {
+      case 'mark' :
+        if (this.isString(search) || Array.isArray(search)) {
+          this.mark(search, options);
+
+        } else {
+          addError('search object' + place, search);
+        }
+        break;
+
+      case 'markRegExp' :
+        if (this.isRegExp(search)) {
+          this.markRegExp(search, options);
+
+        } else if (this.isObject(search) && this.isString(search.source)) {
+          let flags = search.flags;
+
+          if (options.acrossElements) {
+            flags = flags ? (flags.indexOf('g') === -1 && flags.indexOf('y') === -1 ? 'g': '') + flags : 'g';
+          }
+          this.markRegExp(new RegExp(search.source, flags), options);
+
+        } else {
+          addError('RegExp or search object' + place, search);
+        }
+        break;
+
+      case 'markRanges' :
+        if (this.isArrayOfObjects(search)) {
+          this.markRanges(search, options);
+
+        } else {
+          addError('search object' + place, search);
+        }
+        break;
+
+      case 'unmark' :
+        this.unmark(options);
+        break;
+
+      default:
+        addError(`method at index ${index}`, method);
+        break;
     }
   }
 

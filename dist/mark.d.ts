@@ -81,7 +81,7 @@ declare namespace Mark {
     iframes?: boolean;
     iframesTimeout?: number;
 
-    separateGroups ?: boolean;
+    separateGroups?: boolean;
     wrapAllRanges?: boolean;
     blockElementsBoundary?: boolean | BoundaryObject;
     shadowDOM?: boolean | ShadowObject;

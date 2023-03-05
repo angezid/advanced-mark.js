@@ -14,6 +14,10 @@ export default function Mark(ctx) {
     instance.markRanges(sv, opt);
     return this;
   };
+  this.markObjects = (sv, opt, index) => {
+    instance.markObjects(sv, opt, index);
+    return this;
+  };
   this.unmark = (opt) => {
     instance.unmark(opt);
     return this;
