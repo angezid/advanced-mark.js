@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 3, 2023 */
+/* Version: 2.0.0 - March 5, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -439,6 +439,7 @@ class Mark$1 {
       'noMatch': () => {},
       'filter': () => true,
       'done': () => {},
+      'allDone': () => {},
       'debug': false,
       'log': window.console
     }, val);
@@ -515,6 +516,9 @@ class Mark$1 {
   isArrayOfObjects(array) {
     return Array.isArray(array) && array.some(item => this.isObject(item));
   }
+  isRegExp(obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+  }
   checkRanges(array, logs, max) {
     const level = 'error';
     const ranges = array.filter(range => {
@@ -587,7 +591,7 @@ class Mark$1 {
       }
     }
     const obj = {
-      nodes : [], text : '', tags : tags,
+      nodes : [], text : '', regex : /\s/, tags : tags,
       boundary : boundary, startOffset : 0,
       str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
     };
@@ -632,8 +636,8 @@ class Mark$1 {
     const start = obj.text.length,
       text = prevNode.textContent;
     if (prevNode !== node) {
-      const endSpace = /\s/.test(text[text.length - 1]),
-        startSpace = /\s/.test(node.textContent[0]);
+      const endSpace = obj.regex.test(text[text.length - 1]),
+        startSpace = obj.regex.test(node.textContent[0]);
       if (obj.boundary || !endSpace && !startSpace) {
         let separate = type;
         if ( !type) {
@@ -1224,6 +1228,106 @@ class Mark$1 {
       parent.normalize();
     }
   }
+  markObjects(array, opt, index) {
+    this.opt = opt;
+    if ( !this.isArrayOfObjects(array)) {
+      this.log(`Is not array of objects ${JSON.stringify(array)}`, 'error');
+      this.opt.allDone(0, 0, {});
+      return;
+    }
+    if (typeof index === 'undefined') {
+      index = 0;
+    }
+    const errors = [],
+      stats = { marks : 0, matches : 0, termStats : {} };
+    this.processArray(array, opt, index, stats, errors);
+  }
+  processArray(array, opt, index, stats, errors) {
+    this.opt = opt;
+    const obj = array[index],
+      addError = (text, obj) => {
+        errors.push({ text : `Non-valid ${text} - `, obj, skip : true, level : 'error' });
+        nextObject();
+      },
+      nextObject = () => {
+        if (array[index + 1]) {
+          this.processArray(array, opt, index + 1, stats, errors);
+        } else {
+          this.report(errors);
+          this.opt.allDone(stats.marks, stats.matches, stats.termStats);
+        }
+      };
+    if ( !obj || !this.isObject(obj)) {
+      addError(`object at index ${index}`, obj);
+      return;
+    }
+    const method = obj.method ? obj.method : 'mark',
+      search = obj.search,
+      place = ` in '${method}' method at index ${index} - `,
+      options = Object.assign({}, opt, obj.options),
+      done = options.done;
+    if (obj.context) {
+      this.ctx = obj.context;
+      this.cacheDict = {};
+    }
+    options.done = (marks, matches, termStats) => {
+      if (method !== 'unmark') {
+        stats.marks += marks;
+        stats.matches += matches;
+        if (termStats) {
+          for (const term in termStats) {
+            if (typeof stats.termStats[term] === 'undefined') {
+              stats.termStats[term] = 0;
+            }
+            stats.termStats[term] += termStats[term];
+          }
+        }
+      }
+      if (typeof done === 'function') {
+        if (method !== 'unmark') {
+          done(marks, matches, termStats);
+        } else {
+          done();
+        }
+      }
+      nextObject();
+    };
+    switch (method) {
+      case 'mark' :
+        if (this.isString(search) || Array.isArray(search)) {
+          this.mark(search, options);
+        } else {
+          addError('search object' + place, search);
+        }
+        break;
+      case 'markRegExp' :
+        if (this.isRegExp(search)) {
+          this.markRegExp(search, options);
+        } else if (this.isObject(search) && this.isString(search.source)) {
+          let flags = search.flags;
+          if (options.acrossElements) {
+            flags = flags ? (flags.indexOf('g') === -1 && flags.indexOf('y') === -1 ? 'g': '') + flags : 'g';
+          }
+          this.markRegExp(new RegExp(search.source, flags), options);
+        } else {
+          addError('RegExp or search object' + place, search);
+        }
+        break;
+      case 'markRanges' :
+        if (this.isArrayOfObjects(search)) {
+          this.markRanges(search, options);
+        } else {
+          addError('search object' + place, search);
+        }
+        break;
+      case 'unmark' :
+        this.unmark(options);
+        break;
+      default:
+        addError(`method at index ${index}`, method);
+        break;
+    }
+  }
   markRegExp(regexp, opt) {
     this.opt = this.checkOption(opt);
     let totalMarks = 0,
@@ -1442,6 +1546,10 @@ function Mark(ctx) {
   };
   this.markRanges = (sv, opt) => {
     instance.markRanges(sv, opt);
+    return this;
+  };
+  this.markObjects = (sv, opt, index) => {
+    instance.markObjects(sv, opt, index);
     return this;
   };
   this.unmark = (opt) => {
