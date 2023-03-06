@@ -13,10 +13,6 @@ $.fn.markRanges = function(ranges, opt) {
   new Mark(this.get()).markRanges(ranges, opt);
   return this;
 };
-$.fn.markObjects = function(sv, opt, index) {
-  new Mark(this.get()).markObjects(sv, opt, index);
-  return this;
-};
 $.fn.unmark = function(opt) {
   new Mark(this.get()).unmark(opt);
   return this;
