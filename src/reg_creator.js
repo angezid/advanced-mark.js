@@ -9,6 +9,6 @@ export default function RegExpCreator(options) {
     return instance.createCombinePattern(array, capture);
   };
   this.createDiacritics = (str) => {
-    return instance.createDiacritics(str);
+    return instance.createDiacriticsRegExp(str);
   };
 }
