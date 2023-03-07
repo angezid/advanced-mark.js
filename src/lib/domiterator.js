@@ -79,15 +79,15 @@ class DOMIterator {
     let ctx,
       sort = false;
 
-    if (typeof this.ctx === 'undefined' || !this.ctx) { // e.g. null
+    if ( !this.ctx) {
       ctx = [];
     } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
-      ctx = Array.prototype.slice.call(this.ctx);
+      ctx = this.ctx;
     } else if (Array.isArray(this.ctx)) {
       ctx = this.ctx;
       sort = true;
     } else if (typeof this.ctx === 'string') {
-      ctx = Array.prototype.slice.call(document.querySelectorAll(this.ctx));
+      ctx = document.querySelectorAll(this.ctx);
     } else { // e.g. HTMLElement or element inside iframe
       ctx = [this.ctx];
     }
@@ -372,7 +372,7 @@ class DOMIterator {
               eachCb(node);
             }
 
-            if (iframe && node.nodeName.toUpperCase() === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
+            if (iframe && node.nodeName.toLowerCase() === 'iframe' && !DOMIterator.matches(node, this.opt.exclude)) {
               if (this.hasAttributeValue(node, this.attrName, 'completed')) {
                 this.getIframeContents(node, obj => {
                   traverse(obj.context);

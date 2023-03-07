@@ -290,7 +290,7 @@ class Mark {
       return false;
     });
   }
-  
+
   /**
    * @typedef Mark~blockElementsBoundaryObject
    * @type {object}
@@ -391,7 +391,7 @@ class Mark {
     }
 
     const obj = {
-      nodes : [], text : '', tags : tags,
+      nodes : [], text : '', regex : /\s/, tags : tags,
       boundary : boundary, startOffset : 0,
       str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
     };
@@ -456,8 +456,8 @@ class Mark {
       text = prevNode.textContent;
 
     if (prevNode !== node) {
-      const endSpace = /\s/.test(text[text.length - 1]),
-        startSpace = /\s/.test(node.textContent[0]);
+      const endSpace = obj.regex.test(text[text.length - 1]),
+        startSpace = obj.regex.test(node.textContent[0]);
 
       if (obj.boundary || !endSpace && !startSpace) {
         let separate = type;
@@ -650,7 +650,7 @@ class Mark {
    * @param  {number} end - The position where to end wrapping
    * @param  {number} offset - The length of space/string that is added to end of composite string
    * after this node textContent
-   * @param  {number} startOffset - The sum of all offsets that were added before this node 
+   * @param  {number} startOffset - The sum of all offsets that were added before this node
    */
   createInfo(node, start, end, offset, startOffset) {
     return { node, start, end, offset, startOffset };
@@ -675,7 +675,7 @@ class Mark {
 
     return markNode;
   }
-  
+
   /**
    * Each callback
    * @callback Mark~wrapRangeEachCallback
@@ -1489,7 +1489,7 @@ class Mark {
    * @param {Text} node - The text node which includes the range or is part of the range
    * @param {Mark~rangeObject} range - the current range object
    * @param {string} substr - string extracted from the matching range
-   * @param {number} index - The current range index
+   * @param {number} index - The current range index ???
    */
 
   /**
@@ -1959,7 +1959,7 @@ class Mark {
    * @param {Text} node - The text node which includes the range or is part of the range
    * @param {Mark~rangeObject} range - The range object
    * @param {string} match - The current range matching string
-   * @param {number} index - The current range index
+   * @param {number} index - The current range index ???
    */
   /**
    * Callback for each marked element
