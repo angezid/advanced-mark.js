@@ -282,7 +282,7 @@
       return instance.createCombinePattern(array, capture);
     };
     this.createDiacritics = function (str) {
-      return instance.createDiacriticsRegExp(str);
+      return instance.createDiacritics(str);
     };
   }
 

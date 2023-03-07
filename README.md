@@ -23,17 +23,18 @@ This library from v2.0.0 doesn't guaranty backward compatibility with `mark.js` 
 
 Main doc - [Documentation](https://markjs.io/). Note that this doc is for old `mark.js`.
 
-## Doc content
-* [Performance](doc/performance.md)
-* [Callbacks parameters](doc/callbacks-parameters.md)
-* [Filtering matches](doc/filtering-matches.md)
-* [Highlight separate groups](doc/separate-groups.md)
-* [Highlight nesting/overlapping](doc/nesting-overlapping.md)
-* [Elements boundaries](doc/elements-boundaries.md)
-* [Highlight shadow DOM](doc/shadow-dom.md)
-* [TypeScript types](doc/TypeScript-types.md)
-* [Some examples](doc/some-examples.md)
-* [RegExpCreator module](doc/RegExpCreator-module.md)
+## Version 2 doc content:
+* [Performance](doc_v2/performance.md)
+* [mark method](doc_v2/mark-method.md)
+* [markRegExp method](doc_v2/markRegExp-method.md)
+* [markRanges method](doc_v2/markRanges-method.md)
+* [Filtering matches](doc_v2/filtering-matches.md)
+* [Highlight separate groups](doc_v2/separate-groups.md)
+* [Highlight nesting/overlapping](doc_v2/nesting-overlapping.md)
+* [Elements boundaries](doc_v2/elements-boundaries.md)
+* [Highlight shadow DOM](doc_v2/shadow-dom.md)
+* [Some examples](doc_v2/some-examples.md)
+* [RegExpCreator module](doc_v2/RegExpCreator-module.md)
 
 ## Modules changes
 * \*. es6.\*.js now are real ES6 modules. They are actually UMD modules in `mark.js` v9.0.0 and npm package v8.11.1.
@@ -42,4 +43,4 @@ Main doc - [Documentation](https://markjs.io/). Note that this doc is for old `m
 import Mark from './mark.es6.js';
 // import Mark from './jquery.mark.es6.js';
 ```
-UMD modules are removed from v2.0.0.
+UMD modules are removed in v2.0.0.

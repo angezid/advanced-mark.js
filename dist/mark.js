@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 3, 2023 */
+/* Version: 2.0.0 - March 7, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -85,15 +85,15 @@
       value: function getContexts() {
         var ctx,
           sort = false;
-        if (typeof this.ctx === 'undefined' || !this.ctx) {
+        if (!this.ctx) {
           ctx = [];
         } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
-          ctx = Array.prototype.slice.call(this.ctx);
+          ctx = this.ctx;
         } else if (Array.isArray(this.ctx)) {
           ctx = this.ctx;
           sort = true;
         } else if (typeof this.ctx === 'string') {
-          ctx = Array.prototype.slice.call(document.querySelectorAll(this.ctx));
+          ctx = document.querySelectorAll(this.ctx);
         } else {
           ctx = [this.ctx];
         }
@@ -288,7 +288,7 @@
                 if (showElement && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
                   eachCb(node);
                 }
-                if (iframe && node.nodeName.toUpperCase() === 'IFRAME' && !DOMIterator.matches(node, _this3.opt.exclude)) {
+                if (iframe && node.nodeName.toLowerCase() === 'iframe' && !DOMIterator.matches(node, _this3.opt.exclude)) {
                   if (_this3.hasAttributeValue(node, _this3.attrName, 'completed')) {
                     _this3.getIframeContents(node, function (obj) {
                       traverse(obj.context);
@@ -850,6 +850,7 @@
         var obj = {
           nodes: [],
           text: '',
+          regex: /\s/,
           tags: tags,
           boundary: boundary,
           startOffset: 0,
@@ -901,8 +902,8 @@
         var start = obj.text.length,
           text = prevNode.textContent;
         if (prevNode !== node) {
-          var endSpace = /\s/.test(text[text.length - 1]),
-            startSpace = /\s/.test(node.textContent[0]);
+          var endSpace = obj.regex.test(text[text.length - 1]),
+            startSpace = obj.regex.test(node.textContent[0]);
           if (obj.boundary || !endSpace && !startSpace) {
             var separate = type;
             if (!type) {

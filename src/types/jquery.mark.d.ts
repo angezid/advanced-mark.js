@@ -83,7 +83,7 @@ declare namespace Mark {
     iframes?: boolean;
     iframesTimeout?: number;
 
-    separateGroups ?: boolean;
+    separateGroups?: boolean;
     wrapAllRanges?: boolean;
     blockElementsBoundary?: boolean | BoundaryObject;
     shadowDOM?: boolean | ShadowObject;
@@ -189,7 +189,7 @@ declare class Mark {
   * A method to remove mark elements created by mark.js and normalize text nodes.
   * @param options Optional options
   */
-  unmark(options?: Mark.MarkOptions) : void;
+  unmark(options?: Mark.UnmarkOptions) : void;
 }
 
 export = Mark;
