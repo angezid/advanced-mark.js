@@ -1,9 +1,11 @@
 
-## The `markRanges()` method:
-
+## The `markRanges(ranges, options)` method
+### Parameters:
+* `ranges` {object[]} - An array of objects with `start` and `length` properties with integer type values.
+* `options` {object} - Optional options:
   * `element` {string} - Defines a custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} - Defines a custom class name that should be added to mark elements. (default is `''`)
-  * `exclude` {array|string} - The string or array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
+  * `exclude` {string|string[]} - The string or array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
   * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups  (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
 
@@ -14,29 +16,25 @@
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `window.console`)
 
-* The `filter` callback:
-  `filter : (textNode, range, matchString, index) => {}`
-  * `textNode` {Text} - The text node which includes the range or is the part of the range
-  * `range` {object} - The current range object
-  * `matchString` {string} - The current range matching string
-  * `index` {number} - The current range index ???
+  * `filter : (textNode, range, matchString, index) => {}` - The `filter` callback:
+    * `textNode` {Text} - The text node which includes the range or is the part of the range
+    * `range` {object} - The current range object
+    * `matchString` {string} - The current range matching string
+    * `index` {number} - The current range index ???
 
-* The `each` callback:
-  `each : (markElement, range, rangeInfo) => {}`
-  * `markElement` {HTMLElement} - The marked DOM element
-  * `range` {object} - The range object
-  * `rangeInfo` {object}:
-    * `matchStart` {boolean} - indicate the start of a range;
-    * `count` {number} - The number of wrapped ranges so far
+  * `each : (markElement, range, rangeInfo) => {}` - The `each` callback:
+    * `markElement` {HTMLElement} - The marked DOM element
+    * `range` {object} - The range object
+    * `rangeInfo` {object}:
+      * `matchStart` {boolean} - indicate the start of a range;
+      * `count` {number} - The number of wrapped ranges so far
 
-* The `done` callback parameters:
-  `done : (totalMarks, totalRanges) => {}`
-  * `totalMarks` {number} - The total number of marked elements
-  * `totalRanges` {number} - The number of total ranges
+  * `done : (totalMarks, totalRanges) => {}` - The `done` callback parameters:
+    * `totalMarks` {number} - The total number of marked elements
+    * `totalRanges` {number} - The number of total ranges
 
-* The `noMatch` callback:
-  `noMatch : (range) => {}`
-  * `range` {string} - The not found range
+  * `noMatch : (range) => {}` - The `noMatch` callback:
+    * `range` {string} - The not found range
 
 <details id="internal-code">
 <summary><b>Example with default options values</b></summary>
@@ -66,11 +64,13 @@
 JavaScript:
 
 <pre><code class='lang-javascript'>
-var instance = new Mark(document.querySelector('selector'));
-instance.markRanges('test', options);
+const instance = new Mark(document.querySelector('selector')),
+  ranges = [{ start: 0, length: 5 }, { start: 6, length: 5 }];
+
+instance.markRanges(ranges, options);
 </code></pre>
 
 jQuery:
 
-<pre><code class='lang-javascript'>$('selector').markRanges('test', options);</code></pre>
+<pre><code class='lang-javascript'>$('selector').markRanges(ranges, options);</code></pre>
 </details>

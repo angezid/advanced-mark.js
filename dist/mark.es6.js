@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 7, 2023 */
+/* Version: 2.0.0 - March 9, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -856,7 +856,7 @@ class Mark$1 {
       text = match[0];
     if (this.opt.wrapAllRanges) {
       this.wrapRangeAcross(dict, s, s + text.length, obj => {
-        return filterCb(obj.node, text, index);
+        return filterCb(obj, text, index);
       }, (node, groupStart) => {
         eachCb(node, groupStart, index);
       });
@@ -869,7 +869,7 @@ class Mark$1 {
         end = start + group.length;
         if (start !== -1) {
           this.wrapRangeAcross(dict, s + start, s + end, obj => {
-            return filterCb(obj.node, group, index);
+            return filterCb(obj, group, index);
           }, (node, groupStart) => {
             eachCb(node, groupStart, index);
           });
@@ -923,7 +923,7 @@ class Mark$1 {
           end = match.indices[i][1];
           isWrapped = false;
           this.wrapRangeAcross(dict, start, end, obj => {
-            return filterCb(obj.node, group, i);
+            return filterCb(obj, group, i);
           }, (node, groupStart) => {
             isWrapped = true;
             eachCb(node, groupStart, i);
@@ -1037,11 +1037,12 @@ class Mark$1 {
       while ((match = regex.exec(dict.text)) !== null && (hasIndices || match[0] !== '')) {
         filterInfo.match = match;
         filterStart = eachStart = true;
-        this[fn](dict, match, params, (node, group, grIndex) => {
+        this[fn](dict, match, params, (obj, group, grIndex) => {
           filterInfo.matchStart = filterStart;
           filterInfo.groupIndex = grIndex;
+          filterInfo.offset = obj.startOffset;
           filterStart = false;
-          return filterCb(node, group, filterInfo);
+          return filterCb(obj.node, group, filterInfo);
         }, (node, groupStart, grIndex) => {
           if (eachStart) {
             count++;
