@@ -910,7 +910,7 @@ class Mark {
     //a way to mark nesting groups, it first wraps the whole match as a group 0
     if (this.opt.wrapAllRanges) {
       this.wrapRangeAcross(dict, s, s + text.length, obj => {
-        return filterCb(obj.node, text, index);
+        return filterCb(obj, text, index);
 
       }, (node, groupStart) => {
         eachCb(node, groupStart, index);
@@ -930,7 +930,7 @@ class Mark {
 
         if (start !== -1) {
           this.wrapRangeAcross(dict, s + start, s + end, obj => {
-            return filterCb(obj.node, group, index);
+            return filterCb(obj, group, index);
 
           }, (node, groupStart) => {
             eachCb(node, groupStart, index);
@@ -1048,7 +1048,7 @@ class Mark {
           isWrapped = false;
 
           this.wrapRangeAcross(dict, start, end, obj => {
-            return filterCb(obj.node, group, i);
+            return filterCb(obj, group, i);
 
           }, (node, groupStart) => {
             isWrapped = true;
@@ -1281,11 +1281,12 @@ class Mark {
         filterInfo.match = match;
         filterStart = eachStart = true;
 
-        this[fn](dict, match, params, (node, group, grIndex) => { // filter
+        this[fn](dict, match, params, (obj, group, grIndex) => { // filter
           filterInfo.matchStart = filterStart;
           filterInfo.groupIndex = grIndex;
+          filterInfo.offset = obj.startOffset;
           filterStart = false;
-          return filterCb(node, group, filterInfo);
+          return filterCb(obj.node, group, filterInfo);
 
         }, (node, groupStart, grIndex) => { // each
           if (eachStart) {

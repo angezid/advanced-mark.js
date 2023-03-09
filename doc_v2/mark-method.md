@@ -1,10 +1,12 @@
 
-## The `mark()` method:
-
+## The `mark(search, options)` method
+### Parameters:
+* `search` {string|string[]} - string or array of strings
+* `options` {object} - Optional options:
   * `element` {string} - Defines a custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} - Defines a custom class name that should be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - The string or array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
-  * `separateWordSearch` {boolean} - Whether to break term into separate words (default is `true`)
+  * `separateWordSearch` {boolean} - Whether to break term into separate words and search for each individual word (default is `true`)
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
   * `accuracy` {string|object} (default is `'partially'`):
@@ -25,8 +27,8 @@
       * The character `?` match any character zero or one time.
       * The character `*` match any character zero or more time.
         
-  * `ignoreJoiners` {boolean} - Whether to  (default is `false`)
-  * `ignorePunctuation` {string|string[]} - A string or an array with punctuation characters (default is `[]`)
+  * `ignoreJoiners` {boolean} - Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner (default is `false`)
+  * `ignorePunctuation` {string|string[]} - A string or an array of punctuation characters (default is `[]`)
   * `synonyms` {object} - An object with synonyms  (default is `{}`):
     e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa. Value can be an array `{ 'be': ['am', 'is', 'are'] }`.
     
@@ -44,52 +46,48 @@
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `window.console`)
 
-* The `filter` callback:
-  `filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}`
-  * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
-  * `term` {string} - The current term
-  * `matchesSoFar` {number} - The number of all wrapped matches so far
-  * `termMatchesSoFar` {number} - The number of wrapped matches for the current term so far
-  * `filterInfo` {object}:
-    * `match` {array} - The result of RegExp exec() method
-    * `matchStart` {boolean} - indicate the start of a match  AE
-    * `execution` {object} - The helper object for early abort:
-      * `abort` {boolean} - Setting it to `true` breaks method execution
-    * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
-      when 'acrossElements: true': the sum of lengths of separated spaces or boundary strings that were added to the composite string so far.
+  *  `filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` - The `filter` callback:
+    * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
+    * `term` {string} - The current term
+    * `matchesSoFar` {number} - The number of all wrapped matches so far
+    * `termMatchesSoFar` {number} - The number of wrapped matches for the current term so far
+    * `filterInfo` {object}:
+      * `match` {array} - The result of RegExp exec() method
+      * `matchStart` {boolean} - indicate the start of a match  AE
+      * `execution` {object} - The helper object for early abort:
+        * `abort` {boolean} - Setting it to `true` breaks method execution
+      * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
+        when 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
 
-* The `each` callback:
-  `each : (markElement, eachInfo) => {}`
-  * `markElement` {HTMLElement} - The marked DOM element
-  * `eachInfo` {object}:
-    * `match` {array} - The result of RegExp exec() method
-    * `matchStart` {boolean} - Indicate the start of a match  AE
-    * `count` {number} - The number of matches so far
+  * `each : (markElement, eachInfo) => {}` - The `each` callback:
+    * `markElement` {HTMLElement} - The marked DOM element
+    * `eachInfo` {object}:
+      * `match` {array} - The result of RegExp exec() method
+      * `matchStart` {boolean} - Indicate the start of a match  AE
+      * `count` {number} - The number of matches so far
 
-* The `done` callback parameters:
-  `done : (totalMarks, totalMatches, termStats) => {}`
-  * `totalMarks` {number} - The total number of marked elements
-  * `totalMatches` {number} - The total number of matches
-  * `termStats` {object} - An object containing an individual term's matches count
+  * `done : (totalMarks, totalMatches, termStats) => {}` - The `done` callback parameters:
+    * `totalMarks` {number} - The total number of marked elements
+    * `totalMatches` {number} - The total number of matches
+    * `termStats` {object} - An object containing an individual term's matches count
 
-* The `noMatch` callback:
-  `noMatch : (term) => {}`
-  * `term` {string|string[]} - The not found term(s)
+  * `noMatch : (term) => {}` - The `noMatch` callback:
+    * `term` {string|string[]} - The not found term(s); the parameter is array when `combinePatterns` option is used
   
-  ### Available properties of the `filterInfo` object depending on options
-  
-  |            options               |    match   |   matchStart   | groupIndex  |  execution  | offset |
-  |----------------------------------|------------|----------------|-------------|-------------|--------|
-  |  acrossElements: true            |     +      |      +         |     -       |     +       |   +    |
-  |  acrossElements: false           |     +      |      -         |     -       |     +       |   +    |
-  
-  
-  ### Available properties of the `eachInfo` object depending on options
-  
-  |             options              |    match   |    matchStart   |  groupIndex  | groupStart | count |
-  |----------------------------------|------------|-----------------|--------------|------------|-------|
-  |  acrossElements: true            |     +      |      +          |     -        |     -      |   +   |
-  |  acrossElements: false           |     +      |      -          |     -        |     -      |   +   |
+### Available properties of the `filterInfo` object depending on options
+
+|            options               |    match   |   matchStart   |  execution  | offset |
+|----------------------------------|------------|----------------|-------------|--------|
+|  acrossElements: true            |     +      |      +         |     +       |   +    |
+|  acrossElements: false           |     +      |      -         |     +       |   +    |
+
+
+### Available properties of the `eachInfo` object depending on options
+
+|             options              |    match   |    matchStart   | count |
+|----------------------------------|------------|-----------------|-------|
+|  acrossElements: true            |     +      |      +          |   +   |
+|  acrossElements: false           |     +      |      -          |   +   |
   
 <details id="internal-code">
 <summary><b>Example with default options values</b></summary>
