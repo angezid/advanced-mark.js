@@ -2,10 +2,9 @@
 
 [![npm](https://img.shields.io/npm/v/advanced-mark.js)](https://www.npmjs.com/package/advanced-mark.js)
 
-#### Highlight words, terms, or text on browser page using JavaScript.
+#### Highlight words, terms, or text on a browser page using JavaScript.
 
-To play with this library - [Markjs-playground](https://github.com/angezid/Markjs-playground). It requires minimum installation and provides full functionality.
-It also can be used with the old `mark.js` - it's install npm package v8.11.1.
+To play with this library - [advanced-mark.js-playground](https://github.com/angezid/advanced-mark.js-playground). It requires minimum installation and provides full functionality.
 It has some built-in examples. 
 
 What is done:
@@ -21,8 +20,6 @@ What is done:
 
 This library from v2.0.0 doesn't guaranty backward compatibility with `mark.js` v9.0.0 and npm package v8.11.1.
 
-Main doc - [Documentation](https://markjs.io/). Note that this doc is for old `mark.js`.
-
 ## Version 2 doc content:
 * [Performance](doc_v2/performance.md)
 * [mark method](doc_v2/mark-method.md)
@@ -35,6 +32,8 @@ Main doc - [Documentation](https://markjs.io/). Note that this doc is for old `m
 * [Highlight shadow DOM](doc_v2/shadow-dom.md)
 * [Some examples](doc_v2/some-examples.md)
 * [RegExpCreator module](doc_v2/RegExpCreator-module.md)
+
+Also may be useful to read [Documentation](https://markjs.io/). Note that this doc is for old `mark.js`.
 
 ## Modules changes
 * \*. es6.\*.js now are real ES6 modules. They are actually UMD modules in `mark.js` v9.0.0 and npm package v8.11.1.

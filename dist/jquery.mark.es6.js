@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 9, 2023 */
+/* Version: 2.0.0 - March 12, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -456,7 +456,7 @@ class Mark {
     if (!this.opt.debug) {
       return;
     }
-    if (typeof log === 'object' && typeof log[level] === 'function') {
+    if (this.isObject(log) && typeof log[level] === 'function') {
       log[level](`mark.js: ${msg}`);
     }
   }
@@ -469,9 +469,6 @@ class Mark {
     });
   }
   checkOption(opt) {
-    if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
-      opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
-    }
     let clear = true;
     if (opt && opt.cacheTextNodes && this.cacheDict.type) {
       if (opt.acrossElements) {
@@ -781,7 +778,8 @@ class Mark {
   wrapRangeAcross(dict, start, end, filterCb, eachCb) {
     let i = dict.lastIndex,
       rangeStart = true;
-    if (this.opt.wrapAllRanges) {
+    const wrapAllRanges = this.opt.wrapAllRanges || this.opt.cacheTextNodes;
+    if (wrapAllRanges) {
       while (i >= 0 && dict.nodes[i].start > start) {
         i--;
       }
@@ -800,7 +798,7 @@ class Mark {
         const s = start - n.start,
           e = (end > n.end ? n.end : end) - n.start;
         if (s >= 0 && e > s) {
-          if (this.opt.wrapAllRanges) {
+          if (wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
             n = obj.nodeInfo;
             eachCb(obj.markNode, rangeStart);
@@ -1255,11 +1253,11 @@ class Mark {
     });
   }
   mark(sv, opt) {
-    if (opt && opt.combinePatterns) {
-      this.markCombinePatterns(sv, opt);
+    this.opt = this.checkOption(opt);
+    if (this.opt && this.opt.combinePatterns) {
+      this.markCombinePatterns(sv);
       return;
     }
-    this.opt = this.checkOption(opt);
     let index = 0,
       totalMarks = 0,
       allMatches = 0,
@@ -1298,8 +1296,7 @@ class Mark {
       loop(terms[index]);
     }
   }
-  markCombinePatterns(sv, opt) {
-    this.opt = this.checkOption(opt);
+  markCombinePatterns(sv) {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0,

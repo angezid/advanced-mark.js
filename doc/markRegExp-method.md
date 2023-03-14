@@ -30,13 +30,13 @@ $(context).markRegExp(regex[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `window.console`)
 
-  * `filter : (textNode, matchString, matchesSoFar, filterInfo) => {}` - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match)
+  * `filter : (textNode, matchString, marksSoFar, filterInfo) => {}` - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match)
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `matchString` {string} - The matching string:
       1) without `ignoreGroups` and `separateGroups` options - the whole match
       2) with `ignoreGroups` option - the match[ignoreGroups+1] group matching string e.g. `/(-)(\w+)\s+/g`, `ignoreGroups : 1`, the matching string is content of the group 2
       3) with `separateGroups` option - the current group matching string
-    * `matchesSoFar` {number} - The number of all wrapped matches so far
+    * `marksSoFar` {number} - The number of all wrapped matches so far
     * `filterInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - indicate the start of a match  AE
@@ -96,7 +96,7 @@ $(context).markRegExp(regex[, options]);
 	shadowDOM : false,
     iframes : false,
     iframesTimeout : 5000,
-    filter : (textNode, matchString, matchesSoFar, filterInfo) => {
+    filter : (textNode, matchString, marksSoFar, filterInfo) => {
         return true; // must return either true or false
     },
     each : (markElement, eachInfo) => {},

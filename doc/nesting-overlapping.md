@@ -51,9 +51,9 @@ let ranges = buildRanges(instance, regex);
 
 instance.markRanges(ranges, {
   'wrapAllRanges' : true,
-  'each' : (node, range) => {
+  'each' : (markElement, range) => {
     // handle the additional properties
-    // node.setAttribute('data-markjs', range.id);
+    // markElement.setAttribute('data-markjs', range.id);
   }
 });
 
@@ -62,7 +62,7 @@ function buildRanges(instance, regex) {
   // it should only build ranges - an attempt to mark any group can break regex normal workflow
   instance.markRegExp(regex, {
     'separateGroups' : true,
-    'filter' : (node, group, totalMatch, info) => {
+    'filter' : (textNode, group, marksSoFar, info) => {
       if (info.matchStart) {
         // 'i = 1' - skips match[0] group
         for (let i = 1; i < info.match.length; i++)  {
@@ -100,9 +100,9 @@ instance.markRegExp(regex, {
     'acrossElements' : true,
     'separateGroups' : true,
     'wrapAllRanges' : true,
-    'each' : (elem, info) => {
+    'each' : (markElement, info) => {
         // info.count as a match identifier
-        elem.setAttribute('data-markjs', info.count);
+        markElement.setAttribute('data-markjs', info.count);
     },
     'done' : (totalMarks, totalMatches) => {
         marks = $('mark');

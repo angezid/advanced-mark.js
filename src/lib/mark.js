@@ -114,11 +114,11 @@ class Mark {
    * @access protected
    */
   log(msg, level = 'debug') {
-    const log = this.opt.log;
     if (!this.opt.debug) {
       return;
     }
-    if (typeof log === 'object' && typeof log[level] === 'function') {
+    const log = this.opt.log;
+    if (this.isObject(log) && typeof log[level] === 'function') {
       log[level](`mark.js: ${msg}`);
     }
   }
@@ -144,18 +144,12 @@ class Mark {
   }
 
   /**
-   * The 'cacheTextNodes' option must be used with 'wrapAllRanges' when 'acrossElments' option is enabled
-   * It automatically sets 'wrapAllRanges' to avoid external dependency
-   * It also checks the validity of cache objects (mark instance can calls several methods with different setting
+   * Checks the validity of cache objects (mark instance can calls several methods with different setting
    * of the cacheTextNodes option, which breaks the relation of the DOM nodes and cache object nodes)
    * @param  {object} [opt] - Optional options object
    * @return {object}
    */
   checkOption(opt) {
-    if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
-      opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
-    }
-
     let clear = true;
     // It allows using cache object if the type and cacheTextNodes option doesn't change
     if (opt && opt.cacheTextNodes && this.cacheDict.type) {
@@ -171,10 +165,9 @@ class Mark {
     if (clear) {
       this.cacheDict = {};
     }
-
     return opt;
   }
-
+  
   /**
    * Splits string into separate words if separate word search was defined.
    * Removes duplicate or empty entries and sort by the length in descending order.
@@ -752,8 +745,10 @@ class Mark {
     // dict.lastIndex stores the last node index to avoid iteration from the beginning
     let i = dict.lastIndex,
       rangeStart = true;
+    // 'cacheTextNodes' option must enabled 'wrapAllRanges' code here
+    const wrapAllRanges = this.opt.wrapAllRanges || this.opt.cacheTextNodes;
 
-    if (this.opt.wrapAllRanges) {
+    if (wrapAllRanges) {
       // finds the starting index in case of nesting/overlapping
       while (i >= 0 && dict.nodes[i].start > start) {
         i--;
@@ -780,7 +775,7 @@ class Mark {
 
         // this check prevents creating an empty mark node
         if (s >= 0 && e > s) {
-          if (this.opt.wrapAllRanges) {
+          if (wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
             n = obj.nodeInfo;
             eachCb(obj.markNode, rangeStart);
@@ -1728,12 +1723,12 @@ class Mark {
    * @access public
    */
   mark(sv, opt) {
-    if (opt && opt.combinePatterns) {
-      this.markCombinePatterns(sv, opt);
+    this.opt = this.checkOption(opt);
+    
+    if (this.opt && this.opt.combinePatterns) {
+      this.markCombinePatterns(sv);
       return;
     }
-
-    this.opt = this.checkOption(opt);
 
     let index = 0,
       totalMarks = 0,
@@ -1773,7 +1768,7 @@ class Mark {
         }
       });
     };
-
+    
     if (terms.length === 0) {
       this.opt.done(0, 0, termStats);
     } else {
@@ -1785,12 +1780,9 @@ class Mark {
     * Marks the specified search terms
     * @param {string|string[]} [sv] - Search value, either a search string or an
     * array containing multiple search strings
-    * @param  {Mark~markCombinePatterns} [opt] - Optional options object
     * @access protected
     */
-  markCombinePatterns(sv, opt) {
-    this.opt = this.checkOption(opt);
-
+  markCombinePatterns(sv) {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0,
