@@ -1,7 +1,7 @@
 
 ## TypeScript types
 
-The following TypeScript types files are added to `dist` folder:  
+The following TypeScript declaration files are added to `dist` folder:  
 jquery.mark.d.ts  
 jquery.mark.es6.d.ts  
 jquery.mark.umd.d.ts  

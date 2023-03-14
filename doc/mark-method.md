@@ -24,7 +24,7 @@ $(context).mark(search[, options]);
       * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'. The default word boundaries are: white-spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~¡¿` characters.
     * Object with two properties:
       * `value`: 'exactly' or 'complementary'
-      * `limiters`: a string or an array with custom word boundaries characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"" }`
+      * `limiters`: an array with custom word boundaries characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"".split() }`
 
   * `wildcards` {string} - Two characters `?` and `*` used as wildcards (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
@@ -36,7 +36,7 @@ $(context).mark(search[, options]);
       * The character `*` match any character zero or more time, but as few times as possible.
         
   * `ignoreJoiners` {boolean} - Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner (default is `false`)
-  * `ignorePunctuation` {string|string[]} - A string or an array of punctuation characters (default is `[]`)
+  * `ignorePunctuation` {string[]} - An array of punctuation characters (default is `[]`)
   * `synonyms` {object} - An object with synonyms  (default is `{}`):
     e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa. Value can be an array `{ 'be': ['am', 'is', 'are'] }`.
     
@@ -54,11 +54,11 @@ $(context).mark(search[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `window.console`)
 
-  * `filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match)
+  * `filter : (textNode, term, marksSoFar, termMarksSoFar, filterInfo) => {}` - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match)
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `term` {string} - The current term
-    * `matchesSoFar` {number} - The number of all wrapped matches so far
-    * `termMatchesSoFar` {number} - The number of wrapped matches for the current term so far
+    * `marksSoFar` {number} - The number of all wrapped matches so far
+    * `termMarksSoFar` {number} - The number of wrapped matches for the current term so far
     * `filterInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - indicate the start of a match  AE

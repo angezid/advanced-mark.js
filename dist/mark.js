@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 9, 2023 */
+/* Version: 2.0.0 - March 12, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -13,15 +13,6 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Mark = factory());
 })(this, (function () { 'use strict';
 
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
-      return typeof obj;
-    } : function (obj) {
-      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    }, _typeof(obj);
-  }
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -614,7 +605,7 @@
         if (!this.opt.debug) {
           return;
         }
-        if (_typeof(log) === 'object' && typeof log[level] === 'function') {
+        if (this.isObject(log) && typeof log[level] === 'function') {
           log[level]("mark.js: ".concat(msg));
         }
       }
@@ -632,11 +623,6 @@
     }, {
       key: "checkOption",
       value: function checkOption(opt) {
-        if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
-          opt = _extends({}, opt, {
-            'wrapAllRanges': true
-          });
-        }
         var clear = true;
         if (opt && opt.cacheTextNodes && this.cacheDict.type) {
           if (opt.acrossElements) {
@@ -1079,7 +1065,8 @@
       value: function wrapRangeAcross(dict, start, end, filterCb, eachCb) {
         var i = dict.lastIndex,
           rangeStart = true;
-        if (this.opt.wrapAllRanges) {
+        var wrapAllRanges = this.opt.wrapAllRanges || this.opt.cacheTextNodes;
+        if (wrapAllRanges) {
           while (i >= 0 && dict.nodes[i].start > start) {
             i--;
           }
@@ -1098,7 +1085,7 @@
             var s = start - n.start,
               e = (end > n.end ? n.end : end) - n.start;
             if (s >= 0 && e > s) {
-              if (this.opt.wrapAllRanges) {
+              if (wrapAllRanges) {
                 var obj = this.wrapRangeInsert(dict, n, s, e, start, i);
                 n = obj.nodeInfo;
                 eachCb(obj.markNode, rangeStart);
@@ -1649,11 +1636,11 @@
       key: "mark",
       value: function mark(sv, opt) {
         var _this13 = this;
-        if (opt && opt.combinePatterns) {
-          this.markCombinePatterns(sv, opt);
+        this.opt = this.checkOption(opt);
+        if (this.opt && this.opt.combinePatterns) {
+          this.markCombinePatterns(sv);
           return;
         }
-        this.opt = this.checkOption(opt);
         var index = 0,
           totalMarks = 0,
           allMatches = 0,
@@ -1694,9 +1681,8 @@
       }
     }, {
       key: "markCombinePatterns",
-      value: function markCombinePatterns(sv, opt) {
+      value: function markCombinePatterns(sv) {
         var _this14 = this;
-        this.opt = this.checkOption(opt);
         var index = 0,
           totalMarks = 0,
           totalMatches = 0,

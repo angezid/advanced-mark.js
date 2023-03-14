@@ -8,6 +8,10 @@
 * Changes in `mark()` and `markRegExp()` methods: the `filter` callback parameters that count mark elements has been changed to count matches. It can affect the old code that uses `acrossElements` option.
 * Simplified `getSeparatedKeywords()` method.
 * Got rid of empty sibling text nodes that are created when `Text.splitText()` method splits a text node at the start or/and at the end.
+* Changes in RegExpCreator class:
+  1. removed unnecessary escaping of characters in a RegExp character set
+  2. added ability to using string instead of array in 'ignorePunctuation' option and accuracy object
+  3. added code which remove duplicate from array of characters or synonyms
 
 ### 1.1.0
 

@@ -1,7 +1,7 @@
 
 ## Marking shadow DOM
 
-With an option `shadowDOM : true` the mark.js now is able to highlight shadow DOM.  
+With an option `shadowDOM : true` the mark.js now is able to highlight shadow DOMs that have `mode: 'open'` and are already created.  
 You can play with Markjs-playground. Examples -> Shadow DOM`.  
 **Note:** to style mark elements in shadow DOM, the option `shadowDOM : {style : 'your mark elements style'}` can be used.  
 It creates a style element and inserts it at the beginning of shadow root child node(s).  

@@ -8,10 +8,10 @@ It creates a style element and inserts it at the beginning of shadow root child 
 But this operation is invasive, it can break root code.  
 An inline style can be used as an alternative:
 ``` js
-each : (elem, info) => {
+each : (markElement, info) => {
   // a shadow root is the DocumentFragment
-  if (elem.getRootNode().nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-    elem.style.color = "red";
+  if (markElement.getRootNode().nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    markElement.style.color = "red";
   }
 }
 ```

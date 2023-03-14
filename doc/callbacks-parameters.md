@@ -1,4 +1,12 @@
 ## Callbacks parameters
+
+As the documentation is still in development state, there are links to the newly added pages for version 1:
+* [`mark()` method](mark-method.md)
+* [`markRegExp()` method](markRegExp-method.md)
+* [`markRanges()` method](markRanges-method.md)
+* [`unmark()` method](unmark-method.md)
+
+
 The parameters `filterInfo`, `eachInfo`, and `rangeInfo` objects are expose useful information that can simplify the code, help solve problems which are difficult or not possible to implement externally.
 
 ### The `mark()` method:
