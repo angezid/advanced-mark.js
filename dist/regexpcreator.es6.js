@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v1.1.0
+* advanced-mark.js v1.1.1
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -81,7 +81,7 @@ class RegExpCreator$1 {
         }).filter(k => k !== '');
         if (keys.length > 1) {
           const pattern = keys.map(k => this.escapeStr(k)).join('|');
-          str = str.replace(new RegExp(`(?:${pattern})`, `gm${sens}`), `(?:${keys.join('|')})`);
+          str = str.replace(new RegExp(pattern, `gm${sens}`), `(?:${keys.join('|')})`);
         }
       }
     }

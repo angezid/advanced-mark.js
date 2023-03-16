@@ -1,3 +1,8 @@
+### 1.1.1
+
+* Fixed bug that affect wrapping separate groups across elements with combination of `acrossElements`, `cacheTextNodes`, and `separateGroups` options
+* Implemented missing `offset` property in filter callback info object with combination of `acrossElements` and `separateGroups` options
+* Corrected some mistakes in TypeScript declaration files
 
 ### 1.1.0
 

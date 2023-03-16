@@ -1,5 +1,5 @@
 
-// Type definitions for advanced-mark.js v1.0.3
+// Type definitions for advanced-mark.js v1.1.1
 // Based on "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/mark.js"
 
 declare namespace Mark {
@@ -31,7 +31,7 @@ declare namespace Mark {
     acrossElements?: boolean;
     accuracy?: 'partially' | 'exactly' | 'complementary' | AccuracyObject;
     diacritics?: boolean;
-    synonyms?: { [index: string] : string };
+    synonyms?: { [index: string] : string | string[] };
     caseSensitive?: boolean;
     ignoreJoiners?: boolean;
     ignorePunctuation?: string[];
@@ -81,16 +81,16 @@ declare namespace Mark {
     iframes?: boolean;
     iframesTimeout?: number;
 
-    separateGroups ?: boolean;
+    separateGroups?: boolean;
     wrapAllRanges?: boolean;
     blockElementsBoundary?: boolean | BoundaryObject;
     shadowDOM?: boolean | ShadowObject;
 
-    filter?(textNode: Text, term: string, totalMarksSoFar: number, filterInfo: RegExpFilterInfo) : boolean;
+    filter?(textNode: Text, regexp: string, totalMarksSoFar: number, filterInfo: RegExpFilterInfo) : boolean;
     each?(element: Element, eachInfo: RegExpEachInfo) : void;
     done?(totalMarks: number, totalMatches: number) : void;
 
-    noMatch?(term: string) : void;
+    noMatch?(regexp: string) : void;
     debug?: boolean;
     log?: object;
   }
@@ -125,7 +125,7 @@ declare namespace Mark {
     each?(element: Element, range: Range, eachInfo: RangeEachInfo) : void;
     done?(totalMarks: number, totalRanges: number) : void;
 
-    noMatch?(term: string) : void;
+    noMatch?(range: string) : void;
     debug?: boolean;
     log?: object;
   }
@@ -187,7 +187,7 @@ declare class Mark {
   * A method to remove mark elements created by mark.js and normalize text nodes.
   * @param options Optional options
   */
-  unmark(options?: Mark.MarkOptions) : void;
+  unmark(options?: Mark.UnmarkOptions) : void;
 }
 
 export = Mark;

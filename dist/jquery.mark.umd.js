@@ -1,6 +1,6 @@
-/* Version: 1.1.0 - February 22, 2023 */
+/* Version: 1.1.1 - March 16, 2023 */
 /*!***************************************************
-* advanced-mark.js v1.1.0
+* advanced-mark.js v1.1.1
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -428,7 +428,7 @@
           }).filter(k => k !== '');
           if (keys.length > 1) {
             const pattern = keys.map(k => this.escapeStr(k)).join('|');
-            str = str.replace(new RegExp(`(?:${pattern})`, `gm${sens}`), `(?:${keys.join('|')})`);
+            str = str.replace(new RegExp(pattern, `gm${sens}`), `(?:${keys.join('|')})`);
           }
         }
       }
@@ -529,9 +529,10 @@
 
   class Mark {
     constructor(ctx) {
-      this.version = '1.1.0';
+      this.version = '1.1.1';
       this.ctx = ctx;
       this.cacheDict = {};
+      this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
       this.ie = false;
       const ua = window.navigator.userAgent;
       if (ua.indexOf('MSIE') > -1 || ua.indexOf('Trident') > -1) {
@@ -578,9 +579,6 @@
       }
     }
     checkOption(opt) {
-      if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
-        opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
-      }
       let clear = true;
       if (opt && opt.cacheTextNodes && this.cacheDict.type) {
         if (opt.acrossElements) {
@@ -899,8 +897,7 @@
       });
     }
     matchesExclude(elem) {
-      const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
-      return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
+      return this.nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 ||
         this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
     }
     wrapRangeInTextNode(node, start, end) {
@@ -960,7 +957,8 @@
     wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
       let i = dict.lastIndex,
         rangeStart = true;
-      if (this.opt.wrapAllRanges) {
+      const wrapAllRanges = this.opt.wrapAllRanges || this.opt.cacheTextNodes;
+      if (wrapAllRanges) {
         while (i >= 0 && dict.nodes[i].start > start) {
           i--;
         }
@@ -979,7 +977,7 @@
           const s = start - n.start,
             e = (end > n.end ? n.end : end) - n.start;
           if (s >= 0 && e > s) {
-            if (this.opt.wrapAllRanges) {
+            if (wrapAllRanges) {
               let ret =
                 this.wrapRangeInTextNodeInsert(dict, n, s, e, start, i);
               n = ret.retNode;
@@ -1079,7 +1077,7 @@
             end = match.indices[i][1];
             isWrapped = false;
             this.wrapRangeInMappedTextNode(dict, start, end, obj => {
-              return filterCb(group, obj.node, i);
+              return filterCb(group, obj, i);
             }, (node, groupStart) => {
               isWrapped = true;
               eachCb(node, groupStart, i);
@@ -1111,7 +1109,7 @@
         text = match[0];
       if (this.opt.wrapAllRanges) {
         this.wrapRangeInMappedTextNode(dict, s, s + text.length, obj => {
-          return filterCb(text, obj.node, index);
+          return filterCb(text, obj, index);
         }, (node, groupStart) => {
           eachCb(node, groupStart, index);
         });
@@ -1124,7 +1122,7 @@
           end = start + group.length;
           if (start !== -1) {
             this.wrapRangeInMappedTextNode(dict, s + start, s + end, obj => {
-              return filterCb(group, obj.node, index);
+              return filterCb(group, obj, index);
             }, (node, groupStart) => {
               eachCb(node, groupStart, index);
             });
@@ -1289,11 +1287,12 @@
         ) {
           filterInfo.match = match;
           matchStart = eMatchStart = true;
-          this[fn](dict, match, params, (group, node, groupIndex) => {
+          this[fn](dict, match, params, (group, obj, groupIndex) => {
             filterInfo.matchStart = matchStart;
             filterInfo.groupIndex = groupIndex;
+            filterInfo.offset = obj.startOffset;
             matchStart = false;
-            return  filterCb(group, node, filterInfo);
+            return  filterCb(group, obj.node, filterInfo);
           }, (node, groupStart, groupIndex) => {
             if (eMatchStart) {
               count++;

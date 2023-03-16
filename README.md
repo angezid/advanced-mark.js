@@ -4,7 +4,7 @@
 
 #### Highlight words, terms, or text on browser page using JavaScript.
 
-To play with this library - [Markjs-playground](https://github.com/angezid/Markjs-playground). It requires minimum installation and provides full functionality.
+To play with this library - [advanced-mark.js-playground](https://github.com/angezid/advanced-mark.js-playground). It requires minimum installation and provides full functionality.
 It also can be used with the old `mark.js` - it's install npm package v8.11.1.
 It has some built-in examples. 
 
@@ -21,10 +21,14 @@ What is done:
 
 This library keeps backward compatibility with `mark.js` v9.0.0 and npm package v8.11.1 on public API level.
 
-Main doc - [Documentation](https://markjs.io/). Note that this doc is for old `mark.js`.
+[Documentation](https://markjs.io/). Note that this doc is for `mark.js`, it isn't updated for a long time.
 
-## Doc content
+## Version 1 doc content
 * [Performance](doc/performance.md)
+* [mark method](doc/mark-method.md)
+* [markRegExp method](doc/markRegExp-method.md)
+* [markRanges method](doc/markRanges-method.md)
+* [unmark method](doc/unmark-method.md)
 * [Callbacks parameters](doc/callbacks-parameters.md)
 * [Filtering matches](doc/filtering-matches.md)
 * [Highlight separate groups](doc/separate-groups.md)
@@ -42,4 +46,4 @@ Main doc - [Documentation](https://markjs.io/). Note that this doc is for old `m
 import Mark from './mark.es6.js';
 // import Mark from './jquery.mark.es6.js';
 ```
-**Warning:** UMD modules will be removed in the next release - they are kept for backward compatibility.
+**Warning:** UMD modules will be removed in version 2 - they are kept for backward compatibility.

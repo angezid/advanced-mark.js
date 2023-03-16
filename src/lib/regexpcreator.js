@@ -215,7 +215,7 @@ class RegExpCreator {
 
         if (keys.length > 1) {
           const pattern = keys.map(k => this.escapeStr(k)).join('|');
-          str = str.replace(new RegExp(`(?:${pattern})`, `gm${sens}`), `(?:${keys.join('|')})`);
+          str = str.replace(new RegExp(pattern, `gm${sens}`), `(?:${keys.join('|')})`);
         }
       }
     }

@@ -35,7 +35,7 @@ Warning: related using RegExp without the `d` flag:
 instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
     // 'acrossElements' : true,
     'separateGroups' : true,
-    filter : (node, match, totalMarks, info) => {
+    filter : (node, match, totalMarksSoFar, info) => {
         // To filter any group use info.groupIndex - a current group index
         // Note: if a group lays across several elements, the index be the same while a group is wrapping
         if (info.groupIndex === 2 || info.groupIndex === 4) return false;
@@ -61,7 +61,7 @@ let groupCount = 0, gr1Count = 0, gr2Count = 0;
 instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
     'acrossElements' : true,
     'separateGroups' : true,
-    'each' : (elem, info) => {
+    'each' : (markElement, info) => {
         // info.count - matches count so far
         
         // if start of match group
@@ -71,11 +71,11 @@ instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
             
             // info.groupIndex is the index of a current match group
             if (info.groupIndex === 1) {
-                elem.className = 'group1-1';
+                markElement.className = 'group1-1';
                 gr1Count++;
 
             } else if (info.groupIndex === 2) {
-                elem.className = 'group2-1';
+                markElement.className = 'group2-1';
                 gr2Count++;
             }
         }
@@ -88,7 +88,7 @@ let count = 0, gr1Count = 0;
 
 instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
     'separateGroups' : true,
-    'each' : (elem, info) => {
+    'each' : (markElement, info) => {
         // all group count
         count++;
         
@@ -108,12 +108,12 @@ instance.markRegExp(regex, {
     'acrossElements' : true,
     'separateGroups' : true,
     'wrapAllRanges' : true,
-    'each' : (elem, info) => {
+    'each' : (markElement, info) => {
         if (info.groupIndex === 0) {
-            elem.className = 'main-group';
+            markElement.className = 'main-group';
         }
         if (info.groupIndex > 0) {
-            elem.className = 'nested-group';
+            markElement.className = 'nested-group';
         }
     }
 });

@@ -9,7 +9,7 @@ let matchCount = 0;
 
 instance.mark(['AB CD', 'EF'], {
     'acrossElements' : true,
-    'each' : (elem, info) => {
+    'each' : (markElement, info) => {
         // sets external counter 
         matchCount = info.count;
     
@@ -18,8 +18,8 @@ instance.mark(['AB CD', 'EF'], {
         
         // if start of the match
         if(info.matchStart) {
-            elem.className = 'start-1';
-            // elem.setAttribute('data-markjs', 'start-1'); // to use the attribute instead of class
+            markElement.className = 'start-1';
+            // markElement.setAttribute('data-markjs', 'start-1'); // to use the attribute instead of class
             
             // matchCount++; // to use the custom counter instead of info.count
         }
@@ -38,7 +38,7 @@ let matchCount = 0;
 
 context.mark('AB CD EF', {
     'separateWordSearch' : true,
-    'each' : function(elem, info) {
+    'each' : function(markElement, info) {
         // for external counter
         matchCount = info.count; // also possible matchCount++;
         
@@ -61,12 +61,12 @@ let matchCount = 0;
 
 instance.markRegExp(/.../gi, {
     'acrossElements' : true,
-    'each' : function(elem, info) {
+    'each' : function(markElement, info) {
         // usage of info.count and custom counter are the same
         // as in mark() method with `acrossElements` option
         
         // use of info.count as a unique match identifier
-        elem.setAttribute('data-markjs', info.count);
+        markElement.setAttribute('data-markjs', info.count);
     },
     'done' : function(totalMarks, totalMatches) {
         console.log('Total matches = ' + totalMatches);

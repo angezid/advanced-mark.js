@@ -32,6 +32,12 @@ class Mark {
      */
     this.cacheDict = {};
     /**
+     * The array of node names which must be excluded from searching
+     * @type {array}
+     * @access protected
+     */
+    this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
+    /**
      * Specifies if the current browser is a IE (necessary for the node
      * normalization bug workaround). See {@link Mark#unwrapMatches}
      * @type {boolean}
@@ -109,18 +115,12 @@ class Mark {
   }
 
   /**
-   * The 'cacheTextNodes' option must be used with 'wrapAllRanges' when 'acrossElments' option is enabled
-   * It automatically sets 'wrapAllRanges' to avoid external dependency
-   * It also checks the validity of cache objects (mark instance can calls several methods with different setting
+   * Checks the validity of cache objects (mark instance can calls several methods with different setting
    * of the cacheTextNodes option, which breaks the relation of the DOM nodes and cache object nodes)
    * @param  {object} [opt] - Optional options object
    * @return {object}
    */
   checkOption(opt) {
-    if (opt && opt.acrossElements && opt.cacheTextNodes && !opt.wrapAllRanges) {
-      opt = Object.assign({}, opt, { 'wrapAllRanges' : true });
-    }
-
     let clear = true;
     // It allows using cache object if the type and cacheTextNodes option doesn't change
     if (opt && opt.cacheTextNodes && this.cacheDict.type) {
@@ -136,7 +136,6 @@ class Mark {
     if (clear) {
       this.cacheDict = {};
     }
-
     return opt;
   }
 
@@ -428,7 +427,7 @@ class Mark {
       }
     }
   }
-  
+
   /**
    * @typedef Mark~blockElementsBoundaryObject
    * @type {object}
@@ -442,7 +441,7 @@ class Mark {
   * @param {object} tags - The object containing HTML element tag names
   */
   setType(tags) {
-    const boundary = this.opt.blockElementsBoundary, 
+    const boundary = this.opt.blockElementsBoundary,
       custom = Array.isArray(boundary.tagNames) && boundary.tagNames.length;
 
     if (custom) {
@@ -512,7 +511,7 @@ class Mark {
       boundary = this.opt.blockElementsBoundary;
 
     // the space can be safely added to the end of a text node when
-    // the node checks run across element with one of those names.
+    // the node checks run across element with one of these names.
     const tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
       ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
       h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
@@ -678,9 +677,7 @@ class Mark {
   matchesExclude(elem) {
     // it's faster to check if array contains the node name than selector in 'DOMIterator.matches()'
     // also it allows to use a string of selectors instead of an array with the 'exclude' option
-    const nodeNames = ['SCRIPT', 'STYLE', 'TITLE', 'HEAD', 'HTML'];
-
-    return nodeNames.indexOf(elem.nodeName.toUpperCase()) !== -1 ||
+    return this.nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 ||
       this.opt.exclude && this.opt.exclude.length && DOMIterator.matches(elem, this.opt.exclude);
   }
 
@@ -832,8 +829,10 @@ class Mark {
     // nodes to find the one matching the positions
     let i = dict.lastIndex,
       rangeStart = true;
+    // when across elments the 'cacheTextNodes' option must enabled 'wrapAllRanges'
+    const wrapAllRanges = this.opt.wrapAllRanges || this.opt.cacheTextNodes;
 
-    if (this.opt.wrapAllRanges) {
+    if (wrapAllRanges) {
       // checks and prepares the starting index in case of nesting/overlapping
       while (i >= 0 && dict.nodes[i].start > start) {
         i--;
@@ -860,7 +859,7 @@ class Mark {
 
         // this check prevents creating an empty marked node
         if (s >= 0 && e > s) {
-          if (this.opt.wrapAllRanges) {
+          if (wrapAllRanges) {
             let ret =
               this.wrapRangeInTextNodeInsert(dict, n, s, e, start, i);
             n = ret.retNode;
@@ -1070,7 +1069,7 @@ class Mark {
           isWrapped = false;
 
           this.wrapRangeInMappedTextNode(dict, start, end, obj => {
-            return filterCb(group, obj.node, i);
+            return filterCb(group, obj, i);
           }, (node, groupStart) => {
             isWrapped = true;
             eachCb(node, groupStart, i);
@@ -1143,7 +1142,7 @@ class Mark {
     //a way to mark nesting groups, it first wraps the whole match as a group 0
     if (this.opt.wrapAllRanges) {
       this.wrapRangeInMappedTextNode(dict, s, s + text.length, obj => {
-        return filterCb(text, obj.node, index);
+        return filterCb(text, obj, index);
       }, (node, groupStart) => {
         eachCb(node, groupStart, index);
       });
@@ -1163,7 +1162,7 @@ class Mark {
 
         if (start !== -1) {
           this.wrapRangeInMappedTextNode(dict, s + start, s + end, obj => {
-            return filterCb(group, obj.node, index);
+            return filterCb(group, obj, index);
           }, (node, groupStart) => {
             eachCb(node, groupStart, index);
           });
@@ -1496,11 +1495,12 @@ class Mark {
         filterInfo.match = match;
         matchStart = eMatchStart = true;
 
-        this[fn](dict, match, params, (group, node, groupIndex) => {
+        this[fn](dict, match, params, (group, obj, groupIndex) => {
           filterInfo.matchStart = matchStart;
           filterInfo.groupIndex = groupIndex;
+          filterInfo.offset = obj.startOffset;
           matchStart = false;
-          return  filterCb(group, node, filterInfo);
+          return  filterCb(group, obj.node, filterInfo);
 
         }, (node, groupStart, groupIndex) => {
           if (eMatchStart) {

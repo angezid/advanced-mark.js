@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v1.1.0
+* advanced-mark.js v1.1.1
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -160,7 +160,7 @@
               var pattern = keys.map(function (k) {
                 return _this2.escapeStr(k);
               }).join('|');
-              str = str.replace(new RegExp("(?:".concat(pattern, ")"), "gm".concat(sens)), "(?:".concat(keys.join('|'), ")"));
+              str = str.replace(new RegExp(pattern, "gm".concat(sens)), "(?:".concat(keys.join('|'), ")"));
             }
           }
         }

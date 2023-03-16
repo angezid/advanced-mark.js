@@ -8,7 +8,7 @@ let count = 0, reg = /.../gi;
 // if you have access to the RegExp object with 'acrossElements' option, you can
 // also used `reg.lastIndex = Infinity;` instead of `filterInfo.execution.abort = true;`
 instance.markRegExp(reg, {
-    filter : (node, matchStr, totalMarks, filterInfo) => {
+    filter : (node, matchString, totalMarksSoFar, filterInfo) => {
         // to mark only the first match
         filterInfo.execution.abort = true; return  true;
 
@@ -44,7 +44,7 @@ let reg = /.../gi;
 
 instance.markRegExp(reg, {
     'acrossElements' : true,
-    'each' : (elem, info) => {
+    'each' : (markElement, info) => {
         // to mark only the first match
         reg.lastIndex = Infinity;
 
@@ -61,7 +61,7 @@ let count = 0;
 
 instance.mark('AB', {
     'acrossElements' : true,
-    filter : (node, term, totalMarks, currentMarks, filterInfo) => {
+    filter : (node, term, totalMarksSoFar, termMarksSoFar, filterInfo) => {
          // to mark only the first match
         filterInfo.execution.abort = true; return  true;
 
@@ -88,7 +88,7 @@ instance.mark('AB', {
 let count = 0;
 
 instance.mark('AB', {
-    filter : (node, term, totalMarks, currentMarks, filterInfo) => {
+    filter : (node, term, totalMarksSoFar, termMarksSoFar, filterInfo) => {
         // the only difference is counter implementation
         count++;
     }

@@ -12,6 +12,8 @@ npm-debug.log*
 
 # Directories
 node_modules/
+src/
+doc/
 build/
 test/
 .git/

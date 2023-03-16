@@ -1,5 +1,5 @@
 
-// Type definitions for advanced-mark.js v1.0.3
+// Type definitions for advanced-mark.js v1.1.1
 
 declare namespace RegExpCreator {
   
@@ -11,7 +11,7 @@ declare namespace RegExpCreator {
   interface RegExpCreatorOptions {
     accuracy?: 'partially' | 'exactly' | 'complementary' | AccuracyObject;
     diacritics?: boolean;
-    synonyms?: { [index: string] : string };
+    synonyms?: { [index: string] : string | string[] };
     caseSensitive?: boolean;
     ignoreJoiners?: boolean;
     ignorePunctuation?: string[];
