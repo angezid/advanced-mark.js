@@ -13,6 +13,12 @@
   2. added ability to using string instead of array in 'ignorePunctuation' option and accuracy object
   3. added code which remove duplicate from array of characters or synonyms
 
+### 1.1.1
+
+* Fixed bug that affect wrapping separate groups across elements with combination of `acrossElements`, `cacheTextNodes`, and `separateGroups` options
+* Implemented missing `offset` property in filter callback info object with combination of `acrossElements` and `separateGroups` options
+* Corrected some mistakes in TypeScript declaration files
+
 ### 1.1.0
 
 * Added ability to extend the default boundary elements with custom elements (`blockElementsBoundary` option)

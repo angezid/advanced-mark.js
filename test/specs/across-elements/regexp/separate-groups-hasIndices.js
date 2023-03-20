@@ -8,9 +8,9 @@ describe(
       matchCount, group1Count, group2Count, group3Count,
       message = 'should count and test content of separate groups ',
       flags = 'dgi',
-      r1 = '\\b(group1)\\b.+?\\b(group2)\\b@?(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
+      r1 = '\\b(group1)\\b[^]+?\\b(group2)\\b@?(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
       groupReg = new RegExp(r1, flags),
-      r2 = '\\b(group1\\b.+?\\b(group2)\\b@?)(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
+      r2 = '\\b(group1\\b[^]+?\\b(group2)\\b@?)(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
       nestedGr = new RegExp(r2, flags);
 
     beforeEach(function() {

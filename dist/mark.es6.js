@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 12, 2023 */
+/* Version: 2.0.0 - March 21, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -195,8 +195,8 @@ class DOMIterator {
       const traverse = node => {
         const iterator = this.createIterator(node, whatToShow);
         while ((node = iterator.nextNode())) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            if (showElement && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+          if (node.nodeType === 1) {
+            if (showElement && filterCb(node)) {
               eachCb(node);
             }
             if (iframe && node.nodeName.toLowerCase() === 'iframe' && !DOMIterator.matches(node, this.opt.exclude)) {
@@ -210,14 +210,16 @@ class DOMIterator {
               this.addRemoveStyle(node.shadowRoot, style, showText);
               traverse(node.shadowRoot);
             }
-          } else  if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+          } else  if (showText && node.nodeType === 3 && filterCb(node)) {
             eachCb(node);
           }
         }
       };
       traverse(ctx);
     } else {
-      const iterator = this.createIterator(ctx, whatToShow, filterCb);
+      const iterator = this.createIterator(ctx, whatToShow, node => {
+        return filterCb(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      });
       let node;
       while ((node = iterator.nextNode())) {
         eachCb(node);
@@ -419,7 +421,6 @@ class RegExpCreator {
 
 class Mark$1 {
   constructor(ctx) {
-    this.version = '2.0.0';
     this.ctx = ctx;
     this.cacheDict = {};
     this.empty = document.createTextNode('');
@@ -450,10 +451,10 @@ class Mark$1 {
     return new DOMIterator(this.ctx, this.opt);
   }
   log(msg, level = 'debug') {
-    const log = this.opt.log;
     if (!this.opt.debug) {
       return;
     }
+    const log = this.opt.log;
     if (this.isObject(log) && typeof log[level] === 'function') {
       log[level](`mark.js: ${msg}`);
     }
@@ -467,13 +468,14 @@ class Mark$1 {
     });
   }
   checkOption(opt) {
-    let clear = true;
-    if (opt && opt.cacheTextNodes && this.cacheDict.type) {
+    let clear = true,
+      type = this.cacheDict.type;
+    if (type && opt && opt.cacheTextNodes) {
       if (opt.acrossElements) {
-        if (this.cacheDict.type === 'across') {
+        if (type === 'across') {
           clear = false;
         }
-      } else if (this.cacheDict.type === 'every') {
+      } else if (type === 'every') {
         clear = false;
       }
     }
@@ -524,7 +526,7 @@ class Mark$1 {
         }
       }
       if ( !valid) {
-        logs.push({ text : 'Ignoring invalid range: ', obj : range, level });
+        logs.push({ text : 'Invalid range: ', obj : range, level });
         return false;
       }
       return true;
@@ -532,14 +534,14 @@ class Mark$1 {
     if (this.opt.wrapAllRanges) {
       return ranges;
     }
-    let lastIndex = 0, type;
+    let lastIndex = 0, index;
     return ranges.filter(range => {
+      index = range.start + range.length;
       if (range.start >= lastIndex) {
-        lastIndex = range.start + range.length;
+        lastIndex = index;
         return true;
       }
-      type = range.start + range.length < lastIndex ? 'nesting' : 'overlapping';
-      logs.push({ text : `Ignoring ${type} range: `, obj : range, level });
+      logs.push({ text : (index < lastIndex ? 'Nest' : 'Overlapp') + 'ing range: ', obj : range, level });
       return false;
     });
   }
@@ -556,7 +558,7 @@ class Mark$1 {
         tags[key] = 2;
       }
     }
-    tags['br'] = 1;
+    tags['br'] = 3;
   }
   getTextNodesAcross(cb) {
     if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
@@ -566,11 +568,11 @@ class Mark$1 {
       return;
     }
     let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
-      ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
+      ol : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
       h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
       pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
       img : 1, nav : 1, details : 1, label : 1, form : 1, select : 1, menu : 1,
-      menuitem : 1,
+      br : 3, menuitem : 1,
       main : 1, section : 1, article : 1, aside : 1, picture : 1, output : 1,
       button : 1, header : 1, footer : 1, address : 1, area : 1, canvas : 1,
       map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
@@ -598,72 +600,66 @@ class Mark$1 {
         type = null;
       }
     }, node => {
-      if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.nodeType === 1) {
         if ( !type) {
           type = tags[node.nodeName.toLowerCase()];
         } else if (boundary && type !== 2 && (temp = tags[node.nodeName.toLowerCase()]) === 2) {
           type = temp;
         }
-        return NodeFilter.FILTER_REJECT;
+        return false;
       }
-      return this.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      return !this.excludeElements(node.parentNode);
     }, () => {
       if (currNode) {
         this.getNodeInfo(prevNode, currNode, type, obj);
       }
-      const dict = {
-        text : obj.text,
-        nodes: obj.nodes,
-        lastIndex: 0,
-        lastTextIndex: 0
-      };
-      if (this.opt.cacheTextNodes) {
-        this.cacheDict = dict;
-        this.cacheDict.type = 'across';
-      }
+      const dict = this.createDict(obj.text, obj.nodes, 'across');
       cb(dict);
     });
   }
   getNodeInfo(prevNode, node, type, obj) {
-    let offset = 0;
-    const start = obj.text.length,
+    let offset = 0,
       text = prevNode.textContent;
+    const start = obj.text.length;
     if (prevNode !== node) {
-      const endSpace = obj.regex.test(text[text.length - 1]),
-        startSpace = obj.regex.test(node.textContent[0]);
-      if (obj.boundary || !endSpace && !startSpace) {
-        let separate = type;
-        if ( !type) {
-          let parent = prevNode.parentNode;
-          while (parent) {
-            type = obj.tags[parent.nodeName.toLowerCase()];
-            if (type) {
-              separate = !(parent === node.parentNode || parent.contains(node));
-              break;
+      if (type === 3) {
+        text += '\n';
+        offset = 1;
+      } else {
+        const endSpace = obj.regex.test(text[text.length - 1]),
+          startSpace = obj.regex.test(node.textContent[0]);
+        if (obj.boundary || !endSpace && !startSpace) {
+          let separate = type;
+          if ( !type) {
+            let parent = prevNode.parentNode;
+            while (parent) {
+              type = obj.tags[parent.nodeName.toLowerCase()];
+              if (type) {
+                separate = !(parent === node.parentNode || parent.contains(node));
+                break;
+              }
+              parent = parent.parentNode;
             }
-            parent = parent.parentNode;
           }
-        }
-        if (separate) {
-          if ( !endSpace && !startSpace) {
-            if (type === 1) {
-              obj.text += text + ' ';
-              offset = 1;
+          if (separate) {
+            if ( !endSpace && !startSpace) {
+              if (type === 1) {
+                text += ' ';
+                offset = 1;
+              } else if (type === 2) {
+                text += obj.str3;
+                offset = 3;
+              }
             } else if (type === 2) {
-              obj.text += text + obj.str3;
-              offset = 3;
+              let str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
+              text += str;
+              offset = str.length;
             }
-          } else if (type === 2) {
-            let str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
-            obj.text += text + str;
-            offset = str.length;
           }
         }
       }
     }
-    if (offset === 0) {
-      obj.text += text;
-    }
+    obj.text += text;
     obj.nodes.push(this.createInfo(prevNode, start, obj.text.length - offset, offset, obj.startOffset));
     obj.startOffset -= offset;
   }
@@ -682,20 +678,24 @@ class Mark$1 {
         node: node
       });
     }, node => {
-      return this.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      return !this.excludeElements(node.parentNode);
     }, () => {
-      const dict = {
-        text: text,
-        nodes: nodes,
-        lastIndex: 0,
-        lastTextIndex: 0
-      };
-      if (this.opt.cacheTextNodes) {
-        this.cacheDict = dict;
-        this.cacheDict.type = 'every';
-      }
+      const dict = this.createDict(text, nodes, 'every');
       cb(dict);
     });
+  }
+  createDict(text, nodes, type) {
+    const dict = {
+      text : text,
+      nodes: nodes,
+      lastIndex: 0,
+      lastTextIndex: 0
+    };
+    if (this.opt.cacheTextNodes) {
+      this.cacheDict = dict;
+      this.cacheDict.type = type;
+    }
+    return dict;
   }
   excludeElements(elem) {
     return this.nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 || DOMIterator.matches(elem, this.opt.exclude);
@@ -1088,7 +1088,6 @@ class Mark$1 {
             eachInfo.count = ++count;
             eachCb(obj.markNode, eachInfo);
             if (obj.increment === 0) {
-              regex.lastIndex = 0;
               break;
             }
             k += obj.increment;
@@ -1161,7 +1160,7 @@ class Mark$1 {
       array.forEach((range, index) => {
         let end = range.start + range.length;
         if (end > max) {
-          logs.push({ text : `Range length was limited to: ${end - max}`, obj : range, skip : true, level });
+          logs.push({ text : `Range was limited to: ${max}`, obj : range, skip : true, level });
           end = max;
         }
         const substr = dict.text.substring(range.start, end);
@@ -1258,7 +1257,7 @@ class Mark$1 {
     }
     let index = 0,
       totalMarks = 0,
-      allMatches = 0,
+      matches = 0,
       totalMatches = 0;
     const regCreator = new RegExpCreator(this.opt),
       fn = this.opt.acrossElements ? 'wrapMatchesAcross' : 'wrapMatches',
@@ -1269,8 +1268,8 @@ class Mark$1 {
       let termMatches = 0;
       this.log(`Searching with expression "${regex}"`);
       this[fn](regex, 1, (node, t, filterInfo) => {
-        allMatches = totalMatches + termMatches;
-        return this.opt.filter(node, term, allMatches, termMatches, filterInfo);
+        matches = totalMatches + termMatches;
+        return this.opt.filter(node, term, matches, termMatches, filterInfo);
       }, (element, eachInfo) => {
         termMatches = eachInfo.count;
         totalMarks++;
@@ -1288,10 +1287,10 @@ class Mark$1 {
         }
       });
     };
-    if (terms.length === 0) {
-      this.opt.done(0, 0, termStats);
-    } else {
+    if (terms.length) {
       loop(terms[index]);
+    } else {
+      this.opt.done(0, 0, termStats);
     }
   }
   markCombinePatterns(sv) {
@@ -1344,9 +1343,7 @@ class Mark$1 {
         }
       });
     };
-    if (terms.length === 0) {
-      this.opt.done(0, 0, termStats);
-    } else {
+    if (terms.length) {
       terms.forEach(term => {
         termStats[term] = 0;
       });
@@ -1354,6 +1351,8 @@ class Mark$1 {
       termsParts = obj.termsParts;
       patterns = obj.patterns;
       loop(patterns[index]);
+    } else {
+      this.opt.done(0, 0, termStats);
     }
   }
   getCurrentTerm(match, terms) {
@@ -1422,8 +1421,7 @@ class Mark$1 {
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      const accept = DOMIterator.matches(node, selector) && !this.excludeElements(node);
-      return accept ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      return DOMIterator.matches(node, selector) && !this.excludeElements(node);
     }, this.opt.done);
   }
 }
@@ -1447,7 +1445,7 @@ function Mark(ctx) {
     return this;
   };
   this.getVersion = () => {
-    return instance.version;
+    return '2.0.0';
   };
   return this;
 }

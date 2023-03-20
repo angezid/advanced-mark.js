@@ -5,14 +5,10 @@
  * const iterator = new DOMIterator(
  *     document.querySelector("#context"), true
  * );
- * iterator.forEachNode(NodeFilter.SHOW_TEXT, node => {
+ * iterator.forEachNode(NodeFilter.SHOW_TEXT, node => { // each
  *     console.log(node);
- * }, node => {
- *     if(DOMIterator.matches(node.parentNode, ".ignore")){
- *         return NodeFilter.FILTER_REJECT;
- *     } else {
- *         return NodeFilter.FILTER_ACCEPT;
- *     }
+ * }, node => { // filter
+ *     return !DOMIterator.matches(node.parentNode, ".ignore");
  * }, () => {
  *     console.log("DONE");
  * });
@@ -367,8 +363,8 @@ class DOMIterator {
         const iterator = this.createIterator(node, whatToShow);
 
         while ((node = iterator.nextNode())) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            if (showElement && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+          if (node.nodeType === 1) { // element
+            if (showElement && filterCb(node)) {
               eachCb(node);
             }
 
@@ -386,7 +382,7 @@ class DOMIterator {
               traverse(node.shadowRoot);
             }
 
-          } else  if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+          } else  if (showText && node.nodeType === 3 && filterCb(node)) {
             eachCb(node);
           }
         }
@@ -395,7 +391,9 @@ class DOMIterator {
       traverse(ctx);
 
     } else {
-      const iterator = this.createIterator(ctx, whatToShow, filterCb);
+      const iterator = this.createIterator(ctx, whatToShow, node => {
+        return filterCb(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      });
       let node;
 
       while ((node = iterator.nextNode())) {

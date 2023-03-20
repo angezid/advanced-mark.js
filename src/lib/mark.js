@@ -17,7 +17,6 @@ class Mark {
    * element, an array of DOM elements, a NodeList or a selector
    */
   constructor(ctx) {
-    this.version = '[VI]{version}[/VI]';
     /**
      * The context of the instance. Either a DOM element, an array of DOM
      * elements, a NodeList or a selector
@@ -150,15 +149,16 @@ class Mark {
    * @return {object}
    */
   checkOption(opt) {
-    let clear = true;
+    let clear = true,
+      type = this.cacheDict.type;
+
     // It allows using cache object if the type and cacheTextNodes option doesn't change
-    if (opt && opt.cacheTextNodes && this.cacheDict.type) {
+    if (type && opt && opt.cacheTextNodes) {
       if (opt.acrossElements) {
-        if (this.cacheDict.type === 'across') {
+        if (type === 'across') {
           clear = false;
         }
-
-      } else if (this.cacheDict.type === 'every') {
+      } else if (type === 'every') {
         clear = false;
       }
     }
@@ -167,7 +167,7 @@ class Mark {
     }
     return opt;
   }
-  
+
   /**
    * Splits string into separate words if separate word search was defined.
    * Removes duplicate or empty entries and sort by the length in descending order.
@@ -261,7 +261,7 @@ class Mark {
         }
       }
       if ( !valid) {
-        logs.push({ text : 'Ignoring invalid range: ', obj : range, level });
+        logs.push({ text : 'Invalid range: ', obj : range, level });
         return false;
       }
       return true;
@@ -271,15 +271,16 @@ class Mark {
       return ranges;
     }
 
-    let lastIndex = 0, type;
+    let lastIndex = 0, index;
     // filters out nesting/overlapping ranges
     return ranges.filter(range => {
+      index = range.start + range.length;
+
       if (range.start >= lastIndex) {
-        lastIndex = range.start + range.length;
+        lastIndex = index;
         return true;
       }
-      type = range.start + range.length < lastIndex ? 'nesting' : 'overlapping';
-      logs.push({ text : `Ignoring ${type} range: `, obj : range, level });
+      logs.push({ text : (index < lastIndex ? 'Nest' : 'Overlapp') + 'ing range: ', obj : range, level });
       return false;
     });
   }
@@ -313,8 +314,7 @@ class Mark {
         tags[key] = 2;
       }
     }
-    // br is an inline element.
-    tags['br'] = 1;
+    tags['br'] = 3;
   }
 
   /**
@@ -362,11 +362,11 @@ class Mark {
     // a space or string can be safely added to the end of a text node when two text nodes
     // are 'separated' by element with one of these names
     let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
-      ol : 1, br : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
+      ol : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
       h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
       pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
       img : 1, nav : 1, details : 1, label : 1, form : 1, select : 1, menu : 1,
-      menuitem : 1,
+      br : 3, menuitem : 1,
       main : 1, section : 1, article : 1, aside : 1, picture : 1, output : 1,
       button : 1, header : 1, footer : 1, address : 1, area : 1, canvas : 1,
       map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
@@ -402,7 +402,7 @@ class Mark {
       }
 
     }, node => { // filter
-      if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.nodeType === 1) { // element
         if ( !type) {
           type = tags[node.nodeName.toLowerCase()];
 
@@ -410,27 +410,17 @@ class Mark {
         } else if (boundary && type !== 2 && (temp = tags[node.nodeName.toLowerCase()]) === 2) {
           type = temp;
         }
-        return NodeFilter.FILTER_REJECT;
+        return false;
       }
-      return this.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      return !this.excludeElements(node.parentNode);
 
     }, () => { // done
       // processes the last node
       if (currNode) {
         this.getNodeInfo(prevNode, currNode, type, obj);
       }
+      const dict = this.createDict(obj.text, obj.nodes, 'across');
 
-      const dict = {
-        text : obj.text,
-        nodes: obj.nodes,
-        lastIndex: 0,
-        lastTextIndex: 0
-      };
-
-      if (this.opt.cacheTextNodes) {
-        this.cacheDict = dict;
-        this.cacheDict.type = 'across';
-      }
       cb(dict);
     });
   }
@@ -444,54 +434,59 @@ class Mark {
    * @param {object} obj - The auxiliary object to pass multiple parameters to the method
    */
   getNodeInfo(prevNode, node, type, obj) {
-    let offset = 0;
-    const start = obj.text.length,
+    let offset = 0,
       text = prevNode.textContent;
+    const start = obj.text.length;
 
     if (prevNode !== node) {
-      const endSpace = obj.regex.test(text[text.length - 1]),
-        startSpace = obj.regex.test(node.textContent[0]);
+      if (type === 3) { // br element
+        // in pre element \n can be important
+        text += '\n';
+        offset = 1;
 
-      if (obj.boundary || !endSpace && !startSpace) {
-        let separate = type;
+      } else {
+        const endSpace = obj.regex.test(text[text.length - 1]),
+          startSpace = obj.regex.test(node.textContent[0]);
 
-        if ( !type) {
-          // searches for the first parent of the previous text node that met condition
-          // and checks does they have the same parent or the parent contains the current text node
-          let parent = prevNode.parentNode;
-          while (parent) {
-            type = obj.tags[parent.nodeName.toLowerCase()];
-            if (type) {
-              separate = !(parent === node.parentNode || parent.contains(node));
-              break;
+        if (obj.boundary || !endSpace && !startSpace) {
+          let separate = type;
+
+          if ( !type) {
+            // searches for the first parent of the previous text node that met condition
+            // and checks does they have the same parent or the parent contains the current text node
+            let parent = prevNode.parentNode;
+            while (parent) {
+              type = obj.tags[parent.nodeName.toLowerCase()];
+              if (type) {
+                separate = !(parent === node.parentNode || parent.contains(node));
+                break;
+              }
+              parent = parent.parentNode;
             }
-            parent = parent.parentNode;
           }
-        }
 
-        if (separate) {
-          if ( !endSpace && !startSpace) {
-            if (type === 1) {
-              obj.text += text + ' ';
-              offset = 1;
+          if (separate) {
+            if ( !endSpace && !startSpace) {
+              if (type === 1) {
+                text += ' ';
+                offset = 1;
+
+              } else if (type === 2) {
+                text += obj.str3;
+                offset = 3;
+              }
 
             } else if (type === 2) {
-              obj.text += text + obj.str3;
-              offset = 3;
+              let str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
+              text += str;
+              offset = str.length;
             }
-
-          } else if (type === 2) {
-            let str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
-            obj.text += text + str;
-            offset = str.length;
           }
         }
       }
     }
+    obj.text += text;
 
-    if (offset === 0) {
-      obj.text += text;
-    }
     obj.nodes.push(this.createInfo(prevNode, start, obj.text.length - offset, offset, obj.startOffset));
     obj.startOffset -= offset;
   }
@@ -502,6 +497,7 @@ class Mark {
    * @property {number} start - The start index within the composite string
    * @property {number} end - The end index within the composite string
    * @property {number} offset - This property is required for compatibility with [Mark~nodeInfoAcross]
+   * for {@link Mark#markRanges}
    */
 
   /**
@@ -511,6 +507,7 @@ class Mark {
    * @property {Mark~nodeInfo[]} nodes - The array of objects
    * @property {number} lastIndex - The property used to store the nodes the last index
    * @property {number} lastTextIndex - This property is required for compatibility with [Mark~getTextNodesAcrossDict]
+   * for {@link Mark#markRanges}
    */
 
   /**
@@ -542,23 +539,34 @@ class Mark {
       });
 
     }, node => { // filter
-      return this.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      return !this.excludeElements(node.parentNode);
 
     }, () => { // done
-      const dict = {
-        text: text,
-        nodes: nodes,
-        lastIndex: 0,
-        lastTextIndex: 0
-      };
-
-      if (this.opt.cacheTextNodes) {
-        this.cacheDict = dict;
-        this.cacheDict.type = 'every';
-      }
+      const dict = this.createDict(text, nodes, 'every');
 
       cb(dict);
     });
+  }
+
+  /**
+   * Creates dict object
+   * @param  {string} text - The composite string
+   * @param  {Mark~nodeInfo[]|Mark~nodeInfoAcross[]} nodes - The array of info objects
+   * @param  {string} type - The cache dict type
+   */
+  createDict(text, nodes, type) {
+    const dict = {
+      text : text,
+      nodes: nodes,
+      lastIndex: 0,
+      lastTextIndex: 0
+    };
+
+    if (this.opt.cacheTextNodes) {
+      this.cacheDict = dict;
+      this.cacheDict.type = type;
+    }
+    return dict;
   }
 
   /**
@@ -745,7 +753,7 @@ class Mark {
     // dict.lastIndex stores the last node index to avoid iteration from the beginning
     let i = dict.lastIndex,
       rangeStart = true;
-    // 'cacheTextNodes' option must enabled 'wrapAllRanges' code here
+    // 'cacheTextNodes' option must enable 'wrapAllRanges' code here
     const wrapAllRanges = this.opt.wrapAllRanges || this.opt.cacheTextNodes;
 
     if (wrapAllRanges) {
@@ -773,7 +781,7 @@ class Mark {
         const s = start - n.start,
           e = (end > n.end ? n.end : end) - n.start;
 
-        // this check prevents creating an empty mark node
+        // prevents browser exception if something went wrong. Just in case. Useful for debug purpose
         if (s >= 0 && e > s) {
           if (wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
@@ -1368,7 +1376,6 @@ class Mark {
 
             // matches the whole text node
             if (obj.increment === 0) {
-              regex.lastIndex = 0;
               break;
             }
             // corrects the current index because new info object(s) were inserted into dict.nodes
@@ -1517,7 +1524,7 @@ class Mark {
 
         if (end > max) {
           // with wrapAllRanges option, there can be several report of limited ranges
-          logs.push({ text : `Range length was limited to: ${end - max}`, obj : range, skip : true, level });
+          logs.push({ text : `Range was limited to: ${max}`, obj : range, skip : true, level });
           end = max;
         }
         const substr = dict.text.substring(range.start, end);
@@ -1682,7 +1689,7 @@ class Mark {
    * @callback Mark~markFilterCallback
    * @param {Text} node - The text node which includes the match or with acrossElements option can be part of the match
    * @param {string} term - The current term
-   * @param {number} allMatches - The number of all wrapped matches so far
+   * @param {number} matches - The number of all wrapped matches so far
    * @param {number} termMatches - The number of wrapped matches for the current term so far
    * @param {Mark~filterInfoObject} filterInfo - The object containing the match information.
    */
@@ -1724,7 +1731,7 @@ class Mark {
    */
   mark(sv, opt) {
     this.opt = this.checkOption(opt);
-    
+
     if (this.opt && this.opt.combinePatterns) {
       this.markCombinePatterns(sv);
       return;
@@ -1732,7 +1739,7 @@ class Mark {
 
     let index = 0,
       totalMarks = 0,
-      allMatches = 0,
+      matches = 0,
       totalMatches = 0;
     const regCreator = new RegExpCreator(this.opt),
       fn = this.opt.acrossElements ? 'wrapMatchesAcross' : 'wrapMatches',
@@ -1745,8 +1752,8 @@ class Mark {
       this.log(`Searching with expression "${regex}"`);
 
       this[fn](regex, 1, (node, t, filterInfo) => { // filter
-        allMatches = totalMatches + termMatches;
-        return this.opt.filter(node, term, allMatches, termMatches, filterInfo);
+        matches = totalMatches + termMatches;
+        return this.opt.filter(node, term, matches, termMatches, filterInfo);
 
       }, (element, eachInfo) => { // each
         termMatches = eachInfo.count;
@@ -1768,11 +1775,11 @@ class Mark {
         }
       });
     };
-    
-    if (terms.length === 0) {
-      this.opt.done(0, 0, termStats);
-    } else {
+
+    if (terms.length) {
       loop(terms[index]);
+    } else {
+      this.opt.done(0, 0, termStats);
     }
   }
 
@@ -1842,10 +1849,7 @@ class Mark {
       });
     };
 
-    if (terms.length === 0) {
-      this.opt.done(0, 0, termStats);
-
-    } else {
+    if (terms.length) {
       // initializes term statistics properties
       terms.forEach(term => {
         termStats[term] = 0;
@@ -1855,6 +1859,8 @@ class Mark {
       patterns = obj.patterns;
 
       loop(patterns[index]);
+    } else {
+      this.opt.done(0, 0, termStats);
     }
   }
 
@@ -2019,8 +2025,7 @@ class Mark {
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => { // each
       this.unwrapMatches(node);
     }, node => { // filter
-      const accept = DOMIterator.matches(node, selector) && !this.excludeElements(node);
-      return accept ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      return DOMIterator.matches(node, selector) && !this.excludeElements(node);
     }, this.opt.done);
   }
 }
