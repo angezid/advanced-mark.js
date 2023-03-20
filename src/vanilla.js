@@ -19,7 +19,7 @@ export default function Mark(ctx) {
     return this;
   };
   this.getVersion = () => {
-    return instance.version;
+    return '[VI]{version}[/VI]';
   };
   return this;
 }

@@ -18,7 +18,7 @@ $.fn.unmark = function(opt) {
   return this;
 };
 $.fn.getVersion = function() {
-  return new Mark(this.get()).version;
+  return '[VI]{version}[/VI]';
 };
 
 export default $;

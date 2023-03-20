@@ -146,4 +146,3 @@ jQuery:
 </details>
 
 * AE across elements
-* SG separate groups

@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 12, 2023 */
+/* Version: 2.0.0 - March 21, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -279,8 +279,8 @@
           var traverse = function traverse(node) {
             var iterator = _this3.createIterator(node, whatToShow);
             while (node = iterator.nextNode()) {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                if (showElement && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+              if (node.nodeType === 1) {
+                if (showElement && filterCb(node)) {
                   eachCb(node);
                 }
                 if (iframe && node.nodeName.toLowerCase() === 'iframe' && !DOMIterator.matches(node, _this3.opt.exclude)) {
@@ -294,14 +294,16 @@
                   _this3.addRemoveStyle(node.shadowRoot, style, showText);
                   traverse(node.shadowRoot);
                 }
-              } else if (showText && node.nodeType === Node.TEXT_NODE && filterCb(node) === NodeFilter.FILTER_ACCEPT) {
+              } else if (showText && node.nodeType === 3 && filterCb(node)) {
                 eachCb(node);
               }
             }
           };
           traverse(ctx);
         } else {
-          var iterator = this.createIterator(ctx, whatToShow, filterCb);
+          var iterator = this.createIterator(ctx, whatToShow, function (node) {
+            return filterCb(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          });
           var node;
           while (node = iterator.nextNode()) {
             eachCb(node);
@@ -565,7 +567,6 @@
   var Mark = /*#__PURE__*/function () {
     function Mark(ctx) {
       _classCallCheck(this, Mark);
-      this.version = '2.0.0';
       this.ctx = ctx;
       this.cacheDict = {};
       this.empty = document.createTextNode('');
@@ -605,10 +606,10 @@
       key: "log",
       value: function log(msg) {
         var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'debug';
-        var log = this.opt.log;
         if (!this.opt.debug) {
           return;
         }
+        var log = this.opt.log;
         if (this.isObject(log) && typeof log[level] === 'function') {
           log[level]("mark.js: ".concat(msg));
         }
@@ -627,13 +628,14 @@
     }, {
       key: "checkOption",
       value: function checkOption(opt) {
-        var clear = true;
-        if (opt && opt.cacheTextNodes && this.cacheDict.type) {
+        var clear = true,
+          type = this.cacheDict.type;
+        if (type && opt && opt.cacheTextNodes) {
           if (opt.acrossElements) {
-            if (this.cacheDict.type === 'across') {
+            if (type === 'across') {
               clear = false;
             }
-          } else if (this.cacheDict.type === 'every') {
+          } else if (type === 'every') {
             clear = false;
           }
         }
@@ -706,7 +708,7 @@
           }
           if (!valid) {
             logs.push({
-              text: 'Ignoring invalid range: ',
+              text: 'Invalid range: ',
               obj: range,
               level: level
             });
@@ -720,15 +722,15 @@
           return ranges;
         }
         var lastIndex = 0,
-          type;
+          index;
         return ranges.filter(function (range) {
+          index = range.start + range.length;
           if (range.start >= lastIndex) {
-            lastIndex = range.start + range.length;
+            lastIndex = index;
             return true;
           }
-          type = range.start + range.length < lastIndex ? 'nesting' : 'overlapping';
           logs.push({
-            text: "Ignoring ".concat(type, " range: "),
+            text: (index < lastIndex ? 'Nest' : 'Overlapp') + 'ing range: ',
             obj: range,
             level: level
           });
@@ -752,7 +754,7 @@
             tags[key] = 2;
           }
         }
-        tags['br'] = 1;
+        tags['br'] = 3;
       }
     }, {
       key: "getTextNodesAcross",
@@ -773,7 +775,6 @@
           th: 1,
           ul: 1,
           ol: 1,
-          br: 1,
           dd: 1,
           dl: 1,
           dt: 1,
@@ -800,6 +801,7 @@
           form: 1,
           select: 1,
           menu: 1,
+          br: 3,
           menuitem: 1,
           main: 1,
           section: 1,
@@ -859,74 +861,68 @@
             type = null;
           }
         }, function (node) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.nodeType === 1) {
             if (!type) {
               type = tags[node.nodeName.toLowerCase()];
             } else if (boundary && type !== 2 && (temp = tags[node.nodeName.toLowerCase()]) === 2) {
               type = temp;
             }
-            return NodeFilter.FILTER_REJECT;
+            return false;
           }
-          return _this5.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+          return !_this5.excludeElements(node.parentNode);
         }, function () {
           if (currNode) {
             _this5.getNodeInfo(prevNode, currNode, type, obj);
           }
-          var dict = {
-            text: obj.text,
-            nodes: obj.nodes,
-            lastIndex: 0,
-            lastTextIndex: 0
-          };
-          if (_this5.opt.cacheTextNodes) {
-            _this5.cacheDict = dict;
-            _this5.cacheDict.type = 'across';
-          }
+          var dict = _this5.createDict(obj.text, obj.nodes, 'across');
           cb(dict);
         });
       }
     }, {
       key: "getNodeInfo",
       value: function getNodeInfo(prevNode, node, type, obj) {
-        var offset = 0;
-        var start = obj.text.length,
+        var offset = 0,
           text = prevNode.textContent;
+        var start = obj.text.length;
         if (prevNode !== node) {
-          var endSpace = obj.regex.test(text[text.length - 1]),
-            startSpace = obj.regex.test(node.textContent[0]);
-          if (obj.boundary || !endSpace && !startSpace) {
-            var separate = type;
-            if (!type) {
-              var parent = prevNode.parentNode;
-              while (parent) {
-                type = obj.tags[parent.nodeName.toLowerCase()];
-                if (type) {
-                  separate = !(parent === node.parentNode || parent.contains(node));
-                  break;
+          if (type === 3) {
+            text += '\n';
+            offset = 1;
+          } else {
+            var endSpace = obj.regex.test(text[text.length - 1]),
+              startSpace = obj.regex.test(node.textContent[0]);
+            if (obj.boundary || !endSpace && !startSpace) {
+              var separate = type;
+              if (!type) {
+                var parent = prevNode.parentNode;
+                while (parent) {
+                  type = obj.tags[parent.nodeName.toLowerCase()];
+                  if (type) {
+                    separate = !(parent === node.parentNode || parent.contains(node));
+                    break;
+                  }
+                  parent = parent.parentNode;
                 }
-                parent = parent.parentNode;
               }
-            }
-            if (separate) {
-              if (!endSpace && !startSpace) {
-                if (type === 1) {
-                  obj.text += text + ' ';
-                  offset = 1;
+              if (separate) {
+                if (!endSpace && !startSpace) {
+                  if (type === 1) {
+                    text += ' ';
+                    offset = 1;
+                  } else if (type === 2) {
+                    text += obj.str3;
+                    offset = 3;
+                  }
                 } else if (type === 2) {
-                  obj.text += text + obj.str3;
-                  offset = 3;
+                  var str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
+                  text += str;
+                  offset = str.length;
                 }
-              } else if (type === 2) {
-                var str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
-                obj.text += text + str;
-                offset = str.length;
               }
             }
           }
         }
-        if (offset === 0) {
-          obj.text += text;
-        }
+        obj.text += text;
         obj.nodes.push(this.createInfo(prevNode, start, obj.text.length - offset, offset, obj.startOffset));
         obj.startOffset -= offset;
       }
@@ -948,20 +944,26 @@
             node: node
           });
         }, function (node) {
-          return _this6.excludeElements(node.parentNode) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+          return !_this6.excludeElements(node.parentNode);
         }, function () {
-          var dict = {
-            text: text,
-            nodes: nodes,
-            lastIndex: 0,
-            lastTextIndex: 0
-          };
-          if (_this6.opt.cacheTextNodes) {
-            _this6.cacheDict = dict;
-            _this6.cacheDict.type = 'every';
-          }
+          var dict = _this6.createDict(text, nodes, 'every');
           cb(dict);
         });
+      }
+    }, {
+      key: "createDict",
+      value: function createDict(text, nodes, type) {
+        var dict = {
+          text: text,
+          nodes: nodes,
+          lastIndex: 0,
+          lastTextIndex: 0
+        };
+        if (this.opt.cacheTextNodes) {
+          this.cacheDict = dict;
+          this.cacheDict.type = type;
+        }
+        return dict;
       }
     }, {
       key: "excludeElements",
@@ -1444,7 +1446,6 @@
                 eachInfo.count = ++count;
                 eachCb(obj.markNode, eachInfo);
                 if (obj.increment === 0) {
-                  regex.lastIndex = 0;
                   break;
                 }
                 k += obj.increment;
@@ -1532,7 +1533,7 @@
             var end = range.start + range.length;
             if (end > max) {
               logs.push({
-                text: "Range length was limited to: ".concat(end - max),
+                text: "Range was limited to: ".concat(max),
                 obj: range,
                 skip: true,
                 level: level
@@ -1647,7 +1648,7 @@
         }
         var index = 0,
           totalMarks = 0,
-          allMatches = 0,
+          matches = 0,
           totalMatches = 0;
         var regCreator = new RegExpCreator(this.opt),
           fn = this.opt.acrossElements ? 'wrapMatchesAcross' : 'wrapMatches',
@@ -1658,8 +1659,8 @@
           var termMatches = 0;
           _this13.log("Searching with expression \"".concat(regex, "\""));
           _this13[fn](regex, 1, function (node, t, filterInfo) {
-            allMatches = totalMatches + termMatches;
-            return _this13.opt.filter(node, term, allMatches, termMatches, filterInfo);
+            matches = totalMatches + termMatches;
+            return _this13.opt.filter(node, term, matches, termMatches, filterInfo);
           }, function (element, eachInfo) {
             termMatches = eachInfo.count;
             totalMarks++;
@@ -1677,10 +1678,10 @@
             }
           });
         };
-        if (terms.length === 0) {
-          this.opt.done(0, 0, termStats);
-        } else {
+        if (terms.length) {
           loop(terms[index]);
+        } else {
+          this.opt.done(0, 0, termStats);
         }
       }
     }, {
@@ -1738,9 +1739,7 @@
             }
           });
         };
-        if (terms.length === 0) {
-          this.opt.done(0, 0, termStats);
-        } else {
+        if (terms.length) {
           terms.forEach(function (term) {
             termStats[term] = 0;
           });
@@ -1748,6 +1747,8 @@
           termsParts = obj.termsParts;
           patterns = obj.patterns;
           loop(patterns[index]);
+        } else {
+          this.opt.done(0, 0, termStats);
         }
       }
     }, {
@@ -1833,8 +1834,7 @@
         this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, function (node) {
           _this16.unwrapMatches(node);
         }, function (node) {
-          var accept = DOMIterator.matches(node, selector) && !_this16.excludeElements(node);
-          return accept ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          return DOMIterator.matches(node, selector) && !_this16.excludeElements(node);
         }, this.opt.done);
       }
     }]);
@@ -1858,7 +1858,7 @@
     return this;
   };
   $__default["default"].fn.getVersion = function () {
-    return new Mark(this.get()).version;
+    return '2.0.0';
   };
 
   return $__default["default"];
