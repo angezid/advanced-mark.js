@@ -15,12 +15,13 @@ $(context).unmark([options]);
   * `className` {string} - Remove only marked elements with specified class name. (default is `''`)
   * `exclude` {string|string[]} - The string or array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
   * `shadowDOM` {boolean} - Whether to search inside shadow DOMs (default is `undefined`)
-    See [Marking shadow DOM](shadow-dom.md) for more details.
+    See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to search inside iframes (default is `false`)
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
-  * `log` {object} - Log messages to a specific object (default is `window.console`)
-  * `done : () => {}` - A callback after all specified marked elements were removed
+  * `log` {object} - Log messages to a specific object (default is `console`)
+  * `done : () => {}` {function} - A callback after all specified marked elements were removed (default is )
+    It has no parameters.
   
 <details id="internal-code">
 <summary><b>Example with default options values</b></summary>
