@@ -17,12 +17,12 @@ $(context).mark(search[, options]);
   * `separateWordSearch` {boolean} - Whether to break term into separate words and search for each individual word (default is `true`)
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
-  * `accuracy` {string|object} (default is `'partially'`):
-    * String value are:
+  * `accuracy` {string|object} -   (default is `'partially'`):
+    * Either one of the following string value:
       * `'partially'` e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.
       * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white-space characters and start/end of a text node (with `acrossElements` option - start/end of a context).
-      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'. The default word boundaries are: white-spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~¡¿` characters.
-    * Object with two properties:
+      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'. The default word boundaries are: white-spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
+    * Or an bject with two properties:
       * `value`: 'exactly' or 'complementary'
       * `limiters`: a string or an array with custom word boundaries characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"" }`
 
@@ -41,20 +41,20 @@ $(context).mark(search[, options]);
     e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa. Value can be an array `{ 'be': ['am', 'is', 'are'] }`.
     
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
-  * `combinePatterns` {number|boolean} - Combine defined number of individual term patterns into one (default is `10`)
-    See [Performance](performance.md) for more details.
+  * `combinePatterns` {number|boolean} - Combine a specifed number of individual term patterns into one (default is `10`)
+    See [Performance](performance.md#ways-to-boost-performance) for more details.
   * `cacheTextNodes` {boolean} - Caching information to improve performance (default is `undefined`)
-    See [Performance](performance.md) for more details.
+    See [Performance](performance.md#ways-to-boost-performance) for more details.
   * `blockElementsBoundary` {boolean|object} - Whether to limit matches within default HTML block elements and/or custom elements (default is `undefined`)  AE
     See [Elements boundaries](elements-boundaries.md) for more details.
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
-    See [Marking shadow DOM](shadow-dom.md) for more details.
+    See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
-  * `log` {object} - Log messages to a specific object (default is `window.console`)
+  * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match)
+  * `filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `term` {string} - The current term
     * `matchesSoFar` {number} - The number of all wrapped matches so far
@@ -67,19 +67,19 @@ $(context).mark(search[, options]);
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
         when 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
 
-  * `each : (markElement, eachInfo) => {}` - A callback for each marked element
+  * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
       * `count` {number} - The number of matches so far
 
-  * `done : (totalMarks, totalMatches, termStats) => {}` - A callback on finish
+  * `done : (totalMarks, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
     * `totalMarks` {number} - The total number of marked elements
     * `totalMatches` {number} - The total number of matches
     * `termStats` {object} - An object containing an individual term's matches count
 
-  * `noMatch : (term) => {}` - A callback that is called when a term has no match at all
+  * `noMatch : (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
     * `term` {string|string[]} - The not found term(s); the parameter is array when `combinePatterns` option is used
   
 ### Available properties of the `filterInfo` object depending on options

@@ -1077,18 +1077,10 @@ class Mark {
    * @param {number} end - The end index of the last processed group
    */
   setLastIndex(regex, end) {
-    // case when the capturing group is inside positive lookahead assertion
-    if (end > regex.lastIndex) {
-      regex.lastIndex = end;
-
-    // case when the match is filtered out or the capturing group is inside positive lookbehind assertion
-    } else if (end > 0) {
-      regex.lastIndex++;
-
-    // there is no match ???
-    } else {
-      regex.lastIndex = Infinity;
-    }
+    const index = regex.lastIndex;
+    // end > index - case when the capturing group is inside positive lookahead assertion
+    // end > 0 - case when the match is filtered out or the capturing group is inside positive lookbehind assertion
+    regex.lastIndex = end > index ? end : end > 0 ? index + 1 : Infinity;
   }
 
   /**

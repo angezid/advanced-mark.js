@@ -1,7 +1,7 @@
 
 ## Code examples
 
-See [Callbacks parameters](callbacks-parameters.md) doc about `info` object properties.
+See [mark() each callback](mark-method.md#mark-each) and [markRegExp() each callback](markRegExp-method.md#markRegExp-each) about `each` callback `info` object properties.
 
 ### The `mark()` method code example with `acrossElements` option 
 ``` js
@@ -109,7 +109,7 @@ function highlightMatch(elem) {
 
         if (found){
             $(this).addClass('current');
-			$(this).find('*[data-markjs]').addClass('current');  // add class to all descendant too
+            $(this).find('*[data-markjs]').addClass('current');  // add class to all descendant too
         }
     });
 }
