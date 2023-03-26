@@ -410,7 +410,7 @@ class DOMIterator {
    * @type {number}
    */
   /**
-   * Callback to filter nodes. Can return e.g. NodeFilter.FILTER_ACCEPT or NodeFilter.FILTER_REJECT
+   * Callback to filter nodes. Can return either true to accept node or false to reject node.
    * @see {@link http://tinyurl.com/zdczmm2}
    * @callback DOMIterator~filterCb
    * @param {Text|HTMLElement} node - The node to filter

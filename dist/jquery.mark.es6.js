@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 21, 2023 */
+/* Version: 2.0.0 - March 26, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -939,13 +939,8 @@ class Mark {
     }
   }
   setLastIndex(regex, end) {
-    if (end > regex.lastIndex) {
-      regex.lastIndex = end;
-    } else if (end > 0) {
-      regex.lastIndex++;
-    } else {
-      regex.lastIndex = Infinity;
-    }
+    const index = regex.lastIndex;
+    regex.lastIndex = end > index ? end : end > 0 ? index + 1 : Infinity;
   }
   collectRegexGroupIndexes(regex) {
     let groups = [], stack = [],
