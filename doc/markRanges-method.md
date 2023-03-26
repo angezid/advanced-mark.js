@@ -18,30 +18,30 @@ $(context).markRanges(ranges[, options]);
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
-    See [Marking shadow DOM](shadow-dom.md) for more details.
+    See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
-  * `log` {object} - Log messages to a specific object (default is `window.console`)
+  * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter : (textNode, range, matchString, index) => {}` - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range)
+  * `filter : (textNode, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
     * `textNode` {Text} - The text node which includes the range or is the part of the range
     * `range` {object} - The current range object
     * `matchString` {string} - The current range matching string
     * `index` {number} - The current range index ???
 
-  * `each : (markElement, range, rangeInfo) => {}` - A callback for each marked element
+  * `each : (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
     * `range` {object} - The range object
     * `rangeInfo` {object}:
       * `matchStart` {boolean} - indicate the start of a range;
       * `count` {number} - The number of wrapped ranges so far
 
-  * `done : (totalMarks, totalRanges) => {}` - A callback on finish
+  * `done : (totalMarks, totalRanges) => {}` {function} - A callback on finish (default is )
     * `totalMarks` {number} - The total number of marked elements
     * `totalRanges` {number} - The number of total ranges
 
-  * `noMatch : (range) => {}` - A callback that is called on non-valid range
+  * `noMatch : (range) => {}` {function} - A callback that is called on non-valid range (default is )
     * `range` {string} - The stringify range
 
 <details id="internal-code">

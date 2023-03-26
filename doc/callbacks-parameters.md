@@ -71,7 +71,7 @@ The parameters `filterInfo`, `eachInfo`, and `rangeInfo` objects are expose usef
 |  mark        |                                  |     +      |      -         |     -       |     +       |   +    |
 |              |                                  |            |                |             |             |        |
 |  markRegExp  |  acrossElements                  |     +      |      +         |     -       |     +       |   +    |
-|  markRegExp  |  acrossElements, separateGroups  |     +      |      +         |     +       |     +       |   -    |
+|  markRegExp  |  acrossElements, separateGroups  |     +      |      +         |     +       |     +       |   +    |
 |  markRegExp  |  separateGroups                  |     +      |      +         |     +       |     +       |   +    |
 |  markRegExp  |                                  |     +      |      -         |     -       |     +       |   +    |
 

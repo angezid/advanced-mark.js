@@ -24,18 +24,18 @@ $(context).markRegExp(regex[, options]);
     See [Elements boundaries](elements-boundaries.md) for more details.
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
-    See [Marking shadow DOM](shadow-dom.md) for more details.
+    See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
-  * `log` {object} - Log messages to a specific object (default is `window.console`)
+  * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter : (textNode, matchString, marksSoFar, filterInfo) => {}` - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match)
+  * `filter : (textNode, matchString, marksSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `matchString` {string} - The matching string:
-      1) without `ignoreGroups` and `separateGroups` options - the whole match
-      2) with `ignoreGroups` option - the match[ignoreGroups+1] group matching string e.g. `/(-)(\w+)\s+/g`, `ignoreGroups : 1`, the matching string is content of the group 2
-      3) with `separateGroups` option - the current group matching string
+      1. without `ignoreGroups` and `separateGroups` options - the whole match
+      2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string e.g. `/(-)(\w+)\s+/g`, `ignoreGroups : 1`, the matching string is content of the group 2
+      3. with `separateGroups` option - the current group matching string
     * `marksSoFar` {number} - The number of all wrapped matches so far
     * `filterInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
@@ -44,9 +44,9 @@ $(context).markRegExp(regex[, options]);
       * `execution` {object} - The helper object for early abort:
         * `abort` {boolean} - Setting it to `true` breaks method execution
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
-        when 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
+        When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
 
-  * `each : (markElement, eachInfo) => {}` - A callback for each marked element
+  * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
@@ -55,11 +55,11 @@ $(context).markRegExp(regex[, options]);
       * `groupIndex` {number} - The current index of match group  SG
       * `groupStart` {boolean} - Indicate the start of group  AE SG
 
-  * `done : (totalMarks, totalMatches) => {}` - A callback on finish.
+  * `done : (totalMarks, totalMatches) => {}` {function} - A callback on finish. (default is )
     * `totalMarks` {number} - The total number of marked elements
     * `totalMatches` {number} - The total number of matches
 
-  * `noMatch : (regex) => {}` - A callback that is called when regex failed to match
+  * `noMatch : (regex) => {}` {function} - A callback that is called when regex failed to match (default is )
     * `regex` {string} - The stringify RegExp
 
 ### Available properties of the `filterInfo` object depending on options

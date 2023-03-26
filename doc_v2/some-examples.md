@@ -3,7 +3,7 @@
 
 See [mark() each callback](mark-method.md#mark-each) and [markRegExp() each callback](markRegExp-method.md#markRegExp-each) about `each` callback `info` object properties.
 
-### The `mark()` method code example with `acrossElements` option 
+#### The `mark()` method code example with `acrossElements` option 
 ``` js
 let matchCount = 0;
 
@@ -32,7 +32,7 @@ instance.mark(['AB CD', 'EF'], {
 });
 ```
 
-### The `mark()` method code example without `acrossElements` option 
+#### The `mark()` method code example without `acrossElements` option 
 ``` js
 let matchCount = 0;
 
@@ -55,7 +55,7 @@ context.mark('AB CD EF', {
 });
 ```
 
-### The `markRegExp()` method code example with `acrossElements` option
+#### The `markRegExp()` method code example with `acrossElements` option
 ``` js
 let matchCount = 0;
 
@@ -74,7 +74,8 @@ instance.markRegExp(/.../gi, {
 });
 ```
 
-Simple example with next/previous buttons. Unusable with `markRegExp()` method having `wrapAllRanges` option.
+#### Simple example with next/previous buttons.
+Unusable with `markRegExp()` method having `wrapAllRanges` option. See [Example with next/previous buttons](nesting-overlapping.md#simple-example-with-nextprevious-buttons) that can be used for this case.
 ``` js
 let currentIndex = 0,
     marks = $('mark'),
