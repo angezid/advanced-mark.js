@@ -20,18 +20,8 @@ What is done:
 
 This library from v2.0.0 doesn't guaranty backward compatibility with `mark.js` v9.0.0 and npm package v8.11.1.
 
-## Version 2 doc content:
-* [Performance](doc_v2/performance.md)
-* [mark method](doc_v2/mark-method.md)
-* [markRegExp method](doc_v2/markRegExp-method.md)
-* [markRanges method](doc_v2/markRanges-method.md)
-* [Filtering matches](doc_v2/filtering-matches.md)
-* [Highlight separate groups](doc_v2/separate-groups.md)
-* [Highlight nesting/overlapping](doc_v2/nesting-overlapping.md)
-* [Elements boundaries](doc_v2/elements-boundaries.md)
-* [Highlight shadow DOM](doc_v2/shadow-dom.md)
-* [Some examples](doc_v2/some-examples.md)
-* [RegExpCreator module](doc_v2/RegExpCreator-module.md)
+See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v2) for `advanced-mark.js` v2.
+Note that it's still under development.
 
 Also may be useful to read [Documentation](https://markjs.io/). Note that this doc is for old `mark.js`.
 

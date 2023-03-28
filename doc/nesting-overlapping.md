@@ -133,7 +133,7 @@ function buildRanges(instance, regex) {
 
 #### Simple example with next/previous buttons.
 It uses numbers as unique match identifiers in continuous ascending order.
-The code example with next/previous buttons which uses 'start elements' doesn't work correctly with nesting/overlapping matches.
+The code example [with next/previous buttons](some-examples.md#simple-example-with-nextprevious-buttons) which uses 'start elements' doesn't work correctly with nesting/overlapping matches.
 ``` js
 let currentIndex = 0,
     matchCount,

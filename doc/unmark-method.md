@@ -11,7 +11,7 @@ $(context).unmark([options]);
 #### Parameters:
 * `options` {object} - Optional options:
   * `element` {string} - Defines marked elements to remove. (default is `mark`)
-    **Important:** if you use other than default marked element, e.g. `span`, you must also use it in `unmark()` options explicitly. It is also possible to use `*` in case of using different marked elements to unmark in one run. `mark.js` uses a default selector `*[data-markjs]` but it is not safe to apply to all HTML elements.
+    **Important:** if you use other than default marked element, e.g. `span`, you must also use it in `unmark()` options explicitly. It is also possible to use `*` in case of using different marked elements to unmark in one run. `mark.js` library uses a default selector `*[data-markjs]` but it is not safe to apply to all HTML elements.
   * `className` {string} - Remove only marked elements with specified class name. (default is `''`)
   * `exclude` {string|string[]} - The string or array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
   * `shadowDOM` {boolean} - Whether to search inside shadow DOMs (default is `undefined`)
@@ -42,7 +42,7 @@ JavaScript:
 
 <pre><code class='lang-javascript'>
 var instance = new Mark(document.querySelector('selector'));
-instance. unmark(options);
+instance.unmark(options);
 </code></pre>
 
 jQuery:

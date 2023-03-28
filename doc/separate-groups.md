@@ -25,9 +25,9 @@ Compare: string - 'AAB xxx BCD xx BC', to mark groups AB and BC
 
 Warning: related using RegExp without the `d` flag:
 * Do not add a capturing group(s) to lookbehind assertion `(?<=)`, there is no code which handles such cases.
-* With `acrossElements` option, currently not possible to highlight a capturing group(s) inside a lookahead assertion (?=).
+* With `acrossElements` option, it is not possible to highlight a capturing group(s) inside a lookahead assertion (?=).
 
-See [markRegExp() method](markRegExp-method.md) about `info` object properties used in `filter` and `each` callbacks.    
+See [markRegExp() method](markRegExp-method.md#markRegExp-filter) about `info` object properties used in `filter` and `each` callbacks.    
 How to filter matches see [Filtering matches](filtering-matches.md).
 
 #### Filtering capturing groups:
@@ -35,7 +35,7 @@ How to filter matches see [Filtering matches](filtering-matches.md).
 instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
     // 'acrossElements' : true,
     'separateGroups' : true,
-    filter : (textNode, matchString, marksSoFar, info) => {
+    'filter' : (textNode, matchString, marksSoFar, info) => {
         // To filter any group use info.groupIndex - a current group index
         // Note: if a group lays across several elements, the index be the same while a group is wrapping
         if (info.groupIndex === 2 || info.groupIndex === 4) return false;
