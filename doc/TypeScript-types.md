@@ -1,6 +1,9 @@
 
 ## TypeScript types
 
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
 The following TypeScript declaration files are added to `dist` folder:  
 jquery.mark.d.ts  
 jquery.mark.es6.d.ts  

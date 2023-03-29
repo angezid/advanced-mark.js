@@ -1,5 +1,10 @@
 
 ## mark() method
+
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
 ### Syntax
 ``` js
 // javascript
@@ -11,9 +16,9 @@ $(context).mark(search[, options]);
 #### Parameters:
 * `search` {string|string[]} - string or array of strings
 * `options` {object} - Optional options:
-  * `element` {string} - Defines a custom mark element e.g. `span`. (default is `mark`)
-  * `className` {string} - Defines a custom class name that should be added to mark elements. (default is `''`)
-  * `exclude` {string|string[]} - The string or array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
+  * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
+  * `className` {string} -  A class to be added to mark elements. (default is `''`)
+  * `exclude` {string|string[]} - A string or an array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
   * `separateWordSearch` {boolean} - Whether to break term into separate words and search for each individual word (default is `true`)
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
@@ -21,10 +26,10 @@ $(context).mark(search[, options]);
     * Either one of the following string value:
       * `'partially'` e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.
       * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white-space characters and start/end of a text node (with `acrossElements` option - start/end of a context).
-      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'. The default word boundaries are: white-spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
+      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'. The default word boundaries are: whitespaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
     * Or an bject with two properties:
       * `value`: 'exactly' or 'complementary'
-      * `limiters`: a string or an array with custom word boundaries characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"" }`
+      * `limiters`: an array of custom word boundary characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"".split() }`
 
   * `wildcards` {string} - Two characters `?` and `*` used as wildcards (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
@@ -41,7 +46,7 @@ $(context).mark(search[, options]);
     e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa. Value can be an array `{ 'be': ['am', 'is', 'are'] }`.
     
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
-  * `combinePatterns` {number|boolean} - Combine a specifed number of individual term patterns into one (default is `10`)
+  * `combinePatterns` {number|boolean} - Combine a specified number of individual term patterns into one (default is `10`)
     See [Performance](performance.md#ways-to-boost-performance) for more details.
   * `cacheTextNodes` {boolean} - Caching information to improve performance (default is `undefined`)
     See [Performance](performance.md#ways-to-boost-performance) for more details.
@@ -64,8 +69,8 @@ $(context).mark(search[, options]);
       * `matchStart` {boolean} - indicate the start of a match  AE
       * `execution` {object} - The helper object for early abort:
         * `abort` {boolean} - Setting it to `true` breaks method execution
-      * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
-        when 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
+      * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.  
+        When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
 
   * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element

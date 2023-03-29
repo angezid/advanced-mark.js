@@ -1,6 +1,11 @@
 
 ## Highlighting in shadow DOM
 
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
+
 With an option `shadowDOM : true` the `advance-mark.js` now is able to highlight inside shadow DOMs that have `mode: 'open'` and are already created.  
 You can play with advance-mark.js-playground. Examples -> `Shadow DOM`.  
 **Note:** to style mark elements in shadow DOM, the option `shadowDOM : {style : 'your mark element style'}` can be used.  

@@ -1,5 +1,10 @@
 
 ## Filtering matches
+
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
 See [mark() filter callback](mark-method.md#mark-filter) and [markRegExp() filter callback](markRegExp-method.md#markRegExp-filter) about `filter` callback `info` object properties.  
 
 To filter RegExp capturing groups see: [Filtering capturing groups](separate-groups.md#filtering-capturing-groups).

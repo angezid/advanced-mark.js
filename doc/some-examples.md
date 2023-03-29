@@ -1,6 +1,11 @@
 
 ## Code examples
 
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
+
 See [mark() each callback](mark-method.md#mark-each) and [markRegExp() each callback](markRegExp-method.md#markRegExp-each) about `each` callback `info` object properties.
 
 #### The `mark()` method code example with `acrossElements` option 

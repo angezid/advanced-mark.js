@@ -1,6 +1,11 @@
 
 ## Elements boundaries
 
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
+
 With `acrossElements` option, `advance-mark.js` aggregates text nodes content into a single string, taking into account HTML elements.
 If a block element 'divides' two text nodes, and `node.textContent`s doesn't separated by white space, the space is added to the string to separate them,  
 e.g. '<h1>Header</h1><p>Paragraph</p>' resulted: in `mark.js` - 'HeaderParagraph', in `advance-mark.js` - 'Header Paragraph'.  

@@ -1,5 +1,10 @@
 ## Performance
 
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
+
 ### The performance test results in Firefox:
 `markRegExp()` method, `acrossElements : true`; marked words 3000
 

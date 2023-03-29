@@ -1,6 +1,11 @@
 
 ## Nesting/overlapping ranges and match groups
 
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
+
 The `markRanges()` method with `wrapAllRanges` option, can mark nesting/overlapping ranges. With this option, all ranges that have indexes within 0 and context length be wrapped.  
 
 The `markRegExp()` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can mark:
