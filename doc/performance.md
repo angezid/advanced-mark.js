@@ -1,25 +1,34 @@
 ## Performance
 
-The performance test results in Firefox:
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
+
+### The performance test results in Firefox:
 `markRegExp()` method, `acrossElements : true`; marked words 3000
-|                |  size 100KB  |   size 200KB  |   size 500KB  |   size 1MB    |
+
+|    library     |  size 100KB  |   size 200KB  |   size 500KB  |   size 1MB    |
 |----------------|--------------|---------------|---------------|---------------|
-|  old lib       |   ~350 ms.   |     ~680 ms.  |   ~1700 ms.   |   ~2800 ms.   |
+|  old           |   ~350 ms.   |     ~680 ms.  |   ~1700 ms.   |   ~2800 ms.   |
 |  this          |    ~30 ms.   |      ~35 ms.  |     ~45 ms.   |     ~60 ms.   |
 
 the same without `acrossElements` option; marked words 3000
-|                |  size 100KB  |   size 200KB  |   size 500KB  |   size 1MB    |
+
+|    library     |  size 100KB  |   size 200KB  |   size 500KB  |   size 1MB    |
 |----------------|--------------|---------------|---------------|---------------|
-|  old lib       |   ~30 ms.    |     ~40 ms.   |    ~70 ms.    |    ~110 ms.   |
+|  old           |   ~30 ms.    |     ~40 ms.   |    ~70 ms.    |    ~110 ms.   |
 |  this          |   ~30 ms.    |     ~35 ms.   |    ~40 ms.    |     ~50 ms.   |
 
 `markRanges()` method, marked ranges - 3000
-|                |  size 100KB  |   size 200KB  |   size 500KB  |   size 1MB    |
-|----------------|--------------|---------------|---------------|---------------|
-| old lib        |   ~220 ms.   |     ~350 ms.  |       ~970 ms.|   ~1700 ms.   |
-| this           |   ~36 ms.    |     ~40 ms.   |       ~51 ms. |     ~60 ms.   |
 
-## Ways to boost performance, when mark a (especially) large array of strings or string with the `separateWordSearch` option.
+|    library     |  size 100KB  |   size 200KB  |   size 500KB  |   size 1MB    |
+|----------------|--------------|---------------|---------------|---------------|
+|  old           |   ~220 ms.   |     ~350 ms.  |       ~970 ms.|   ~1700 ms.   |
+|  this          |   ~36 ms.    |     ~40 ms.   |       ~51 ms. |     ~60 ms.   |
+
+### Ways to boost performance
+Related highlighting a (especially) large array of strings or string with the `separateWordSearch` option.  
 A `mark()` method highlights an array item by item, e.g. an array of 10 items is run 10 times. It isn't efficient.
 
 There are two options to boost performance :

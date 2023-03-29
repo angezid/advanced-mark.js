@@ -21,23 +21,10 @@ What is done:
 
 This library keeps backward compatibility with `mark.js` v9.0.0 and npm package v8.11.1 on public API level.
 
-[Documentation](https://markjs.io/). Note that this doc is for `mark.js`, it isn't updated for a long time.
+See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1.
+Note that it's still under development.
 
-## Version 1 doc content
-* [Performance](doc/performance.md)
-* [mark method](doc/mark-method.md)
-* [markRegExp method](doc/markRegExp-method.md)
-* [markRanges method](doc/markRanges-method.md)
-* [unmark method](doc/unmark-method.md)
-* [Callbacks parameters](doc/callbacks-parameters.md)
-* [Filtering matches](doc/filtering-matches.md)
-* [Highlight separate groups](doc/separate-groups.md)
-* [Highlight nesting/overlapping](doc/nesting-overlapping.md)
-* [Elements boundaries](doc/elements-boundaries.md)
-* [Highlight shadow DOM](doc/shadow-dom.md)
-* [TypeScript types](doc/TypeScript-types.md)
-* [Some examples](doc/some-examples.md)
-* [RegExpCreator module](doc/RegExpCreator-module.md)
+Also may be useful to read [Documentation](https://markjs.io/). Note that this doc is for `mark.js`, it isn't updated for a long time.
 
 ## Modules changes
 * \*. es6.\*.js now are real ES6 modules

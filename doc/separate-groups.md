@@ -1,5 +1,10 @@
 
-## Marking separate groups
+## Highlighting separate groups
+
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
 
 **Important:** in this implementation two branches of code process separate groups, which one, depending on the existence of `d` flag.
 1. Primitive, base on `indexOf()`, only reliable with contiguous groups - unwanted group(s) can be easily filtered out.
@@ -18,24 +23,24 @@ They have different parent groups logic:
 
 To test the primitive branch compatibility, just add the `d` flag.
 
-There is no strict requirement for the contiguity of capturing groups.
-Compare:
-> string - 'AAB xxx BCD xx BC', to mark groups AB and BC
-> in /(AB)\b.+?\b(BC)/g the indexOf('BC', start) find first 'BC', which is correct
-> in /(AB)\b(.+?)\b(BC)(?!D)/g the indexOf('BC', start) also find first 'BC', which is wrong, because of condition '(?!D)', so group 2 is required.
+There is no strict requirement for the contiguity of capturing groups.  
+Compare: string - 'AAB xxx BCD xx BC', to mark groups AB and BC
+  - in `/(AB)\b.+?\b(BC)/g` the indexOf('BC', start) find first 'BC', which is correct
+  - in `/(AB)\b(.+?)\b(BC)(?!D)/g` the indexOf('BC', start) also find first 'BC', which is wrong, because of condition '(?!D)', so group 2 is required.
 
 Warning: related using RegExp without the `d` flag:
 * Do not add a capturing group(s) to lookbehind assertion `(?<=)`, there is no code which handles such cases.
-* With `acrossElements` option, currently not possible to highlight a capturing group(s) inside a lookahead assertion (?=).
+* With `acrossElements` option, it is not possible to highlight a capturing group(s) inside a lookahead assertion (?=).
 
-**See [Callbacks parameters](callbacks-parameters.md)** doc about `info` object properties used in `filter` and `each` callbacks.
+See [markRegExp() method](markRegExp-method.md#markRegExp-filter) about `info` object properties used in `filter` and `each` callbacks.    
+How to filter matches see [Filtering matches](filtering-matches.md).
 
-### Filtering capturing groups (to filter matches see [Filtering matches](filtering-matches.md)):
+#### Filtering capturing groups:
 ``` js
 instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
     // 'acrossElements' : true,
     'separateGroups' : true,
-    filter : (node, match, totalMarksSoFar, info) => {
+    'filter' : (textNode, matchString, marksSoFar, info) => {
         // To filter any group use info.groupIndex - a current group index
         // Note: if a group lays across several elements, the index be the same while a group is wrapping
         if (info.groupIndex === 2 || info.groupIndex === 4) return false;
@@ -54,7 +59,7 @@ instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
     },
 });
 ```
-### Example to mark separate groups with `acrossElements` option:
+#### Example to mark separate groups with `acrossElements` option:
 ``` js
 let groupCount = 0, gr1Count = 0, gr2Count = 0;
 
@@ -82,7 +87,7 @@ instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
     }
 });
 ```
-### Example to mark separate groups without `acrossElements` option:
+#### Example to mark separate groups without `acrossElements` option:
 ``` js
 let count = 0, gr1Count = 0;
 
@@ -99,8 +104,9 @@ instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
     }
 });
 ```
-<h3 id="mark-nesting-groups">To mark nesting groups with `acrossElements` option and RegExp without `d` flag</h3>
+<h4 id="mark-nesting-groups">To mark nesting groups with `acrossElements` option and RegExp without `d` flag</h4>
 It treats the whole match as a group 0, and all child groups, in this case 'group1, group2', as nested ones (it's an only way to wrap nested groups):
+
 ``` js
 let regex = /...\b(group1)\b.+?\b(group2)\b.../gi;
 
