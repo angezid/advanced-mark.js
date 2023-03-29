@@ -1,6 +1,11 @@
 
 ## RegExpCreator module
 
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
+
 It exposes three API - `create()`, `createCombinePattern()` and `createDiacritics()` methods.  
 The `create(string, true)` method with the second parameter set to `true` instead of RegExp, returns an object containing three properties:
 * {string} `lookbehind` - is actuality a capturing group; is non empty group only with accuracy: `'exactly'` or `{ 'value' : 'exactly', 'limiters': [..] }`.

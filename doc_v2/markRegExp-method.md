@@ -12,9 +12,9 @@ $(context).markRegExp(regex[, options]);
 * `regex` {RegExp} - The regular expression. With `acrossElements` option it **must** have `g` flag - it works with indexes and only two `g` and `y` flags allow control RegExp `lastIndex`. Note that for backward compatibility, RegExp without `g` flag is recompile internally with `g` flag.
   Although without `acrossElements` option it doesn't require `g` flag, it still recommended having this flag.
 * `options` {object} - Optional options:
-  * `element` {string} - Defines a custom mark element e.g. `span`. (default is `mark`)
-  * `className` {string} - Defines a custom class name that should be added to mark elements. (default is `''`)
-  * `exclude` {string|string[]} - The string or array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
+  * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
+  * `className` {string} -  A class to be added to mark elements. (default is `''`)
+  * `exclude` {string|string[]} - A string or an array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
   * `ignoreGroups` {number} - The number of contiguous capturing groups that should be ignored from the start of RegExp (default is `0`)
     e.g. `/(\w+)(\.)(\w+)(?!\2)/g`, `ignoreGroups : 2` - mark the group 3
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)

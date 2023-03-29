@@ -1,6 +1,11 @@
 
 ## Highlighting separate groups
 
+**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
+
+
+
+
 **Important:** in this implementation two branches of code process separate groups, which one, depending on the existence of `d` flag.
 1. Primitive, base on `indexOf()`, only reliable with contiguous groups - unwanted group(s) can be easily filtered out.
 2. Exact, but not all browsers currently supported group `indices`.
