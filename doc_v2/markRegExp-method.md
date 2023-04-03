@@ -17,11 +17,17 @@ $(context).markRegExp(regex[, options]);
   * `exclude` {string|string[]} - A string or an array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
   * `ignoreGroups` {number} - The number of contiguous capturing groups that should be ignored from the start of RegExp (default is `0`)
     e.g. `/(\w+)(\.)(\w+)(?!\2)/g`, `ignoreGroups : 2` - mark the group 3
+  * `separateGroups` {boolean} - Whether to mark RegExp capturing groups instead of whole match (default is `false`)
+    See [Highlighting separate groups](separate-groups.md) for more details.
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
   * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups  (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
   * `blockElementsBoundary` {boolean|object} - Whether to limit matches within default HTML block elements and/or custom elements (default is `undefined`)  AE
     See [Elements boundaries](elements-boundaries.md) for more details.
+    * `tagNames` {string[]} - An array of custom HTML tag names
+    * `extend` {boolean} - `true` extends default boundary elements by the custom elements
+      otherwise only the custom elements do have boundaries
+    * `char` {string} - A custom boundary character. The default is `\x01`.
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -51,7 +57,7 @@ $(context).markRegExp(regex[, options]);
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
-      * `count` {number} - The number of matches so far
+      * `count` {number} - The number of wrapped matches so far
       * `groupIndex` {number} - The current index of match group  SG
       * `groupStart` {boolean} - Indicate the start of group  AE SG
 
@@ -91,9 +97,9 @@ $(context).markRegExp(regex[, options]);
     exclude : [],
     ignoreGroups : 0,
     acrossElements : false,
-	wrapAllRanges : false,
-	blockElementsBoundary : false,
-	shadowDOM : false,
+    wrapAllRanges : false,
+    blockElementsBoundary : false,
+    shadowDOM : false,
     iframes : false,
     iframesTimeout : 5000,
     filter : (textNode, matchString, matchesSoFar, filterInfo) => {
@@ -120,5 +126,6 @@ jQuery:
 <pre><code class='lang-javascript'>$('selector').markRegExp(regex, options);</code></pre>
 </details>
 
-* AE across elements
-* SG separate groups
+* AE - only available when `acrossElements` option is set to `true`
+* SG - only available when `separateGroups` option is set to `true`
+* AE SG - only available when both `acrossElements` and `separateGroups` options are set to `true`

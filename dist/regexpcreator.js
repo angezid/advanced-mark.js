@@ -190,8 +190,10 @@
     }, {
       key: "createWildcards",
       value: function createWildcards(str) {
-        var spaces = this.opt.wildcards === 'withSpaces';
-        return str.replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?').replace(/\u0002/g, spaces ? '[\\S\\s]*?' : '\\S*');
+        var spaces = this.opt.wildcards === 'withSpaces',
+          boundary = this.opt.blockElementsBoundary,
+          anyChar = spaces && boundary ? '[^' + (boundary["char"] ? boundary["char"] : '\x01') + ']*?' : '[\\S\\s]*?';
+        return str.replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?').replace(/\u0002/g, spaces ? anyChar : '\\S*');
       }
     }, {
       key: "setupIgnoreJoiners",

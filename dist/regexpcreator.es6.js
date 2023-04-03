@@ -100,10 +100,12 @@ class RegExpCreator$1 {
     return this.escape(str);
   }
   createWildcards(str) {
-    let spaces = this.opt.wildcards === 'withSpaces';
+    const spaces = this.opt.wildcards === 'withSpaces',
+      boundary = this.opt.blockElementsBoundary,
+      anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
     return str
       .replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?')
-      .replace(/\u0002/g, spaces ? '[\\S\\s]*?' : '\\S*');
+      .replace(/\u0002/g, spaces ? anyChar : '\\S*');
   }
   setupIgnoreJoiners(str) {
     return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {

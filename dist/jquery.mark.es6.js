@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 28, 2023 */
+/* Version: 2.0.0 - April 3, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -348,10 +348,12 @@ class RegExpCreator {
     return this.escape(str);
   }
   createWildcards(str) {
-    let spaces = this.opt.wildcards === 'withSpaces';
+    const spaces = this.opt.wildcards === 'withSpaces',
+      boundary = this.opt.blockElementsBoundary,
+      anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
     return str
       .replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?')
-      .replace(/\u0002/g, spaces ? '[\\S\\s]*?' : '\\S*');
+      .replace(/\u0002/g, spaces ? anyChar : '\\S*');
   }
   setupIgnoreJoiners(str) {
     return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
