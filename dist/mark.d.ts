@@ -1,7 +1,9 @@
+
 // Type definitions for advanced-mark.js v2.0.0
 // Based on "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/mark.js"
 
 declare namespace Mark {
+
   interface BoundaryObject {
     tags?: string[];
     extend?: boolean;
@@ -17,7 +19,7 @@ declare namespace Mark {
   }
 
   interface AccuracyObject {
-    value: "exactly" | "complementary";
+    value: 'exactly' | 'complementary';
     limiters: string | string[];
   }
 
@@ -28,13 +30,13 @@ declare namespace Mark {
     exclude?: string | string[];
     separateWordSearch?: boolean;
     acrossElements?: boolean;
-    accuracy?: "partially" | "exactly" | "complementary" | AccuracyObject;
+    accuracy?: 'partially' | 'exactly' | 'complementary' | AccuracyObject;
     diacritics?: boolean;
-    synonyms?: { [index: string]: string | string[] };
+    synonyms?: { [index: string] : string | string[] };
     caseSensitive?: boolean;
     ignoreJoiners?: boolean;
     ignorePunctuation?: string | string[];
-    wildcards?: "disabled" | "enabled" | "withSpaces";
+    wildcards?: 'disabled' | 'enabled' | 'withSpaces';
     iframes?: boolean;
     iframesTimeout?: number;
 
@@ -44,16 +46,12 @@ declare namespace Mark {
     shadowDOM?: boolean | ShadowObject;
 
     filter?(
-      textNode: Text,
-      term: string,
-      totalMatchesSoFar: number,
-      termMatchesSoFar: number,
-      filterInfo: MarkFilterInfo
-    ): boolean;
-    each?(element: Element, eachInfo: MarkEachInfo): void;
-    done?(totalMarks: number, totalMatches: number, termStats: TermStats): void;
+      textNode: Text, term: string, totalMatchesSoFar: number, termMatchesSoFar: number, filterInfo: MarkFilterInfo
+    ) : boolean;
+    each?(element: Element, eachInfo: MarkEachInfo) : void;
+    done?(totalMarks: number, totalMatches: number, termStats: TermStats) : void;
 
-    noMatch?(term: string | string[]): void;
+    noMatch?(term: string | string[]) : void;
     debug?: boolean;
     log?: object;
   }
@@ -72,7 +70,7 @@ declare namespace Mark {
   }
 
   interface TermStats {
-    [index: string]: number;
+    [index: string] : number;
   }
 
   interface RegExpOptions {
@@ -89,16 +87,11 @@ declare namespace Mark {
     blockElementsBoundary?: boolean | BoundaryObject;
     shadowDOM?: boolean | ShadowObject;
 
-    filter?(
-      textNode: Text,
-      regexp: string,
-      matchesSoFar: number,
-      filterInfo: RegExpFilterInfo
-    ): boolean;
-    each?(element: Element, eachInfo: RegExpEachInfo): void;
-    done?(totalMarks: number, totalMatches: number): void;
+    filter?(textNode: Text, regexp: string, matchesSoFar: number, filterInfo: RegExpFilterInfo) : boolean;
+    each?(element: Element, eachInfo: RegExpEachInfo) : void;
+    done?(totalMarks: number, totalMatches: number) : void;
 
-    noMatch?(regexp: string): void;
+    noMatch?(regexp: string) : void;
     debug?: boolean;
     log?: object;
   }
@@ -129,16 +122,11 @@ declare namespace Mark {
     wrapAllRanges?: boolean;
     shadowDOM?: boolean | ShadowObject;
 
-    filter?(
-      textNode: Text,
-      range: Range,
-      matchingString: string,
-      currentIndex: number
-    ): boolean;
-    each?(element: Element, range: Range, eachInfo: RangeEachInfo): void;
-    done?(totalMarks: number, totalRanges: number): void;
+    filter?(textNode: Text, range: Range, matchingString: string, currentIndex: number) : boolean;
+    each?(element: Element, range: Range, eachInfo: RangeEachInfo) : void;
+    done?(totalMarks: number, totalRanges: number) : void;
 
-    noMatch?(range: string): void;
+    noMatch?(range: string) : void;
     debug?: boolean;
     log?: object;
   }
@@ -161,51 +149,46 @@ declare namespace Mark {
     iframesTimeout?: number;
     shadowDOM?: boolean;
 
-    done?(): void;
+    done?() : void;
     debug?: boolean;
     log?: object;
   }
 }
 
 declare class Mark {
-  constructor(
-    context: string | HTMLElement | ReadonlyArray<HTMLElement> | NodeList | null
-  );
+  constructor(context: string | HTMLElement | ReadonlyArray<HTMLElement> | NodeList | null);
 
   /**
-   * Highlights the specified search terms.
-   * @param term The string to be marked. Can also be an array with multiple strings.
-   * Note that keywords will be escaped. If you need to mark unescaped keywords (e.g. containing a pattern),
-   * have a look at the `markRegExp()`
-   * @param options Optional options
-   */
-  mark(term: string | ReadonlyArray<string>, options?: Mark.MarkOptions): void;
+  * Highlights the specified search terms.
+  * @param term The string to be marked. Can also be an array with multiple strings.
+  * Note that keywords will be escaped. If you need to mark unescaped keywords (e.g. containing a pattern),
+  * have a look at the `markRegExp()`
+  * @param options Optional options
+  */
+  mark(term: string | ReadonlyArray<string>, options?: Mark.MarkOptions) : void;
 
   /**
-   * Highlights a custom regular expression.
-   * @param regexp The regular expression to be marked. Example: /Lor[^]?m/gmi.
-   * Note that the `g` flag must be present when `acrossElements : true`, otherwise the RegExp is recompiled.
-   * @param options Optional options
-   */
-  markRegExp(regexp: RegExp, options?: Mark.RegExpOptions): void;
+  * Highlights a custom regular expression.
+  * @param regexp The regular expression to be marked. Example: /Lor[^]?m/gmi.
+  * Note that the `g` flag must be present when `acrossElements : true`, otherwise the RegExp is recompiled.
+  * @param options Optional options
+  */
+  markRegExp(regexp: RegExp, options?: Mark.RegExpOptions) : void;
 
   /**
-   * A method to mark ranges with a start position and length. They will be applied
-   * to text nodes in the specified context.
-   * @param ranges An array of objects with a start and length property.
-   * Note that the start positions must be specified including whitespace characters.
-   * @param options Optional options
-   */
-  markRanges(
-    ranges: ReadonlyArray<Mark.Range>,
-    options?: Mark.RangesOptions
-  ): void;
+  * A method to mark ranges with a start position and length. They will be applied
+  * to text nodes in the specified context.
+  * @param ranges An array of objects with a start and length property.
+  * Note that the start positions must be specified including whitespace characters.
+  * @param options Optional options
+  */
+  markRanges(ranges: ReadonlyArray<Mark.Range>, options?: Mark.RangesOptions) : void;
 
   /**
-   * A method to remove mark elements created by mark.js and normalize text nodes.
-   * @param options Optional options
-   */
-  unmark(options?: Mark.UnmarkOptions): void;
+  * A method to remove mark elements created by mark.js and normalize text nodes.
+  * @param options Optional options
+  */
+  unmark(options?: Mark.UnmarkOptions) : void;
 }
 
 export = Mark;
