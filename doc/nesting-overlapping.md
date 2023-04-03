@@ -74,25 +74,29 @@ instance.markRegExp(/(\w+\s(nested group)\s+\w+)/dg, {
 });
 ```
 
-#### To mark nesting groups without `d` flag.
-The whole match is highlighted as a main group and capturing group(s) as a nested group(s).  
-It's the only way to mark nested groups without `d` flag.
+<h4 id="mark-nesting-groups">To mark nesting groups with <code>acrossElements</code> option and RegExp without <code>d</code> flag</h4>
+It treats the whole match as a group 0, and all child groups, in this case 'group1, group2', as nested ones.  
+It's an only way to wrap nested groups without `d` flag:
+
 ``` js
-instance.markRegExp(/\w+\s(nested group)\s+\w+/g, {
+let regex = /\w+\s(group1).+?(group2).*/gi;
+
+instance.markRegExp(regex, {
     'acrossElements' : true,
     'separateGroups' : true,
     'wrapAllRanges' : true,
     'each' : (markElement, info) => {
-      if (info.groupStart) {
-          if (info.groupIndex === 1) {
-              markElement.className = 'nested';
-          }
-      }
+        if (info.groupIndex === 0) {
+            markElement.className = 'main-group';
+        }
+        if (info.groupIndex > 0) {
+            markElement.className = 'nested-group';
+        }
     }
 });
 ```
 
-#### To mark nesting/overlapping groups without `acrossElements` option and with RegExp having the `d` flag.
+#### To mark nesting/overlapping groups without `acrossElements` option and RegExp with `d` flag.
 It's only possible through this hack:
 ``` js
 let regex = /.../dg;

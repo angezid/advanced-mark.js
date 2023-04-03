@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v1.1.1
+* advanced-mark.js v1.1.2
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -102,10 +102,12 @@
       });
     }
     createWildcardsRegExp(str) {
-      let spaces = this.opt.wildcards === 'withSpaces';
+      const spaces = this.opt.wildcards === 'withSpaces',
+        boundary = this.opt.blockElementsBoundary,
+        anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
       return str
         .replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?')
-        .replace(/\u0002/g, spaces ? '[\\S\\s]*?' : '\\S*');
+        .replace(/\u0002/g, spaces ? anyChar : '\\S*');
     }
     setupIgnoreJoinersRegExp(str) {
       return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {

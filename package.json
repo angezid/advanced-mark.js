@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "keywords": [
     "advanced-mark.js",
     "mark.js",
@@ -19,9 +19,9 @@
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "Highlight words, terms, or text on browser page using JavaScript.",
+  "description": "Highlight words, terms, or text on a browser page using JavaScript.",
   "main": "dist/mark.js",
-  "types": "types/mark/index.d.ts",
+  "types": "dist/mark.es6.d.ts",
   "repository": "angezid/advanced-mark.js",
   "bugs": {
     "url": "https://github.com/angezid/advanced-mark.js/issues"

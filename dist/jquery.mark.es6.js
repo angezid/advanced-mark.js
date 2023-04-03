@@ -1,6 +1,6 @@
-/* Version: 1.1.1 - March 16, 2023 */
+/* Version: 1.1.2 - April 3, 2023 */
 /*!***************************************************
-* advanced-mark.js v1.1.1
+* advanced-mark.js v1.1.2
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -435,10 +435,12 @@ class RegExpCreator {
     });
   }
   createWildcardsRegExp(str) {
-    let spaces = this.opt.wildcards === 'withSpaces';
+    const spaces = this.opt.wildcards === 'withSpaces',
+      boundary = this.opt.blockElementsBoundary,
+      anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
     return str
       .replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?')
-      .replace(/\u0002/g, spaces ? '[\\S\\s]*?' : '\\S*');
+      .replace(/\u0002/g, spaces ? anyChar : '\\S*');
   }
   setupIgnoreJoinersRegExp(str) {
     return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
@@ -521,7 +523,7 @@ class RegExpCreator {
 
 class Mark {
   constructor(ctx) {
-    this.version = '1.1.1';
+    this.version = '1.1.2';
     this.ctx = ctx;
     this.cacheDict = {};
     this.nodeNames = ['script', 'style', 'title', 'head', 'html'];

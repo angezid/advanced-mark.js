@@ -8,14 +8,14 @@
 
 **Important:** in this implementation two branches of code process separate groups, which one, depending on the existence of `d` flag.
 1. Primitive, base on `indexOf()`, only reliable with contiguous groups - unwanted group(s) can be easily filtered out.
-2. Exact, but not all browsers currently supported group `indices`.
+2. Exact, but not all browsers currently supported group `indices`.  
 
-Case without `wrapAllRanges` option:
-* They both have identical logic for nested groups - if a parent group has been marked, there is no way to mark nested groups.
-  This means you can use a nested group(s) as auxiliary and don't care about filtering them.
-Case `wrapAllRanges : true`:
-* With `acrossElements` option, the primitive one wrap a whole match as a group 0 and then all groups that are child of match[0] as a nested (see [Example](#mark-nesting-groups)).
-* The exact one wrap all nested groups - you need to filter nested an auxiliary group(s).
+* Case without `wrapAllRanges` option:
+  * They both have identical logic for nested groups - if a parent group has been marked, there is no way to mark nested groups.  
+    This means you can use a nested group(s) as auxiliary and don't care about filtering them.
+* Case `wrapAllRanges : true`:
+  * With `acrossElements` option, the primitive one wrap a whole match as a group 0 and then all groups that are child of match[0] as a nested (see [Example](nesting-overlapping.md#mark-nesting-groups)).
+  * The exact one wrap all nested groups - you need to filter nested an auxiliary group(s).
 
 They have different parent groups logic:
 * The exact one does allow using a parent group as an auxiliary - you need to filter out it in order to mark a nested group(s).
@@ -30,10 +30,11 @@ Compare: string - 'AAB xxx BCD xx BC', to mark groups AB and BC
 
 Warning: related using RegExp without the `d` flag:
 * Do not add a capturing group(s) to lookbehind assertion `(?<=)`, there is no code which handles such cases.
-* With `acrossElements` option, it is not possible to highlight a capturing group(s) inside a lookahead assertion (?=).
+* With `acrossElements` option, it is not possible to highlight a capturing group(s) inside a lookahead assertion `(?=)`.
 
 See [markRegExp() method](markRegExp-method.md#markRegExp-filter) about `info` object properties used in `filter` and `each` callbacks.    
-How to filter matches see [Filtering matches](filtering-matches.md).
+How to filter matches see [Filtering matches](filtering-matches.md).  
+How to highlight nesting groups see [Nesting groups](nesting-overlapping.md).
 
 #### Filtering capturing groups:
 ``` js
@@ -46,12 +47,12 @@ instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
         if (info.groupIndex === 2 || info.groupIndex === 4) return false;
 
         // also can be used a group content
-       // if (info.group === 'AB') return  false;
+       // if (matchString === 'AB') return  false;
 
         // To filter a whole match on a group presence
         // Note: it iterates through all groups and only then returns
         if (info.match[3]) return true/false;
-
+        // or
         // also can be used a named capturing group
         if (info.match.groups.gr3) return  true/false;
 
@@ -63,7 +64,7 @@ instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
 ``` js
 let groupCount = 0, gr1Count = 0, gr2Count = 0;
 
-instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
+instance.markRegExp(/(AB)\b.+?\b(CD)/gi, {
     'acrossElements' : true,
     'separateGroups' : true,
     'each' : (markElement, info) => {
@@ -91,7 +92,7 @@ instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
 ``` js
 let count = 0, gr1Count = 0;
 
-instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
+instance.markRegExp(/(AB).+?(CD)/gi, {
     'separateGroups' : true,
     'each' : (markElement, info) => {
         // all group count
@@ -104,24 +105,3 @@ instance.markRegExp(/\b(AB)\b.+?\b(CD)\b/gi, {
     }
 });
 ```
-<h4 id="mark-nesting-groups">To mark nesting groups with `acrossElements` option and RegExp without `d` flag</h4>
-It treats the whole match as a group 0, and all child groups, in this case 'group1, group2', as nested ones (it's an only way to wrap nested groups):
-
-``` js
-let regex = /...\b(group1)\b.+?\b(group2)\b.../gi;
-
-instance.markRegExp(regex, {
-    'acrossElements' : true,
-    'separateGroups' : true,
-    'wrapAllRanges' : true,
-    'each' : (markElement, info) => {
-        if (info.groupIndex === 0) {
-            markElement.className = 'main-group';
-        }
-        if (info.groupIndex > 0) {
-            markElement.className = 'nested-group';
-        }
-    }
-});
-```
-
