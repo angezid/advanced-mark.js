@@ -271,7 +271,10 @@ class RegExpCreator {
     // default to "enable" (i.e. to not include spaces)
     // "withSpaces" uses `[\\S\\s]` instead of `.` because the latter
     // does not match new line characters
-    let spaces = this.opt.wildcards === 'withSpaces';
+    const spaces = this.opt.wildcards === 'withSpaces',
+      boundary = this.opt.blockElementsBoundary,
+      anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
+    
     return str
     // replace unicode 0001 with a RegExp class to match any single
     // character, or any single non-whitespace character depending
@@ -280,7 +283,7 @@ class RegExpCreator {
       // replace unicode 0002 with a RegExp class to match zero or
       // more characters, or zero or more non-whitespace characters
       // depending on the setting
-      .replace(/\u0002/g, spaces ? '[\\S\\s]*?' : '\\S*');
+      .replace(/\u0002/g, spaces ? anyChar : '\\S*');
   }
 
   /**

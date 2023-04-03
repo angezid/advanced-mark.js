@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "keywords": [
     "advanced-mark.js",
     "mark.js",
@@ -19,9 +19,9 @@
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "Highlight words, terms, or text on browser page using JavaScript.",
+  "description": "Highlight words, terms, or text on a browser page using JavaScript.",
   "main": "dist/mark.js",
-  "types": "types/mark/index.d.ts",
+  "types": "dist/mark.es6.d.ts",
   "repository": "angezid/advanced-mark.js",
   "bugs": {
     "url": "https://github.com/angezid/advanced-mark.js/issues"
@@ -57,7 +57,7 @@
     "karma-cli": "^2.0.0",
     "karma-coverage": "^2.2.0",
     "karma-jasmine": "^5.1.0",
-    "karma-sauce-launcher": "^4.1.4",
+    "karma-sauce-launcher": "^4.3.6",
     "karma-spec-reporter": "^0.0.34",
     "karma-summary-reporter": "^3.1.1",
     "puppeteer": "^19.2.0",
