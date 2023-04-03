@@ -31,12 +31,6 @@ class Mark {
      */
     this.cacheDict = {};
     /**
-     * The empty text node used to simplify code
-     * @type {Text}
-     * @access protected
-     */
-    this.empty = document.createTextNode('');
-    /**
      * The array of node names which must be excluded from search
      * @type {array}
      * @access protected
@@ -73,7 +67,14 @@ class Mark {
    * @access protected
    */
   set opt(val) {
+    if ((!val || !('window' in val)) && typeof window==='undefined') { 
+      throw new Error('Mark.js: "window" is not defined. Please provide a window object as option.');
+    }
+
+    const win = (val && val.window) || window;
+
     this._opt = Object.assign({}, {
+      'window': win,
       'element': '',
       'className': '',
       'exclude': [],
@@ -87,12 +88,24 @@ class Mark {
       'filter': () => true,
       'done': () => {},
       'debug': false,
-      'log': window.console
+      'log': win.console
     }, val);
   }
 
   get opt() {
     return this._opt;
+  }
+
+  /**
+   * The empty text node used to simplify code
+   * @type {Text}
+   * @access protected
+   */
+  get empty() {
+    if (!this._empty) {
+      this._empty = this.opt.window.document.createTextNode('');
+    }
+    return this._empty;
   }
 
   /**
@@ -389,40 +402,41 @@ class Mark {
       str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
     };
 
-    this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, node => { // each
-      if ( !currNode) {
-        prevNode = currNode = node;
+    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT, 
+      node => { // each
+        if ( !currNode) {
+          prevNode = currNode = node;
 
-      } else {
-        currNode = node;
+        } else {
+          currNode = node;
 
-        this.getNodeInfo(prevNode, node, type, obj);
-        prevNode = node;
-        type = null;
-      }
-
-    }, node => { // filter
-      if (node.nodeType === 1) { // element
-        if ( !type) {
-          type = tags[node.nodeName.toLowerCase()];
-
-        // boundary type have priority
-        } else if (boundary && type !== 2 && (temp = tags[node.nodeName.toLowerCase()]) === 2) {
-          type = temp;
+          this.getNodeInfo(prevNode, node, type, obj);
+          prevNode = node;
+          type = null;
         }
-        return false;
-      }
-      return !this.excludeElements(node.parentNode);
 
-    }, () => { // done
+      }, node => { // filter
+        if (node.nodeType === 1) { // element
+          if ( !type) {
+            type = tags[node.nodeName.toLowerCase()];
+
+            // boundary type have priority
+          } else if (boundary && type !== 2 && (temp = tags[node.nodeName.toLowerCase()]) === 2) {
+            type = temp;
+          }
+          return false;
+        }
+        return !this.excludeElements(node.parentNode);
+
+      }, () => { // done
       // processes the last node
-      if (currNode) {
-        this.getNodeInfo(prevNode, currNode, type, obj);
-      }
-      const dict = this.createDict(obj.text, obj.nodes, 'across');
+        if (currNode) {
+          this.getNodeInfo(prevNode, currNode, type, obj);
+        }
+        const dict = this.createDict(obj.text, obj.nodes, 'across');
 
-      cb(dict);
-    });
+        cb(dict);
+      });
   }
 
   /**
@@ -530,7 +544,7 @@ class Mark {
 
     let text = '',
       nodes = [];
-    this.iterator.forEachNode(NodeFilter.SHOW_TEXT, node => { // each
+    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_TEXT, node => { // each
       nodes.push({
         start: text.length,
         end: (text += node.textContent).length,
@@ -665,7 +679,7 @@ class Mark {
   wrapTextNode(node) {
     const name = !this.opt.element ? 'mark' : this.opt.element;
 
-    let markNode = document.createElement(name);
+    let markNode = this.opt.window.document.createElement(name);
     markNode.setAttribute('data-markjs', 'true');
 
     if (this.opt.className) {
@@ -1593,7 +1607,7 @@ class Mark {
 
       } else {
         // most likely is a nested mark element(s) with sibling text node(s) or modified by user element(s)
-        let docFrag = document.createDocumentFragment();
+        let docFrag = this.opt.window.document.createDocumentFragment();
         while (node.firstChild) {
           docFrag.appendChild(node.removeChild(node.firstChild));
         }
@@ -2014,7 +2028,7 @@ class Mark {
     }
     this.log(`Removal selector "${selector}"`);
 
-    this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => { // each
+    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT, node => { // each
       this.unwrapMatches(node);
     }, node => { // filter
       return DOMIterator.matches(node, selector) && !this.excludeElements(node);

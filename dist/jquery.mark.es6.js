@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 28, 2023 */
+/* Version: 2.0.0 - April 3, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -35,13 +35,13 @@ class DOMIterator {
       sort = false;
     if ( !this.ctx) {
       ctx = [];
-    } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
+    } else if (this.opt.window.NodeList.prototype.isPrototypeOf(this.ctx)) {
       ctx = this.ctx;
     } else if (Array.isArray(this.ctx)) {
       ctx = this.ctx;
       sort = true;
     } else if (typeof this.ctx === 'string') {
-      ctx = document.querySelectorAll(this.ctx);
+      ctx = this.opt.window.document.querySelectorAll(this.ctx);
     } else {
       ctx = [this.ctx];
     }
@@ -160,7 +160,7 @@ class DOMIterator {
     loop({ context : ctx });
   }
   createIterator(ctx, whatToShow, filter) {
-    return document.createNodeIterator(ctx, whatToShow, filter, false);
+    return this.opt.window.document.createNodeIterator(ctx, whatToShow, filter, false);
   }
   addRemoveStyle(root, style, add) {
     if (add) {
@@ -176,7 +176,7 @@ class DOMIterator {
     }
   }
   createStyleElement() {
-    const style = document.createElement('style');
+    const style = this.opt.window.document.createElement('style');
     style.setAttribute('data-markjs', 'true');
     style.textContent = this.opt.shadowDOM.style;
     return style;
@@ -188,11 +188,11 @@ class DOMIterator {
     const shadow = this.opt.shadowDOM,
       iframe = this.opt.iframes;
     if (iframe || shadow) {
-      const showElement = (whatToShow & NodeFilter.SHOW_ELEMENT) !== 0,
-        showText = (whatToShow & NodeFilter.SHOW_TEXT) !== 0,
+      const showElement = (whatToShow & this.opt.window.NodeFilter.SHOW_ELEMENT) !== 0,
+        showText = (whatToShow & this.opt.window.NodeFilter.SHOW_TEXT) !== 0,
         style = shadow && shadow.style ? this.createStyleElement() : null;
       if (showText) {
-        whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+        whatToShow = this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT;
       }
       const traverse = node => {
         const iterator = this.createIterator(node, whatToShow);
@@ -220,7 +220,7 @@ class DOMIterator {
       traverse(ctx);
     } else {
       const iterator = this.createIterator(ctx, whatToShow, node => {
-        return filterCb(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        return filterCb(node) ? this.opt.window.NodeFilter.FILTER_ACCEPT : this.opt.window.NodeFilter.FILTER_REJECT;
       });
       let node;
       while ((node = iterator.nextNode())) {
@@ -425,11 +425,15 @@ class Mark {
   constructor(ctx) {
     this.ctx = ctx;
     this.cacheDict = {};
-    this.empty = document.createTextNode('');
     this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
   }
   set opt(val) {
+    if ((!val || !('window' in val)) && typeof window==='undefined') {
+      throw new Error('Mark.js: "window" is not defined. Please provide a window object as option.');
+    }
+    const win = (val && val.window) || window;
     this._opt = Object.assign({}, {
+      'window': win,
       'element': '',
       'className': '',
       'exclude': [],
@@ -443,11 +447,17 @@ class Mark {
       'filter': () => true,
       'done': () => {},
       'debug': false,
-      'log': window.console
+      'log': win.console
     }, val);
   }
   get opt() {
     return this._opt;
+  }
+  get empty() {
+    if (!this._empty) {
+      this._empty = this.opt.window.document.createTextNode('');
+    }
+    return this._empty;
   }
   get iterator() {
     return new DOMIterator(this.ctx, this.opt);
@@ -592,32 +602,33 @@ class Mark {
       boundary : boundary, startOffset : 0,
       str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
     };
-    this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, node => {
-      if ( !currNode) {
-        prevNode = currNode = node;
-      } else {
-        currNode = node;
-        this.getNodeInfo(prevNode, node, type, obj);
-        prevNode = node;
-        type = null;
-      }
-    }, node => {
-      if (node.nodeType === 1) {
-        if ( !type) {
-          type = tags[node.nodeName.toLowerCase()];
-        } else if (boundary && type !== 2 && (temp = tags[node.nodeName.toLowerCase()]) === 2) {
-          type = temp;
+    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT,
+      node => {
+        if ( !currNode) {
+          prevNode = currNode = node;
+        } else {
+          currNode = node;
+          this.getNodeInfo(prevNode, node, type, obj);
+          prevNode = node;
+          type = null;
         }
-        return false;
-      }
-      return !this.excludeElements(node.parentNode);
-    }, () => {
-      if (currNode) {
-        this.getNodeInfo(prevNode, currNode, type, obj);
-      }
-      const dict = this.createDict(obj.text, obj.nodes, 'across');
-      cb(dict);
-    });
+      }, node => {
+        if (node.nodeType === 1) {
+          if ( !type) {
+            type = tags[node.nodeName.toLowerCase()];
+          } else if (boundary && type !== 2 && (temp = tags[node.nodeName.toLowerCase()]) === 2) {
+            type = temp;
+          }
+          return false;
+        }
+        return !this.excludeElements(node.parentNode);
+      }, () => {
+        if (currNode) {
+          this.getNodeInfo(prevNode, currNode, type, obj);
+        }
+        const dict = this.createDict(obj.text, obj.nodes, 'across');
+        cb(dict);
+      });
   }
   getNodeInfo(prevNode, node, type, obj) {
     let offset = 0,
@@ -672,7 +683,7 @@ class Mark {
     }
     let text = '',
       nodes = [];
-    this.iterator.forEachNode(NodeFilter.SHOW_TEXT, node => {
+    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_TEXT, node => {
       nodes.push({
         start: text.length,
         end: (text += node.textContent).length,
@@ -746,7 +757,7 @@ class Mark {
   }
   wrapTextNode(node) {
     const name = !this.opt.element ? 'mark' : this.opt.element;
-    let markNode = document.createElement(name);
+    let markNode = this.opt.window.document.createElement(name);
     markNode.setAttribute('data-markjs', 'true');
     if (this.opt.className) {
       markNode.setAttribute('class', this.opt.className);
@@ -1210,7 +1221,7 @@ class Mark {
       if ( !first) {
         parent.removeChild(node);
       } else {
-        let docFrag = document.createDocumentFragment();
+        let docFrag = this.opt.window.document.createDocumentFragment();
         while (node.firstChild) {
           docFrag.appendChild(node.removeChild(node.firstChild));
         }
@@ -1415,7 +1426,7 @@ class Mark {
       selector += `.${this.opt.className}`;
     }
     this.log(`Removal selector "${selector}"`);
-    this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
+    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
       return DOMIterator.matches(node, selector) && !this.excludeElements(node);
