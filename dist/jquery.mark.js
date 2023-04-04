@@ -1,6 +1,6 @@
-/* Version: 2.0.0 - April 3, 2023 */
+/* Version: 2.0.1 - April 4, 2023 */
 /*!***************************************************
-* advanced-mark.js v2.0.0
+* advanced-mark.js v2.0.1
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -1867,7 +1867,7 @@
     return this;
   };
   $__default["default"].fn.getVersion = function () {
-    return '2.0.0';
+    return '2.0.1';
   };
 
   return $__default["default"];

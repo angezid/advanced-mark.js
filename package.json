@@ -19,7 +19,7 @@
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "Highlight words, terms, or text on a browser page using JavaScript.",
+  "description": "Highlight words, terms, or text on a browser page using JavaScript. It has support for virtual DOMs like JSDOM.",
   "main": "dist/mark.js",
   "types": "dist/mark.es6.d.ts",
   "repository": "angezid/advanced-mark.js",
@@ -32,11 +32,12 @@
     "karma": "karma start build/karma.config.js",
     "jasmine": "jasmine start test/spec/*.js",
     "copy-files": "node build/copy-types-files.js",
+    "test-virtual-dom": "node virtual-dom/test.js",
     "jsdoc": "jsdoc src/lib/ -d build/doc -R README.md -P package.json -r",
     "compile": "rollup -c build/rollup.config.js",
     "build": "npm run test && npm run copy-files && npm run jsdoc",
     "dev": "nodemon --exec \"npm run eslint && npm run compile\" --watch src/ --watch test/ -e js,html",
-    "test": "npm run eslint && npm run compile && npm run karma"
+    "test": "npm run eslint && npm run compile && npm run karma && npm run test-virtual-dom"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
@@ -59,7 +60,7 @@
     "karma-cli": "^2.0.0",
     "karma-coverage": "^2.2.0",
     "karma-jasmine": "^5.1.0",
-    "karma-sauce-launcher": "^4.3.6",
+    "karma-sauce-launcher": "^4.1.4",
     "karma-spec-reporter": "^0.0.34",
     "karma-summary-reporter": "^3.1.1",
     "puppeteer": "^19.2.0",
