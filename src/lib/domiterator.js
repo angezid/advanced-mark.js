@@ -29,7 +29,7 @@ class DOMIterator {
      */
     this.ctx = ctx;
     /**
-     * The object containig Mark options
+     * The object containing Mark options
      * @type {object}
      * @access protected
      */
@@ -77,13 +77,13 @@ class DOMIterator {
 
     if ( !this.ctx) {
       ctx = [];
-    } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
+    } else if (this.opt.window.NodeList.prototype.isPrototypeOf(this.ctx)) {
       ctx = this.ctx;
     } else if (Array.isArray(this.ctx)) {
       ctx = this.ctx;
       sort = true;
     } else if (typeof this.ctx === 'string') {
-      ctx = document.querySelectorAll(this.ctx);
+      ctx = this.opt.window.document.querySelectorAll(this.ctx);
     } else { // e.g. HTMLElement or element inside iframe
       ctx = [this.ctx];
     }
@@ -293,7 +293,7 @@ class DOMIterator {
    * @access protected
    */
   createIterator(ctx, whatToShow, filter) {
-    return document.createNodeIterator(ctx, whatToShow, filter, false);
+    return this.opt.window.document.createNodeIterator(ctx, whatToShow, filter, false);
   }
 
   /**
@@ -323,7 +323,7 @@ class DOMIterator {
    * @return {HTMLElement}
    */
   createStyleElement() {
-    const style = document.createElement('style');
+    const style = this.opt.window.document.createElement('style');
     style.setAttribute('data-markjs', 'true');
     style.textContent = this.opt.shadowDOM.style;
     return style;
@@ -351,12 +351,12 @@ class DOMIterator {
       iframe = this.opt.iframes;
 
     if (iframe || shadow) {
-      const showElement = (whatToShow & NodeFilter.SHOW_ELEMENT) !== 0,
-        showText = (whatToShow & NodeFilter.SHOW_TEXT) !== 0,
+      const showElement = (whatToShow & this.opt.window.NodeFilter.SHOW_ELEMENT) !== 0,
+        showText = (whatToShow & this.opt.window.NodeFilter.SHOW_TEXT) !== 0,
         style = shadow && shadow.style ? this.createStyleElement() : null;
 
       if (showText) {
-        whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+        whatToShow = this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT;
       }
 
       const traverse = node => {
@@ -392,7 +392,7 @@ class DOMIterator {
 
     } else {
       const iterator = this.createIterator(ctx, whatToShow, node => {
-        return filterCb(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        return filterCb(node) ? this.opt.window.NodeFilter.FILTER_ACCEPT : this.opt.window.NodeFilter.FILTER_REJECT;
       });
       let node;
 
