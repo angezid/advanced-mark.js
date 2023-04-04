@@ -1,6 +1,6 @@
-/* Version: 2.0.1 - April 4, 2023 */
+/* Version: 2.1.0 - April 4, 2023 */
 /*!***************************************************
-* advanced-mark.js v2.0.1
+* advanced-mark.js v2.1.0
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -430,7 +430,7 @@ class Mark {
     this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
   }
   set opt(val) {
-    if ((!val || !('window' in val)) && typeof window==='undefined') {
+    if ((!val || !('window' in val)) && typeof window === 'undefined') {
       throw new Error('Mark.js: "window" is not defined. Please provide a window object as option.');
     }
     const win = (val && val.window) || window;
@@ -1453,7 +1453,7 @@ $.fn.unmark = function(opt) {
   return this;
 };
 $.fn.getVersion = function() {
-  return '2.0.1';
+  return '2.1.0';
 };
 var $$1 = $;
 

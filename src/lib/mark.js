@@ -41,6 +41,7 @@ class Mark {
   /**
    * @typedef Mark~commonOptions
    * @type {object.<string>}
+   * @property {object} [window] - A window object
    * @property {string} [element="mark"] - HTML element tag name
    * @property {string} [className] - An optional class name
    * @property {string[]} [exclude] - An array with exclusion selectors.
@@ -67,7 +68,7 @@ class Mark {
    * @access protected
    */
   set opt(val) {
-    if ((!val || !('window' in val)) && typeof window==='undefined') { 
+    if ((!val || !('window' in val)) && typeof window === 'undefined') {
       throw new Error('Mark.js: "window" is not defined. Please provide a window object as option.');
     }
 
@@ -402,7 +403,7 @@ class Mark {
       str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
     };
 
-    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT, 
+    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT,
       node => { // each
         if ( !currNode) {
           prevNode = currNode = node;
