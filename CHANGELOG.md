@@ -1,4 +1,9 @@
 
+### 2.1.0
+
+* Fixed bug related using a wildcards character `*` with `wildcards : 'withSpaces'`, `acrossElements` , and `blockElementBoundary` options.
+* Added supports for virtual DOM environments such as JSDOM. Thanks to [Tyler Nickerson](https://github.com/Nickersoft) for the contribution.
+
 ### 2.0.0
 
 * Rewrote `DOMIterator` iframe related code. Added code sorting a custom array of elements by the DOM order -  can affect `markRanges()` method.

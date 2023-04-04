@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "keywords": [
     "advanced-mark.js",
     "mark.js",
@@ -30,7 +30,6 @@
   "scripts": {
     "eslint": "eslint src/ test/",
     "karma": "karma start build/karma.config.js",
-    "jasmine": "jasmine start test/spec/*.js",
     "copy-files": "node build/copy-types-files.js",
     "test-virtual-dom": "node virtual-dom/test.js",
     "jsdoc": "jsdoc src/lib/ -d build/doc -R README.md -P package.json -r",
