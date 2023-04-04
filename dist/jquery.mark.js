@@ -1,4 +1,4 @@
-/* Version: 2.0.0 - March 28, 2023 */
+/* Version: 2.0.0 - April 3, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.0.0
 * https://github.com/angezid/advanced-mark#readme
@@ -82,13 +82,13 @@
           sort = false;
         if (!this.ctx) {
           ctx = [];
-        } else if (NodeList.prototype.isPrototypeOf(this.ctx)) {
+        } else if (this.opt.window.NodeList.prototype.isPrototypeOf(this.ctx)) {
           ctx = this.ctx;
         } else if (Array.isArray(this.ctx)) {
           ctx = this.ctx;
           sort = true;
         } else if (typeof this.ctx === 'string') {
-          ctx = document.querySelectorAll(this.ctx);
+          ctx = this.opt.window.document.querySelectorAll(this.ctx);
         } else {
           ctx = [this.ctx];
         }
@@ -233,7 +233,7 @@
     }, {
       key: "createIterator",
       value: function createIterator(ctx, whatToShow, filter) {
-        return document.createNodeIterator(ctx, whatToShow, filter, false);
+        return this.opt.window.document.createNodeIterator(ctx, whatToShow, filter, false);
       }
     }, {
       key: "addRemoveStyle",
@@ -253,7 +253,7 @@
     }, {
       key: "createStyleElement",
       value: function createStyleElement() {
-        var style = document.createElement('style');
+        var style = this.opt.window.document.createElement('style');
         style.setAttribute('data-markjs', 'true');
         style.textContent = this.opt.shadowDOM.style;
         return style;
@@ -270,11 +270,11 @@
         var shadow = this.opt.shadowDOM,
           iframe = this.opt.iframes;
         if (iframe || shadow) {
-          var showElement = (whatToShow & NodeFilter.SHOW_ELEMENT) !== 0,
-            showText = (whatToShow & NodeFilter.SHOW_TEXT) !== 0,
+          var showElement = (whatToShow & this.opt.window.NodeFilter.SHOW_ELEMENT) !== 0,
+            showText = (whatToShow & this.opt.window.NodeFilter.SHOW_TEXT) !== 0,
             style = shadow && shadow.style ? this.createStyleElement() : null;
           if (showText) {
-            whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+            whatToShow = this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT;
           }
           var traverse = function traverse(node) {
             var iterator = _this3.createIterator(node, whatToShow);
@@ -302,7 +302,7 @@
           traverse(ctx);
         } else {
           var iterator = this.createIterator(ctx, whatToShow, function (node) {
-            return filterCb(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+            return filterCb(node) ? _this3.opt.window.NodeFilter.FILTER_ACCEPT : _this3.opt.window.NodeFilter.FILTER_REJECT;
           });
           var node;
           while (node = iterator.nextNode()) {
@@ -569,7 +569,6 @@
       _classCallCheck(this, Mark);
       this.ctx = ctx;
       this.cacheDict = {};
-      this.empty = document.createTextNode('');
       this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
     }
     _createClass(Mark, [{
@@ -578,7 +577,12 @@
         return this._opt;
       },
       set: function set(val) {
+        if ((!val || !('window' in val)) && typeof window === 'undefined') {
+          throw new Error('Mark.js: "window" is not defined. Please provide a window object as option.');
+        }
+        var win = val && val.window || window;
         this._opt = _extends({}, {
+          'window': win,
           'element': '',
           'className': '',
           'exclude': [],
@@ -594,8 +598,16 @@
           },
           'done': function done() {},
           'debug': false,
-          'log': window.console
+          'log': win.console
         }, val);
+      }
+    }, {
+      key: "empty",
+      get: function get() {
+        if (!this._empty) {
+          this._empty = this.opt.window.document.createTextNode('');
+        }
+        return this._empty;
       }
     }, {
       key: "iterator",
@@ -851,7 +863,7 @@
           str2: str + ' ',
           str3: ' ' + str + ' '
         };
-        this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, function (node) {
+        this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT, function (node) {
           if (!currNode) {
             prevNode = currNode = node;
           } else {
@@ -936,7 +948,7 @@
         }
         var text = '',
           nodes = [];
-        this.iterator.forEachNode(NodeFilter.SHOW_TEXT, function (node) {
+        this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_TEXT, function (node) {
           nodes.push({
             start: text.length,
             end: (text += node.textContent).length,
@@ -1035,7 +1047,7 @@
       key: "wrapTextNode",
       value: function wrapTextNode(node) {
         var name = !this.opt.element ? 'mark' : this.opt.element;
-        var markNode = document.createElement(name);
+        var markNode = this.opt.window.document.createElement(name);
         markNode.setAttribute('data-markjs', 'true');
         if (this.opt.className) {
           markNode.setAttribute('class', this.opt.className);
@@ -1593,7 +1605,7 @@
           if (!first) {
             parent.removeChild(node);
           } else {
-            var docFrag = document.createDocumentFragment();
+            var docFrag = this.opt.window.document.createDocumentFragment();
             while (node.firstChild) {
               docFrag.appendChild(node.removeChild(node.firstChild));
             }
@@ -1826,7 +1838,7 @@
           selector += ".".concat(this.opt.className);
         }
         this.log("Removal selector \"".concat(selector, "\""));
-        this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, function (node) {
+        this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT, function (node) {
           _this16.unwrapMatches(node);
         }, function (node) {
           return DOMIterator.matches(node, selector) && !_this16.excludeElements(node);
