@@ -27,6 +27,7 @@ declare namespace Mark {
 
   interface MarkOptions {
     element?: string;
+    window?: Window;
     className?: string;
     exclude?: string | string[];
     separateWordSearch?: boolean;
