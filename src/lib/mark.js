@@ -68,11 +68,11 @@ class Mark {
    * @access protected
    */
   set opt(val) {
-    if ((!val || !('window' in val)) && typeof window === 'undefined') {
-      throw new Error('Mark.js: "window" is not defined. Please provide a window object as option.');
+    if ( !(val && val.window && val.window.document) && typeof window === 'undefined') {
+      throw new Error('Mark.js: please provide a window object as an option.');
     }
 
-    const win = (val && val.window) || window;
+    const win = val && val.window || window;
 
     this._opt = Object.assign({}, {
       'window': win,
@@ -131,7 +131,7 @@ class Mark {
       return;
     }
     const log = this.opt.log;
-    if (this.isObject(log) && typeof log[level] === 'function') {
+    if (typeof log === 'object' && typeof log[level] === 'function') {
       log[level](`mark.js: ${msg}`);
     }
   }
@@ -238,7 +238,7 @@ class Mark {
    * @return {boolean}
    */
   isObject(obj) {
-    return Object.prototype.toString.call(obj) === '[object Object]';
+    return String(obj) === '[object Object]';
   }
 
   /**

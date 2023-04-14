@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "keywords": [
     "advanced-mark.js",
     "mark.js",
@@ -31,12 +31,12 @@
     "eslint": "eslint src/ test/",
     "karma": "karma start build/karma.config.js",
     "copy-files": "node build/copy-types-files.js",
-    "test-virtual-dom": "node virtual-dom/test.js",
+    "test-jsdom": "node jsdom-tests/test.js && node jsdom-tests/jquery-test.js",
     "jsdoc": "jsdoc src/lib/ -d build/doc -R README.md -P package.json -r",
     "compile": "rollup -c build/rollup.config.js",
     "build": "npm run test && npm run copy-files && npm run jsdoc",
     "dev": "nodemon --exec \"npm run eslint && npm run compile\" --watch src/ --watch test/ -e js,html",
-    "test": "npm run eslint && npm run compile && npm run karma && npm run test-virtual-dom"
+    "test": "npm run eslint && npm run compile && npm run karma && npm run test-jsdom"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
