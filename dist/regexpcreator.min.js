@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.1.0
+* advanced-mark.js v2.1.1
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid

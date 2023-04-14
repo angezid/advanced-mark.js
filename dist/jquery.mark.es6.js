@@ -1,6 +1,6 @@
-/* Version: 2.1.0 - April 4, 2023 */
+/* Version: 2.1.1 - April 14, 2023 */
 /*!***************************************************
-* advanced-mark.js v2.1.0
+* advanced-mark.js v2.1.1
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -430,10 +430,10 @@ class Mark {
     this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
   }
   set opt(val) {
-    if ((!val || !('window' in val)) && typeof window === 'undefined') {
-      throw new Error('Mark.js: "window" is not defined. Please provide a window object as option.');
+    if ( !(val && String(val.window) === '[object Window]') && typeof window === 'undefined') {
+      throw new Error('Mark.js: please provide a window object as option.');
     }
-    const win = (val && val.window) || window;
+    const win = val && val.window || window;
     this._opt = Object.assign({}, {
       'window': win,
       'element': '',
@@ -469,7 +469,7 @@ class Mark {
       return;
     }
     const log = this.opt.log;
-    if (this.isObject(log) && typeof log[level] === 'function') {
+    if (typeof log === 'object' && typeof log[level] === 'function') {
       log[level](`mark.js: ${msg}`);
     }
   }
@@ -523,7 +523,7 @@ class Mark {
     return typeof obj === 'string';
   }
   isObject(obj) {
-    return Object.prototype.toString.call(obj) === '[object Object]';
+    return String(obj) === '[object Object]';
   }
   isArrayOfObjects(array) {
     return Array.isArray(array) && array.some(item => this.isObject(item));
@@ -1453,7 +1453,7 @@ $.fn.unmark = function(opt) {
   return this;
 };
 $.fn.getVersion = function() {
-  return '2.1.0';
+  return '2.1.1';
 };
 var $$1 = $;
 

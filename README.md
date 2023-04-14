@@ -24,4 +24,4 @@ import Mark from './mark.es6.js';
 UMD modules are removed in v2.0.0.
 
 ## Virtual DOMs
-See [JSDOM test](virtual-dom/test.js).
+See [JSDOM test](jsdom-tests/test.js).

@@ -1,6 +1,6 @@
-/* Version: 2.1.0 - April 4, 2023 */
+/* Version: 2.1.1 - April 14, 2023 */
 /*!***************************************************
-* advanced-mark.js v2.1.0
+* advanced-mark.js v2.1.1
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -17,6 +17,15 @@
 
   var $__default = /*#__PURE__*/_interopDefaultLegacy($);
 
+  function _typeof(obj) {
+    "@babel/helpers - typeof";
+
+    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+      return typeof obj;
+    } : function (obj) {
+      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    }, _typeof(obj);
+  }
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -579,8 +588,8 @@
         return this._opt;
       },
       set: function set(val) {
-        if ((!val || !('window' in val)) && typeof window === 'undefined') {
-          throw new Error('Mark.js: "window" is not defined. Please provide a window object as option.');
+        if (!(val && String(val.window) === '[object Window]') && typeof window === 'undefined') {
+          throw new Error('Mark.js: please provide a window object as option.');
         }
         var win = val && val.window || window;
         this._opt = _extends({}, {
@@ -624,7 +633,7 @@
           return;
         }
         var log = this.opt.log;
-        if (this.isObject(log) && typeof log[level] === 'function') {
+        if (_typeof(log) === 'object' && typeof log[level] === 'function') {
           log[level]("mark.js: ".concat(msg));
         }
       }
@@ -696,7 +705,7 @@
     }, {
       key: "isObject",
       value: function isObject(obj) {
-        return Object.prototype.toString.call(obj) === '[object Object]';
+        return String(obj) === '[object Object]';
       }
     }, {
       key: "isArrayOfObjects",
@@ -1867,7 +1876,7 @@
     return this;
   };
   $__default["default"].fn.getVersion = function () {
-    return '2.1.0';
+    return '2.1.1';
   };
 
   return $__default["default"];
