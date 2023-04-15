@@ -1,3 +1,8 @@
+### 1.1.2
+
+* Fixed bug related using a wildcards character `*` with `wildcards : 'withSpaces'`, `acrossElements` , and `blockElementBoundary` options.
+* Fixed types path in package.json.
+
 ### 1.1.1
 
 * Fixed bug that affect wrapping separate groups across elements with combination of `acrossElements`, `cacheTextNodes`, and `separateGroups` options

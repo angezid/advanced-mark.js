@@ -1,8 +1,6 @@
 # advanced-mark.js
 
-[![npm](https://img.shields.io/npm/v/advanced-mark.js)](https://www.npmjs.com/package/advanced-mark.js)
-
-#### Highlight words, terms, or text on browser page using JavaScript.
+#### Highlight words, terms, or text on a browser page using JavaScript.
 
 To play with this library - [advanced-mark.js-playground](https://github.com/angezid/advanced-mark.js-playground). It requires minimum installation and provides full functionality.
 It also can be used with the old `mark.js` - it's install npm package v8.11.1.
@@ -24,7 +22,7 @@ This library keeps backward compatibility with `mark.js` v9.0.0 and npm package 
 See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1.
 Note that it's still under development.
 
-Also may be useful to read [Documentation](https://markjs.io/). Note that this doc is for `mark.js`, it isn't updated for a long time.
+Also may be useful to read [Documentation](https://markjs.io/). Note that this doc is for old `mark.js`.
 
 ## Modules changes
 * \*. es6.\*.js now are real ES6 modules
