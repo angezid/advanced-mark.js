@@ -77,25 +77,18 @@ const output = {
     }
   }),
   externalJquery = ['jquery'],
-  externalJquery_es6 = ['./jquery.js'],
   plugins = [
     // for external dependencies (just in case)
     resolve(),
     commonjs(),
     versionInjector({
-      injectInComments: {
-        fileRegexp: /\.(js|ts|html|css)$/,
-        tag: 'Version: {version} - {date}',
-        dateFormat: 'mmmm d, yyyy'
-      },
+      injectInComments: false,
       logLevel: 'warn',
       exclude: [
         'regexpcreator.js',
+        'regexpcreator.min.js',
         'regexpcreator.es6.js',
         'regexpcreator.es6.min.js',
-        'regexpcreator.min.js',
-        'regexpcreator.umd.js',
-        'regexpcreator.umd.min.js'
       ]
     }),
     // remove non-license comments
@@ -154,7 +147,14 @@ export default [
     file: outputJquery_es6.file.replace('.js', '.es6.js')
   }),
   plugins,
-  external: externalJquery_es6
+  external: externalJquery
+}, {
+  input: 'src/jquery_es6.js',
+  output: Object.assign({}, outputJquery_es6, {
+    file: outputJquery_es6.file.replace('.js', '.es6.js').replace('jquery.', 'nodes.jquery.')
+  }),
+  plugins,
+  external: externalJquery
 }, {
   input: 'src/reg_creator.js',
   output: Object.assign({}, outputRegCreator_es6, {
@@ -191,7 +191,7 @@ export default [
     file: outputJquery_es6.file.replace('.js', '.es6.min.js')
   }),
   plugins: minifyPlugins,
-  external: externalJquery_es6
+  external: externalJquery
 }, {
   input: 'src/reg_creator.js',
   output : Object.assign({}, outputRegCreator_es6, {

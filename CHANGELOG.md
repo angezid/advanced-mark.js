@@ -1,4 +1,9 @@
 
+### 2.1.1
+
+* Fixed debug logging to the console.
+* Improved detection of custom window object and as a result getting a clear error message on the non-valid object.
+
 ### 2.1.0
 
 * Fixed bug related using a wildcards character `*` with `wildcards : 'withSpaces'`, `acrossElements` , and `blockElementBoundary` options.
@@ -17,6 +22,11 @@
   1. removed unnecessary escaping of characters in a RegExp character set
   2. added ability to using string instead of array in 'ignorePunctuation' option and accuracy object
   3. added code which remove duplicate from array of characters or synonyms
+
+### 1.1.2
+
+* Fixed bug related using a wildcards character `*` with `wildcards : 'withSpaces'`, `acrossElements` , and `blockElementBoundary` options.
+* Fixed types path in package.json.
 
 ### 1.1.1
 
