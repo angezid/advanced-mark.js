@@ -1,4 +1,3 @@
-/* Version: 2.1.1 - April 14, 2023 */
 /*!***************************************************
 * advanced-mark.js v2.1.1
 * https://github.com/angezid/advanced-mark#readme
@@ -428,8 +427,8 @@ class Mark$1 {
     this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
   }
   set opt(val) {
-    if ( !(val && String(val.window) === '[object Window]') && typeof window === 'undefined') {
-      throw new Error('Mark.js: please provide a window object as option.');
+    if ( !(val && val.window && val.window.document) && typeof window === 'undefined') {
+      throw new Error('Mark.js: please provide a window object as an option.');
     }
     const win = val && val.window || window;
     this._opt = Object.assign({}, {

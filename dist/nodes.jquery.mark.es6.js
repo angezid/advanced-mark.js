@@ -6,6 +6,7 @@
 * Original author Julian Kühnel, license https://git.io/vwTVl
 *****************************************************/
 
+import $ from 'jquery';
 class DOMIterator {
   constructor(ctx, opt) {
     this.ctx = ctx;
