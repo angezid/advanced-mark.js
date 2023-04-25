@@ -4,13 +4,10 @@
 
 #### Highlight words, terms, or text on a browser page using JavaScript.
 
-To play with this library - [advanced-mark.js-playground](https://github.com/angezid/advanced-mark.js-playground). It requires minimum installation and provides full functionality.
-It has some built-in examples. 
-
 This library from v2.0.0 doesn't guaranty backward compatibility with `mark.js` v9.0.0 and npm package v8.11.1.
 
-See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v2) for `advanced-mark.js` v2.
-Note that it's still under development.
+[Playground](https://angezid.github.io/advanced-mark.js/playground) and
+[Documentation](https://angezid.github.io/advanced-mark.js/doc-v2) for `advanced-mark.js` v2.
 
 Also may be useful to read [Documentation](https://markjs.io/). Note that this doc is for old `mark.js`.
 
@@ -21,7 +18,9 @@ Also may be useful to read [Documentation](https://markjs.io/). Note that this d
 import Mark from './mark.es6.js';
 // import Mark from './jquery.mark.es6.js';
 ```
-UMD modules are removed in v2.0.0.
+
+Added `node.jquery.mark.es6.js` module, which is intended to use on Node.js and contains necessary `import $ from 'jquery';` declaration.
+The modules `jquery.mark.es6.js` and `jquery.mark.es6. min.js` can be used directly in browsers (global $).
 
 ## Virtual DOMs
 See [JSDOM test](jsdom-tests/test.js).

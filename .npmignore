@@ -17,5 +17,6 @@ src/
 doc/
 doc_v2/
 test/
+jsdom-tests/
 .git/
 .github/
