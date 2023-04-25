@@ -1,7 +1,7 @@
 const fs = require('fs');
 const files = {
     'mark.d.ts' : ['mark.d.ts', 'mark.es6.d.ts'],
-    'jquery.mark.d.ts' : ['jquery.mark.d.ts', 'nodes.jquery.mark.es6.d.ts'],
+    'jquery.mark.d.ts' : ['jquery.mark.d.ts', 'node.jquery.mark.es6.d.ts'],
     'regexpcreator.d.ts' : ['regexpcreator.d.ts', 'regexpcreator.es6.d.ts']
   },
   sourceDir = 'src/types/',

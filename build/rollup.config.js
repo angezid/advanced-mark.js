@@ -151,7 +151,7 @@ export default [
 }, {
   input: 'src/jquery_es6.js',
   output: Object.assign({}, outputJquery_es6, {
-    file: outputJquery_es6.file.replace('.js', '.es6.js').replace('jquery.', 'nodes.jquery.')
+    file: outputJquery_es6.file.replace('.js', '.es6.js').replace('jquery.', 'node.jquery.')
   }),
   plugins,
   external: externalJquery
