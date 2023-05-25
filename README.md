@@ -19,7 +19,7 @@ import Mark from './mark.es6.js';
 // import Mark from './jquery.mark.es6.js';
 ```
 
-Added `node.jquery.mark.es6.js` module, which is intended to use on Node.js and contains necessary `import $ from 'jquery';` declaration.
+Added `node.jquery.mark.es6.js` module, which is intended to use on Node.js and contains necessary `import $ from 'jquery';` declaration.  
 The modules `jquery.mark.es6.js` and `jquery.mark.es6. min.js` can be used directly in browsers (global $).
 
 ## Virtual DOMs

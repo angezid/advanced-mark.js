@@ -1,4 +1,9 @@
 
+### 2.1.2
+
+* Fixed problem with 'jquery.mark.es6.js' module by adding `node.jquery.mark.es6.js` module, which contains `import $ from 'jquery';` statement necessary on Node.js.
+* Added missing `őŐűŰ` diacritic characters in RegExpCreator class.
+
 ### 2.1.1
 
 * Fixed debug logging to the console.
