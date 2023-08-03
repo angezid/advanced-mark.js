@@ -1,5 +1,5 @@
 
-// Type definitions for advanced-mark.js v2.1.1
+// Type definitions for advanced-mark.js v2.1.2
 // Based on "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/mark.js"
 
 declare namespace Mark {

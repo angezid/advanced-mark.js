@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.1.1
+* advanced-mark.js v2.1.2
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -1450,7 +1450,7 @@ $.fn.unmark = function(opt) {
   return this;
 };
 $.fn.getVersion = function() {
-  return '2.1.1';
+  return '2.1.2';
 };
 var $$1 = $;
 
