@@ -525,14 +525,14 @@ class Mark$1 {
   isArrayOfObjects(array) {
     return Array.isArray(array) && array.some(item => this.isObject(item));
   }
-  checkRanges(array, logs, max) {
+  checkRanges(array, logs, min, max) {
     const level = 'error';
     const ranges = array.filter(range => {
       let valid = false;
       if (this.isNumeric(range.start) && this.isNumeric(range.length)) {
         range.start = parseInt(range.start);
         range.length = parseInt(range.length);
-        if (range.start >= 0 && range.start < max && range.length > 0) {
+        if (range.start >= min && range.start < max && range.length > 0) {
           valid = true;
         }
       }
@@ -693,6 +693,39 @@ class Mark$1 {
       return !this.excludeElements(node.parentNode);
     }, () => {
       const dict = this.createDict(text, nodes, 'every');
+      cb(dict);
+    });
+  }
+  getTextNodesNewLines(cb) {
+    const nodes = [],
+      newLines = { 1 : 0 },
+      regex = /\n/g;
+    let text = '', num = 1, len = 0, match;
+    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT, node => {
+      while ((match = regex.exec(node.textContent)) !== null) {
+        newLines[++num] = len + match.index;
+      }
+      nodes.push({
+        start: len,
+        end: (text += node.textContent).length,
+        offset : 0,
+        node: node
+      });
+      len = text.length;
+    }, node => {
+      if (node.nodeType === 1) {
+        if (node.tagName.toLowerCase() === 'br') {
+          newLines[++num] = len;
+        }
+        return false;
+      }
+      return !this.excludeElements(node.parentNode);
+    }, () => {
+      if (newLines[num] < len - 1) {
+        newLines[++num] = len - 1;
+      }
+      const dict = this.createDict(text, nodes, 'every');
+      dict.newLines = newLines;
       cb(dict);
     });
   }
@@ -1158,21 +1191,28 @@ class Mark$1 {
   }
   wrapRanges(ranges, filterCb, eachCb, endCb) {
     const logs = [],
+      lines = this.opt.markLines,
+      fn = lines ? 'getTextNodesNewLines' : 'getTextNodes',
       skipped = [],
       level = 'warn';
     let count = 0;
-    this.getTextNodes(dict => {
-      const max = dict.text.length,
-        array = this.checkRanges(ranges, logs, max);
+    this[fn](dict => {
+      const max = lines ? Object.keys(dict.newLines).length : dict.text.length,
+        array = this.checkRanges(ranges, logs, lines ? 1 : 0, max);
       array.forEach((range, index) => {
-        let end = range.start + range.length;
+        let start = range.start,
+          end = start + range.length;
         if (end > max) {
           logs.push({ text : `Range was limited to: ${max}`, obj : range, skip : true, level });
           end = max;
         }
-        const substr = dict.text.substring(range.start, end);
+        if (lines) {
+          start = dict.newLines[start];
+          end = dict.newLines[end];
+        }
+        const substr = dict.text.substring(start, end);
         if (substr.trim()) {
-          this.wrapRangeAcross(dict, range.start, end, obj => {
+          this.wrapRangeAcross(dict, start, end, obj => {
             return filterCb(obj.node, range, substr, index);
           }, (node, rangeStart) => {
             if (rangeStart) {

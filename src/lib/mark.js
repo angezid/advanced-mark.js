@@ -1568,15 +1568,15 @@ class Mark {
         let start = range.start,
           end = start + range.length;
 
-        if (lines) {
-          start = dict.newLines[start];
-          end = dict.newLines[end];
-        }
-
         if (end > max) {
           // with wrapAllRanges option, there can be several report of limited ranges
           logs.push({ text : `Range was limited to: ${max}`, obj : range, skip : true, level });
           end = max;
+        }
+        
+        if (lines) {
+          start = dict.newLines[start];
+          end = dict.newLines[end];
         }
         const substr = dict.text.substring(start, end);
 
