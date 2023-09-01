@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.1.2
+* advanced-mark.js v2.2.0
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -78,10 +78,9 @@
     _createClass(RegExpCreator, [{
       key: "create",
       value: function create(str, patterns) {
+        var flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
         str = this.checkWildcardsEscape(str);
-        if (Object.keys(this.opt.synonyms).length) {
-          str = this.createSynonyms(str);
-        }
+        str = this.createSynonyms(str, flags);
         var joiners = this.getJoinersPunctuation();
         if (joiners) {
           str = this.setupIgnoreJoiners(str);
@@ -97,7 +96,7 @@
           str = this.createWildcards(str);
         }
         var obj = this.createAccuracy(str);
-        return patterns ? obj : new RegExp("".concat(obj.lookbehind, "(").concat(obj.pattern, ")").concat(obj.lookahead), "g".concat(this.opt.caseSensitive ? '' : 'i'));
+        return patterns ? obj : new RegExp("".concat(obj.lookbehind, "(").concat(obj.pattern, ")").concat(obj.lookahead), flags);
       }
     }, {
       key: "createCombinePattern",
@@ -154,10 +153,12 @@
       }
     }, {
       key: "createSynonyms",
-      value: function createSynonyms(str) {
+      value: function createSynonyms(str, flags) {
         var _this2 = this;
-        var syn = this.opt.synonyms,
-          flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
+        var syn = this.opt.synonyms;
+        if (!Object.keys(syn).length) {
+          return str;
+        }
         for (var key in syn) {
           if (syn.hasOwnProperty(key)) {
             var array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];

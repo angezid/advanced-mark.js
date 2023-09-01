@@ -14,11 +14,13 @@ $(context).markRanges(ranges[, options]);
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} -  A class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
-  * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups  (default is `undefined`)
+  * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
+  * `markLines` {boolean} - Whether to mark ranges of lines instead of ranges of texts (default is `undefined`)
+    See [Highlighting line ranges](mark-lines.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)

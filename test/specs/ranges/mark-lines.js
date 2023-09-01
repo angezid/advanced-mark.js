@@ -60,12 +60,8 @@ describe('mark lines ranges with markLines option', function() {
     new Mark($ctx[0]).markRanges(lines, {
       'markLines' : true,
       'wrapAllRanges' : true,
-      'each': function(node, range) {
-        $(node).attr('data-content', range.content);
-      },
       'done': function() {
-        var marks = $ctx.find('mark');
-        expect(marks).toHaveLength(6);
+        expect($ctx.find('mark').length).toBe(6);
 
         done();
       }
@@ -74,7 +70,7 @@ describe('mark lines ranges with markLines option', function() {
 
   function testResult(lines, num, offset) {
     var marks = $ctx.find('mark');
-    expect(marks).toHaveLength(num);
+    expect(marks.length).toBe(num);
 
     marks.each((i, item) => {
       expect($(item).attr('data-content')).toBe(lines[i+offset].content);

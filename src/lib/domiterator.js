@@ -305,10 +305,12 @@ class DOMIterator {
    */
   addRemoveStyle(root, style, add) {
     if (add) {
-      if ( !style || !root.firstChild || root.querySelector('style[data-markjs]')) {
-        return;
+      if (style && root.firstChild && !root.querySelector('style[data-markjs]')) {
+        const elem = this.opt.window.document.createElement('style');
+        elem.setAttribute('data-markjs', 'true');
+        elem.textContent = style;
+        root.insertBefore(elem, root.firstChild);
       }
-      root.insertBefore(style, root.firstChild);
 
     } else {
       let elem = root.querySelector('style[data-markjs]');
@@ -316,17 +318,6 @@ class DOMIterator {
         root.removeChild(elem);
       }
     }
-  }
-
-  /**
-   * Creates custom style element which will be applied to a shadow root
-   * @return {HTMLElement}
-   */
-  createStyleElement() {
-    const style = this.opt.window.document.createElement('style');
-    style.setAttribute('data-markjs', 'true');
-    style.textContent = this.opt.shadowDOM.style;
-    return style;
   }
 
   /**
@@ -347,16 +338,16 @@ class DOMIterator {
    * @access protected
    */
   iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
-    const shadow = this.opt.shadowDOM,
+    const nodeFilter = this.opt.window.NodeFilter, 
+      shadow = this.opt.shadowDOM,
       iframe = this.opt.iframes;
 
     if (iframe || shadow) {
-      const showElement = (whatToShow & this.opt.window.NodeFilter.SHOW_ELEMENT) !== 0,
-        showText = (whatToShow & this.opt.window.NodeFilter.SHOW_TEXT) !== 0,
-        style = shadow && shadow.style ? this.createStyleElement() : null;
+      const showElement = (whatToShow & nodeFilter.SHOW_ELEMENT) !== 0,
+        showText = (whatToShow & nodeFilter.SHOW_TEXT) !== 0;
 
       if (showText) {
-        whatToShow = this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT;
+        whatToShow = nodeFilter.SHOW_ELEMENT | nodeFilter.SHOW_TEXT;
       }
 
       const traverse = node => {
@@ -378,7 +369,7 @@ class DOMIterator {
             // there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'
             // is not working neither for 'shadowRoot' no for the element itself
             if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
-              this.addRemoveStyle(node.shadowRoot, style, showText);
+              this.addRemoveStyle(node.shadowRoot, shadow.style, showText);
               traverse(node.shadowRoot);
             }
 
@@ -392,7 +383,7 @@ class DOMIterator {
 
     } else {
       const iterator = this.createIterator(ctx, whatToShow, node => {
-        return filterCb(node) ? this.opt.window.NodeFilter.FILTER_ACCEPT : this.opt.window.NodeFilter.FILTER_REJECT;
+        return filterCb(node) ? nodeFilter.FILTER_ACCEPT : nodeFilter.FILTER_REJECT;
       });
       let node;
 
