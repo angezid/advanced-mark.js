@@ -1,4 +1,11 @@
 
+### 2.2.0
+
+* Added ability for mark line ranges (`markRanges()` API with `markLines` option).
+* Fixed skipping `br` element in `getTextNodesAcross()` method.
+* Fixed skipping `br` element in `getTextNodesAcross()` method.
+* Fixed negative value of the start index in `wrapRangeAcross()` method with `wrapAllRanges` option which can occur in some cases. 
+
 ### 2.1.2
 
 * Fixed problem with 'jquery.mark.es6.js' module by adding `node.jquery.mark.es6.js` module, which contains `import $ from 'jquery';` statement necessary on Node.js.

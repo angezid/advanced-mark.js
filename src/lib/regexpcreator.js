@@ -115,11 +115,10 @@ class RegExpCreator {
    * @return {RegExpCreator~patternObj|RegExp}
    */
   create(str, patterns) {
-    str = this.checkWildcardsEscape(str);
+    const flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
 
-    if (Object.keys(this.opt.synonyms).length) {
-      str = this.createSynonyms(str);
-    }
+    str = this.checkWildcardsEscape(str);
+    str = this.createSynonyms(str, flags);
 
     const joiners = this.getJoinersPunctuation();
 
@@ -144,7 +143,7 @@ class RegExpCreator {
 
     return (patterns
       ? obj
-      : new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, `g${this.opt.caseSensitive ? '' : 'i'}`));
+      : new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, flags));
   }
 
   /**
@@ -227,9 +226,12 @@ class RegExpCreator {
    * @param  {string} str - The search term to be used
    * @return {string}
    */
-  createSynonyms(str) {
-    const syn = this.opt.synonyms,
-      flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
+  createSynonyms(str, flags) {
+    const syn = this.opt.synonyms;
+
+    if ( !Object.keys(syn).length) {
+      return str;
+    }
 
     for (const key in syn) {
       if (syn.hasOwnProperty(key)) {
@@ -274,7 +276,7 @@ class RegExpCreator {
     const spaces = this.opt.wildcards === 'withSpaces',
       boundary = this.opt.blockElementsBoundary,
       anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
-    
+
     return str
     // replace unicode 0001 with a RegExp class to match any single
     // character, or any single non-whitespace character depending

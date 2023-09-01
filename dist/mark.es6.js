@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.1.2
+* advanced-mark.js v2.2.0
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -161,10 +161,12 @@ class DOMIterator {
   }
   addRemoveStyle(root, style, add) {
     if (add) {
-      if ( !style || !root.firstChild || root.querySelector('style[data-markjs]')) {
-        return;
+      if (style && root.firstChild && !root.querySelector('style[data-markjs]')) {
+        const elem = this.opt.window.document.createElement('style');
+        elem.setAttribute('data-markjs', 'true');
+        elem.textContent = style;
+        root.insertBefore(elem, root.firstChild);
       }
-      root.insertBefore(style, root.firstChild);
     } else {
       let elem = root.querySelector('style[data-markjs]');
       if (elem) {
@@ -172,24 +174,18 @@ class DOMIterator {
       }
     }
   }
-  createStyleElement() {
-    const style = this.opt.window.document.createElement('style');
-    style.setAttribute('data-markjs', 'true');
-    style.textContent = this.opt.shadowDOM.style;
-    return style;
-  }
   hasAttributeValue(node, name, value) {
     return node.hasAttribute(name) && node.getAttribute(name) === value;
   }
   iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
-    const shadow = this.opt.shadowDOM,
+    const nodeFilter = this.opt.window.NodeFilter,
+      shadow = this.opt.shadowDOM,
       iframe = this.opt.iframes;
     if (iframe || shadow) {
-      const showElement = (whatToShow & this.opt.window.NodeFilter.SHOW_ELEMENT) !== 0,
-        showText = (whatToShow & this.opt.window.NodeFilter.SHOW_TEXT) !== 0,
-        style = shadow && shadow.style ? this.createStyleElement() : null;
+      const showElement = (whatToShow & nodeFilter.SHOW_ELEMENT) !== 0,
+        showText = (whatToShow & nodeFilter.SHOW_TEXT) !== 0;
       if (showText) {
-        whatToShow = this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT;
+        whatToShow = nodeFilter.SHOW_ELEMENT | nodeFilter.SHOW_TEXT;
       }
       const traverse = node => {
         const iterator = this.createIterator(node, whatToShow);
@@ -206,7 +202,7 @@ class DOMIterator {
               }
             }
             if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
-              this.addRemoveStyle(node.shadowRoot, style, showText);
+              this.addRemoveStyle(node.shadowRoot, shadow.style, showText);
               traverse(node.shadowRoot);
             }
           } else  if (showText && node.nodeType === 3 && filterCb(node)) {
@@ -217,7 +213,7 @@ class DOMIterator {
       traverse(ctx);
     } else {
       const iterator = this.createIterator(ctx, whatToShow, node => {
-        return filterCb(node) ? this.opt.window.NodeFilter.FILTER_ACCEPT : this.opt.window.NodeFilter.FILTER_REJECT;
+        return filterCb(node) ? nodeFilter.FILTER_ACCEPT : nodeFilter.FILTER_REJECT;
       });
       let node;
       while ((node = iterator.nextNode())) {
@@ -263,10 +259,9 @@ class RegExpCreator {
     }, options);
   }
   create(str, patterns) {
+    const flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
     str = this.checkWildcardsEscape(str);
-    if (Object.keys(this.opt.synonyms).length) {
-      str = this.createSynonyms(str);
-    }
+    str = this.createSynonyms(str, flags);
     const joiners = this.getJoinersPunctuation();
     if (joiners) {
       str = this.setupIgnoreJoiners(str);
@@ -284,7 +279,7 @@ class RegExpCreator {
     const obj = this.createAccuracy(str);
     return (patterns
       ? obj
-      : new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, `g${this.opt.caseSensitive ? '' : 'i'}`));
+      : new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, flags));
   }
   createCombinePattern(array, capture) {
     if ( !Array.isArray(array) || !array.length) {
@@ -321,9 +316,11 @@ class RegExpCreator {
     });
     return result;
   }
-  createSynonyms(str) {
-    const syn = this.opt.synonyms,
-      flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
+  createSynonyms(str, flags) {
+    const syn = this.opt.synonyms;
+    if ( !Object.keys(syn).length) {
+      return str;
+    }
     for (const key in syn) {
       if (syn.hasOwnProperty(key)) {
         let array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
@@ -556,13 +553,10 @@ class Mark$1 {
       return false;
     });
   }
-  setType(tags) {
-    const boundary = this.opt.blockElementsBoundary,
-      custom = Array.isArray(boundary.tagNames) && boundary.tagNames.length;
+  setType(tags, boundary) {
+    const custom = Array.isArray(boundary.tagNames) && boundary.tagNames.length;
     if (custom) {
-      boundary.tagNames.map(name => name.toLowerCase()).forEach(name => {
-        tags[name] = 2;
-      });
+      boundary.tagNames.forEach(name => tags[name.toLowerCase()] = 2);
     }
     if ( !custom || boundary.extend) {
       for (const key in tags) {
@@ -578,7 +572,7 @@ class Mark$1 {
       cb(this.cacheDict);
       return;
     }
-    let tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
+    const tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
       ol : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
       h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
       pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
@@ -588,144 +582,129 @@ class Mark$1 {
       button : 1, header : 1, footer : 1, address : 1, area : 1, canvas : 1,
       map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
       body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
-    const boundary = this.opt.blockElementsBoundary;
-    let str = '\x01', temp, prevNode, currNode, type;
+    const nodes = [],
+      boundary = this.opt.blockElementsBoundary;
+    let ch = '\x01',
+      priorityType = boundary ? 2 : 1,
+      tempType, type, prevNode;
     if (boundary) {
-      this.setType(tags);
+      this.setType(tags, boundary);
       if (boundary.char) {
-        str = boundary.char.charAt(0);
+        ch = boundary.char.charAt(0);
       }
     }
     const obj = {
-      nodes : [], text : '', regex : /\s/, tags : tags,
-      boundary : boundary, startOffset : 0,
-      str : str, str1 : ' ' + str, str2 : str + ' ', str3 : ' ' + str + ' '
+      text : '', regex : /\s/, tags : tags,
+      boundary : boundary, startOffset : 0, br : '', ch : ch
     };
     this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT,
       node => {
-        if ( !currNode) {
-          prevNode = currNode = node;
-        } else {
-          currNode = node;
-          this.getNodeInfo(prevNode, node, type, obj);
-          prevNode = node;
-          type = null;
+        if (prevNode) {
+          nodes.push(this.getNodeInfo(prevNode, node, type, obj));
         }
+        type = null;
+        prevNode = node;
       }, node => {
         if (node.nodeType === 1) {
-          if ( !type) {
-            type = tags[node.nodeName.toLowerCase()];
-          } else if (boundary && type !== 2 && (temp = tags[node.nodeName.toLowerCase()]) === 2) {
-            type = temp;
+          tempType = tags[node.nodeName.toLowerCase()];
+          if (tempType === 3) {
+            obj.br += '\n';
+          }
+          if ( !type || tempType === priorityType) {
+            type = tempType;
           }
           return false;
         }
         return !this.excludeElements(node.parentNode);
       }, () => {
-        if (currNode) {
-          this.getNodeInfo(prevNode, currNode, type, obj);
+        if (prevNode) {
+          nodes.push(this.getNodeInfo(prevNode, prevNode, type, obj));
         }
-        const dict = this.createDict(obj.text, obj.nodes, 'across');
-        cb(dict);
+        cb(this.createDict(obj.text, nodes, 'across'));
       });
   }
   getNodeInfo(prevNode, node, type, obj) {
     let offset = 0,
-      text = prevNode.textContent;
-    const start = obj.text.length;
+      startOffset = obj.startOffset,
+      text = prevNode.textContent,
+      str = '';
     if (prevNode !== node) {
-      if (type === 3) {
-        text += '\n';
-        offset = 1;
-      } else {
-        const endSpace = obj.regex.test(text[text.length - 1]),
-          startSpace = obj.regex.test(node.textContent[0]);
-        if (obj.boundary || !endSpace && !startSpace) {
-          let separate = type;
-          if ( !type) {
-            let parent = prevNode.parentNode;
-            while (parent) {
-              type = obj.tags[parent.nodeName.toLowerCase()];
-              if (type) {
-                separate = !(parent === node.parentNode || parent.contains(node));
-                break;
-              }
-              parent = parent.parentNode;
+      const startBySpace = obj.regex.test(node.textContent[0]),
+        both = startBySpace && obj.regex.test(text[text.length - 1]);
+      if (obj.boundary || !both) {
+        let separate = type;
+        if (!type) {
+          let parent = prevNode.parentNode;
+          while (parent) {
+            type = obj.tags[parent.nodeName.toLowerCase()];
+            if (type) {
+              separate = !(parent === node.parentNode || parent.contains(node));
+              break;
             }
+            parent = parent.parentNode;
           }
-          if (separate) {
-            if ( !endSpace && !startSpace) {
-              if (type === 1) {
-                text += ' ';
-                offset = 1;
-              } else if (type === 2) {
-                text += obj.str3;
-                offset = 3;
-              }
-            } else if (type === 2) {
-              let str = startSpace && endSpace ? obj.str : startSpace ? obj.str1 : obj.str2;
-              text += str;
-              offset = str.length;
-            }
+        }
+        if (separate) {
+          if ( !both) {
+            str = type === 1 ? ' ' : type === 2 ? ' ' + obj.ch + ' ' : '';
+          } else if (type === 2) {
+            str = both ? obj.ch : startBySpace ? ' ' + obj.ch : obj.ch + ' ';
           }
         }
       }
     }
-    obj.text += text;
-    obj.nodes.push(this.createInfo(prevNode, start, obj.text.length - offset, offset, obj.startOffset));
-    obj.startOffset -= offset;
+    if (obj.br !== '') {
+      str += obj.br;
+      obj.br = '';
+    }
+    if (str !== '') {
+      text += str;
+      offset = str.length;
+      obj.startOffset -= offset;
+    }
+    return this.createInfo(prevNode, obj.text.length, (obj.text += text).length - offset, offset, startOffset);
   }
   getTextNodes(cb) {
     if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
       cb(this.cacheDict);
       return;
     }
-    let text = '',
-      nodes = [];
-    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_TEXT, node => {
-      nodes.push({
-        start: text.length,
-        end: (text += node.textContent).length,
-        offset : 0,
-        node: node
-      });
-    }, node => {
-      return !this.excludeElements(node.parentNode);
-    }, () => {
-      const dict = this.createDict(text, nodes, 'every');
-      cb(dict);
-    });
-  }
-  getTextNodesNewLines(cb) {
     const nodes = [],
-      newLines = { 1 : 0 },
-      regex = /\n/g;
-    let text = '', num = 1, len = 0, match;
-    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT, node => {
-      while ((match = regex.exec(node.textContent)) !== null) {
-        newLines[++num] = len + match.index;
+      regex = /\n/g,
+      newLines = [0],
+      lines = this.opt.markLines;
+    let text = '',
+      len = 0,
+      show = this.opt.window.NodeFilter.SHOW_TEXT,
+      rm;
+    show = lines ? this.opt.window.NodeFilter.SHOW_ELEMENT | show : show;
+    this.iterator.forEachNode(show, node => {
+      if (lines) {
+        while ((rm = regex.exec(node.textContent)) !== null) {
+          newLines.push(len + rm.index);
+        }
       }
+      text += node.textContent;
       nodes.push({
-        start: len,
-        end: (text += node.textContent).length,
+        start : len,
+        end : (len = text.length),
         offset : 0,
-        node: node
+        node : node
       });
-      len = text.length;
     }, node => {
-      if (node.nodeType === 1) {
+      if (lines && node.nodeType === 1) {
         if (node.tagName.toLowerCase() === 'br') {
-          newLines[++num] = len;
+          newLines.push(len);
         }
         return false;
       }
       return !this.excludeElements(node.parentNode);
     }, () => {
-      if (newLines[num] < len - 1) {
-        newLines[++num] = len - 1;
-      }
       const dict = this.createDict(text, nodes, 'every');
-      dict.newLines = newLines;
+      if (lines) {
+        newLines.push(len);
+        dict.newLines = newLines;
+      }
       cb(dict);
     });
   }
@@ -747,21 +726,20 @@ class Mark$1 {
   }
   wrapRangeInsert(dict, n, s, e, start, index) {
     const ended = e === n.node.textContent.length;
-    let type = 0,
-      retNode, textNode;
+    let type = 1,
+      retNode = this.empty,
+      textNode;
     if (s === 0) {
       if (ended) {
         const node = this.wrapTextNode(n.node);
         n.node = node.childNodes[0];
-        return { markNode : node, nodeInfo : this.createInfo(this.empty, n.end, n.end, n.offset, 0), increment : 0 };
+        return { markNode : node, nodeInfo : this.createInfo(retNode, n.end, n.end, n.offset, 0), increment : 0 };
       } else {
         retNode = n.node.splitText(e);
         textNode = n.node;
-        type = 1;
       }
     } else if (ended) {
       textNode = n.node.splitText(s);
-      retNode = this.empty;
       type = 2;
     } else {
       textNode = n.node.splitText(s);
@@ -801,13 +779,10 @@ class Mark$1 {
   wrapRange(node, start, end, eachCb) {
     let retNode = this.empty,
       ended = end === node.textContent.length,
-      textNode;
+      textNode = node;
     if (start === 0) {
-      if (ended) {
-        textNode = node;
-      } else {
+      if ( !ended) {
         retNode = node.splitText(end);
-        textNode = node;
       }
     } else if (ended) {
       textNode = node.splitText(start);
@@ -823,7 +798,7 @@ class Mark$1 {
       rangeStart = true;
     const wrapAllRanges = this.opt.wrapAllRanges || this.opt.cacheTextNodes;
     if (wrapAllRanges) {
-      while (i >= 0 && dict.nodes[i].start > start) {
+      while (i > 0 && dict.nodes[i].start > start) {
         i--;
       }
     } else if (start < dict.lastTextIndex) {
@@ -1104,8 +1079,7 @@ class Mark$1 {
   wrapMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort : false },
-      filterInfo = { execution : execution },
-      eachInfo = {};
+      filterInfo = { execution : execution };
     let info, node, match, str, count = 0;
     this.getTextNodes(dict => {
       for (let k = 0; k < dict.nodes.length; k++) {
@@ -1124,9 +1098,10 @@ class Mark$1 {
           const end = start + str.length;
           if (this.opt.cacheTextNodes) {
             const obj = this.wrapRangeInsert(dict, info, start, end, info.start + start, k);
-            eachInfo.match = match;
-            eachInfo.count = ++count;
-            eachCb(obj.markNode, eachInfo);
+            eachCb(obj.markNode, {
+              match : match,
+              count : ++count,
+            });
             if (obj.increment === 0) {
               break;
             }
@@ -1135,10 +1110,9 @@ class Mark$1 {
             node = info.node;
           } else {
             node = this.wrapRange(node, start, end, node => {
-              count++;
               eachCb(node, {
                 match : match,
-                count : count
+                count : ++count
               });
             });
           }
@@ -1190,14 +1164,13 @@ class Mark$1 {
     });
   }
   wrapRanges(ranges, filterCb, eachCb, endCb) {
-    const logs = [],
-      lines = this.opt.markLines,
-      fn = lines ? 'getTextNodesNewLines' : 'getTextNodes',
+    const lines = this.opt.markLines,
+      logs = [],
       skipped = [],
       level = 'warn';
     let count = 0;
-    this[fn](dict => {
-      const max = lines ? Object.keys(dict.newLines).length : dict.text.length,
+    this.getTextNodes(dict => {
+      const max = lines ? dict.newLines.length : dict.text.length,
         array = this.checkRanges(ranges, logs, lines ? 1 : 0, max);
       array.forEach((range, index) => {
         let start = range.start,
@@ -1207,8 +1180,11 @@ class Mark$1 {
           end = max;
         }
         if (lines) {
-          start = dict.newLines[start];
-          end = dict.newLines[end];
+          start = dict.newLines[start-1];
+          if (dict.text[start] === '\n') {
+            start++;
+          }
+          end = dict.newLines[end-1];
         }
         const substr = dict.text.substring(start, end);
         if (substr.trim()) {
@@ -1298,7 +1274,7 @@ class Mark$1 {
   }
   mark(sv, opt) {
     this.opt = this.checkOption(opt);
-    if (this.opt && this.opt.combinePatterns) {
+    if (this.opt.combinePatterns) {
       this.markCombinePatterns(sv);
       return;
     }
@@ -1391,9 +1367,7 @@ class Mark$1 {
       });
     };
     if (terms.length) {
-      terms.forEach(term => {
-        termStats[term] = 0;
-      });
+      terms.forEach(term => termStats[term] = 0);
       const obj = this.getPatterns(terms);
       termsParts = obj.termsParts;
       patterns = obj.patterns;
@@ -1492,7 +1466,7 @@ function Mark(ctx) {
     return this;
   };
   this.getVersion = () => {
-    return '2.1.2';
+    return '2.2.0';
   };
   return this;
 }

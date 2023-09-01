@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.1.2
+* advanced-mark.js v2.2.0
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -18,10 +18,9 @@ class RegExpCreator$1 {
     }, options);
   }
   create(str, patterns) {
+    const flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
     str = this.checkWildcardsEscape(str);
-    if (Object.keys(this.opt.synonyms).length) {
-      str = this.createSynonyms(str);
-    }
+    str = this.createSynonyms(str, flags);
     const joiners = this.getJoinersPunctuation();
     if (joiners) {
       str = this.setupIgnoreJoiners(str);
@@ -39,7 +38,7 @@ class RegExpCreator$1 {
     const obj = this.createAccuracy(str);
     return (patterns
       ? obj
-      : new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, `g${this.opt.caseSensitive ? '' : 'i'}`));
+      : new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, flags));
   }
   createCombinePattern(array, capture) {
     if ( !Array.isArray(array) || !array.length) {
@@ -76,9 +75,11 @@ class RegExpCreator$1 {
     });
     return result;
   }
-  createSynonyms(str) {
-    const syn = this.opt.synonyms,
-      flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
+  createSynonyms(str, flags) {
+    const syn = this.opt.synonyms;
+    if ( !Object.keys(syn).length) {
+      return str;
+    }
     for (const key in syn) {
       if (syn.hasOwnProperty(key)) {
         let array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
