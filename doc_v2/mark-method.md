@@ -26,7 +26,7 @@ $(context).mark(search[, options]);
       * `value`: 'exactly' or 'complementary'
       * `limiters`: a string or an array of custom word boundary characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"" }`
 
-  * `wildcards` {string} - Two characters `?` and `*` used as wildcards (default is `disabled`):
+  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless thay are escaped (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
     * `enabled`:
       * The character `?` match any non-white-space character zero or one time.

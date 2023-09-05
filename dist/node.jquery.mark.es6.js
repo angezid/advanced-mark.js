@@ -1138,11 +1138,15 @@ class Mark {
       while ((match = regex.exec(dict.text)) !== null && (str = match[index]) !== '') {
         filterInfo.match = match;
         matchStart = true;
-        let i = 0, start = match.index;
+        let i = 0,
+          start = match.index,
+          len = str ? str.length : 0;
         while (++i < index) {
-          start += match[i].length;
+          if (match[i]) {
+            start += match[i].length;
+          }
         }
-        this.wrapRangeAcross(dict, start, start + str.length, obj => {
+        this.wrapRangeAcross(dict, start, start + len, obj => {
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;
