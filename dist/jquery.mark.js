@@ -1509,11 +1509,14 @@
             filterInfo.match = match;
             matchStart = true;
             var i = 0,
-              start = match.index;
+              start = match.index,
+              len = str ? str.length : 0;
             while (++i < index) {
-              start += match[i].length;
+              if (match[i]) {
+                start += match[i].length;
+              }
             }
-            _this10.wrapRangeAcross(dict, start, start + str.length, function (obj) {
+            _this10.wrapRangeAcross(dict, start, start + len, function (obj) {
               filterInfo.matchStart = matchStart;
               filterInfo.offset = obj.startOffset;
               matchStart = false;

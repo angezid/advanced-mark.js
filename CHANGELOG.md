@@ -1,10 +1,10 @@
 
 ### 2.2.0
 
-* Added ability for mark line ranges (`markRanges()` API with `markLines` option).
-* Fixed skipping `br` element in `getTextNodesAcross()` method.
-* Fixed skipping `br` element in `getTextNodesAcross()` method.
-* Fixed negative value of the start index in `wrapRangeAcross()` method with `wrapAllRanges` option which can occur in some cases. 
+* Added ability to mark line ranges (`markRanges()` API with `markLines` option).
+* Fixed handling `br` element in `getTextNodesAcross()` method.
+* Fixed negative value of the start index in `wrapRangeAcross()` method with `wrapAllRanges` option, which can occur in some cases.
+* Improvement that allows usage of RegExp conditional capturing groups with  `ignoreGroups` and `acrossElements` options in `markRegExp()` API.
 
 ### 2.1.2
 

@@ -1460,12 +1460,18 @@ class Mark {
         matchStart = true;
 
         // calculates range inside dict.text
-        let i = 0, start = match.index;
+        let i = 0,
+          start = match.index,
+          // 0 in case of undefined 'str' allows the filter callback to be called
+          len = str ? str.length : 0;
+        
         while (++i < index) {
-          start += match[i].length;
+          if (match[i]) { // ignore group can be undefined
+            start += match[i].length;
+          }
         }
-
-        this.wrapRangeAcross(dict, start, start + str.length, obj => { // filter
+        
+        this.wrapRangeAcross(dict, start, start + len, obj => { // filter
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;
@@ -1481,7 +1487,7 @@ class Mark {
             count : count,
           });
         });
-
+        
         if (execution.abort) {
           break;
         }
