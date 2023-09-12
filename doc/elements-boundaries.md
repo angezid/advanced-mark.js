@@ -20,7 +20,7 @@ If the custom `tagNames` are defined:
 * they can be the only elements that have boundaries
 * they can be added to the default block elements
 
-The `blockElementsBoundary` option makes sense only when highlighting phrases or RegExp separate groups.
+The `blockElementsBoundary` option makes sense only when highlighting phrases or RegExp separate groups, or using a wildcards character `*` with `wildcards : 'withSpaces'` option.
 
 * `blockElementsBoundary` {boolean|object} - Option: (default is `undefined`)
   * `tagNames` {string[]} - The string or array of tag name. (default is `undefined`)

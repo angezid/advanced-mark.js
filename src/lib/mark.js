@@ -1369,14 +1369,16 @@ class Mark {
         while ((match = regex.exec(node.textContent)) !== null && (str = match[index]) !== '') {
           filterInfo.match = match;
           filterInfo.offset = info.start;
-
-          if ( !filterCb(node, str, filterInfo)) {
+          // in case of undefined 'str' the filter callback should be called first
+          if ( !filterCb(node, str, filterInfo) || !str) {
             continue;
           }
-          // calculates range inside dict.text
+          // calculates the start index inside node.textContent
           let i = 0, start = match.index;
           while (++i < index) {
-            start += match[i].length;
+            if (match[i]) { // allows any ignore group to be undefined
+              start += match[i].length;
+            }
           }
           const end = start + str.length;
 
@@ -1459,19 +1461,16 @@ class Mark {
         filterInfo.match = match;
         matchStart = true;
 
-        // calculates range inside dict.text
+        // calculates the start index inside dict.text
         let i = 0,
-          start = match.index,
-          // 0 in case of undefined 'str' allows the filter callback to be called
-          len = str ? str.length : 0;
-        
+          start = match.index;
         while (++i < index) {
-          if (match[i]) { // ignore group can be undefined
+          if (match[i]) { // allows any ignore group to be undefined
             start += match[i].length;
           }
         }
-        
-        this.wrapRangeAcross(dict, start, start + len, obj => { // filter
+        // in case of undefined 'str' 0 allows the filter callback to be called
+        this.wrapRangeAcross(dict, start, start + (str ? str.length : 0), obj => { // filter
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;

@@ -15,7 +15,7 @@ $(context).markRegExp(regex[, options]);
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} -  A class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
-  * `ignoreGroups` {number} - The number of contiguous capturing groups that should be ignored from the start of RegExp (default is `0`)
+  * `ignoreGroups` {number} - The number of adjacent capturing groups that should be ignored from the start of RegExp (default is `0`)
     e.g. `/(\w+)(\.)(\w+)(?!\2)/g`, `ignoreGroups : 2` - mark the group 3
   * `separateGroups` {boolean} - Whether to mark RegExp capturing groups instead of whole match (default is `false`)
     See [Highlighting separate groups](separate-groups.md) for more details.
@@ -51,6 +51,8 @@ $(context).markRegExp(regex[, options]);
         * `abort` {boolean} - Setting it to `true` breaks method execution
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
         When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
+  
+The function must return `false` to skip wrapping mark element, otherwise `true`.
 
   * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
@@ -88,7 +90,7 @@ $(context).markRegExp(regex[, options]);
 |  above options are false         |     +      |      -          |     -        |     -      |   +   |
 
 
-<details id="internal-code">
+<details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {

@@ -4,7 +4,7 @@
 * Added ability to mark line ranges (`markRanges()` API with `markLines` option).
 * Fixed handling `br` element in `getTextNodesAcross()` method.
 * Fixed negative value of the start index in `wrapRangeAcross()` method with `wrapAllRanges` option, which can occur in some cases.
-* Improvement that allows usage of RegExp conditional capturing groups with  `ignoreGroups` and `acrossElements` options in `markRegExp()` API.
+* An improvement that allows usage of RegExp conditional capturing groups with  `ignoreGroups` option in `markRegExp()` API.
 
 ### 2.1.2
 
@@ -18,7 +18,7 @@
 
 ### 2.1.0
 
-* Fixed bug related using a wildcards character `*` with `wildcards : 'withSpaces'`, `acrossElements` , and `blockElementBoundary` options.
+* Fixed bug related using a wildcards character `*` with `wildcards : 'withSpaces'`, `acrossElements` , and `blockElementsBoundary` options.
 * Added supports for virtual DOM environments such as JSDOM. Thanks to [Tyler Nickerson](https://github.com/Nickersoft) for the contribution.
 
 ### 2.0.0
@@ -37,7 +37,7 @@
 
 ### 1.1.2
 
-* Fixed bug related using a wildcards character `*` with `wildcards : 'withSpaces'`, `acrossElements` , and `blockElementBoundary` options.
+* Fixed bug related using a wildcards character `*` with `wildcards : 'withSpaces'`, `acrossElements` , and `blockElementsBoundary` options.
 * Fixed types path in package.json.
 
 ### 1.1.1

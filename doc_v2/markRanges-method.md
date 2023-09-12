@@ -30,7 +30,9 @@ $(context).markRanges(ranges[, options]);
     * `textNode` {Text} - The text node which includes the range or is the part of the range
     * `range` {object} - The current range object
     * `matchString` {string} - The current range matching string
-    * `index` {number} - The current range index ???
+    * `index` {number} - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)
+  
+The function must return `false` to skip wrapping mark element, otherwise `true`.
 
   * `each : (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
@@ -46,7 +48,7 @@ $(context).markRanges(ranges[, options]);
   * `noMatch : (range) => {}` {function} - A callback that is called on non-valid range (default is )
     * `range` {string} - The stringify range
 
-<details id="internal-code">
+<details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
@@ -54,9 +56,9 @@ $(context).markRanges(ranges[, options]);
     className : '',
     exclude : [],
     
-	wrapAllRanges : false,
-	
-	shadowDOM : false,
+    wrapAllRanges : false,
+    markLines : false,
+    shadowDOM : false,
     iframes : false,
     iframesTimeout : 5000,
     

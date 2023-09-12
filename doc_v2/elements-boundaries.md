@@ -1,21 +1,21 @@
 
 ## Elements boundaries
 
-With `acrossElements` option, `advance-mark.js` aggregates text nodes content into a single string, taking into account HTML elements.
+With `acrossElements` option, *advance-mark.js* aggregates text nodes content into a single string, taking into account HTML elements.
 If a block element 'divides' two text nodes, and `node.textContent`s doesn't separated by white space, the space is added to the string to separate them,  
-e.g. '<h1>Header</h1><p>Paragraph</p>' resulted: in `mark.js` - 'HeaderParagraph', in `advance-mark.js` - 'Header Paragraph'.  
+e.g. '<h1>Header</h1><p>Paragraph</p>' resulted: in *mark.js* - 'HeaderParagraph', in *advance-mark.js* - 'Header Paragraph'.
 
 But the `acrossElements` option doesn't 'knows' any boundaries.  
 A `blockElementsBoundary` option is 'invented' to limit matches within HTML block elements.  
 It allows matches only across HTML inline elements (`blockElementsBoundary : true`).
 
-With the `blockElementsBoundary` option, if a block element 'divides' two text nodes, `\x01` character with spaces (it depend) is added between them, e.g. above combined string becomes 'Header \x01 Paragraph'.
-<br>  
-If the custom `tagNames` are defined:
-* they can be the only elements that have boundaries
-* they can be added to the default block elements
+**Note** that using the `blockElementsBoundary` option only makes sense when highlighting phrases or RegExp capturing groups, or using a wildcards character `*` with <code><a href="mark-method.md#mark-wildcards">wildcards</a> : 'withSpaces'</code> option.
 
-The `blockElementsBoundary` option makes sense only when highlighting phrases or RegExp capturing groups, or using a wildcards character `*` with `wildcards : 'withSpaces' ` option.
+With the `blockElementsBoundary` option, if a block element 'divides' two text nodes, `\x01` character with spaces (it depend) is added between them, e.g. above combined string becomes 'Header \x01 Paragraph'.  
+
+If the custom `tagNames` are defined, they can be:
+1. the only elements that have boundaries
+2. added to the default block elements
 
 * `blockElementsBoundary` {boolean|object} - Option: (default is `undefined`)
   * `tagNames` {string[]} - The string or array of tag name. (default is `undefined`)
@@ -39,7 +39,7 @@ instance.mark('lorem ipsum dolor', {
 
 ### Extending default block elements with custom elements:
 ``` js
-context.markRegExp(/.../gi, {
+instance.markRegExp(/.../gi, {
     'acrossElements' : true,
     'blockElementsBoundary' : {
         // custom elements are added to the default block elements

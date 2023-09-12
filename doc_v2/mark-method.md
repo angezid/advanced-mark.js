@@ -18,15 +18,17 @@ $(context).mark(search[, options]);
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
   * `accuracy` {string|object} -   (default is `'partially'`):
-    * Either one of the following string value:
+    * Either one of the following <b>string</b> value:
       * `'partially'` e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.
       * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white-space characters and start/end of a text node (with `acrossElements` option - start/end of a context).
-      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'. The default word boundaries are: whitespaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
-    * Or an bject with two properties:
+      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.  
+        The default word boundaries are: white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
+    * Or an <b>object</b> with two properties:
       * `value`: 'exactly' or 'complementary'
-      * `limiters`: a string or an array of custom word boundary characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"" }`
+      * `limiters`: a string or an array of custom word boundary characters,  
+        e.g. `{ value : "exactly", limiters : ",.;:?!'\"" }`
 
-  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless thay are escaped (default is `disabled`):
+  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
     * `enabled`:
       * The character `?` match any non-white-space character zero or one time.
@@ -37,8 +39,9 @@ $(context).mark(search[, options]);
         
   * `ignoreJoiners` {boolean} - Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner (default is `false`)
   * `ignorePunctuation` {string|string[]} - A string or an array of punctuation characters (default is `[]`)
-  * `synonyms` {object} - An object with synonyms  (default is `{}`):
-    e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa. Value can be an array `{ 'be': ['am', 'is', 'are'] }`.
+  * `synonyms` {object} - An object with synonyms  (default is `{}`)
+    e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa.  
+    The value can be an array, e.g. `{ 'be': ['am', 'is', 'are'] }`.
 
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
   * `combinePatterns` {number|boolean} - Combine a specified number of individual term patterns into one (default is `10`)
@@ -71,6 +74,8 @@ $(context).mark(search[, options]);
         * `abort` {boolean} - Setting it to `true` breaks method execution
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.  
         When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
+  
+The function must return `false` to skip wrapping mark element, otherwise `true`.
 
   * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
@@ -85,7 +90,7 @@ $(context).mark(search[, options]);
     * `termStats` {object} - An object containing an individual term's matches count
 
   * `noMatch : (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
-    * `term` {string|string[]} - The not found term(s); the parameter is array when `combinePatterns` option is used
+    * `term` {string|string[]} - The not found term(s); the parameter is an array when `combinePatterns` option is used
 
 ### Available properties of the `filterInfo` object depending on options
 
@@ -102,7 +107,7 @@ $(context).mark(search[, options]);
 |  acrossElements: true            |     +      |      +          |   +   |
 |  acrossElements: false           |     +      |      -          |   +   |
   
-<details id="internal-code">
+<details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
