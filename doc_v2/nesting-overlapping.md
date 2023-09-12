@@ -54,16 +54,13 @@ instance.markRanges(ranges, {
 
 #### To mark nesting groups with `acrossElements` option and `d` flag.
 ``` js
-instance.markRegExp(/(\w+\s(nested group)\s+\w+)/dg, {
+instance.markRegExp(/\w+\s((nested group)\s+\w+)/dg, {
     'acrossElements' : true,
     'separateGroups' : true,
     'wrapAllRanges' : true,
     'each' : (markElement, info) => {
-      if (info.groupStart) {
-          // info.groupIndex is the index of a current match group
-          if (info.groupIndex === 2) {
-              markElement.className = 'nested';
-          }
+      if (info.groupIndex === 2) {
+          markElement.className = 'nested';
       }
     }
 });
@@ -122,7 +119,7 @@ function buildRanges(instance, regex) {
               length : indices[1] - indices[0]
             };
             // some additional properties e.g. class/color to highlight nested group,
-            // match identifer to highlight all match groups with next/previous buttons ...
+            // match identifier to highlight all match groups with next/previous buttons ...
             // can be added here to the range object
             ranges.push(range);
           }

@@ -1,0 +1,30 @@
+{
+    "doc-info": {
+        "version": "Version 2"
+    },
+    "getting-started": {
+        "name": "Getting Started",
+        "node": "false",
+        "files": ["getting-started.md"]
+    },
+    "api": {
+        "name": "API",
+        "node": "true",
+        "files": ["mark-method.md", "markRegExp-method.md", "markRanges-method.md", "unmark-method.md"]
+    },
+    "usage": {
+        "name": "Usage",
+        "node": "true",
+        "files": ["performance.md", "filtering-matches.md", "separate-groups.md", "nesting-overlapping.md", "elements-boundaries.md", "shadow-dom.md", "mark-lines.md","some-examples.md", "TypeScript-types.md"]
+    },
+    "regexpcreator": {
+        "name": "RegExpCreator",
+        "node": "true",
+        "files": ["RegExpCreator-module.md"]
+    },
+    "src": {
+        "name": "Src",
+        "node": "true",
+        "files": ["mark.md", "domiterator.md", "regexpcreator.md"]
+    }
+}

@@ -1448,13 +1448,15 @@
             while ((match = regex.exec(node.textContent)) !== null && (str = match[index]) !== '') {
               filterInfo.match = match;
               filterInfo.offset = info.start;
-              if (!filterCb(node, str, filterInfo)) {
+              if (!filterCb(node, str, filterInfo) || !str) {
                 continue;
               }
               var i = 0,
                 start = match.index;
               while (++i < index) {
-                start += match[i].length;
+                if (match[i]) {
+                  start += match[i].length;
+                }
               }
               var end = start + str.length;
               if (_this9.opt.cacheTextNodes) {
@@ -1509,14 +1511,13 @@
             filterInfo.match = match;
             matchStart = true;
             var i = 0,
-              start = match.index,
-              len = str ? str.length : 0;
+              start = match.index;
             while (++i < index) {
               if (match[i]) {
                 start += match[i].length;
               }
             }
-            _this10.wrapRangeAcross(dict, start, start + len, function (obj) {
+            _this10.wrapRangeAcross(dict, start, start + (str ? str.length : 0), function (obj) {
               filterInfo.matchStart = matchStart;
               filterInfo.offset = obj.startOffset;
               matchStart = false;

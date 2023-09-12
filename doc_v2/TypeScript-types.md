@@ -6,6 +6,7 @@ The following TypeScript declaration files are added to `dist` folder:
 * mark.es6.d.ts  
 * jquery.mark.d.ts  
 * jquery.mark.es6.d.ts  
+* node.jquery.mark.es6.d.ts  
 * regexpcreator.d.ts  
 * regexpcreator.es6.d.ts
 
@@ -21,6 +22,7 @@ new Mark(document.querySelector("article")).mark('lorem ipsum', {});
 ```
 
 #### jQuery example 
+**Note:** in `Node.js` environment with `jquery` you need to use `node.jquery.mark.es6.js` module, which contains necessary `import $ from 'jquery'` declaration.
 ``` js
 import $ from 'jquery';
 import 'advanced-mark.js/dist/jquery.mark.js';

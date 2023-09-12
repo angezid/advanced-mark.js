@@ -4,7 +4,6 @@
 **See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
 
 
-
 ### Syntax
 ``` js
 // javascript
@@ -31,7 +30,7 @@ $(context).mark(search[, options]);
       * `value`: 'exactly' or 'complementary'
       * `limiters`: an array of custom word boundary characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"".split() }`
 
-  * `wildcards` {string} - Two characters `?` and `*` used as wildcards (default is `disabled`):
+  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless thay are escaped (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
     * `enabled`:
       * The character `?` match any non-white-space character zero or one time.
@@ -39,12 +38,12 @@ $(context).mark(search[, options]);
     * `withSpaces`:
       * The character `?` match any character zero or one time.
       * The character `*` match any character zero or more time, but as few times as possible.
-        
+
   * `ignoreJoiners` {boolean} - Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner (default is `false`)
   * `ignorePunctuation` {string[]} - An array of punctuation characters (default is `[]`)
   * `synonyms` {object} - An object with synonyms  (default is `{}`):
     e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa. Value can be an array `{ 'be': ['am', 'is', 'are'] }`.
-    
+
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
   * `combinePatterns` {number|boolean} - Combine a specified number of individual term patterns into one (default is `10`)
     See [Performance](performance.md#ways-to-boost-performance) for more details.
@@ -52,6 +51,11 @@ $(context).mark(search[, options]);
     See [Performance](performance.md#ways-to-boost-performance) for more details.
   * `blockElementsBoundary` {boolean|object} - Whether to limit matches within default HTML block elements and/or custom elements (default is `undefined`)  AE
     See [Elements boundaries](elements-boundaries.md) for more details.
+    * `tagNames` {string[]} - An array of custom HTML tag names
+    * `extend` {boolean} - `true` extends default boundary elements by the custom elements
+      otherwise only the custom elements do have boundaries
+    * `char` {string} - A custom boundary character. The default is `\x01`.
+
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
@@ -86,7 +90,7 @@ $(context).mark(search[, options]);
 
   * `noMatch : (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
     * `term` {string|string[]} - The not found term(s); the parameter is array when `combinePatterns` option is used
-  
+
 ### Available properties of the `filterInfo` object depending on options
 
 |            options               |    match   |   matchStart   |  execution  | offset |
@@ -150,5 +154,4 @@ jQuery:
 <pre><code class='lang-javascript'>$('selector').mark('test', options);</code></pre>
 </details>
 
-* AE across elements
-					
+* AE - only available when `acrossElements` option is set to `true`

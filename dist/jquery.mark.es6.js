@@ -1088,12 +1088,14 @@ class Mark {
         while ((match = regex.exec(node.textContent)) !== null && (str = match[index]) !== '') {
           filterInfo.match = match;
           filterInfo.offset = info.start;
-          if ( !filterCb(node, str, filterInfo)) {
+          if ( !filterCb(node, str, filterInfo) || !str) {
             continue;
           }
           let i = 0, start = match.index;
           while (++i < index) {
-            start += match[i].length;
+            if (match[i]) {
+              start += match[i].length;
+            }
           }
           const end = start + str.length;
           if (this.opt.cacheTextNodes) {
@@ -1138,14 +1140,13 @@ class Mark {
         filterInfo.match = match;
         matchStart = true;
         let i = 0,
-          start = match.index,
-          len = str ? str.length : 0;
+          start = match.index;
         while (++i < index) {
           if (match[i]) {
             start += match[i].length;
           }
         }
-        this.wrapRangeAcross(dict, start, start + len, obj => {
+        this.wrapRangeAcross(dict, start, start + (str ? str.length : 0), obj => {
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;

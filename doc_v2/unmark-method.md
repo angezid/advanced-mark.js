@@ -23,7 +23,7 @@ $(context).unmark([options]);
   * `done : () => {}` {function} - A callback after all specified marked elements were removed (default is )
     It has no parameters.
   
-<details id="internal-code">
+<details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
