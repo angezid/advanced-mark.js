@@ -4,7 +4,6 @@
 **See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
 
 
-
 ### Syntax
 ``` js
 // javascript
@@ -18,7 +17,7 @@ $(context).markRanges(ranges[, options]);
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} -  A class to be added to mark elements. (default is `''`)
-  * `exclude` {string|string[]} - A string or an array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
+  * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
   * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups  (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
 

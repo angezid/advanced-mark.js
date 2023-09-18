@@ -525,19 +525,15 @@ class Mark {
   checkRanges(array, logs, min, max) {
     const level = 'error';
     const ranges = array.filter(range => {
-      let valid = false;
       if (this.isNumeric(range.start) && this.isNumeric(range.length)) {
         range.start = parseInt(range.start);
         range.length = parseInt(range.length);
         if (range.start >= min && range.start < max && range.length > 0) {
-          valid = true;
+          return true;
         }
       }
-      if ( !valid) {
-        logs.push({ text : 'Invalid range: ', obj : range, level });
-        return false;
-      }
-      return true;
+      logs.push({ text : 'Invalid range: ', obj : range, level });
+      return false;
     }).sort((a, b) => a.start - b.start);
     if (this.opt.wrapAllRanges) {
       return ranges;
@@ -872,25 +868,24 @@ class Mark {
       group, start, end;
     const s = match.index,
       text = match[0];
-    if (this.opt.wrapAllRanges) {
-      this.wrapRangeAcross(dict, s, s + text.length, obj => {
+    const wrap = (start, end) => {
+      this.wrapRangeAcross(dict, start, end, obj => {
         return filterCb(obj, text, index);
       }, (node, groupStart) => {
         eachCb(node, groupStart, index);
       });
+    };
+    if (this.opt.wrapAllRanges) {
+      wrap(s, s + text.length);
     }
     for (let i = 0; i < params.groups.length; i++) {
       index = params.groups[i];
       group = match[index];
       if (group) {
         start = text.indexOf(group, startIndex);
-        end = start + group.length;
         if (start !== -1) {
-          this.wrapRangeAcross(dict, s + start, s + end, obj => {
-            return filterCb(obj, group, index);
-          }, (node, groupStart) => {
-            eachCb(node, groupStart, index);
-          });
+          end = start + group.length;
+          wrap(s + start, s + end);
           startIndex = end;
         }
       }
@@ -1392,7 +1387,7 @@ class Mark {
   }
   getPatterns(terms) {
     const creator = new RegExpCreator(this.opt),
-      first = creator.create(terms[0], true),
+      obj = creator.create(terms[0], true),
       option = this.opt.combinePatterns,
       patterns = [],
       array = [];
@@ -1405,14 +1400,13 @@ class Mark {
     }
     let count = Math.ceil(terms.length / num);
     for (let k = 0; k < count; k++)  {
-      let pattern = first.lookbehind + '(';
       const patternTerms = [],
         length = Math.min(k * num + num, terms.length);
       for (let i = k * num; i < length; i++)  {
         patternTerms.push(terms[i]);
       }
-      pattern += creator.createCombinePattern(patternTerms, true).pattern;
-      patterns.push(pattern + ')' + first.lookahead);
+      let str = `${obj.lookbehind}(${creator.createCombinePattern(patternTerms, true).pattern})${obj.lookahead}`;
+      patterns.push(str);
       array.push(patternTerms);
     }
     return {  patterns, termsParts : array };

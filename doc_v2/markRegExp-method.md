@@ -14,7 +14,7 @@ $(context).markRegExp(regex[, options]);
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} -  A class to be added to mark elements. (default is `''`)
-  * `exclude` {string|string[]} - A string or an array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
+  * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
   * `ignoreGroups` {number} - The number of adjacent capturing groups that should be ignored from the start of RegExp (default is `0`)
     e.g. `/(\w+)(\.)(\w+)(?!\2)/g`, `ignoreGroups : 2` - mark the group 3
   * `separateGroups` {boolean} - Whether to mark RegExp capturing groups instead of whole match (default is `false`)

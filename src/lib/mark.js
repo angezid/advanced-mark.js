@@ -154,7 +154,7 @@ class Mark {
       }
     });
   }
-  
+
   /**
    * Checks the validity of cache objects (mark instance can calls several methods with different setting
    * of the cacheTextNodes option, which breaks the relation of the DOM nodes and cache object nodes)
@@ -263,21 +263,16 @@ class Mark {
 
     // filters and sorts valid ranges
     const ranges = array.filter(range => {
-      let valid = false;
-
       if (this.isNumeric(range.start) && this.isNumeric(range.length)) {
         range.start = parseInt(range.start);
         range.length = parseInt(range.length);
 
         if (range.start >= min && range.start < max && range.length > 0) {
-          valid = true;
+          return true;
         }
       }
-      if ( !valid) {
-        logs.push({ text : 'Invalid range: ', obj : range, level });
-        return false;
-      }
-      return true;
+      logs.push({ text : 'Invalid range: ', obj : range, level });
+      return false;
     }).sort((a, b) => a.start - b.start);
 
     if (this.opt.wrapAllRanges) {
@@ -930,15 +925,18 @@ class Mark {
 
     const s = match.index,
       text = match[0];
-
-    //a way to mark nesting groups, it first wraps the whole match as a group 0
-    if (this.opt.wrapAllRanges) {
-      this.wrapRangeAcross(dict, s, s + text.length, obj => {
+    const wrap = (start, end) => {
+      this.wrapRangeAcross(dict, start, end, obj => {
         return filterCb(obj, text, index);
 
       }, (node, groupStart) => {
         eachCb(node, groupStart, index);
       });
+    };
+
+    //a way to mark nesting groups, it first wraps the whole match as a group 0
+    if (this.opt.wrapAllRanges) {
+      wrap(s, s + text.length);
     }
 
     // the only way to avoid nested group being searched by the indexOf method
@@ -950,15 +948,10 @@ class Mark {
       if (group) {
         // this approach only reliable with contiguous groups; unwanted group(s) can be easily filtered out
         start = text.indexOf(group, startIndex);
-        end = start + group.length;
 
         if (start !== -1) {
-          this.wrapRangeAcross(dict, s + start, s + end, obj => {
-            return filterCb(obj, group, index);
-
-          }, (node, groupStart) => {
-            eachCb(node, groupStart, index);
-          });
+          end = start + group.length;
+          wrap(s + start, s + end);
           startIndex = end;
         }
       }
@@ -1486,7 +1479,7 @@ class Mark {
             count : count,
           });
         });
-        
+
         if (execution.abort) {
           break;
         }
@@ -1918,7 +1911,7 @@ class Mark {
     */
   getPatterns(terms) {
     const creator = new RegExpCreator(this.opt),
-      first = creator.create(terms[0], true),
+      obj = creator.create(terms[0], true),
       option = this.opt.combinePatterns,
       patterns = [],
       array = [];
@@ -1935,7 +1928,6 @@ class Mark {
     let count = Math.ceil(terms.length / num);
 
     for (let k = 0; k < count; k++)  {
-      let pattern = first.lookbehind + '(';
       const patternTerms = [],
         length = Math.min(k * num + num, terms.length);
       // get a chunk of terms to create combine pattern
@@ -1944,9 +1936,8 @@ class Mark {
       }
       // wrapping an individual term pattern in a capturing group is necessary to determine
       // later which term is currently matched
-      pattern += creator.createCombinePattern(patternTerms, true).pattern;
-
-      patterns.push(pattern + ')' + first.lookahead);
+      let str = `${obj.lookbehind}(${creator.createCombinePattern(patternTerms, true).pattern})${obj.lookahead}`;
+      patterns.push(str);
       array.push(patternTerms);
     }
     return {  patterns, termsParts : array };

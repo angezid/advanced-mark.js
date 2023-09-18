@@ -13,7 +13,7 @@ $(context).mark(search[, options]);
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} - A class to be added to mark elements. (default is `''`)
-  * `exclude` {string|string[]} - A string or an array of selectors. Defines DOM elements that should be excluded from searching. (default is `[]`)
+  * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
   * `separateWordSearch` {boolean} - Whether to break term into separate words and search for each individual word (default is `true`)
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
