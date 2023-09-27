@@ -182,7 +182,8 @@ class Mark {
   }
 
   /**
-   * Splits string into separate words if separate word search was defined.
+   * Splits string into separate words if 'separateWordSearch' option has value 'true' but,
+   * if it has string value 'preserveTerms', prevents splitting terms surrounding by double quotes.
    * Removes duplicate or empty entries and sort by the length in descending order.
    * @param {string|string[]} [sv] - Search value, either a string or an array of strings
    * @return {array}
@@ -190,7 +191,11 @@ class Mark {
    */
   getSeachTerms(sv) {
     const search = this.isString(sv) ? [sv] : sv,
+      separate = this.opt.separateWordSearch,
       array = [],
+      split = str => {
+        str.split(' ').forEach(word => add(word));
+      },
       add = str => {
         if (str.trim() && array.indexOf(str) === -1) {
           array.push(str);
@@ -198,8 +203,20 @@ class Mark {
       };
 
     search.forEach(str => {
-      if (this.opt.separateWordSearch) {
-        str.split(' ').forEach(word => add(word));
+      if (separate) {
+        if (separate === 'preserveTerms') {
+          // allows highlight quoted terms no matter how many quotes it contains on each side,
+          // e.g. ' ""term"" ' or ' """"term" '
+          str.split(/"("*[^"]+"*)"/).forEach((term, i) => {
+            if (i % 2 > 0) {
+              add(term);
+            } else {
+              split(term);
+            }
+          });
+        } else {
+          split(str);
+        }
       } else {
         add(str);
       }

@@ -494,15 +494,29 @@ class Mark {
   }
   getSeachTerms(sv) {
     const search = this.isString(sv) ? [sv] : sv,
+      separate = this.opt.separateWordSearch,
       array = [],
+      split = str => {
+        str.split(' ').forEach(word => add(word));
+      },
       add = str => {
         if (str.trim() && array.indexOf(str) === -1) {
           array.push(str);
         }
       };
     search.forEach(str => {
-      if (this.opt.separateWordSearch) {
-        str.split(' ').forEach(word => add(word));
+      if (separate) {
+        if (separate === 'preserveTerms') {
+          str.split(/"("*[^"]+"*)"/).forEach((term, i) => {
+            if (i % 2 > 0) {
+              add(term);
+            } else {
+              split(term);
+            }
+          });
+        } else {
+          split(str);
+        }
       } else {
         add(str);
       }
