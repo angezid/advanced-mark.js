@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.2.0
+* advanced-mark.js v2.3.0
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -301,11 +301,11 @@ class RegExpCreator {
   escape(str) {
     return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
   }
-  escapeCharSet(str) {
-    return str.replace(/[-^\]\\]/g, '\\$&');
-  }
-  toArrayIfString(par) {
-    return par && par.length ? this.distinct(typeof par === 'string' ? par.split('') : par) : [];
+  preprocess(val) {
+    if (val && val.length) {
+      return this.distinct(typeof val === 'string' ? val.split('') : val).join('').replace(/[-^\]\\]/g, '\\$&');
+    }
+    return '';
   }
   distinct(array) {
     const result = [];
@@ -358,11 +358,8 @@ class RegExpCreator {
     return str.split(/\u0000+/).join(`[${joiners}]*`);
   }
   getJoinersPunctuation() {
-    let punct = this.toArrayIfString(this.opt.ignorePunctuation),
-      str = '';
-    if (punct.length) {
-      str = this.escapeCharSet(punct.join(''));
-    }
+    let punct = this.preprocess(this.opt.ignorePunctuation),
+      str = punct ? punct : '';
     if (this.opt.ignoreJoiners) {
       str += '\\u00ad\\u200b\\u200c\\u200d';
     }
@@ -401,17 +398,22 @@ class RegExpCreator {
       lookahead = '',
       limiters;
     if (typeof accuracy !== 'string') {
-      limiters = this.toArrayIfString(accuracy.limiters);
-      limiters = limiters.length ? limiters : null;
+      limiters = this.preprocess(accuracy.limiters);
       accuracy = accuracy.value;
     }
-    if (accuracy === 'complementary') {
-      let joins ='\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
-      pattern = `[^${joins}]*${str}[^${joins}]*`;
-    } else if (accuracy === 'exactly') {
-      let joins = limiters ? '|' + limiters.map(ch => this.escape(ch)).join('|') : '';
-      lookbehind = `(^|\\s${joins})`;
-      lookahead = `(?=$|\\s${joins})`;
+    if (accuracy === 'exactly') {
+      const charSet = limiters ? '[\\s' + limiters + ']' : '\\s';
+      lookbehind = `(^|${charSet})`;
+      lookahead = `(?=$|${charSet})`;
+    } else {
+      const chs = limiters ? limiters : chars,
+        charSet = `[^\\s${chs}]*`;
+      if (accuracy === 'complementary') {
+        pattern = charSet + str + charSet;
+      } else if (accuracy === 'startsWith') {
+        str = str.replace(/\[\\s\]\+/g, charSet + '$&');
+        pattern = `(?<=^|[\\s${chs}])` + str + charSet;
+      }
     }
     return { lookbehind, pattern, lookahead };
   }
@@ -497,7 +499,7 @@ class Mark$1 {
       separate = this.opt.separateWordSearch,
       array = [],
       split = str => {
-        str.split(' ').forEach(word => add(word));
+        str.split(/ +/).forEach(word => add(word));
       },
       add = str => {
         if (str.trim() && array.indexOf(str) === -1) {
@@ -1479,7 +1481,7 @@ function Mark(ctx) {
     return this;
   };
   this.getVersion = () => {
-    return '2.2.0';
+    return '2.3.0';
   };
   return this;
 }

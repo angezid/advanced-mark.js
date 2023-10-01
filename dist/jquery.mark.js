@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.2.0
+* advanced-mark.js v2.3.0
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -424,14 +424,12 @@
         return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
       }
     }, {
-      key: "escapeCharSet",
-      value: function escapeCharSet(str) {
-        return str.replace(/[-^\]\\]/g, '\\$&');
-      }
-    }, {
-      key: "toArrayIfString",
-      value: function toArrayIfString(par) {
-        return par && par.length ? this.distinct(typeof par === 'string' ? par.split('') : par) : [];
+      key: "preprocess",
+      value: function preprocess(val) {
+        if (val && val.length) {
+          return this.distinct(typeof val === 'string' ? val.split('') : val).join('').replace(/[-^\]\\]/g, '\\$&');
+        }
+        return '';
       }
     }, {
       key: "distinct",
@@ -504,11 +502,8 @@
     }, {
       key: "getJoinersPunctuation",
       value: function getJoinersPunctuation() {
-        var punct = this.toArrayIfString(this.opt.ignorePunctuation),
-          str = '';
-        if (punct.length) {
-          str = this.escapeCharSet(punct.join(''));
-        }
+        var punct = this.preprocess(this.opt.ignorePunctuation),
+          str = punct ? punct : '';
         if (this.opt.ignoreJoiners) {
           str += "\\u00ad\\u200b\\u200c\\u200d";
         }
@@ -537,7 +532,6 @@
     }, {
       key: "createAccuracy",
       value: function createAccuracy(str) {
-        var _this3 = this;
         var chars = '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
         var accuracy = this.opt.accuracy,
           lookbehind = '()',
@@ -545,19 +539,22 @@
           lookahead = '',
           limiters;
         if (typeof accuracy !== 'string') {
-          limiters = this.toArrayIfString(accuracy.limiters);
-          limiters = limiters.length ? limiters : null;
+          limiters = this.preprocess(accuracy.limiters);
           accuracy = accuracy.value;
         }
-        if (accuracy === 'complementary') {
-          var joins = '\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
-          pattern = "[^".concat(joins, "]*").concat(str, "[^").concat(joins, "]*");
-        } else if (accuracy === 'exactly') {
-          var _joins = limiters ? '|' + limiters.map(function (ch) {
-            return _this3.escape(ch);
-          }).join('|') : '';
-          lookbehind = "(^|\\s".concat(_joins, ")");
-          lookahead = "(?=$|\\s".concat(_joins, ")");
+        if (accuracy === 'exactly') {
+          var charSet = limiters ? '[\\s' + limiters + ']' : '\\s';
+          lookbehind = "(^|".concat(charSet, ")");
+          lookahead = "(?=$|".concat(charSet, ")");
+        } else {
+          var chs = limiters ? limiters : chars,
+            _charSet = "[^\\s".concat(chs, "]*");
+          if (accuracy === 'complementary') {
+            pattern = _charSet + str + _charSet;
+          } else if (accuracy === 'startsWith') {
+            str = str.replace(/\[\\s\]\+/g, _charSet + '$&');
+            pattern = "(?<=^|[\\s".concat(chs, "])") + str + _charSet;
+          }
         }
         return {
           lookbehind: lookbehind,
@@ -668,7 +665,7 @@
           separate = this.opt.separateWordSearch,
           array = [],
           split = function split(str) {
-            str.split(' ').forEach(function (word) {
+            str.split(/ +/).forEach(function (word) {
               return add(word);
             });
           },
@@ -1896,7 +1893,7 @@
     return this;
   };
   $__default["default"].fn.getVersion = function () {
-    return '2.2.0';
+    return '2.3.0';
   };
 
   return $__default["default"];

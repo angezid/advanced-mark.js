@@ -1,5 +1,5 @@
 
-// Type definitions for advanced-mark.js v2.2.0
+// Type definitions for advanced-mark.js v2.3.0
 // Based on "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/mark.js"
 
 declare namespace Mark {
@@ -19,7 +19,7 @@ declare namespace Mark {
   }
 
   interface AccuracyObject {
-    value: 'exactly' | 'complementary';
+    value: 'exactly' | 'startsWith' | 'complementary';
     limiters: string | string[];
   }
 
@@ -28,9 +28,9 @@ declare namespace Mark {
     window?: Window;
     className?: string;
     exclude?: string | string[];
-    separateWordSearch?: boolean;
+    separateWordSearch?: boolean | 'preserveTerms';
     acrossElements?: boolean;
-    accuracy?: 'partially' | 'exactly' | 'complementary' | AccuracyObject;
+    accuracy?: 'partially' | 'exactly' | 'startsWith' | 'complementary' | AccuracyObject;
     diacritics?: boolean;
     synonyms?: { [index: string] : string | string[] };
     caseSensitive?: boolean;
@@ -120,6 +120,7 @@ declare namespace Mark {
     iframesTimeout?: number;
 
     wrapAllRanges?: boolean;
+    markLines?: boolean;
     shadowDOM?: boolean | ShadowObject;
 
     filter?(textNode: Text, range: Range, matchingString: string, currentIndex: number) : boolean;

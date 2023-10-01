@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.2.0
+* advanced-mark.js v2.3.0
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -60,11 +60,11 @@ class RegExpCreator$1 {
   escape(str) {
     return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
   }
-  escapeCharSet(str) {
-    return str.replace(/[-^\]\\]/g, '\\$&');
-  }
-  toArrayIfString(par) {
-    return par && par.length ? this.distinct(typeof par === 'string' ? par.split('') : par) : [];
+  preprocess(val) {
+    if (val && val.length) {
+      return this.distinct(typeof val === 'string' ? val.split('') : val).join('').replace(/[-^\]\\]/g, '\\$&');
+    }
+    return '';
   }
   distinct(array) {
     const result = [];
@@ -117,11 +117,8 @@ class RegExpCreator$1 {
     return str.split(/\u0000+/).join(`[${joiners}]*`);
   }
   getJoinersPunctuation() {
-    let punct = this.toArrayIfString(this.opt.ignorePunctuation),
-      str = '';
-    if (punct.length) {
-      str = this.escapeCharSet(punct.join(''));
-    }
+    let punct = this.preprocess(this.opt.ignorePunctuation),
+      str = punct ? punct : '';
     if (this.opt.ignoreJoiners) {
       str += '\\u00ad\\u200b\\u200c\\u200d';
     }
@@ -160,17 +157,22 @@ class RegExpCreator$1 {
       lookahead = '',
       limiters;
     if (typeof accuracy !== 'string') {
-      limiters = this.toArrayIfString(accuracy.limiters);
-      limiters = limiters.length ? limiters : null;
+      limiters = this.preprocess(accuracy.limiters);
       accuracy = accuracy.value;
     }
-    if (accuracy === 'complementary') {
-      let joins ='\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
-      pattern = `[^${joins}]*${str}[^${joins}]*`;
-    } else if (accuracy === 'exactly') {
-      let joins = limiters ? '|' + limiters.map(ch => this.escape(ch)).join('|') : '';
-      lookbehind = `(^|\\s${joins})`;
-      lookahead = `(?=$|\\s${joins})`;
+    if (accuracy === 'exactly') {
+      const charSet = limiters ? '[\\s' + limiters + ']' : '\\s';
+      lookbehind = `(^|${charSet})`;
+      lookahead = `(?=$|${charSet})`;
+    } else {
+      const chs = limiters ? limiters : chars,
+        charSet = `[^\\s${chs}]*`;
+      if (accuracy === 'complementary') {
+        pattern = charSet + str + charSet;
+      } else if (accuracy === 'startsWith') {
+        str = str.replace(/\[\\s\]\+/g, charSet + '$&');
+        pattern = `(?<=^|[\\s${chs}])` + str + charSet;
+      }
     }
     return { lookbehind, pattern, lookahead };
   }

@@ -188,22 +188,15 @@ class RegExpCreator {
   }
 
   /**
-   * In a character set only '-^]\\' characters must be escaped;
-   * the characters '^' at the beginning, '-' in the middle affects character set
-   * @param {string} str - The string to escape
+   * Splits string if val is string, removes duplicates, escape '-^]\\' which are special in RegExp characters set
+   * @param {array|string} val - The parameter to process
    * @return {string}
    */
-  escapeCharSet(str) {
-    return str.replace(/[-^\]\\]/g, '\\$&');
-  }
-
-  /**
-   * Splits string if par is string, removes duplicates
-   * @param {array|string} par - The parameter to process
-   * @return {array}
-   */
-  toArrayIfString(par) {
-    return par && par.length ? this.distinct(typeof par === 'string' ? par.split('') : par) : [];
+  preprocess(val) {
+    if (val && val.length) {
+      return this.distinct(typeof val === 'string' ? val.split('') : val).join('').replace(/[-^\]\\]/g, '\\$&');
+    }
+    return '';
   }
 
   /**
@@ -319,12 +312,8 @@ class RegExpCreator {
    * @return {string}
    */
   getJoinersPunctuation() {
-    let punct = this.toArrayIfString(this.opt.ignorePunctuation),
-      str = '';
-
-    if (punct.length) {
-      str = this.escapeCharSet(punct.join(''));
-    }
+    let punct = this.preprocess(this.opt.ignorePunctuation),
+      str = punct ? punct : '';
 
     if (this.opt.ignoreJoiners) {
       // u+00ad = soft hyphen
@@ -386,19 +375,26 @@ class RegExpCreator {
       limiters;
 
     if (typeof accuracy !== 'string') {
-      limiters = this.toArrayIfString(accuracy.limiters);
-      limiters = limiters.length ? limiters : null;
+      limiters = this.preprocess(accuracy.limiters);
       accuracy = accuracy.value;
     }
 
-    if (accuracy === 'complementary') {
-      let joins ='\\s' + (limiters ? this.escapeCharSet(limiters.join('')) : chars);
-      pattern = `[^${joins}]*${str}[^${joins}]*`;
+    if (accuracy === 'exactly') {
+      const charSet = limiters ? '[\\s' + limiters + ']' : '\\s';
+      lookbehind = `(^|${charSet})`;
+      lookahead = `(?=$|${charSet})`;
 
-    } else if (accuracy === 'exactly') {
-      let joins = limiters ? '|' + limiters.map(ch => this.escape(ch)).join('|') : '';
-      lookbehind = `(^|\\s${joins})`;
-      lookahead = `(?=$|\\s${joins})`;
+    } else {
+      const chs = limiters ? limiters : chars,
+        charSet = `[^\\s${chs}]*`;
+
+      if (accuracy === 'complementary') {
+        pattern = charSet + str + charSet;
+
+      } else if (accuracy === 'startsWith') {
+        str = str.replace(/\[\\s\]\+/g, charSet + '$&');
+        pattern = `(?<=^|[\\s${chs}])` + str + charSet;
+      }
     }
     return { lookbehind, pattern, lookahead };
   }

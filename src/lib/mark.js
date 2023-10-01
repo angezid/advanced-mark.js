@@ -194,7 +194,7 @@ class Mark {
       separate = this.opt.separateWordSearch,
       array = [],
       split = str => {
-        str.split(' ').forEach(word => add(word));
+        str.split(/ +/).forEach(word => add(word));
       },
       add = str => {
         if (str.trim() && array.indexOf(str) === -1) {
