@@ -548,8 +548,8 @@
           if (accuracy === 'complementary') {
             pattern = _charSet + str + _charSet;
           } else if (accuracy === 'startsWith') {
-            str = str.replace(/\[\\s\]\+/g, _charSet + '$&');
-            pattern = "(?<=^|[\\s".concat(chs, "])") + str + _charSet;
+            lookbehind = "(^|[\\s".concat(chs, "])");
+            pattern = str.replace(/\[\\s\]\+/g, _charSet + '$&') + _charSet;
           }
         }
         return {

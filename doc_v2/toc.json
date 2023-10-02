@@ -15,7 +15,7 @@
     "usage": {
         "name": "Usage",
         "node": "true",
-        "files": ["performance.md", "filtering-matches.md", "separate-groups.md", "nesting-overlapping.md", "elements-boundaries.md", "shadow-dom.md", "mark-lines.md","some-examples.md", "TypeScript-types.md"]
+        "files": ["performance.md", "options.md", "filtering-matches.md", "separate-groups.md", "nesting-overlapping.md", "elements-boundaries.md", "shadow-dom.md", "mark-lines.md","some-examples.md", "TypeScript-types.md"]
     },
     "regexpcreator": {
         "name": "RegExpCreator",

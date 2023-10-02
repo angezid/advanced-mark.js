@@ -8,10 +8,10 @@ It exposes three API methods:
 
 #### create()
 The `create(string, true)` method with the second parameter set to `true` instead of RegExp, returns an object containing three properties:
-* {string} `lookbehind` - is actuality a capturing group; is non-empty group only with [accuracy](mark-method.md#mark-accuracy) option: `'exactly'` or `{ 'value' : 'exactly', 'limiters': [..] }`.  
-  It can be easily converted to real lookbehind by replacing the first `(` by `(?<=`.
+* {string} `lookbehind` - is actuality a capturing group; is non-empty group only with [accuracy](mark-method.md#mark-accuracy) options: `'exactly'` or `{ 'value' : 'exactly', 'limiters': .. }`, and `'startsWith'` or `{ 'value' : 'startsWith', 'limiters': .. }`.  
+  It can be easily converted to lookbehind assertion by replacing the first `(` by `(?<=`.
 * {string} `pattern` - a string pattern
-* {string} `lookahead` - is real lookahead assertion pattern; is non-empty string only with [accuracy](mark-method.md#mark-accuracy) option: `'exactly'` or `{ 'value' : 'exactly', 'limiters': [..] }`
+* {string} `lookahead` - is real lookahead assertion pattern; is non-empty string only with [accuracy](mark-method.md#mark-accuracy) option: `'exactly'` or `{ 'value' : 'exactly', 'limiters': .. }`.  
 These properties can be used in options object: [accuracy](mark-method.md#mark-accuracy), [diacritics](mark-method.md#mark-diacritics), [synonyms](mark-method.md#mark-synonyms), [caseSensitive](mark-method.md#mark-caseSensitive), [ignoreJoiners](mark-method.md#mark-ignoreJoiners), [ignorePunctuation](mark-method.md#mark-ignorePunctuation), and [wildcards](mark-method.md#mark-wildcards).
 
 See [mark() method](mark-method.md) for properties details.

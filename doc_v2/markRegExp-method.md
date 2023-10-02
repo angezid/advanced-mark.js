@@ -9,13 +9,14 @@ instance.markRegExp(regex[, options]);
 $(context).markRegExp(regex[, options]);
 ```
 #### Parameters:
-* `regex` {RegExp} - The regular expression. With `acrossElements` option it **must** have `g` flag - it works with indexes and only two `g` and `y` flags allow control RegExp `lastIndex`. Note that for backward compatibility, RegExp without `g` flag is recompile internally with `g` flag.
+* `regex` {RegExp} - The regular expression. With `acrossElements` option it **must** have `g` flag - it works with indexes and only two `g` and `y` flags allow control RegExp `lastIndex`.  
+  **Note** that for backward compatibility, RegExp without `g` flag is recompile internally with `g` flag.  
   Although without `acrossElements` option it doesn't require `g` flag, it still recommended having this flag.
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
-  * `className` {string} -  A class to be added to mark elements. (default is `''`)
+  * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
-  * `ignoreGroups` {number} - The number of adjacent capturing groups that should be ignored from the start of RegExp (default is `0`)
+  * `ignoreGroups` {number} - The number of adjacent capturing groups that should be ignored from the start of RegExp (default is `0`)  
     e.g. `/(\w+)(\.)(\w+)(?!\2)/g`, `ignoreGroups : 2` - mark the group 3
   * `separateGroups` {boolean} - Whether to mark RegExp capturing groups instead of whole match (default is `false`)
     See [Highlighting separate groups](separate-groups.md) for more details.
@@ -40,7 +41,8 @@ $(context).markRegExp(regex[, options]);
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `matchString` {string} - The matching string:
       1. without `ignoreGroups` and `separateGroups` options - the whole match
-      2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string e.g. `/(-)(\w+)\s+/g`, `ignoreGroups : 1`, the matching string is content of the group 2
+      2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string,  
+        e.g. `/(-)(\w+)\s+/g`, `ignoreGroups : 1`, the matching string is content of the group 2
       3. with `separateGroups` option - the current group matching string
     * `matchesSoFar` {number} - The number of all wrapped matches so far
     * `filterInfo` {object}:
@@ -52,7 +54,7 @@ $(context).markRegExp(regex[, options]);
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
         When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
   
-The function must return `false` to skip wrapping mark element, otherwise `true`.
+The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
   * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element

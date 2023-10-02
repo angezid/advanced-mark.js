@@ -12,22 +12,28 @@ $(context).mark(search[, options]);
 * `search` {string|string[]} - string or array of strings
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
-  * `className` {string} - A class to be added to mark elements. (default is `''`)
+  * `className` {string} - A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
-  * `separateWordSearch` {boolean|string} - A boolean value `true` specifies to break term(s) into separate words and search for each individual word. (default is `true`)
-    A string value `'preserveTerms'` preserved term(s) surrounding by double quotes from breaking into separate words.
+    See [exclude](options.html#exclude-option) for more details.
+  * `separateWordSearch` {boolean|string} - A **boolean** value `true` specifies to break term(s) into separate words and search for each individual word. (default is `true`)
+    A **string** value `'preserveTerms'` preserved term(s) surrounding by double quotes from breaking into separate words.
+    See [separateWordSearch](options.html#separatewordsearch-option) for more details.
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
   * `accuracy` {string|object} -   (default is `'partially'`):
     * Either one of the following <b>string</b> value:
       * `'partially'` e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.
       * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white-space characters and start/end of a text node (with `acrossElements` option - start/end of a context).
+      * `'startsWith'` e.g. searching 'pre' mark the whole words 'prefix', 'predict', and 'prefab'.  
+        The default word boundaries are:
+        1. start boundary - the start of a text node (with `acrossElements` option - start of a context) and the default `'complementary'` word boundaries.
+        2. end boundary - the default `'complementary'` word boundaries.
       * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.  
         The default word boundaries are: white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
     * Or an <b>object</b> with two properties:
-      * `value`: 'exactly' or 'complementary'
+      * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
       * `limiters`: a string or an array of custom word boundary characters,  
-        e.g. `{ value : "exactly", limiters : ",.;:?!'\"" }`
+        e.g. `{ value : "exactly", limiters : ",.;:?!'\"()" }`
 
   * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
@@ -76,7 +82,7 @@ $(context).mark(search[, options]);
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.  
         When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
   
-The function must return `false` to skip wrapping mark element, otherwise `true`.
+The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
   * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element

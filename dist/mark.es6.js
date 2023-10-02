@@ -411,8 +411,8 @@ class RegExpCreator {
       if (accuracy === 'complementary') {
         pattern = charSet + str + charSet;
       } else if (accuracy === 'startsWith') {
-        str = str.replace(/\[\\s\]\+/g, charSet + '$&');
-        pattern = `(?<=^|[\\s${chs}])` + str + charSet;
+        lookbehind = `(^|[\\s${chs}])`;
+        pattern = str.replace(/\[\\s\]\+/g, charSet + '$&') + charSet;
       }
     }
     return { lookbehind, pattern, lookahead };

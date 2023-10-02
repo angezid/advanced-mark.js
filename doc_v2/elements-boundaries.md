@@ -3,7 +3,7 @@
 
 With `acrossElements` option, *advance-mark.js* aggregates text nodes content into a single string, taking into account HTML elements.
 If a block element 'divides' two text nodes, and `node.textContent`s doesn't separated by white space, the space is added to the string to separate them,  
-e.g. '<h1>Header</h1><p>Paragraph</p>' resulted: in *mark.js* - 'HeaderParagraph', in *advance-mark.js* - 'Header Paragraph'.
+e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted: in *mark.js* - 'HeaderParagraph', in *advance-mark.js* - 'Header Paragraph'.
 
 But the `acrossElements` option doesn't 'knows' any boundaries.  
 A `blockElementsBoundary` option is 'invented' to limit matches within HTML block elements.  

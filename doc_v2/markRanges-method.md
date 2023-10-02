@@ -12,7 +12,7 @@ $(context).markRanges(ranges[, options]);
 * `ranges` {object[]} - An array of objects with `start` and `length` properties with integer type values.
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
-  * `className` {string} -  A class to be added to mark elements. (default is `''`)
+  * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
   * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
@@ -32,7 +32,7 @@ $(context).markRanges(ranges[, options]);
     * `matchString` {string} - The current range matching string
     * `index` {number} - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)
   
-The function must return `false` to skip wrapping mark element, otherwise `true`.
+The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
   * `each : (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
