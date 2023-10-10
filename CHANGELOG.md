@@ -1,4 +1,9 @@
 
+### 2.3.0
+
+* Added `preserveTerms` value for `separateWordSearch` option that allows highlight exact term(s) alone side with separate word(s).
+* Added 'startsWith' value for accuracy option that allows highlight whole word(s) just typing the start of it(s). It also works with `preserveTerms`.
+
 ### 2.2.0
 
 * Added ability to mark line ranges (`markRanges()` API with `markLines` option).

@@ -1,32 +1,28 @@
 
 ## Elements boundaries
 
-With `acrossElements` option, *advance-mark.js* aggregates text nodes content into a single string, taking into account HTML elements.
-If a block element 'divides' two text nodes, and `node.textContent`s doesn't separated by white space, the space is added to the string to separate them,  
-e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted: in *mark.js* - 'HeaderParagraph', in *advance-mark.js* - 'Header Paragraph'.
+**Note** that using a `blockElementsBoundary` option only makes sense with `acrossElements` option when highlighting phrases, or RegExp capturing groups, or using a wildcards character `*` with <code><a href="mark-method.md#mark-wildcards">wildcards</a> : 'withSpaces'</code> option (can match multiple words).
 
-But the `acrossElements` option doesn't 'knows' any boundaries.  
-A `blockElementsBoundary` option is 'invented' to limit matches within HTML block elements.  
-It allows matches only across HTML inline elements (`blockElementsBoundary : true`).
+This, how library aggregates all context(s) text node contents into a single string with `blockElementsBoundary: true` option:
+if a block element 'divides' two text nodes, `\x01` character with spaces (it depends) is added between them,  
+e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Header \x01 Paragraph'.
 
-**Note** that using the `blockElementsBoundary` option only makes sense when highlighting phrases or RegExp capturing groups, or using a wildcards character `*` with <code><a href="mark-method.md#mark-wildcards">wildcards</a> : 'withSpaces'</code> option.
+With different values the option allows matches across all HTML elements:
+* `blockElementsBoundary: true` except default block elements
+* `blockElementsBoundary: { tagNames: [..] }` except custom element(s)
+* `blockElementsBoundary: { tagNames: [..], extend : true }` except default block elements and custom element(s)
 
-With the `blockElementsBoundary` option, if a block element 'divides' two text nodes, `\x01` character with spaces (it depend) is added between them, e.g. above combined string becomes 'Header \x01 Paragraph'.  
+#### Boundary object:
+* `tagNames` \{string[]\} - An array of custom tag names. (default is `undefined`)
+* `extend` \{boolean\} - Whether to extend default block elements with custom elements (`true`) or to make only custom elements have boundaries. (default is `false`)
+* `char` \{string\} - A custom boundary char. (default is `\x01`)
 
-If the custom `tagNames` are defined, they can be:
-1. the only elements that have boundaries
-2. added to the default block elements
-
-* `blockElementsBoundary` {boolean|object} - Option: (default is `undefined`)
-  * `tagNames` {string[]} - The string or array of tag name. (default is `undefined`)
-  * `extend` {boolean} - Whether to extend the default block elements with custom elements or only specify custom elements have boundaries. (default is `false`)
-  * `char` {string} - The custom boundary char. (default is `\x01`)
-
+### Example:
 ``` js
 instance.mark('lorem ipsum dolor', {
     'separateWordSearch' : false,
     'acrossElements' : true,
-    'blockElementsBoundary' : true,
+    'blockElementsBoundary' : true
     // or
     'blockElementsBoundary' : {
         // only these custom elements have boundaries

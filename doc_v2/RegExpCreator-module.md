@@ -1,7 +1,7 @@
 
 ## RegExpCreator module
 
-It exposes three API methods:
+It has three API methods:
 * [create()](regexpcreator.md#117)
 * [createCombinePattern()](regexpcreator.md#155)
 * [createDiacritics()](regexpcreator.md#344)

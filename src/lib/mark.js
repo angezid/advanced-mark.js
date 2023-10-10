@@ -25,12 +25,6 @@ class Mark {
      */
     this.ctx = ctx;
     /**
-     * Used with the 'cacheTextNodes' option to improve performance
-     * @type {object}
-     * @access protected
-     */
-    this.cacheDict = {};
-    /**
      * The array of node names which must be excluded from search
      * @type {array}
      * @access protected
@@ -161,24 +155,26 @@ class Mark {
    * @param  {object} [opt] - Optional options object
    * @return {object}
    */
-  checkOption(opt) {
-    let clear = true,
-      type = this.cacheDict.type;
+  checkOption(opt, del) {
+    this.opt = opt;
+    let dict = this.cacheDict,
+      clear = true;
 
-    // It allows using cache object if the type and cacheTextNodes option doesn't change
-    if (type && opt && opt.cacheTextNodes) {
-      if (opt.acrossElements) {
-        if (type === 'across') {
+    if (dict) {
+      // It allows using cache object if the type and cacheTextNodes option doesn't change
+      if ( !del && this.opt.cacheTextNodes) {
+        if (this.opt.acrossElements) {
+          if (dict.type === 'across') {
+            clear = false;
+          }
+        } else if (dict.type === 'every') {
           clear = false;
         }
-      } else if (type === 'every') {
-        clear = false;
+      }
+      if (clear) {
+        this.cacheDict = null;
       }
     }
-    if (clear) {
-      this.cacheDict = {};
-    }
-    return opt;
   }
 
   /**
@@ -372,7 +368,7 @@ class Mark {
    */
   getTextNodesAcross(cb) {
     // uses cache dict if it's already built
-    if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+    if (this.opt.cacheTextNodes && this.cacheDict) {
       // it's only requires reset two indexes
       this.cacheDict.lastIndex = 0;
       this.cacheDict.lastTextIndex = 0;
@@ -395,10 +391,10 @@ class Mark {
       body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
 
     const nodes = [],
-      boundary = this.opt.blockElementsBoundary;
+      boundary = this.opt.blockElementsBoundary,
+      priorityType = boundary ? 2 : 1;
 
     let ch = '\x01',
-      priorityType = boundary ? 2 : 1,
       tempType, type, prevNode;
 
     if (boundary) {
@@ -535,7 +531,7 @@ class Mark {
    */
   getTextNodes(cb) {
     // uses cache cacheDict if it's already built
-    if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+    if (this.opt.cacheTextNodes && this.cacheDict) {
       cb(this.cacheDict);
       return;
     }
@@ -1689,7 +1685,7 @@ class Mark {
    * @access public
    */
   markRegExp(regexp, opt) {
-    this.opt = this.checkOption(opt);
+    this.checkOption(opt);
 
     let totalMarks = 0,
       matchesSoFar = 0,
@@ -1768,7 +1764,7 @@ class Mark {
    * @access public
    */
   mark(sv, opt) {
-    this.opt = this.checkOption(opt);
+    this.checkOption(opt);
 
     if (this.opt.combinePatterns) {
       this.markCombinePatterns(sv);
@@ -1855,7 +1851,7 @@ class Mark {
         } else {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
         }
-        // termStats[term] is the number of wrapped matches so far for the term
+        // termStats[term] is the number of wrapped matches so far for the current term
         termMatches = termStats[term];
         return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
 
@@ -2016,8 +2012,7 @@ class Mark {
    * @access public
    */
   markRanges(ranges, opt) {
-    this.opt = opt;
-    this.cacheDict = {};
+    this.checkOption(opt, true);
 
     if (this.isArrayOfObjects(ranges)) {
       let totalMarks = 0;
@@ -2047,8 +2042,7 @@ class Mark {
    * @access public
    */
   unmark(opt) {
-    this.opt = opt;
-    this.cacheDict = {};
+    this.checkOption(opt, true);
 
     let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
 

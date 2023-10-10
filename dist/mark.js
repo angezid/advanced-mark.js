@@ -468,9 +468,9 @@
       value: function checkWildcardsEscape(str) {
         if (this.opt.wildcards !== 'disabled') {
           str = str.replace(/(\\)*\?/g, function (m, gr1) {
-            return gr1 ? '?' : "\x01";
+            return gr1 ? '?' : '\x01';
           }).replace(/(\\)*\*/g, function (m, gr1) {
-            return gr1 ? '*' : "\x02";
+            return gr1 ? '*' : '\x02';
           });
         }
         return this.escape(str);
@@ -479,21 +479,21 @@
       key: "createWildcards",
       value: function createWildcards(str) {
         var spaces = this.opt.wildcards === 'withSpaces',
-          boundary = this.opt.blockElementsBoundary,
-          anyChar = spaces && boundary ? '[^' + (boundary["char"] ? boundary["char"] : '\x01') + ']*?' : '[\\S\\s]*?';
-        return str.replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?').replace(/\u0002/g, spaces ? anyChar : '\\S*');
+          boundary = spaces && this.opt.acrossElements && this.opt.blockElementsBoundary,
+          anyChar = "[^".concat(boundary ? boundary["char"] ? boundary["char"].charAt(0) : '\x01' : '', "]*?");
+        return str.replace(/\x01/g, spaces ? '[^]?' : '\\S?').replace(/\x02/g, spaces ? anyChar : '\\S*');
       }
     }, {
       key: "setupIgnoreJoiners",
       value: function setupIgnoreJoiners(str) {
         return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, function (m, gr1, gr2) {
-          return gr1 || typeof gr2 !== 'undefined' ? m : m + "\0";
+          return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
         });
       }
     }, {
       key: "createJoiners",
       value: function createJoiners(str, joiners) {
-        return str.split(/\u0000+/).join("[".concat(joiners, "]*"));
+        return str.split(/\x00+/).join("[".concat(joiners, "]*"));
       }
     }, {
       key: "getJoinersPunctuation",
@@ -566,7 +566,6 @@
     function Mark(ctx) {
       _classCallCheck(this, Mark);
       this.ctx = ctx;
-      this.cacheDict = {};
       this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
     }
     _createClass(Mark, [{
@@ -637,22 +636,24 @@
       }
     }, {
       key: "checkOption",
-      value: function checkOption(opt) {
-        var clear = true,
-          type = this.cacheDict.type;
-        if (type && opt && opt.cacheTextNodes) {
-          if (opt.acrossElements) {
-            if (type === 'across') {
+      value: function checkOption(opt, del) {
+        this.opt = opt;
+        var dict = this.cacheDict,
+          clear = true;
+        if (dict) {
+          if (!del && this.opt.cacheTextNodes) {
+            if (this.opt.acrossElements) {
+              if (dict.type === 'across') {
+                clear = false;
+              }
+            } else if (dict.type === 'every') {
               clear = false;
             }
-          } else if (type === 'every') {
-            clear = false;
+          }
+          if (clear) {
+            this.cacheDict = null;
           }
         }
-        if (clear) {
-          this.cacheDict = {};
-        }
-        return opt;
       }
     }, {
       key: "getSeachTerms",
@@ -776,7 +777,7 @@
       key: "getTextNodesAcross",
       value: function getTextNodesAcross(cb) {
         var _this4 = this;
-        if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+        if (this.opt.cacheTextNodes && this.cacheDict) {
           this.cacheDict.lastIndex = 0;
           this.cacheDict.lastTextIndex = 0;
           cb(this.cacheDict);
@@ -844,9 +845,9 @@
           svg: 1
         };
         var nodes = [],
-          boundary = this.opt.blockElementsBoundary;
+          boundary = this.opt.blockElementsBoundary,
+          priorityType = boundary ? 2 : 1;
         var ch = '\x01',
-          priorityType = boundary ? 2 : 1,
           tempType,
           type,
           prevNode;
@@ -937,7 +938,7 @@
       key: "getTextNodes",
       value: function getTextNodes(cb) {
         var _this5 = this;
-        if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+        if (this.opt.cacheTextNodes && this.cacheDict) {
           cb(this.cacheDict);
           return;
         }
@@ -1643,7 +1644,7 @@
       key: "markRegExp",
       value: function markRegExp(regexp, opt) {
         var _this12 = this;
-        this.opt = this.checkOption(opt);
+        this.checkOption(opt);
         var totalMarks = 0,
           matchesSoFar = 0,
           fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
@@ -1673,7 +1674,7 @@
       key: "mark",
       value: function mark(sv, opt) {
         var _this13 = this;
-        this.opt = this.checkOption(opt);
+        this.checkOption(opt);
         if (this.opt.combinePatterns) {
           this.markCombinePatterns(sv);
           return;
@@ -1829,8 +1830,7 @@
       key: "markRanges",
       value: function markRanges(ranges, opt) {
         var _this15 = this;
-        this.opt = opt;
-        this.cacheDict = {};
+        this.checkOption(opt, true);
         if (this.isArrayOfObjects(ranges)) {
           var totalMarks = 0;
           this.wrapRanges(ranges, function (node, range, match, index) {
@@ -1855,8 +1855,7 @@
       key: "unmark",
       value: function unmark(opt) {
         var _this16 = this;
-        this.opt = opt;
-        this.cacheDict = {};
+        this.checkOption(opt, true);
         var selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
         if (this.opt.className) {
           selector += ".".concat(this.opt.className);

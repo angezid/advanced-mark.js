@@ -28,7 +28,7 @@ class RegExpCreator {
    * </ul>
    * Or an object containing two properties:
    * <ul>
-   *   <li><i>value</i>: The value must be "exactly" or "complementary"</li>
+   *   <li><i>value</i>: The value must be "exactly" or "complementary" or "startsWith"</li>
    *   <li><i>limiters</i>: A custom array of string limiters</li>
    * </ul>
    */
@@ -249,10 +249,10 @@ class RegExpCreator {
    */
   checkWildcardsEscape(str) {
     if (this.opt.wildcards !== 'disabled') {
-      // replace single character wildcard with unicode 0001
-      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\u0001')
-      // replace multiple character wildcard with unicode 0002
-        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\u0002');
+      // replace single character wildcard with \x01
+      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\x01')
+      // replace multiple character wildcard with \x02
+        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\x02');
     }
     return this.escape(str);
   }
@@ -264,21 +264,21 @@ class RegExpCreator {
    */
   createWildcards(str) {
     // default to "enable" (i.e. to not include spaces)
-    // "withSpaces" uses `[\\S\\s]` instead of `.` because the latter
-    // does not match new line characters
+    // "withSpaces" uses `[^]` instead of `.` because the latter does not match new line characters
+    // or `[^\x01]` if blockElementsBoundary option is enabled
     const spaces = this.opt.wildcards === 'withSpaces',
-      boundary = this.opt.blockElementsBoundary,
-      anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
+      boundary = spaces && this.opt.acrossElements && this.opt.blockElementsBoundary,
+      anyChar = `[^${boundary ? boundary.char ? boundary.char.charAt(0) : '\x01' : ''}]*?`;
 
     return str
-    // replace unicode 0001 with a RegExp class to match any single
+    // replace \x01 with a RegExp class to match any single
     // character, or any single non-whitespace character depending
     // on the setting
-      .replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?')
-      // replace unicode 0002 with a RegExp class to match zero or
+      .replace(/\x01/g, spaces ? '[^]?' : '\\S?')
+      // replace \x02 with a RegExp class to match zero or
       // more characters, or zero or more non-whitespace characters
       // depending on the setting
-      .replace(/\u0002/g, spaces ? anyChar : '\\S*');
+      .replace(/\x02/g, spaces ? anyChar : '\\S*');
   }
 
   /**
@@ -291,12 +291,12 @@ class RegExpCreator {
     // It's not added '\0' after `(?:` grouping construct, around `|`, before `)` chars, and at the end of a string,
     // not breaks the grouping construct `(?:`
     return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
-      return gr1 || typeof gr2 !== 'undefined' ? m : m + '\u0000';
+      return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
     });
   }
 
   /**
-   * Replaces '\u0000' placeholders in a regular expression string by designated
+   * Replaces '\x00' placeholders in a regular expression string by designated
    * characters (soft hyphens, zero width characters, and punctuation) based on the
    * specified option values of <code>ignorePunctuation</code> and
    * <code>ignoreJoiners</code>
@@ -304,7 +304,7 @@ class RegExpCreator {
    * @return {string}
    */
   createJoiners(str, joiners) {
-    return str.split(/\u0000+/).join(`[${joiners}]*`);
+    return str.split(/\x00+/).join(`[${joiners}]*`);
   }
 
   /**
@@ -359,11 +359,10 @@ class RegExpCreator {
 
   /**
    * Creates a regular expression string to match the specified string with the
-   * defined accuracy. As in the regular expression of "exactly" can be a group
-   * containing a blank at the beginning, all regular expressions will be
-   * created with two groups. The first group can be ignored (may contain
-   * the said blank), the second contains the actual match
-   * @param  {string} str - The searm term to be used
+   * defined accuracy. All regular expressions created with two capturing groups.
+   * The first group is ignored (serves as lookbehind with values 'exactly' and 'startsWith'),
+   * the second is contained the actual match
+   * @param  {string} str - The search term to be used
    * @return {RegExpCreator~patternObj}
    */
   createAccuracy(str) {

@@ -336,26 +336,26 @@ class RegExpCreator {
   }
   checkWildcardsEscape(str) {
     if (this.opt.wildcards !== 'disabled') {
-      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\u0001')
-        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\u0002');
+      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\x01')
+        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\x02');
     }
     return this.escape(str);
   }
   createWildcards(str) {
     const spaces = this.opt.wildcards === 'withSpaces',
-      boundary = this.opt.blockElementsBoundary,
-      anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
+      boundary = spaces && this.opt.acrossElements && this.opt.blockElementsBoundary,
+      anyChar = `[^${boundary ? boundary.char ? boundary.char.charAt(0) : '\x01' : ''}]*?`;
     return str
-      .replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?')
-      .replace(/\u0002/g, spaces ? anyChar : '\\S*');
+      .replace(/\x01/g, spaces ? '[^]?' : '\\S?')
+      .replace(/\x02/g, spaces ? anyChar : '\\S*');
   }
   setupIgnoreJoiners(str) {
     return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
-      return gr1 || typeof gr2 !== 'undefined' ? m : m + '\u0000';
+      return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
     });
   }
   createJoiners(str, joiners) {
-    return str.split(/\u0000+/).join(`[${joiners}]*`);
+    return str.split(/\x00+/).join(`[${joiners}]*`);
   }
   getJoinersPunctuation() {
     let punct = this.preprocess(this.opt.ignorePunctuation),
@@ -422,7 +422,6 @@ class RegExpCreator {
 class Mark {
   constructor(ctx) {
     this.ctx = ctx;
-    this.cacheDict = {};
     this.nodeNames = ['script', 'style', 'title', 'head', 'html'];
   }
   set opt(val) {
@@ -477,22 +476,24 @@ class Mark {
       }
     });
   }
-  checkOption(opt) {
-    let clear = true,
-      type = this.cacheDict.type;
-    if (type && opt && opt.cacheTextNodes) {
-      if (opt.acrossElements) {
-        if (type === 'across') {
+  checkOption(opt, del) {
+    this.opt = opt;
+    let dict = this.cacheDict,
+      clear = true;
+    if (dict) {
+      if ( !del && this.opt.cacheTextNodes) {
+        if (this.opt.acrossElements) {
+          if (dict.type === 'across') {
+            clear = false;
+          }
+        } else if (dict.type === 'every') {
           clear = false;
         }
-      } else if (type === 'every') {
-        clear = false;
+      }
+      if (clear) {
+        this.cacheDict = null;
       }
     }
-    if (clear) {
-      this.cacheDict = {};
-    }
-    return opt;
   }
   getSeachTerms(sv) {
     const search = this.isString(sv) ? [sv] : sv,
@@ -578,7 +579,7 @@ class Mark {
     tags['br'] = 3;
   }
   getTextNodesAcross(cb) {
-    if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+    if (this.opt.cacheTextNodes && this.cacheDict) {
       this.cacheDict.lastIndex = 0;
       this.cacheDict.lastTextIndex = 0;
       cb(this.cacheDict);
@@ -595,9 +596,9 @@ class Mark {
       map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
       body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
     const nodes = [],
-      boundary = this.opt.blockElementsBoundary;
+      boundary = this.opt.blockElementsBoundary,
+      priorityType = boundary ? 2 : 1;
     let ch = '\x01',
-      priorityType = boundary ? 2 : 1,
       tempType, type, prevNode;
     if (boundary) {
       this.setType(tags, boundary);
@@ -677,7 +678,7 @@ class Mark {
     return this.createInfo(prevNode, obj.text.length, (obj.text += text).length - offset, offset, startOffset);
   }
   getTextNodes(cb) {
-    if (this.opt.cacheTextNodes && this.cacheDict.nodes) {
+    if (this.opt.cacheTextNodes && this.cacheDict) {
       cb(this.cacheDict);
       return;
     }
@@ -1262,7 +1263,7 @@ class Mark {
     }
   }
   markRegExp(regexp, opt) {
-    this.opt = this.checkOption(opt);
+    this.checkOption(opt);
     let totalMarks = 0,
       matchesSoFar = 0,
       fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
@@ -1289,7 +1290,7 @@ class Mark {
     });
   }
   mark(sv, opt) {
-    this.opt = this.checkOption(opt);
+    this.checkOption(opt);
     if (this.opt.combinePatterns) {
       this.markCombinePatterns(sv);
       return;
@@ -1428,8 +1429,7 @@ class Mark {
     return {  patterns, termsParts : array };
   }
   markRanges(ranges, opt) {
-    this.opt = opt;
-    this.cacheDict = {};
+    this.checkOption(opt, true);
     if (this.isArrayOfObjects(ranges)) {
       let totalMarks = 0;
       this.wrapRanges(ranges, (node, range, match, index) => {
@@ -1447,8 +1447,7 @@ class Mark {
     }
   }
   unmark(opt) {
-    this.opt = opt;
-    this.cacheDict = {};
+    this.checkOption(opt, true);
     let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
     if (this.opt.className) {
       selector += `.${this.opt.className}`;

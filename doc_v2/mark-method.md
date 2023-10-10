@@ -23,17 +23,17 @@ $(context).mark(search[, options]);
   * `accuracy` {string|object} -   (default is `'partially'`):
     * Either one of the following <b>string</b> value:
       * `'partially'` e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.
-      * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white-space characters and start/end of a text node (with `acrossElements` option - start/end of a context).
+      * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white spaces and start/end of a text node content (with `acrossElements` option - start/end of a context).
       * `'startsWith'` e.g. searching 'pre' mark the whole words 'prefix', 'predict', and 'prefab'.  
-        The default word boundaries are:
-        1. start boundary - the start of a text node (with `acrossElements` option - start of a context) and the default `'complementary'` word boundaries.
-        2. end boundary - the default `'complementary'` word boundaries.
       * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.  
-        The default word boundaries are: white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
+  
+  The **built-in** boundaries for values `startsWith` and `complementary` are:  
+  white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
+
     * Or an <b>object</b> with two properties:
       * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
       * `limiters`: a string or an array of custom word boundary characters,  
-        e.g. `{ value : "exactly", limiters : ",.;:?!'\"()" }`
+        e.g. `{ value : "exactly", limiters : ",.;:?!'\\"()" }`
 
   * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
@@ -49,7 +49,7 @@ $(context).mark(search[, options]);
   * `synonyms` {object} - An object with synonyms  (default is `{}`)
     e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa.  
     The value can be an array, e.g. `{ 'be': ['am', 'is', 'are'] }`.
-
+ 
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
   * `combinePatterns` {number|boolean} - Combine a specified number of individual term patterns into one (default is `10`)
     See [Performance](performance.md#ways-to-boost-performance) for more details.
@@ -82,7 +82,8 @@ $(context).mark(search[, options]);
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.  
         When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
   
-The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
+The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).  
+See [Filtering matches](filtering-matches.md) for more details.
 
   * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
@@ -90,6 +91,8 @@ The function **must** return either `true` (to wrap) or `false` (to skip wrappin
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
       * `count` {number} - The number of wrapped matches so far
+  
+See [Code examples](some-examples.md).
 
   * `done : (totalMarks, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
     * `totalMarks` {number} - The total number of marked elements

@@ -95,26 +95,26 @@ class RegExpCreator$1 {
   }
   checkWildcardsEscape(str) {
     if (this.opt.wildcards !== 'disabled') {
-      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\u0001')
-        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\u0002');
+      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\x01')
+        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\x02');
     }
     return this.escape(str);
   }
   createWildcards(str) {
     const spaces = this.opt.wildcards === 'withSpaces',
-      boundary = this.opt.blockElementsBoundary,
-      anyChar = spaces && boundary ? '[^' + (boundary.char ? boundary.char : '\x01') + ']*?' : '[\\S\\s]*?';
+      boundary = spaces && this.opt.acrossElements && this.opt.blockElementsBoundary,
+      anyChar = `[^${boundary ? boundary.char ? boundary.char.charAt(0) : '\x01' : ''}]*?`;
     return str
-      .replace(/\u0001/g, spaces ? '[\\S\\s]?' : '\\S?')
-      .replace(/\u0002/g, spaces ? anyChar : '\\S*');
+      .replace(/\x01/g, spaces ? '[^]?' : '\\S?')
+      .replace(/\x02/g, spaces ? anyChar : '\\S*');
   }
   setupIgnoreJoiners(str) {
     return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
-      return gr1 || typeof gr2 !== 'undefined' ? m : m + '\u0000';
+      return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
     });
   }
   createJoiners(str, joiners) {
-    return str.split(/\u0000+/).join(`[${joiners}]*`);
+    return str.split(/\x00+/).join(`[${joiners}]*`);
   }
   getJoinersPunctuation() {
     let punct = this.preprocess(this.opt.ignorePunctuation),

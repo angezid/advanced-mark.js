@@ -36,10 +36,10 @@ A `mark()` method highlights an array item by item, e.g. an array of 10 items is
 There are two options to boost performance :
 * `combinePatterns` : combines given numbers of RegExp patterns into a single pattern, e.g. an array of 50 strings, `combinePatterns : 10` - creates 5 combine patterns, so instead of 50 runs there are only 5 runs. Any number bigger than the array length or `Infinity` creates a single combined pattern.
   Note: with `diacritics` option, a single pattern can be monstrous and more slowly, it's better to create 5-7 patterns (it's probably related to a processor cache).
-  Also, this option changes the behavior of marking strings, e.g. `['word1 word2 word3', 'word2']`, without this option, 'word2' be marked, with - don't.
-
+  Also, this option prevents highlighting inside already highlighted elements, but it only true for single combined pattern.
+  
 * `cacheTextNodes` : collecting text nodes information on every run is expensive. Caching this information improves performance with a large array.
-  The performance gain gradually grows, starting with an array containing 2-3 items and doubled with 4-5 items.
+  The performance gain gradually grows, starting with an array containing 2-3 items and doubled with 4-5 items.  
   Note: this option does not change behavior as the `combinePatterns` option does. It can be used with existing code to improve performance.
   
 In Firefox marking an array of 500 words on a 1 MB page, 26500 text nodes, `diacritics : false` and ~7600 highlighted words :
