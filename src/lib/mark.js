@@ -84,6 +84,10 @@ class Mark {
       'debug': false,
       'log': win.console
     }, val);
+    
+    if ( !this._opt.element) {
+      this._opt.element = 'mark';
+    }
   }
 
   get opt() {
@@ -407,7 +411,7 @@ class Mark {
 
     const obj = {
       text : '', regex : /\s/, tags : tags,
-      boundary : boundary, startOffset : 0, br : '', ch : ch
+      boundary : boundary, startOffset : 0, str : '', ch : ch
     };
 
     this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT,
@@ -423,7 +427,7 @@ class Mark {
           tempType = tags[node.nodeName.toLowerCase()];
 
           if (tempType === 3) { // br element
-            obj.br += '\n';
+            obj.str += '\n';
           }
 
           if ( !type || tempType === priorityType) {
@@ -451,10 +455,13 @@ class Mark {
    * @param {object} obj - The auxiliary object to pass multiple parameters to the method
    */
   getNodeInfo(prevNode, node, type, obj) {
-    let offset = 0,
+    const start = obj.text.length, 
       startOffset = obj.startOffset,
-      text = prevNode.textContent,
-      str = '';
+      ch = obj.ch;
+    let offset = 0,
+      str = obj.str,
+      text = prevNode.textContent;
+    
     if (prevNode !== node) {
       const startBySpace = obj.regex.test(node.textContent[0]),
         both = startBySpace && obj.regex.test(text[text.length - 1]);
@@ -477,26 +484,24 @@ class Mark {
 
         if (separate) {
           if ( !both) {
-            str = type === 1 ? ' ' : type === 2 ? ' ' + obj.ch + ' ' : '';
+            str += type === 1 ? ' ' : type === 2 ? ' ' + ch + ' ' : '';
 
           } else if (type === 2) {
-            str = both ? obj.ch : startBySpace ? ' ' + obj.ch : obj.ch + ' ';
+            str += both ? ch : startBySpace ? ' ' + ch : ch + ' ';
           }
         }
       }
     }
 
-    if (obj.br !== '') {
-      str += obj.br;
-      obj.br = '';
-    }
-
-    if (str !== '') {
+    if (str) {
       text += str;
       offset = str.length;
       obj.startOffset -= offset;
+      obj.str = '';
     }
-    return this.createInfo(prevNode, obj.text.length, (obj.text += text).length - offset, offset, startOffset);
+    obj.text += text;
+    
+    return this.createInfo(prevNode, start, obj.text.length - offset, offset, startOffset);
   }
 
   /**
@@ -696,9 +701,7 @@ class Mark {
    * @return {HTMLElement} Returns the created DOM node
    */
   wrapTextNode(node) {
-    const name = !this.opt.element ? 'mark' : this.opt.element;
-
-    let markNode = this.opt.window.document.createElement(name);
+    let markNode = this.opt.window.document.createElement(this.opt.element);
     markNode.setAttribute('data-markjs', 'true');
 
     if (this.opt.className) {
@@ -1844,11 +1847,7 @@ class Mark {
       this.log(`Searching with expression "${regex}"`);
 
       this[fn](regex, 1, (node, t, filterInfo) => { // filter
-        if (across) {
-          if (filterInfo.matchStart) {
-            term = this.getCurrentTerm(filterInfo.match, patternTerms);
-          }
-        } else {
+        if ( !across || filterInfo.matchStart) {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
         }
         // termStats[term] is the number of wrapped matches so far for the current term
@@ -1857,14 +1856,11 @@ class Mark {
 
       }, (element, eachInfo) => { // each
         totalMarks++;
-
-        if (across) {
-          if (eachInfo.matchStart) {
-            termStats[term] += 1;
-          }
-        } else {
+        
+        if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
         }
+
         this.opt.each(element, eachInfo);
 
       }, (count) => { // end
@@ -2044,7 +2040,7 @@ class Mark {
   unmark(opt) {
     this.checkOption(opt, true);
 
-    let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
+    let selector = this.opt.element + '[data-markjs]';
 
     if (this.opt.className) {
       selector += `.${this.opt.className}`;

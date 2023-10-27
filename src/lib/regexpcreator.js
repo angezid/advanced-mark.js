@@ -108,6 +108,24 @@ class RegExpCreator {
   }
 
   /**
+   * The array with lower and upper cases diacritics characters
+   * @type {string[]}
+   * @access protected
+   */
+  get chars() {
+    if ( !this._chars) {
+      this._chars = [];
+      // initialises an array with lower and upper cases diacritics characters
+      ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'cçćč', 'dđď', 'eèéẻẽẹêềếểễệëěēę',
+        'iìíỉĩịîïī',  'lł', 'nñňń', 'oòóỏõọôồốổỗộơởỡớờợöøōő',  'rř',
+        'sšśșş', 'tťțţ', 'uùúủũụưừứửữựûüůūű', 'yýỳỷỹỵÿ', 'zžżź'].forEach(str => {
+        this._chars.push(str, str.toUpperCase());
+      });
+    }
+    return this._chars;
+  }
+
+  /**
    * Creates a regular expression to match the specified search term considering
    * the available option settings
    * @param  {string} str - The search term to be used
@@ -157,13 +175,23 @@ class RegExpCreator {
       return null;
     }
     const group = capture ? '(' : '(?:',
+      obj = this.create(array[0], true);
+    obj.pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
+
+    return obj;
+  }
+  /*createCombinePattern(array, capture) {
+    if ( !Array.isArray(array) || !array.length) {
+      return null;
+    }
+    const group = capture ? '(' : '(?:',
       obj = this.create(array[0], true),
       lookbehind = obj.lookbehind,
       lookahead = obj.lookahead,
       pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
 
     return { lookbehind, pattern, lookahead };
-  }
+  }*/
 
   /**
    * Sort array from longest entry to shortest
@@ -331,25 +359,20 @@ class RegExpCreator {
    * @return {string}
    */
   createDiacritics(str) {
-    const caseSensitive = this.opt.caseSensitive,
-      array = [
-        'aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ',
-        'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ',
-        'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ',
-        'oòóỏõọôồốổỗộơởỡớờợöøōő', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌŐ', 'rř', 'RŘ',
-        'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůūű', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪŰ',
-        'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'
-      ];
+    const array = this.chars;
 
     return str.split('').map(ch => {
-      for (let i = 0; i < array.length; i += 2)  {
-        if (caseSensitive) {
-          if (array[i].indexOf(ch) !== -1) {
+      for (let i = 0; i < array.length; i += 2) {
+        const lowerCase = array[i].indexOf(ch) !== -1;
+
+        if (this.opt.caseSensitive) {
+          if (lowerCase) {
             return '[' + array[i] + ']';
+
           } else if (array[i+1].indexOf(ch) !== -1) {
             return '[' + array[i+1] + ']';
           }
-        } else if (array[i].indexOf(ch) !== -1 || array[i+1].indexOf(ch) !== -1) {
+        } else if (lowerCase || array[i+1].indexOf(ch) !== -1) {
           return '[' + array[i] + array[i+1] + ']';
         }
       }

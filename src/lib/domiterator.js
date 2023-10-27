@@ -63,7 +63,7 @@ class DOMIterator {
       element.oMatchesSelector ||
       element.webkitMatchesSelector
     );
-    return fn && selectors.some(sel => fn.call(element, sel) === true);
+    return fn && selectors.some(sel => fn.call(element, sel));
   }
 
   /**
@@ -435,7 +435,7 @@ class DOMIterator {
 
       const ready = () => {
         this.iterateThroughNodes(ctx, whatToShow, filter, each, () => {
-          if (open <= 0) { // call end all contexts were handled
+          if (open <= 0) { // calls end when all contexts were handled
             done();
           }
         });

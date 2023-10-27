@@ -348,7 +348,7 @@
         var selectors = typeof selector === 'string' ? [selector] : selector;
         var fn = element.matches || element.matchesSelector || element.msMatchesSelector || element.mozMatchesSelector || element.oMatchesSelector || element.webkitMatchesSelector;
         return fn && selectors.some(function (sel) {
-          return fn.call(element, sel) === true;
+          return fn.call(element, sel);
         });
       }
     }]);
@@ -369,6 +369,18 @@
       }, options);
     }
     _createClass(RegExpCreator, [{
+      key: "chars",
+      get: function get() {
+        var _this = this;
+        if (!this._chars) {
+          this._chars = [];
+          ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'cçćč', 'dđď', 'eèéẻẽẹêềếểễệëěēę', 'iìíỉĩịîïī', 'lł', 'nñňń', 'oòóỏõọôồốổỗộơởỡớờợöøōő', 'rř', 'sšśșş', 'tťțţ', 'uùúủũụưừứửữựûüůūű', 'yýỳỷỹỵÿ', 'zžżź'].forEach(function (str) {
+            _this._chars.push(str, str.toUpperCase());
+          });
+        }
+        return this._chars;
+      }
+    }, {
       key: "create",
       value: function create(str, patterns) {
         var flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
@@ -394,22 +406,16 @@
     }, {
       key: "createCombinePattern",
       value: function createCombinePattern(array, capture) {
-        var _this = this;
+        var _this2 = this;
         if (!Array.isArray(array) || !array.length) {
           return null;
         }
         var group = capture ? '(' : '(?:',
-          obj = this.create(array[0], true),
-          lookbehind = obj.lookbehind,
-          lookahead = obj.lookahead,
-          pattern = this.distinct(array.map(function (str) {
-            return "".concat(group).concat(_this.create(str, true).pattern, ")");
-          })).join('|');
-        return {
-          lookbehind: lookbehind,
-          pattern: pattern,
-          lookahead: lookahead
-        };
+          obj = this.create(array[0], true);
+        obj.pattern = this.distinct(array.map(function (str) {
+          return "".concat(group).concat(_this2.create(str, true).pattern, ")");
+        })).join('|');
+        return obj;
       }
     }, {
       key: "sortByLength",
@@ -445,7 +451,7 @@
     }, {
       key: "createSynonyms",
       value: function createSynonyms(str, flags) {
-        var _this2 = this;
+        var _this3 = this;
         var syn = this.opt.synonyms;
         if (!Object.keys(syn).length) {
           return str;
@@ -455,11 +461,11 @@
             var array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
             array.unshift(key);
             array = this.sortByLength(this.distinct(array)).map(function (term) {
-              return _this2.checkWildcardsEscape(term);
+              return _this3.checkWildcardsEscape(term);
             });
             if (array.length > 1) {
               var pattern = array.map(function (k) {
-                return _this2.escape(k);
+                return _this3.escape(k);
               }).join('|');
               str = str.replace(new RegExp(pattern, flags), "(?:".concat(array.join('|'), ")"));
             }
@@ -512,17 +518,18 @@
     }, {
       key: "createDiacritics",
       value: function createDiacritics(str) {
-        var caseSensitive = this.opt.caseSensitive,
-          array = ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøōő', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌŐ', 'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůūű', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪŰ', 'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'];
+        var _this4 = this;
+        var array = this.chars;
         return str.split('').map(function (ch) {
           for (var i = 0; i < array.length; i += 2) {
-            if (caseSensitive) {
-              if (array[i].indexOf(ch) !== -1) {
+            var lowerCase = array[i].indexOf(ch) !== -1;
+            if (_this4.opt.caseSensitive) {
+              if (lowerCase) {
                 return '[' + array[i] + ']';
               } else if (array[i + 1].indexOf(ch) !== -1) {
                 return '[' + array[i + 1] + ']';
               }
-            } else if (array[i].indexOf(ch) !== -1 || array[i + 1].indexOf(ch) !== -1) {
+            } else if (lowerCase || array[i + 1].indexOf(ch) !== -1) {
               return '[' + array[i] + array[i + 1] + ']';
             }
           }
@@ -601,6 +608,9 @@
           'debug': false,
           'log': win.console
         }, val);
+        if (!this._opt.element) {
+          this._opt.element = 'mark';
+        }
       }
     }, {
       key: "empty",
@@ -867,7 +877,7 @@
           tags: tags,
           boundary: boundary,
           startOffset: 0,
-          br: '',
+          str: '',
           ch: ch
         };
         this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT, function (node) {
@@ -880,7 +890,7 @@
           if (node.nodeType === 1) {
             tempType = tags[node.nodeName.toLowerCase()];
             if (tempType === 3) {
-              obj.br += '\n';
+              obj.str += '\n';
             }
             if (!type || tempType === priorityType) {
               type = tempType;
@@ -898,10 +908,12 @@
     }, {
       key: "getNodeInfo",
       value: function getNodeInfo(prevNode, node, type, obj) {
-        var offset = 0,
+        var start = obj.text.length,
           startOffset = obj.startOffset,
-          text = prevNode.textContent,
-          str = '';
+          ch = obj.ch;
+        var offset = 0,
+          str = obj.str,
+          text = prevNode.textContent;
         if (prevNode !== node) {
           var startBySpace = obj.regex.test(node.textContent[0]),
             both = startBySpace && obj.regex.test(text[text.length - 1]);
@@ -920,23 +932,21 @@
             }
             if (separate) {
               if (!both) {
-                str = type === 1 ? ' ' : type === 2 ? ' ' + obj.ch + ' ' : '';
+                str += type === 1 ? ' ' : type === 2 ? ' ' + ch + ' ' : '';
               } else if (type === 2) {
-                str = both ? obj.ch : startBySpace ? ' ' + obj.ch : obj.ch + ' ';
+                str += both ? ch : startBySpace ? ' ' + ch : ch + ' ';
               }
             }
           }
         }
-        if (obj.br !== '') {
-          str += obj.br;
-          obj.br = '';
-        }
-        if (str !== '') {
+        if (str) {
           text += str;
           offset = str.length;
           obj.startOffset -= offset;
+          obj.str = '';
         }
-        return this.createInfo(prevNode, obj.text.length, (obj.text += text).length - offset, offset, startOffset);
+        obj.text += text;
+        return this.createInfo(prevNode, start, obj.text.length - offset, offset, startOffset);
       }
     }, {
       key: "getTextNodes",
@@ -1067,8 +1077,7 @@
     }, {
       key: "wrapTextNode",
       value: function wrapTextNode(node) {
-        var name = !this.opt.element ? 'mark' : this.opt.element;
-        var markNode = this.opt.window.document.createElement(name);
+        var markNode = this.opt.window.document.createElement(this.opt.element);
         markNode.setAttribute('data-markjs', 'true');
         if (this.opt.className) {
           markNode.setAttribute('class', this.opt.className);
@@ -1742,22 +1751,14 @@
             patternTerms = termsParts[index];
           _this14.log("Searching with expression \"".concat(regex, "\""));
           _this14[fn](regex, 1, function (node, t, filterInfo) {
-            if (across) {
-              if (filterInfo.matchStart) {
-                term = _this14.getCurrentTerm(filterInfo.match, patternTerms);
-              }
-            } else {
+            if (!across || filterInfo.matchStart) {
               term = _this14.getCurrentTerm(filterInfo.match, patternTerms);
             }
             termMatches = termStats[term];
             return _this14.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
           }, function (element, eachInfo) {
             totalMarks++;
-            if (across) {
-              if (eachInfo.matchStart) {
-                termStats[term] += 1;
-              }
-            } else {
+            if (!across || eachInfo.matchStart) {
               termStats[term] += 1;
             }
             _this14.opt.each(element, eachInfo);
@@ -1860,7 +1861,7 @@
       value: function unmark(opt) {
         var _this16 = this;
         this.checkOption(opt, true);
-        var selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
+        var selector = this.opt.element + '[data-markjs]';
         if (this.opt.className) {
           selector += ".".concat(this.opt.className);
         }

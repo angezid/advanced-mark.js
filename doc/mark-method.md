@@ -106,7 +106,7 @@ $(context).mark(search[, options]);
 |  acrossElements: true            |     +      |      +          |   +   |
 |  acrossElements: false           |     +      |      -          |   +   |
   
-<details id="internal-code">
+<details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {

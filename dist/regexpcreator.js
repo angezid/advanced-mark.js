@@ -76,6 +76,18 @@
       }, options);
     }
     _createClass(RegExpCreator, [{
+      key: "chars",
+      get: function get() {
+        var _this = this;
+        if (!this._chars) {
+          this._chars = [];
+          ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'cçćč', 'dđď', 'eèéẻẽẹêềếểễệëěēę', 'iìíỉĩịîïī', 'lł', 'nñňń', 'oòóỏõọôồốổỗộơởỡớờợöøōő', 'rř', 'sšśșş', 'tťțţ', 'uùúủũụưừứửữựûüůūű', 'yýỳỷỹỵÿ', 'zžżź'].forEach(function (str) {
+            _this._chars.push(str, str.toUpperCase());
+          });
+        }
+        return this._chars;
+      }
+    }, {
       key: "create",
       value: function create(str, patterns) {
         var flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
@@ -101,22 +113,16 @@
     }, {
       key: "createCombinePattern",
       value: function createCombinePattern(array, capture) {
-        var _this = this;
+        var _this2 = this;
         if (!Array.isArray(array) || !array.length) {
           return null;
         }
         var group = capture ? '(' : '(?:',
-          obj = this.create(array[0], true),
-          lookbehind = obj.lookbehind,
-          lookahead = obj.lookahead,
-          pattern = this.distinct(array.map(function (str) {
-            return "".concat(group).concat(_this.create(str, true).pattern, ")");
-          })).join('|');
-        return {
-          lookbehind: lookbehind,
-          pattern: pattern,
-          lookahead: lookahead
-        };
+          obj = this.create(array[0], true);
+        obj.pattern = this.distinct(array.map(function (str) {
+          return "".concat(group).concat(_this2.create(str, true).pattern, ")");
+        })).join('|');
+        return obj;
       }
     }, {
       key: "sortByLength",
@@ -152,7 +158,7 @@
     }, {
       key: "createSynonyms",
       value: function createSynonyms(str, flags) {
-        var _this2 = this;
+        var _this3 = this;
         var syn = this.opt.synonyms;
         if (!Object.keys(syn).length) {
           return str;
@@ -162,11 +168,11 @@
             var array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
             array.unshift(key);
             array = this.sortByLength(this.distinct(array)).map(function (term) {
-              return _this2.checkWildcardsEscape(term);
+              return _this3.checkWildcardsEscape(term);
             });
             if (array.length > 1) {
               var pattern = array.map(function (k) {
-                return _this2.escape(k);
+                return _this3.escape(k);
               }).join('|');
               str = str.replace(new RegExp(pattern, flags), "(?:".concat(array.join('|'), ")"));
             }
@@ -219,17 +225,18 @@
     }, {
       key: "createDiacritics",
       value: function createDiacritics(str) {
-        var caseSensitive = this.opt.caseSensitive,
-          array = ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ', 'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ', 'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ', 'oòóỏõọôồốổỗộơởỡớờợöøōő', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌŐ', 'rř', 'RŘ', 'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůūű', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪŰ', 'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'];
+        var _this4 = this;
+        var array = this.chars;
         return str.split('').map(function (ch) {
           for (var i = 0; i < array.length; i += 2) {
-            if (caseSensitive) {
-              if (array[i].indexOf(ch) !== -1) {
+            var lowerCase = array[i].indexOf(ch) !== -1;
+            if (_this4.opt.caseSensitive) {
+              if (lowerCase) {
                 return '[' + array[i] + ']';
               } else if (array[i + 1].indexOf(ch) !== -1) {
                 return '[' + array[i + 1] + ']';
               }
-            } else if (array[i].indexOf(ch) !== -1 || array[i + 1].indexOf(ch) !== -1) {
+            } else if (lowerCase || array[i + 1].indexOf(ch) !== -1) {
               return '[' + array[i] + array[i + 1] + ']';
             }
           }

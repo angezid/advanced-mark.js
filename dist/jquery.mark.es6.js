@@ -25,7 +25,7 @@ class DOMIterator {
       element.oMatchesSelector ||
       element.webkitMatchesSelector
     );
-    return fn && selectors.some(sel => fn.call(element, sel) === true);
+    return fn && selectors.some(sel => fn.call(element, sel));
   }
   getContexts() {
     let ctx,
@@ -258,6 +258,17 @@ class RegExpCreator {
       'wildcards': 'disabled'
     }, options);
   }
+  get chars() {
+    if ( !this._chars) {
+      this._chars = [];
+      ['aàáảãạăằắẳẵặâầấẩẫậäåāą', 'cçćč', 'dđď', 'eèéẻẽẹêềếểễệëěēę',
+        'iìíỉĩịîïī',  'lł', 'nñňń', 'oòóỏõọôồốổỗộơởỡớờợöøōő',  'rř',
+        'sšśșş', 'tťțţ', 'uùúủũụưừứửữựûüůūű', 'yýỳỷỹỵÿ', 'zžżź'].forEach(str => {
+        this._chars.push(str, str.toUpperCase());
+      });
+    }
+    return this._chars;
+  }
   create(str, patterns) {
     const flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
     str = this.checkWildcardsEscape(str);
@@ -286,11 +297,9 @@ class RegExpCreator {
       return null;
     }
     const group = capture ? '(' : '(?:',
-      obj = this.create(array[0], true),
-      lookbehind = obj.lookbehind,
-      lookahead = obj.lookahead,
-      pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
-    return { lookbehind, pattern, lookahead };
+      obj = this.create(array[0], true);
+    obj.pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
+    return obj;
   }
   sortByLength(arry) {
     return arry.sort((a, b) => a.length === b.length ?
@@ -366,24 +375,17 @@ class RegExpCreator {
     return str;
   }
   createDiacritics(str) {
-    const caseSensitive = this.opt.caseSensitive,
-      array = [
-        'aàáảãạăằắẳẵặâầấẩẫậäåāą', 'AÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÄÅĀĄ',
-        'cçćč', 'CÇĆČ', 'dđď', 'DĐĎ', 'eèéẻẽẹêềếểễệëěēę', 'EÈÉẺẼẸÊỀẾỂỄỆËĚĒĘ',
-        'iìíỉĩịîïī', 'IÌÍỈĨỊÎÏĪ', 'lł', 'LŁ', 'nñňń', 'NÑŇŃ',
-        'oòóỏõọôồốổỗộơởỡớờợöøōő', 'OÒÓỎÕỌÔỒỐỔỖỘƠỞỠỚỜỢÖØŌŐ', 'rř', 'RŘ',
-        'sšśșş', 'SŠŚȘŞ', 'tťțţ', 'TŤȚŢ', 'uùúủũụưừứửữựûüůūű', 'UÙÚỦŨỤƯỪỨỬỮỰÛÜŮŪŰ',
-        'yýỳỷỹỵÿ', 'YÝỲỶỸỴŸ', 'zžżź', 'ZŽŻŹ'
-      ];
+    const array = this.chars;
     return str.split('').map(ch => {
-      for (let i = 0; i < array.length; i += 2)  {
-        if (caseSensitive) {
-          if (array[i].indexOf(ch) !== -1) {
+      for (let i = 0; i < array.length; i += 2) {
+        const lowerCase = array[i].indexOf(ch) !== -1;
+        if (this.opt.caseSensitive) {
+          if (lowerCase) {
             return '[' + array[i] + ']';
           } else if (array[i+1].indexOf(ch) !== -1) {
             return '[' + array[i+1] + ']';
           }
-        } else if (array[i].indexOf(ch) !== -1 || array[i+1].indexOf(ch) !== -1) {
+        } else if (lowerCase || array[i+1].indexOf(ch) !== -1) {
           return '[' + array[i] + array[i+1] + ']';
         }
       }
@@ -446,6 +448,9 @@ class Mark {
       'debug': false,
       'log': win.console
     }, val);
+    if ( !this._opt.element) {
+      this._opt.element = 'mark';
+    }
   }
   get opt() {
     return this._opt;
@@ -608,7 +613,7 @@ class Mark {
     }
     const obj = {
       text : '', regex : /\s/, tags : tags,
-      boundary : boundary, startOffset : 0, br : '', ch : ch
+      boundary : boundary, startOffset : 0, str : '', ch : ch
     };
     this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT,
       node => {
@@ -621,7 +626,7 @@ class Mark {
         if (node.nodeType === 1) {
           tempType = tags[node.nodeName.toLowerCase()];
           if (tempType === 3) {
-            obj.br += '\n';
+            obj.str += '\n';
           }
           if ( !type || tempType === priorityType) {
             type = tempType;
@@ -637,10 +642,12 @@ class Mark {
       });
   }
   getNodeInfo(prevNode, node, type, obj) {
-    let offset = 0,
+    const start = obj.text.length,
       startOffset = obj.startOffset,
-      text = prevNode.textContent,
-      str = '';
+      ch = obj.ch;
+    let offset = 0,
+      str = obj.str,
+      text = prevNode.textContent;
     if (prevNode !== node) {
       const startBySpace = obj.regex.test(node.textContent[0]),
         both = startBySpace && obj.regex.test(text[text.length - 1]);
@@ -659,23 +666,21 @@ class Mark {
         }
         if (separate) {
           if ( !both) {
-            str = type === 1 ? ' ' : type === 2 ? ' ' + obj.ch + ' ' : '';
+            str += type === 1 ? ' ' : type === 2 ? ' ' + ch + ' ' : '';
           } else if (type === 2) {
-            str = both ? obj.ch : startBySpace ? ' ' + obj.ch : obj.ch + ' ';
+            str += both ? ch : startBySpace ? ' ' + ch : ch + ' ';
           }
         }
       }
     }
-    if (obj.br !== '') {
-      str += obj.br;
-      obj.br = '';
-    }
-    if (str !== '') {
+    if (str) {
       text += str;
       offset = str.length;
       obj.startOffset -= offset;
+      obj.str = '';
     }
-    return this.createInfo(prevNode, obj.text.length, (obj.text += text).length - offset, offset, startOffset);
+    obj.text += text;
+    return this.createInfo(prevNode, start, obj.text.length - offset, offset, startOffset);
   }
   getTextNodes(cb) {
     if (this.opt.cacheTextNodes && this.cacheDict) {
@@ -779,8 +784,7 @@ class Mark {
     return { node, start, end, offset, startOffset };
   }
   wrapTextNode(node) {
-    const name = !this.opt.element ? 'mark' : this.opt.element;
-    let markNode = this.opt.window.document.createElement(name);
+    let markNode = this.opt.window.document.createElement(this.opt.element);
     markNode.setAttribute('data-markjs', 'true');
     if (this.opt.className) {
       markNode.setAttribute('class', this.opt.className);
@@ -1351,22 +1355,14 @@ class Mark {
         patternTerms = termsParts[index];
       this.log(`Searching with expression "${regex}"`);
       this[fn](regex, 1, (node, t, filterInfo) => {
-        if (across) {
-          if (filterInfo.matchStart) {
-            term = this.getCurrentTerm(filterInfo.match, patternTerms);
-          }
-        } else {
+        if ( !across || filterInfo.matchStart) {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
         }
         termMatches = termStats[term];
         return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
       }, (element, eachInfo) => {
         totalMarks++;
-        if (across) {
-          if (eachInfo.matchStart) {
-            termStats[term] += 1;
-          }
-        } else {
+        if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
         }
         this.opt.each(element, eachInfo);
@@ -1448,7 +1444,7 @@ class Mark {
   }
   unmark(opt) {
     this.checkOption(opt, true);
-    let selector = (this.opt.element ? this.opt.element : 'mark') + '[data-markjs]';
+    let selector = this.opt.element + '[data-markjs]';
     if (this.opt.className) {
       selector += `.${this.opt.className}`;
     }

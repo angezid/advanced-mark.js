@@ -19,7 +19,7 @@
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "Highlight words, terms, or text on a browser page using JavaScript. It has support for virtual DOMs like JSDOM.",
+  "description": "Highlight text on a browser page using JavaScript. It has support for virtual DOMs like JSDOM.",
   "main": "dist/mark.js",
   "types": "dist/mark.es6.d.ts",
   "repository": "angezid/advanced-mark.js",

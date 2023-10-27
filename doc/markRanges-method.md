@@ -48,7 +48,7 @@ $(context).markRanges(ranges[, options]);
   * `noMatch : (range) => {}` {function} - A callback that is called on non-valid range (default is )
     * `range` {string} - The stringify range
 
-<details id="internal-code">
+<details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
