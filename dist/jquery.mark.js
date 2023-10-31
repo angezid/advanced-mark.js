@@ -3,7 +3,7 @@
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
-* Original author Julian Kühnel, license https://git.io/vwTVl
+* Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
 
 (function (global, factory) {
@@ -477,10 +477,8 @@
       key: "checkWildcardsEscape",
       value: function checkWildcardsEscape(str) {
         if (this.opt.wildcards !== 'disabled') {
-          str = str.replace(/(\\)*\?/g, function (m, gr1) {
-            return gr1 ? '?' : '\x01';
-          }).replace(/(\\)*\*/g, function (m, gr1) {
-            return gr1 ? '*' : '\x02';
+          str = str.replace(/(\\)*(\?|\*)/g, function (m, gr1, gr2) {
+            return gr1 ? gr2 : gr2 === '?' ? '\x01' : '\x02';
           });
         }
         return this.escape(str);
@@ -489,14 +487,14 @@
       key: "createWildcards",
       value: function createWildcards(str) {
         var spaces = this.opt.wildcards === 'withSpaces',
-          boundary = spaces && this.opt.acrossElements && this.opt.blockElementsBoundary,
-          anyChar = "[^".concat(boundary ? boundary["char"] ? boundary["char"].charAt(0) : '\x01' : '', "]*?");
+          boundary = this.opt.blockElementsBoundary,
+          anyChar = "[^".concat(spaces && boundary ? '\x01' : '', "]*?");
         return str.replace(/\x01/g, spaces ? '[^]?' : '\\S?').replace(/\x02/g, spaces ? anyChar : '\\S*');
       }
     }, {
       key: "setupIgnoreJoiners",
       value: function setupIgnoreJoiners(str) {
-        return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, function (m, gr1, gr2) {
+        return str.replace(/(\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)]|$)|.)/g, function (m, gr1, gr2) {
           return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
         });
       }

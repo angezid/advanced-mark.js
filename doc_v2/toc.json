@@ -1,6 +1,6 @@
 {
     "doc-info": {
-        "version": "Version 2"
+        "version": "version 2"
     },
     "getting-started": {
         "name": "Getting Started",
@@ -23,7 +23,7 @@
         "files": ["RegExpCreator-module.md"]
     },
     "src": {
-        "name": "Src",
+        "name": "src",
         "node": "true",
         "files": ["mark.md", "domiterator.md", "regexpcreator.md"]
     }

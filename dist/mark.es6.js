@@ -3,7 +3,7 @@
 * https://github.com/angezid/advanced-mark#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
-* Original author Julian Kühnel, license https://git.io/vwTVl
+* Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
 
 class DOMIterator {
@@ -345,21 +345,20 @@ class RegExpCreator {
   }
   checkWildcardsEscape(str) {
     if (this.opt.wildcards !== 'disabled') {
-      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\x01')
-        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\x02');
+      str = str.replace(/(\\)*(\?|\*)/g, (m, gr1, gr2) => gr1 ? gr2 : gr2 === '?' ? '\x01' : '\x02');
     }
     return this.escape(str);
   }
   createWildcards(str) {
     const spaces = this.opt.wildcards === 'withSpaces',
-      boundary = spaces && this.opt.acrossElements && this.opt.blockElementsBoundary,
-      anyChar = `[^${boundary ? boundary.char ? boundary.char.charAt(0) : '\x01' : ''}]*?`;
+      boundary = this.opt.blockElementsBoundary,
+      anyChar = `[^${spaces && boundary ? '\x01' : ''}]*?`;
     return str
       .replace(/\x01/g, spaces ? '[^]?' : '\\S?')
       .replace(/\x02/g, spaces ? anyChar : '\\S*');
   }
   setupIgnoreJoiners(str) {
-    return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
+    return str.replace(/(\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
       return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
     });
   }
@@ -603,8 +602,7 @@ class Mark$1 {
     const nodes = [],
       boundary = this.opt.blockElementsBoundary,
       priorityType = boundary ? 2 : 1;
-    let ch = '\x01',
-      tempType, type, prevNode;
+    let ch = '\x01', tempType, type, prevNode;
     if (boundary) {
       this.setType(tags, boundary);
       if (boundary.char) {

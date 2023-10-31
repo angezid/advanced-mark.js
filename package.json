@@ -3,16 +3,12 @@
   "version": "2.3.0",
   "keywords": [
     "advanced-mark.js",
-    "mark.js",
-    "markjs",
-    "mark",
-    "jquery.mark",
-    "highlight",
+    "highlight-text",
+    "highlight-words",
     "search",
     "jquery",
     "javascript",
-    "text",
-    "keyword"
+    "mark"
   ],
   "license": "MIT",
   "author": {

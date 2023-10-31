@@ -180,18 +180,6 @@ class RegExpCreator {
 
     return obj;
   }
-  /*createCombinePattern(array, capture) {
-    if ( !Array.isArray(array) || !array.length) {
-      return null;
-    }
-    const group = capture ? '(' : '(?:',
-      obj = this.create(array[0], true),
-      lookbehind = obj.lookbehind,
-      lookahead = obj.lookahead,
-      pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
-
-    return { lookbehind, pattern, lookahead };
-  }*/
 
   /**
    * Sort array from longest entry to shortest
@@ -277,10 +265,8 @@ class RegExpCreator {
    */
   checkWildcardsEscape(str) {
     if (this.opt.wildcards !== 'disabled') {
-      // replace single character wildcard with \x01
-      str = str.replace(/(\\)*\?/g, (m, gr1) => gr1 ? '?' : '\x01')
-      // replace multiple character wildcard with \x02
-        .replace(/(\\)*\*/g, (m, gr1) => gr1 ? '*' : '\x02');
+      // replaces single character wildcard with \x01, multiple character wildcard with \x02
+      str = str.replace(/(\\)*(\?|\*)/g, (m, gr1, gr2) => gr1 ? gr2 : gr2 === '?' ? '\x01' : '\x02');
     }
     return this.escape(str);
   }
@@ -295,8 +281,8 @@ class RegExpCreator {
     // "withSpaces" uses `[^]` instead of `.` because the latter does not match new line characters
     // or `[^\x01]` if blockElementsBoundary option is enabled
     const spaces = this.opt.wildcards === 'withSpaces',
-      boundary = spaces && this.opt.acrossElements && this.opt.blockElementsBoundary,
-      anyChar = `[^${boundary ? boundary.char ? boundary.char.charAt(0) : '\x01' : ''}]*?`;
+      boundary = this.opt.blockElementsBoundary,
+      anyChar = `[^${spaces && boundary ? '\x01' : ''}]*?`;
 
     return str
     // replace \x01 with a RegExp class to match any single
@@ -317,8 +303,8 @@ class RegExpCreator {
    */
   setupIgnoreJoiners(str) {
     // It's not added '\0' after `(?:` grouping construct, around `|`, before `)` chars, and at the end of a string,
-    // not breaks the grouping construct `(?:`
-    return str.replace(/(\(\?:|\|)|\\?.(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
+    // not breaks the grouping construct `(?:` and UTF-16 surrogate pairs
+    return str.replace(/(\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
       return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
     });
   }

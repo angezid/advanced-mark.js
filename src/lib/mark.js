@@ -84,7 +84,7 @@ class Mark {
       'debug': false,
       'log': win.console
     }, val);
-    
+
     if ( !this._opt.element) {
       this._opt.element = 'mark';
     }
@@ -398,8 +398,7 @@ class Mark {
       boundary = this.opt.blockElementsBoundary,
       priorityType = boundary ? 2 : 1;
 
-    let ch = '\x01',
-      tempType, type, prevNode;
+    let ch = '\x01', tempType, type, prevNode;
 
     if (boundary) {
       this.setType(tags, boundary);
@@ -455,13 +454,13 @@ class Mark {
    * @param {object} obj - The auxiliary object to pass multiple parameters to the method
    */
   getNodeInfo(prevNode, node, type, obj) {
-    const start = obj.text.length, 
+    const start = obj.text.length,
       startOffset = obj.startOffset,
       ch = obj.ch;
     let offset = 0,
       str = obj.str,
       text = prevNode.textContent;
-    
+
     if (prevNode !== node) {
       const startBySpace = obj.regex.test(node.textContent[0]),
         both = startBySpace && obj.regex.test(text[text.length - 1]);
@@ -500,7 +499,7 @@ class Mark {
       obj.str = '';
     }
     obj.text += text;
-    
+
     return this.createInfo(prevNode, start, obj.text.length - offset, offset, startOffset);
   }
 
@@ -1856,7 +1855,7 @@ class Mark {
 
       }, (element, eachInfo) => { // each
         totalMarks++;
-        
+
         if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
         }

@@ -105,12 +105,12 @@ function highlightMatch(elem) {
             if (el === elem[0]) found = true;
 
         // start of the next 'start element' means the end of the current match
-        } else if ($(this).hasClass('start-1')) return  false;
-        //} else if ($(this).data('markjs') === 'start-1') return  false;
+        } else if ($(el).hasClass('start-1')) return  false;
+        //} else if ($(el).data('markjs') === 'start-1') return  false;
 
         if (found){
-            $(this).addClass('current');
-            $(this).find('*[data-markjs]').addClass('current');  // add class to all descendant too
+            $(el).addClass('current');
+            $(el).find('*[data-markjs]').addClass('current');  // add class to all descendant too
         }
     });
 }

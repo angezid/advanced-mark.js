@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/advanced-mark.js)](https://www.npmjs.com/package/advanced-mark.js)
 
-### A fast JavaScript library to highlight words, terms, or text on a browser page. It also supports virtual DOMs.
+### A fast JavaScript library to highlight text on a browser page. It also supports virtual DOMs.
 
 This library from v2.0.0 doesn't guaranty backward compatibility with *mark.js* v9.0.0 and npm package v8.11.1.
 
