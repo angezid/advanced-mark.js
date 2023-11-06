@@ -346,7 +346,8 @@ class RegExpCreator {
   }
   checkWildcardsEscape(str) {
     if (this.opt.wildcards !== 'disabled') {
-      str = str.replace(/(\\)*(\?|\*)/g, (m, gr1, gr2) => gr1 ? gr2 : gr2 === '?' ? '\x01' : '\x02');
+      str = str.replace(/(\\.)+|[?*]/g, (m, gr) => gr ? m : m === '?' ? '\x01' : '\x02');
+      str = str.replace(/\\+(?=[?*\x01\x02])/g, m => m.slice(1));
     }
     return this.escape(str);
   }

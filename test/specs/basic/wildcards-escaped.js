@@ -1,50 +1,59 @@
 'use strict';
 describe('basic mark with escaped wildcards', function() {
-  var $ctx1, $ctx2, $ctx3;
+  var $ctx;
   beforeEach(function() {
     loadFixtures('basic/wildcards-escaped.html');
+
+    $ctx = $('.wildcards-escaped > div:nth-child(1)');
   });
 
-  it('should treat escaped \'?\' normally when wildcards set', function(done) {
-    $ctx1 = $('.basic-wildcards > div:nth-child(1)');
-
-    new Mark($ctx1[0]).mark('lor\\?m', {
+  it('should treat escaped \'?\' and \'*\' normally when wildcards is set', function(done) {
+    new Mark($ctx[0]).mark(['lor\\?m', 'Lor\\*m'], {
       'separateWordSearch': false,
       'diacritics': false,
       'wildcards': 'enabled',
       'done': function() {
-        expect($ctx1.find('mark')).toHaveLength(1);
-        done();
-      }
-    });
-  });
-
-  it('should treat escaped \'*\' normally when wildcards set', function(done) {
-    $ctx2 = $('.basic-wildcards > div:nth-child(2)');
-
-    new Mark($ctx2[0]).mark('lor\\*m', {
-      'separateWordSearch': false,
-      'diacritics': false,
-      'wildcards': 'enabled',
-      'done': function() {
-        expect($ctx2.find('mark')).toHaveLength(1);
+        expect($ctx.find('mark').length).toBe(2);
         done();
       }
     });
   });
 
   it('should treat escaped \'?\' and \'*\' normally when wildcards not set', function(done) {
-    $ctx3 = $('.basic-wildcards > div:nth-child(3)');
-
-    new Mark($ctx3[0]).mark([
-      'lor\\?m',
-      'Lor\\*m'
-    ], {
+    new Mark($ctx[0]).mark(['lor\\?m', 'Lor\\*m'], {
+      'separateWordSearch': false,
+      'diacritics': false,
+      'wildcards': 'false',
+      'done': function() {
+        expect($ctx.find('mark').length).toBe(2);
+        done();
+      }
+    });
+  });
+  
+  xit('should find \'?\' matches', function(done) {
+    var $ctx2 = $('.wildcards-escaped > div:nth-child(2)');
+    
+    new Mark($ctx2[0]).mark(['lor\\\\?m', 'ips\\\\\\?em' /*escaped*/, 'dol\\\\\\\\?m'], {
       'separateWordSearch': false,
       'diacritics': false,
       'wildcards': 'enabled',
       'done': function() {
-        expect($ctx3.find('mark')).toHaveLength(2);
+        expect($ctx2.find('mark').length).toBe(5);
+        done();
+      }
+    });
+  });
+  
+  xit('should find \'*\' matches', function(done) {
+    var $ctx3 = $('.wildcards-escaped > div:nth-child(3)');
+    
+    new Mark($ctx3[0]).mark(['lo\\\\*m', 'ips\\\\\\*m' /*escaped*/, 'do\\\\\\\\*r'], {
+      'separateWordSearch': false,
+      'diacritics': false,
+      'wildcards': 'enabled',
+      'done': function() {
+        expect($ctx3.find('mark').length).toBe(5);
         done();
       }
     });

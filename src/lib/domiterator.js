@@ -88,7 +88,7 @@ class DOMIterator {
       ctx = [this.ctx];
     }
 
-    // filters duplicate/nested elements
+    // filters out duplicate/nested elements
     const array = [];
     ctx.forEach(elem => {
       if (array.indexOf(elem) === -1 && !array.some(node => node.contains(elem))) {

@@ -2,20 +2,21 @@
   "name": "advanced-mark.js",
   "version": "2.3.0",
   "keywords": [
-    "advanced-mark.js",
+    "highlight",
     "highlight-text",
     "highlight-words",
     "search",
     "jquery",
     "javascript",
-    "mark"
+    "advanced-mark.js",
+    "mark.js"
   ],
   "license": "MIT",
   "author": {
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "Highlight text on a browser page using JavaScript. It has support for virtual DOMs like JSDOM.",
+  "description": "A fast JavaScript library to highlight text on a browser page. It has support for virtual DOMs like JSDOM.",
   "main": "dist/mark.js",
   "types": "dist/mark.es6.d.ts",
   "repository": "angezid/advanced-mark.js",

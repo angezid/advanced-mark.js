@@ -184,8 +184,11 @@
       key: "checkWildcardsEscape",
       value: function checkWildcardsEscape(str) {
         if (this.opt.wildcards !== 'disabled') {
-          str = str.replace(/(\\)*(\?|\*)/g, function (m, gr1, gr2) {
-            return gr1 ? gr2 : gr2 === '?' ? '\x01' : '\x02';
+          str = str.replace(/(\\.)+|[?*]/g, function (m, gr) {
+            return gr ? m : m === '?' ? '\x01' : '\x02';
+          });
+          str = str.replace(/\\+(?=[?*\x01\x02])/g, function (m) {
+            return m.slice(1);
           });
         }
         return this.escape(str);
