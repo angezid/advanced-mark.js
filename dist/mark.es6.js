@@ -1,6 +1,6 @@
 /*!***************************************************
-* advanced-mark.js v2.3.0
-* https://github.com/angezid/advanced-mark#readme
+* advanced-mark.js v2.4.0
+* https://github.com/angezid/advanced-mark.js#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
@@ -345,8 +345,8 @@ class RegExpCreator {
   }
   checkWildcardsEscape(str) {
     if (this.opt.wildcards !== 'disabled') {
-      str = str.replace(/(\\.)+|[?*]/g, (m, gr) => gr ? m : m === '?' ? '\x01' : '\x02');
-      str = str.replace(/\\+(?=[?*\x01\x02])/g, m => m.slice(1));
+      str = str.replace(/(\\.)+|[?*]/g, (m, gr) => gr ? m : m === '?' ? '\x01' : '\x02')
+        .replace(/\\+(?=[?*\x01\x02])/g, m => m.slice(1));
     }
     return this.escape(str);
   }
@@ -465,17 +465,16 @@ class Mark$1 {
     return new DOMIterator(this.ctx, this.opt);
   }
   log(msg, level = 'debug') {
-    if (!this.opt.debug) {
-      return;
-    }
-    const log = this.opt.log;
-    if (typeof log === 'object' && typeof log[level] === 'function') {
-      log[level](`mark.js: ${msg}`);
+    if (this.opt.debug) {
+      const log = this.opt.log;
+      if (typeof log === 'object' && typeof log[level] === 'function') {
+        log[level](`mark.js: ${msg}`);
+      }
     }
   }
   report(array) {
     array.forEach(item => {
-      this.log(`${item.text} ${JSON.stringify(item.obj)}`, item.level ? item.level : 'debug');
+      this.log(`${item.text} ${JSON.stringify(item.obj)}`, item.level || 'debug');
       if ( !item.skip) {
         this.opt.noMatch(item.obj);
       }
@@ -501,7 +500,7 @@ class Mark$1 {
     }
   }
   getSeachTerms(sv) {
-    const search = this.isString(sv) ? [sv] : sv,
+    const search = typeof sv === 'string' ? [sv] : sv,
       separate = this.opt.separateWordSearch,
       array = [],
       split = str => {
@@ -534,15 +533,6 @@ class Mark$1 {
   }
   isNumeric(value) {
     return Number(parseFloat(value)) == value;
-  }
-  isString(obj) {
-    return typeof obj === 'string';
-  }
-  isObject(obj) {
-    return String(obj) === '[object Object]';
-  }
-  isArrayOfObjects(array) {
-    return Array.isArray(array) && array.some(item => this.isObject(item));
   }
   checkRanges(array, logs, min, max) {
     const level = 'error';
@@ -742,45 +732,53 @@ class Mark$1 {
     return this.nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 || DOMIterator.matches(elem, this.opt.exclude);
   }
   wrapRangeInsert(dict, n, s, e, start, index) {
-    const ended = e === n.node.textContent.length;
+    const ended = e === n.node.textContent.length,
+      end = n.end;
     let type = 1,
-      retNode = this.empty,
-      textNode;
-    if (s === 0) {
-      if (ended) {
-        const node = this.wrapTextNode(n.node);
-        n.node = node.childNodes[0];
-        return { markNode : node, nodeInfo : this.createInfo(retNode, n.end, n.end, n.offset, 0), increment : 0 };
-      } else {
-        retNode = n.node.splitText(e);
-        textNode = n.node;
-      }
+      splitIndex = e,
+      node = n.node;
+    if (s !== 0) {
+      node = node.splitText(s);
+      splitIndex = e - s;
+      type = ended ? 2 : 3;
     } else if (ended) {
-      textNode = n.node.splitText(s);
-      type = 2;
-    } else {
-      textNode = n.node.splitText(s);
-      retNode = textNode.splitText(e - s);
-      type = 3;
+      type = 0;
     }
-    const markNode = this.wrapTextNode(textNode),
-      markInfo = this.createInfo(markNode.childNodes[0], type === 1 ? n.start : start, n.start + e, 0, n.startOffset),
-      nodeInfo = this.createInfo(retNode, type === 2 ? n.end : n.start + e, n.end, n.offset, n.startOffset);
+    const retNode = ended ? this.empty : node.splitText(splitIndex),
+      mark = this.wrapTextNode(node);
+    if (type === 0) {
+      n.node = mark.childNodes[0];
+      return { mark, nodeInfo : this.createInfo(retNode, end, end, n.offset, 0), increment : 0 };
+    }
+    const info = this.createInfo(mark.childNodes[0], type === 1 ? n.start : start, n.start + e, 0, n.startOffset),
+      nodeInfo = this.createInfo(retNode, type === 2 ? end : n.start + e, end, n.offset, n.startOffset);
     if (type === 1) {
-      dict.nodes.splice(index, 1, markInfo, nodeInfo);
+      dict.nodes.splice(index, 1, info, nodeInfo);
     } else {
       if (type === 2) {
-        dict.nodes.splice(index + 1, 0, markInfo);
+        dict.nodes.splice(index + 1, 0, info);
       } else {
-        dict.nodes.splice(index + 1, 0, markInfo, nodeInfo);
+        dict.nodes.splice(index + 1, 0, info, nodeInfo);
       }
       n.end = start;
       n.offset = 0;
     }
-    return { markNode, nodeInfo, increment : type < 3 ? 1 : 2 };
+    return { mark, nodeInfo, increment : type < 3 ? 1 : 2 };
   }
   createInfo(node, start, end, offset, startOffset) {
     return { node, start, end, offset, startOffset };
+  }
+  wrapRange(node, start, end, eachCb) {
+    let ended = end === node.textContent.length,
+      index = end,
+      retNode;
+    if (start !== 0) {
+      node = node.splitText(start);
+      index = end - start;
+    }
+    retNode = ended ? this.empty : node.splitText(index);
+    eachCb(this.wrapTextNode(node));
+    return retNode;
   }
   wrapTextNode(node) {
     let markNode = this.opt.window.document.createElement(this.opt.element);
@@ -791,23 +789,6 @@ class Mark$1 {
     markNode.textContent = node.textContent;
     node.parentNode.replaceChild(markNode, node);
     return markNode;
-  }
-  wrapRange(node, start, end, eachCb) {
-    let retNode = this.empty,
-      ended = end === node.textContent.length,
-      textNode = node;
-    if (start === 0) {
-      if ( !ended) {
-        retNode = node.splitText(end);
-      }
-    } else if (ended) {
-      textNode = node.splitText(start);
-    } else {
-      textNode = node.splitText(start);
-      retNode = textNode.splitText(end - start);
-    }
-    eachCb(this.wrapTextNode(textNode));
-    return retNode;
   }
   wrapRangeAcross(dict, start, end, filterCb, eachCb) {
     let i = dict.lastIndex,
@@ -820,13 +801,10 @@ class Mark$1 {
     } else if (start < dict.lastTextIndex) {
       return;
     }
-    for (i; i < dict.nodes.length; i++)  {
+    for (i; i < dict.nodes.length; i++) {
       if (i + 1 === dict.nodes.length || dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
         if ( !filterCb(n)) {
-          if (i > dict.lastIndex) {
-            dict.lastIndex = i;
-          }
           break;
         }
         const s = start - n.start,
@@ -835,7 +813,7 @@ class Mark$1 {
           if (wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
             n = obj.nodeInfo;
-            eachCb(obj.markNode, rangeStart);
+            eachCb(obj.mark, rangeStart);
           } else {
             n.node = this.wrapRange(n.node, s, e, node => {
               eachCb(node, rangeStart);
@@ -848,11 +826,11 @@ class Mark$1 {
         if (end > n.end) {
           start = n.end + n.offset;
         } else {
-          dict.lastIndex = i;
           break;
         }
       }
     }
+    dict.lastIndex = i;
   }
   wrapGroups(node, match, params, filterCb, eachCb) {
     let startIndex = match.index,
@@ -1115,7 +1093,7 @@ class Mark$1 {
           const end = start + str.length;
           if (this.opt.cacheTextNodes) {
             const obj = this.wrapRangeInsert(dict, info, start, end, info.start + start, k);
-            eachCb(obj.markNode, {
+            eachCb(obj.mark, {
               match : match,
               count : ++count,
             });
@@ -1278,7 +1256,7 @@ class Mark$1 {
         this.log('RegExp is recompiled because it must have g flag');
       }
     }
-    this.log(`Searching with expression "${regexp}"`);
+    this.log(`RegExp "${regexp}"`);
     this[fn](regexp, this.opt.ignoreGroups, (node, match, filterInfo) => {
       return this.opt.filter(node, match, matchesSoFar, filterInfo);
     }, (element, eachInfo) => {
@@ -1309,7 +1287,7 @@ class Mark$1 {
     const loop = term => {
       const regex = regCreator.create(term);
       let termMatches = 0;
-      this.log(`Searching with expression "${regex}"`);
+      this.log(`RegExp "${regex}"`);
       this[fn](regex, 1, (node, t, filterInfo) => {
         matches = totalMatches + termMatches;
         return this.opt.filter(node, term, matches, termMatches, filterInfo);
@@ -1352,7 +1330,7 @@ class Mark$1 {
     const loop = pattern => {
       const regex = new RegExp(pattern, flags),
         patternTerms = termsParts[index];
-      this.log(`Searching with expression "${regex}"`);
+      this.log(`RegExp "${regex}"`);
       this[fn](regex, 1, (node, t, filterInfo) => {
         if ( !across || filterInfo.matchStart) {
           term = this.getCurrentTerm(filterInfo.match, patternTerms);
@@ -1425,7 +1403,7 @@ class Mark$1 {
   }
   markRanges(ranges, opt) {
     this.checkOption(opt, true);
-    if (this.isArrayOfObjects(ranges)) {
+    if (Array.isArray(ranges) && ranges.some(item => String(item) === '[object Object]')) {
       let totalMarks = 0;
       this.wrapRanges(ranges, (node, range, match, index) => {
         return this.opt.filter(node, range, match, index);
@@ -1475,7 +1453,7 @@ function Mark(ctx) {
     return this;
   };
   this.getVersion = () => {
-    return '2.3.0';
+    return '2.4.0';
   };
   return this;
 }

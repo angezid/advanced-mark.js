@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.3.0
+* advanced-mark.js v2.4.0
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -104,8 +104,8 @@ class RegExpCreator$1 {
   }
   checkWildcardsEscape(str) {
     if (this.opt.wildcards !== 'disabled') {
-      str = str.replace(/(\\.)+|[?*]/g, (m, gr) => gr ? m : m === '?' ? '\x01' : '\x02');
-      str = str.replace(/\\+(?=[?*\x01\x02])/g, m => m.slice(1));
+      str = str.replace(/(\\.)+|[?*]/g, (m, gr) => gr ? m : m === '?' ? '\x01' : '\x02')
+        .replace(/\\+(?=[?*\x01\x02])/g, m => m.slice(1));
     }
     return this.escape(str);
   }

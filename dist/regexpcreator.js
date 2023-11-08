@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.3.0
+* advanced-mark.js v2.4.0
 * Copyright (c) 2014–2023, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -186,8 +186,7 @@
         if (this.opt.wildcards !== 'disabled') {
           str = str.replace(/(\\.)+|[?*]/g, function (m, gr) {
             return gr ? m : m === '?' ? '\x01' : '\x02';
-          });
-          str = str.replace(/\\+(?=[?*\x01\x02])/g, function (m) {
+          }).replace(/\\+(?=[?*\x01\x02])/g, function (m) {
             return m.slice(1);
           });
         }

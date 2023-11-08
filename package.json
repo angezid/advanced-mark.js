@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "keywords": [
     "highlight",
     "highlight-text",
@@ -16,14 +16,14 @@
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "A fast JavaScript library to highlight text on a browser page. It has support for virtual DOMs like JSDOM.",
+  "description": "A fast JavaScript library to highlight any text on a browser page. It has support for virtual DOMs like JSDOM.",
   "main": "dist/mark.js",
   "types": "dist/mark.es6.d.ts",
   "repository": "angezid/advanced-mark.js",
   "bugs": {
     "url": "https://github.com/angezid/advanced-mark.js/issues"
   },
-  "homepage": "https://github.com/angezid/advanced-mark#readme",
+  "homepage": "https://github.com/angezid/advanced-mark.js#readme",
   "scripts": {
     "eslint": "eslint src/ test/",
     "karma": "karma start build/karma.config.js",

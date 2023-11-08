@@ -2,9 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/advanced-mark.js)](https://www.npmjs.com/package/advanced-mark.js)
 
-### A fast JavaScript library to highlight text on a browser page. It also supports virtual DOMs.
-
-This library from v2.0.0 doesn't guaranty backward compatibility with *mark.js* v9.0.0 and npm package v8.11.1.
+### A fast JavaScript library to highlight any text on a browser page. It also supports virtual DOMs.
 
 What is done:
 * rewritten across elements pipeline for performance reason and additional features
@@ -27,16 +25,6 @@ And a lot of other fixings, improvements ...
 
 Also may be useful to read [Documentation](https://markjs.io/). Note that this doc is for old *mark.js*.
 
-## Modules changes
-* \*. es6.\*.js now are real ES6 modules. They are actually UMD modules in *mark.js*.
+### License
 
-``` js
-import Mark from './mark.es6.js';
-// import Mark from './jquery.mark.es6.js';
-```
-
-Added `node.jquery.mark.es6.js` module, which is intended to use on Node.js and contains necessary `import $ from 'jquery'` declaration.  
-The modules `jquery.mark.es6.js` and `jquery.mark.es6. min.js` can be used directly in browsers (global $ or import $).
-
-## Virtual DOMs
-See [JSDOM test](jsdom-tests/test.js).
+[MIT](LICENSE)

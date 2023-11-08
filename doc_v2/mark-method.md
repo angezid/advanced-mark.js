@@ -39,10 +39,10 @@ $(context).mark(search[, options]);
     * `disabled`: The characters `?` and `*` match itself
     * `enabled`:
       * The character `?` match any non-white-space character zero or one time.
-      * The character `*` match any non-white-space character zero or more time.
+      * The character `*` match any non-white-space character zero or more times.
     * `withSpaces`:
       * The character `?` match any character zero or one time.
-      * The character `*` match any character zero or more time, but as few times as possible.
+      * The character `*` match any character zero or more times, but as few times as possible.
         
   * `ignoreJoiners` {boolean} - Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner (default is `false`)
   * `ignorePunctuation` {string|string[]} - A string or an array of punctuation characters (default is `[]`)

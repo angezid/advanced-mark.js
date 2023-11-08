@@ -124,12 +124,11 @@ class Mark {
    * @access protected
    */
   log(msg, level = 'debug') {
-    if (!this.opt.debug) {
-      return;
-    }
-    const log = this.opt.log;
-    if (typeof log === 'object' && typeof log[level] === 'function') {
-      log[level](`mark.js: ${msg}`);
+    if (this.opt.debug) {
+      const log = this.opt.log;
+      if (typeof log === 'object' && typeof log[level] === 'function') {
+        log[level](`mark.js: ${msg}`);
+      }
     }
   }
 
@@ -146,7 +145,7 @@ class Mark {
    */
   report(array) {
     array.forEach(item => {
-      this.log(`${item.text} ${JSON.stringify(item.obj)}`, item.level ? item.level : 'debug');
+      this.log(`${item.text} ${JSON.stringify(item.obj)}`, item.level || 'debug');
       if ( !item.skip) {
         this.opt.noMatch(item.obj);
       }
@@ -190,7 +189,7 @@ class Mark {
    * @access protected
    */
   getSeachTerms(sv) {
-    const search = this.isString(sv) ? [sv] : sv,
+    const search = typeof sv === 'string' ? [sv] : sv,
       separate = this.opt.separateWordSearch,
       array = [],
       split = str => {
@@ -237,33 +236,6 @@ class Mark {
     // http://stackoverflow.com/a/16655847/145346
     // eslint-disable-next-line eqeqeq
     return Number(parseFloat(value)) == value;
-  }
-
-  /**
-   * Checks if an obj is a string
-   * @param {any} obj - the value to check;
-   * @return {boolean}
-   */
-  isString(obj) {
-    return typeof obj === 'string';
-  }
-
-  /**
-   * Checks if an obj is an Object
-   * @param {any} obj - the value to check;
-   * @return {boolean}
-   */
-  isObject(obj) {
-    return String(obj) === '[object Object]';
-  }
-
-  /**
-   * Checks if an obj is an array and has at least one object
-   * @param {any} array - the value to check;
-   * @return {boolean}
-   */
-  isArrayOfObjects(array) {
-    return Array.isArray(array) && array.some(item => this.isObject(item));
   }
 
   /**
@@ -633,52 +605,49 @@ class Mark {
    * that will appear after the wrapped text node, and increment number
    */
   wrapRangeInsert(dict, n, s, e, start, index) {
-    const ended = e === n.node.textContent.length;
+    const ended = e === n.node.textContent.length,
+      end = n.end;
+    // type: 0 - whole text node, 1 - from the start, 2 - to the end, 3 - between
     let type = 1,
-      retNode = this.empty,
-      textNode;
+      splitIndex = e,
+      node = n.node;
 
     // prevents creating empty sibling text nodes at the start/end of a text node
-    if (s === 0) {
-      if (ended) { // whole
-        const node = this.wrapTextNode(n.node);
-        n.node = node.childNodes[0];
-        return { markNode : node, nodeInfo : this.createInfo(retNode, n.end, n.end, n.offset, 0), increment : 0 };
+    if (s !== 0) {
+      node = node.splitText(s);
+      splitIndex = e - s;
+      type = ended ? 2 : 3;
 
-      } else { // from the start
-        retNode = n.node.splitText(e);
-        textNode = n.node;
-      }
-
-    } else if (ended) { // to the end
-      textNode = n.node.splitText(s);
-      type = 2;
-
-    } else { // between the start and end
-      textNode = n.node.splitText(s);
-      retNode = textNode.splitText(e - s);
-      type = 3;
+    } else if (ended) { // whole
+      type = 0;
     }
 
-    const markNode = this.wrapTextNode(textNode),
-      markInfo = this.createInfo(markNode.childNodes[0], type === 1 ? n.start : start, n.start + e, 0, n.startOffset),
-      nodeInfo = this.createInfo(retNode, type === 2 ? n.end : n.start + e, n.end, n.offset, n.startOffset);
+    const retNode = ended ? this.empty : node.splitText(splitIndex),
+      mark = this.wrapTextNode(node);
+
+    if (type === 0) {
+      n.node = mark.childNodes[0];
+      return { mark, nodeInfo : this.createInfo(retNode, end, end, n.offset, 0), increment : 0 };
+    }
+
+    const info = this.createInfo(mark.childNodes[0], type === 1 ? n.start : start, n.start + e, 0, n.startOffset),
+      nodeInfo = this.createInfo(retNode, type === 2 ? end : n.start + e, end, n.offset, n.startOffset);
 
     // inserts new node(s) info in dict.nodes depending where a range is located in a text node
     if (type === 1) {
-      dict.nodes.splice(index, 1, markInfo, nodeInfo);
+      dict.nodes.splice(index, 1, info, nodeInfo);
 
     } else {
       if (type === 2) {
-        dict.nodes.splice(index + 1, 0, markInfo);
+        dict.nodes.splice(index + 1, 0, info);
 
       } else {
-        dict.nodes.splice(index + 1, 0, markInfo, nodeInfo);
+        dict.nodes.splice(index + 1, 0, info, nodeInfo);
       }
       n.end = start;
       n.offset = 0;
     }
-    return { markNode, nodeInfo, increment : type < 3 ? 1 : 2 };
+    return { mark, nodeInfo, increment : type < 3 ? 1 : 2 };
   }
 
   /**
@@ -692,6 +661,31 @@ class Mark {
    */
   createInfo(node, start, end, offset, startOffset) {
     return { node, start, end, offset, startOffset };
+  }
+
+  /**
+   * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
+   * It doesn't create empty sibling text nodes when `Text.splitText()` method splits a text node at the start/end
+   * @param  {Text} node - The DOM text node
+   * @param  {number} start - The position where to start wrapping
+   * @param  {number} end - The position where to end wrapping
+   * @param  {Mark~wrapRangeEachCallback} eachCb - Each callback
+   * @return {Text}
+   * @access protected
+   */
+  wrapRange(node, start, end, eachCb) {
+    let ended = end === node.textContent.length,
+      index = end,
+      retNode;
+
+    if (start !== 0) {
+      node = node.splitText(start);
+      index = end - start;
+    }
+    retNode = ended ? this.empty : node.splitText(index);
+
+    eachCb(this.wrapTextNode(node));
+    return retNode;
   }
 
   /**
@@ -710,44 +704,6 @@ class Mark {
     node.parentNode.replaceChild(markNode, node);
 
     return markNode;
-  }
-
-  /**
-   * Each callback
-   * @callback Mark~wrapRangeEachCallback
-   * @param {HTMLElement} node - The wrapped DOM element
-   */
-
-  /**
-   * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
-   * It doesn't create empty sibling text nodes when `Text.splitText()` method splits a text node at the start/end
-   * @param  {Text} node - The DOM text node
-   * @param  {number} start - The position where to start wrapping
-   * @param  {number} end - The position where to end wrapping
-   * @param  {Mark~wrapRangeEachCallback} eachCb - Each callback
-   * @return {Text}
-   * @access protected
-   */
-  wrapRange(node, start, end, eachCb) {
-    let retNode = this.empty,
-      ended = end === node.textContent.length,
-      textNode = node;
-
-    if (start === 0) {
-      if ( !ended) { // from the start
-        retNode = node.splitText(end);
-      }
-
-    } else if (ended) { // to the end
-      textNode = node.splitText(start);
-
-    } else { // between the start and end
-      textNode = node.splitText(start);
-      retNode = textNode.splitText(end - start);
-    }
-
-    eachCb(this.wrapTextNode(textNode));
-    return retNode;
   }
 
   /**
@@ -797,27 +753,23 @@ class Mark {
       return;
     }
 
-    for (i; i < dict.nodes.length; i++)  {
+    for (i; i < dict.nodes.length; i++) {
       if (i + 1 === dict.nodes.length || dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
 
         if ( !filterCb(n)) {
-          // updates the lastIndex
-          if (i > dict.lastIndex) {
-            dict.lastIndex = i;
-          }
           break;
         }
         // map range from dict.text to text node
         const s = start - n.start,
           e = (end > n.end ? n.end : end) - n.start;
 
-        // prevents browser exception if something went wrong. Just in case. Useful for debug purpose
+        // prevents creating an empty mark node and browser exception if something went wrong. Useful for debug purpose
         if (s >= 0 && e > s) {
           if (wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
             n = obj.nodeInfo;
-            eachCb(obj.markNode, rangeStart);
+            eachCb(obj.mark, rangeStart);
 
           } else {
             n.node = this.wrapRange(n.node, s, e, node => {
@@ -835,12 +787,12 @@ class Mark {
           // the range extends to the next text node
           start = n.end + n.offset;
         } else {
-          // sets the last index
-          dict.lastIndex = i;
           break;
         }
       }
     }
+    // sets the last index
+    dict.lastIndex = i;
   }
 
   /**
@@ -1392,7 +1344,7 @@ class Mark {
 
           if (this.opt.cacheTextNodes) {
             const obj = this.wrapRangeInsert(dict, info, start, end, info.start + start, k);
-            eachCb(obj.markNode, {
+            eachCb(obj.mark, {
               match : match,
               count : ++count,
             });
@@ -1702,7 +1654,7 @@ class Mark {
         this.log('RegExp is recompiled because it must have g flag');
       }
     }
-    this.log(`Searching with expression "${regexp}"`);
+    this.log(`RegExp "${regexp}"`);
 
     this[fn](regexp, this.opt.ignoreGroups, (node, match, filterInfo) => { // filter
       return this.opt.filter(node, match, matchesSoFar, filterInfo);
@@ -1785,7 +1737,7 @@ class Mark {
     const loop = term => {
       const regex = regCreator.create(term);
       let termMatches = 0;
-      this.log(`Searching with expression "${regex}"`);
+      this.log(`RegExp "${regex}"`);
 
       this[fn](regex, 1, (node, t, filterInfo) => { // filter
         matches = totalMatches + termMatches;
@@ -1843,7 +1795,7 @@ class Mark {
       const regex = new RegExp(pattern, flags),
         patternTerms = termsParts[index];
 
-      this.log(`Searching with expression "${regex}"`);
+      this.log(`RegExp "${regex}"`);
 
       this[fn](regex, 1, (node, t, filterInfo) => { // filter
         if ( !across || filterInfo.matchStart) {
@@ -2009,7 +1961,7 @@ class Mark {
   markRanges(ranges, opt) {
     this.checkOption(opt, true);
 
-    if (this.isArrayOfObjects(ranges)) {
+    if (Array.isArray(ranges) && ranges.some(item => String(item) === '[object Object]')) {
       let totalMarks = 0;
 
       this.wrapRanges(ranges, (node, range, match, index) => { // filter
