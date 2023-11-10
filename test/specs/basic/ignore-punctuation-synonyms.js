@@ -36,7 +36,7 @@ describe('basic mark with ignorePunctuation and synonyms', function() {
   });
 
   it('should wrap synonyms', function() {
-    expect($ctx1.find('mark')).toHaveLength(8);
-    expect($ctx2.find('mark')).toHaveLength(9);
+    expect($ctx1.find('mark').length).toBe(8);
+    expect($ctx2.find('mark').length).toBe(9);
   });
 });

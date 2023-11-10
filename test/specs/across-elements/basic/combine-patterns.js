@@ -30,7 +30,7 @@ describe('markCombinePatterns() with acrossElements option', function() {
         expect(groups).toBe(7);
         expect(matchCount).toBe(18);
         expect(totalMatches).toBe(18);
-        expect($ctx.find('mark')).toHaveLength(24);
+        expect($ctx.find('mark').length).toBe(24);
 
         for (var term in termStats) {
           expect(termStats[term]).toBe(stats[term]);
@@ -54,7 +54,7 @@ describe('markCombinePatterns() with acrossElements option', function() {
         return true;
       },
       'done' : function(m, totalMatches, termStats) {
-        expect($ctx.find('mark')).toHaveLength(8);
+        expect($ctx.find('mark').length).toBe(8);
 
         for (var term in termStats) {
           expect(termStats[term]).toBe(1);

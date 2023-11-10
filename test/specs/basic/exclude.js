@@ -13,7 +13,7 @@ describe('basic mark with exclude', function() {
       'separateWordSearch': false,
       'exclude': ['*[data-ignore]', '.ignore'],
       'done': function() {
-        expect($ctx.find('mark')).toHaveLength(4);
+        expect($ctx.find('mark').length).toBe(4);
         done();
       }
     });
@@ -25,7 +25,7 @@ describe('basic mark with exclude', function() {
       'separateWordSearch': false,
       'exclude': '*[data-ignore], .ignore',
       'done': function() {
-        expect($ctx.find('mark')).toHaveLength(4);
+        expect($ctx.find('mark').length).toBe(4);
         done();
       }
     });

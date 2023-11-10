@@ -15,6 +15,6 @@ describe('basic mark with caseSenstive and diacritics', function() {
   });
 
   it('should find case sensitive matches with diacritics', function() {
-    expect($ctx.find('mark')).toHaveLength(8);
+    expect($ctx.find('mark').length).toBe(8);
   });
 });

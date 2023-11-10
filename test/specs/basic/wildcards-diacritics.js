@@ -24,7 +24,7 @@ describe('basic mark with wildcards and diacritics', function() {
   });
 
   it('should find wildcard matches containing diacritics', function() {
-    expect($ctx1.find('mark')).toHaveLength(7);
-    expect($ctx2.find('mark')).toHaveLength(13);
+    expect($ctx1.find('mark').length).toBe(7);
+    expect($ctx2.find('mark').length).toBe(13);
   });
 });

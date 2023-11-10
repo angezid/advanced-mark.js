@@ -26,7 +26,7 @@ describe('markCombinePatterns() without acrossElements option', function() {
         // match[0], lookbehind, main group, 3 term groups
         expect(groups).toBe(6);
         expect(totalMatches).toBe(18);
-        expect($ctx.find('mark')).toHaveLength(18);
+        expect($ctx.find('mark').length).toBe(18);
 
         for (var term in termStats) {
           expect(termStats[term]).toBe(stats[term]);
@@ -48,7 +48,7 @@ describe('markCombinePatterns() without acrossElements option', function() {
         return true;
       },
       'done' : function(m, totalMatches, termStats) {
-        expect($ctx.find('mark')).toHaveLength(8);
+        expect($ctx.find('mark').length).toBe(8);
 
         for (var term in termStats) {
           expect(termStats[term]).toBe(1);
@@ -72,7 +72,7 @@ describe('markCombinePatterns() without acrossElements option', function() {
       'done' : function() {
         // match[0], lookbehind, main group, 8 term groups
         expect(groups).toBe(11);
-        expect($ctx.find('mark')).toHaveLength(18);
+        expect($ctx.find('mark').length).toBe(18);
         done();
       }
     });

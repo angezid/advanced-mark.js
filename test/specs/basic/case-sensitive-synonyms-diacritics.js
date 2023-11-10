@@ -19,6 +19,6 @@ describe('basic mark with caseSensitive synonyms and diacritics', function() {
   });
 
   it('should find case sensitive synonyms with diacritics', function() {
-    expect($ctx.find('mark')).toHaveLength(15);
+    expect($ctx.find('mark').length).toBe(15);
   });
 });

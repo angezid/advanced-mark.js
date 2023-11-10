@@ -26,7 +26,7 @@ describe(
     });
 
     it('should find synonyms with diacritics', function() {
-      expect($ctx.find('mark')).toHaveLength(33);
+      expect($ctx.find('mark').length).toBe(33);
     });
   }
 );

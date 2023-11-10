@@ -128,8 +128,8 @@ class RegExpCreator {
   /**
    * Creates a regular expression to match the specified search term considering
    * the available option settings
-   * @param  {string} str - The search term to be used
-   * @param  {boolean} patterns - Whether to return an object with pattern parts or RegExp object
+   * @param {string} str - The search term to be used
+   * @param {boolean} patterns - Whether to return an object with pattern parts or RegExp object
    * @return {RegExpCreator~patternObj|RegExp}
    */
   create(str, patterns) {
@@ -166,8 +166,8 @@ class RegExpCreator {
 
   /**
     * Creates a single combine pattern from an array of string considering the available option settings
-    * @param  {Array} array - The array of string
-    * @param  {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
+    * @param {Array} array - The array of string
+    * @param {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
     * @return {RegExpCreator~patternObj|null}
     */
   createCombinePattern(array, capture) {
@@ -232,7 +232,7 @@ class RegExpCreator {
 
   /**
    * Creates a regular expression string to match the defined synonyms
-   * @param  {string} str - The search term to be used
+   * @param {string} str - The search term to be used
    * @return {string}
    */
   createSynonyms(str, flags) {
@@ -275,7 +275,7 @@ class RegExpCreator {
 
   /**
    * Replaces the wildcard placeholders in a regular expression string
-   * @param  {string} str - The search term to be used
+   * @param {string} str - The search term to be used
    * @return {string}
    */
   createWildcards(str) {
@@ -300,7 +300,7 @@ class RegExpCreator {
   /**
    * Creates placeholders in the regular expression string to allow later insertion of
    * designated characters (soft hyphens, zero width characters, and punctuation)
-   * @param  {string} str - The search term to be used
+   * @param {string} str - The search term to be used
    * @return {string}
    */
   setupIgnoreJoiners(str) {
@@ -316,7 +316,7 @@ class RegExpCreator {
    * characters (soft hyphens, zero width characters, and punctuation) based on the
    * specified option values of <code>ignorePunctuation</code> and
    * <code>ignoreJoiners</code>
-   * @param  {string} str - The search term to be used
+   * @param {string} str - The search term to be used
    * @return {string}
    */
   createJoiners(str, joiners) {
@@ -343,7 +343,7 @@ class RegExpCreator {
 
   /**
    * Creates a regular expression string to match diacritics
-   * @param  {string} str - The search term to be used
+   * @param {string} str - The search term to be used
    * @return {string}
    */
   createDiacritics(str) {
@@ -373,7 +373,7 @@ class RegExpCreator {
    * defined accuracy. All regular expressions created with two capturing groups.
    * The first group is ignored (serves as lookbehind with values 'exactly' and 'startsWith'),
    * the second is contained the actual match
-   * @param  {string} str - The search term to be used
+   * @param {string} str - The search term to be used
    * @return {RegExpCreator~patternObj}
    */
   createAccuracy(str) {

@@ -42,10 +42,10 @@ describe('basic mark with wildcards and synonyms', function() {
   });
 
   it('should match wildcards inside of synonyms', function() {
-    expect($ctx1.find('mark')).toHaveLength(10);
-    expect($ctx2.find('mark')).toHaveLength(17);
+    expect($ctx1.find('mark').length).toBe(10);
+    expect($ctx2.find('mark').length).toBe(17);
   });
   it('regexp special chars in each synonym set should be escaped', function() {
-    expect($ctx3.find('mark')).toHaveLength(4);
+    expect($ctx3.find('mark').length).toBe(4);
   });
 });

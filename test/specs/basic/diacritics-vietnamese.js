@@ -16,6 +16,6 @@ describe('basic mark with diacritics for Vietnamese', function() {
   });
 
   it('should treat normal and diacritic characters equally', function() {
-    expect($ctx.find('mark')).toHaveLength(9);
+    expect($ctx.find('mark').length).toBe(9);
   });
 });

@@ -26,8 +26,8 @@ describe('basic mark with separateWordsearch', function() {
   });
 
   it('should wrap separated words', function() {
-    expect($ctx1.find('mark')).toHaveLength(8);
-    expect($ctx2.find('mark')).toHaveLength(8);
+    expect($ctx1.find('mark').length).toBe(8);
+    expect($ctx2.find('mark').length).toBe(8);
   });
   it('should call the noMatch callback for separated words', function() {
     expect(notFound).toEqual(['test']);

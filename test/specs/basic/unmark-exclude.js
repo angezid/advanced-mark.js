@@ -23,6 +23,6 @@ describe('basic unmark with exclude', function() {
   });
 
   it('should not unmark inside exclude selectors', function() {
-    expect($ctx.find('mark')).toHaveLength(2);
+    expect($ctx.find('mark').length).toBe(2);
   });
 });

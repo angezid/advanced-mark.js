@@ -30,7 +30,7 @@ describe('basic mark with synonyms', function() {
   });
 
   it('should wrap synonyms as well as keywords', function() {
-    expect($ctx1.find('mark')).toHaveLength(8);
-    expect($ctx2.find('mark')).toHaveLength(4);
+    expect($ctx1.find('mark').length).toBe(8);
+    expect($ctx2.find('mark').length).toBe(4);
   });
 });

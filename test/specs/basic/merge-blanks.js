@@ -22,7 +22,7 @@ describe('basic mark with multiple blanks', function() {
   });
 
   it('should wrap matches regardless of the number of blanks', function() {
-    expect($ctx1.find('mark')).toHaveLength(4);
-    expect($ctx2.find('mark')).toHaveLength(4);
+    expect($ctx1.find('mark').length).toBe(4);
+    expect($ctx2.find('mark').length).toBe(4);
   });
 });

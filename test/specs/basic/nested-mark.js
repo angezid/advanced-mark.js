@@ -26,7 +26,7 @@ describe(
     });
 
     it('should wrap matches even in already marked elements', function() {
-      expect($ctx.find('mark')).toHaveLength(5);
+      expect($ctx.find('mark').length).toBe(5);
       expect($ctx.find('mark.root')).toHaveLength(2);
       expect($ctx.find('mark.nested')).toHaveLength(3);
       expect($ctx.find('mark.root')).toContainElement('mark.nested');

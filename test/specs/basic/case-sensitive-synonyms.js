@@ -32,7 +32,7 @@ describe('basic mark with caseSensitive synonyms', function() {
   });
 
   it('should wrap keywords and synonyms', function() {
-    expect($ctx1.find('mark')).toHaveLength(6);
-    expect($ctx2.find('mark')).toHaveLength(5);
+    expect($ctx1.find('mark').length).toBe(6);
+    expect($ctx2.find('mark').length).toBe(5);
   });
 });

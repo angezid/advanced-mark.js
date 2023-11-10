@@ -14,6 +14,6 @@ describe('mark with acrossElements and regular expression', function() {
   });
 
   it('should wrap matches', function() {
-    expect($ctx.find('mark')).toHaveLength(6);
+    expect($ctx.find('mark').length).toBe(6);
   });
 });

@@ -70,7 +70,7 @@ describe('mark with range', function() {
     expect($match.attr('data-range-start')).toBe(range.start.toString());
     expect($match.attr('data-range-length')).toBe(range.length.toString());
     // extra mark around <br>
-    expect($ctx1.find('mark')).toHaveLength(4);
+    expect($ctx1.find('mark').length).toBe(4);
   });
   it('should mark correct range including spaces and breaks', function() {
     var range = getRange($ctx1, terms[1]),

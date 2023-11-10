@@ -21,7 +21,7 @@ describe('mark with range in iframes', function() {
   });
 
   it('should mark correct range including iframes', function() {
-    expect($ctx.find('mark')).toHaveLength(1);
-    expect($ctx.find('iframe').contents().find('mark')).toHaveLength(2);
+    expect($ctx.find('mark').length).toBe(1);
+    expect($ctx.find('iframe').contents().find('mark').length).toBe(2);
   });
 });

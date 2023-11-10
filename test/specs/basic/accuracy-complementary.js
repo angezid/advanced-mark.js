@@ -22,14 +22,14 @@ describe('basic mark with accuracy complementary', function() {
   });
 
   it('should wrap the correct matches', function() {
-    expect($ctx1.find('mark')).toHaveLength(4);
+    expect($ctx1.find('mark').length).toBe(4);
     var textOpts = ['testLoremtest', 'ipsumx', 'ipsumx-test', 'öipsumxö'];
     $ctx1.find('mark').each(function() {
       expect($.inArray($(this).text(), textOpts)).toBeGreaterThan(-1);
     });
   });
   it('should work with separateWordSearch', function() {
-    expect($ctx2.find('mark')).toHaveLength(2);
+    expect($ctx2.find('mark').length).toBe(2);
     var textOpts = ['testLorem', 'ipsumtest'];
     $ctx2.find('mark').each(function() {
       expect($.inArray($(this).text(), textOpts)).toBeGreaterThan(-1);

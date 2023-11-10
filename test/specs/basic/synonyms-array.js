@@ -14,7 +14,7 @@ describe('basic mark with synonyms in an array', function() {
         '1': ['one', 'a', 'single', 'sole']
       },
       'done': function() {
-        expect($ctx1.find('mark')).toHaveLength(11);
+        expect($ctx1.find('mark').length).toBe(11);
         done();
       }
     });
@@ -30,7 +30,7 @@ describe('basic mark with synonyms in an array', function() {
       },
       wildcards: 'enabled',
       'done': function() {
-        expect($ctx2.find('mark')).toHaveLength(4);
+        expect($ctx2.find('mark').length).toBe(4);
         done();
       }
     });
@@ -44,7 +44,7 @@ describe('basic mark with synonyms in an array', function() {
         'am': ['be', 'is', 'are', 'were', 'was', 'being', 'been', 'am']
       },
       'done': function() {
-        expect($ctx3.find('mark')).toHaveLength(8);
+        expect($ctx3.find('mark').length).toBe(8);
         done();
       }
     });

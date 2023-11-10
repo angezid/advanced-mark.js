@@ -18,7 +18,7 @@ class DOMIterator {
   /**
    * @param {HTMLElement|HTMLElement[]|NodeList|string} ctx - The context DOM
    * element, an array of DOM elements, a NodeList or a selector
-   * @param  {object} opt - Options object
+   * @param {object} opt - Options object
    */
   constructor(ctx, opt) {
     /**
@@ -44,8 +44,8 @@ class DOMIterator {
 
   /**
    * Checks if the specified DOM element matches the selector
-   * @param  {HTMLElement} element - The DOM element
-   * @param  {string|string[]} selector - The selector or an array with
+   * @param {HTMLElement} element - The DOM element
+   * @param {string|string[]} selector - The selector or an array with
    * selectors
    * @return {boolean}
    * @access public
@@ -182,8 +182,8 @@ class DOMIterator {
    */
   /**
    * Calls the callback if the specified iframe is ready for DOM access
-   * @param  {HTMLElement} ifr - The iframe DOM element
-   * @param  {DOMIterator~onIframeReadySuccessCallback} successFn - Success
+   * @param {HTMLElement} ifr - The iframe DOM element
+   * @param {DOMIterator~onIframeReadySuccessCallback} successFn - Success
    * callback
    * @param {DOMIterator~onIframeReadyErrorCallback} errorFn - Error callback
    * @see {@link http://stackoverflow.com/a/36155560/3894981} for
@@ -333,7 +333,7 @@ class DOMIterator {
    * @param {HTMLElement} ctx - The context
    * @param {DOMIterator~whatToShow} whatToShow
    * @param {DOMIterator~filterCb} filterCb - Filter callback
-   * @param  {DOMIterator~forEachNodeCallback} eachCb - Each callback
+   * @param {DOMIterator~forEachNodeCallback} eachCb - Each callback
    * @param {DOMIterator~forEachNodeEndCallback} doneCb - End callback
    * @access protected
    */
@@ -418,7 +418,7 @@ class DOMIterator {
   /**
    * Iterates over all contexts
    * @param {DOMIterator~whatToShow} whatToShow
-   * @param  {DOMIterator~forEachNodeCallback} each - Each callback
+   * @param {DOMIterator~forEachNodeCallback} each - Each callback
    * @param {DOMIterator~filterCb} filter - Filter callback
    * @param {DOMIterator~forEachNodeEndCallback} done - End callback
    * @access public

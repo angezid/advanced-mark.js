@@ -33,7 +33,7 @@ describe(
     });
 
     it('should find separate matches', function() {
-      expect($ctx1.find('mark')).toHaveLength(11);
+      expect($ctx1.find('mark').length).toBe(11);
 
       var count = 0,
         regex = /^(lorem|ipsum)$/i;
@@ -43,7 +43,7 @@ describe(
         }
       });
       expect(count).toBe(11);
-      expect($ctx2.find('mark')).toHaveLength(8);
+      expect($ctx2.find('mark').length).toBe(8);
 
       count = 0;
       regex = /^(ipsum|amet)$/i;

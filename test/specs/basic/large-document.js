@@ -39,7 +39,7 @@ describe('basic mark in large documents', function() {
   }, 60000);
 
   it('should not throw a recursion error and be faster than ' + time + ' ms', function() {
-    expect($ctx.find('mark')).toHaveLength(9569);
+    expect($ctx.find('mark').length).toBe(9569);
     expect(err).toBe(false);
     expect(diff).toBeLessThan(time);
   });

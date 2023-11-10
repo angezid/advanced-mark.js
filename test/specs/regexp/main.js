@@ -27,10 +27,10 @@ describe('mark with regular expression', function() {
   });
 
   it('should wrap matches', function() {
-    expect($ctx1.find('mark')).toHaveLength(4);
+    expect($ctx1.find('mark').length).toBe(4);
   });
   it('should silently ignore groups in regular expressions', function() {
-    expect($ctx2.find('mark')).toHaveLength(4);
+    expect($ctx2.find('mark').length).toBe(4);
     expect(errorThrown).toBe(false);
   });
   it('should return an object with further methods', function() {

@@ -15,6 +15,6 @@ describe('basic mark directly inside the context', function() {
   });
 
   it('should wrap matches', function() {
-    expect($ctx.find('mark')).toHaveLength(4);
+    expect($ctx.find('mark').length).toBe(4);
   });
 });

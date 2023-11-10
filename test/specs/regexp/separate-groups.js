@@ -11,7 +11,7 @@ describe('mark with regular expression and separateGroups', function() {
     new Mark($ctx1[0]).markRegExp(/(?:\[%)([a-z_]+):(\w+?)(?:%])/g, {
       separateGroups: true,
       done: function() {
-        expect($ctx1.find('mark')).toHaveLength(6);
+        expect($ctx1.find('mark').length).toBe(6);
         var results = ['test', 'value', 'testx', 'value2', 'testz', '123'];
         $ctx1.find('mark').each(function(indx) {
           expect($(this).text()).toBe(results[indx]);
@@ -27,7 +27,7 @@ describe('mark with regular expression and separateGroups', function() {
     new Mark($ctx2[0]).markRegExp(/(\w+)-(\w+)/g, {
       separateGroups: true,
       done: function() {
-        expect($ctx2.find('mark')).toHaveLength(8);
+        expect($ctx2.find('mark').length).toBe(8);
         var results = [
           'test', '1w',
           'test', '2x',
@@ -48,7 +48,7 @@ describe('mark with regular expression and separateGroups', function() {
     new Mark($ctx3[0]).markRegExp(/(\w+)-(\w+)/g, {
       separateGroups: false,
       done: function() {
-        expect($ctx3.find('mark')).toHaveLength(4);
+        expect($ctx3.find('mark').length).toBe(4);
         done();
       }
     });
@@ -61,7 +61,7 @@ describe('mark with regular expression and separateGroups', function() {
       separateGroups: true,
       done : function() {
         // if regexp doesn't contains any groups nothing should be mark
-        expect($ctx4.find('mark')).toHaveLength(0);
+        expect($ctx4.find('mark').length).toBe(0);
         done();
       }
     });

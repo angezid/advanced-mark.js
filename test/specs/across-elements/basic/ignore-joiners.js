@@ -17,6 +17,6 @@ describe('mark with acrossElements and ignoreJoiners', function() {
   });
 
   it('should wrap matches and ignoreJoiners', function() {
-    expect($ctx.find('mark')).toHaveLength(6);
+    expect($ctx.find('mark').length).toBe(6);
   });
 });

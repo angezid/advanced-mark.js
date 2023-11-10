@@ -17,6 +17,6 @@ describe('basic mark ignore empty synonyms', function() {
   });
 
   it('should ignore empty synonyms', function() {
-    expect($ctx.find('mark')).toHaveLength(4);
+    expect($ctx.find('mark').length).toBe(4);
   });
 });

@@ -37,8 +37,8 @@ describe('mark with range no matches', function() {
             errCall++;
           },
           'done': function() {
-            expect($ctx1.find('mark')).toHaveLength(1);
-            expect($ctx2.find('mark')).toHaveLength(0);
+            expect($ctx1.find('mark').length).toBe(1);
+            expect($ctx2.find('mark').length).toBe(0);
 
             var ranges = notFound.sort(function(a, b) {
               return a.start - b.start;

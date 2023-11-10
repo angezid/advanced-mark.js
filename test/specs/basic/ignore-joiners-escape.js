@@ -29,6 +29,6 @@ describe('basic mark with ignoreJoiners and special characters', function() {
 
   it('should find matches', function() {
     expect(err).toBe(false);
-    expect($ctx.find('mark')).toHaveLength(9);
+    expect($ctx.find('mark').length).toBe(9);
   });
 });

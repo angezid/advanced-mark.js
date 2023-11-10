@@ -15,7 +15,7 @@ describe('mark with acrossElements', function() {
         return true; 
       },
       'done' : function() {
-        expect($ctx.find('mark')).toHaveLength(1);
+        expect($ctx.find('mark').length).toBe(1);
 
         new Mark($ctx[0]).mark('ipsum', {
           'filter' : function(node, kw, totalMatches, matches, info) {
@@ -23,7 +23,7 @@ describe('mark with acrossElements', function() {
             return true;
           },
           'done' : function() {
-            expect($ctx.find('mark')).toHaveLength(2);
+            expect($ctx.find('mark').length).toBe(2);
             done();
           }
         });

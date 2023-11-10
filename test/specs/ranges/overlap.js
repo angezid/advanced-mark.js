@@ -24,7 +24,7 @@ describe('mark ranges ignoring overlapping values', function() {
 
   it('should ignore nesting/overlapping ranges', function() {
     // length = 3 because whitespace before the <p> is wrapped
-    expect($ctx.find('mark')).toHaveLength(3);
+    expect($ctx.find('mark').length).toBe(3);
     expect($ctx.find('mark[data-range-start=20]')).toHaveLength(0);
     expect($ctx.find('mark[data-range-start=25]')).toHaveLength(0);
     expect($ctx.find('mark[data-range-start=45]')).toHaveLength(0);

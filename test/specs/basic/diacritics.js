@@ -16,6 +16,6 @@ describe('basic mark with diacritics', function() {
   });
 
   it('should treat normal and diacritic characters equally', function() {
-    expect($ctx.find('mark')).toHaveLength(15);
+    expect($ctx.find('mark').length).toBe(15);
   });
 });

@@ -79,7 +79,7 @@ describe('mark with range filter callback', function() {
     expect(nodeCounter).toBe(length);
     expect(termCount).toBe(length);
     expect(rangeCount).toBe(length);
-    expect($ctx.find('mark')).toHaveLength(length - 1);
+    expect($ctx.find('mark').length).toBe(length - 1);
     expect($ctx.find('mark:contains(' + skip + ')')).toHaveLength(0);
   });
 });

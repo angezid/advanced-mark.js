@@ -29,8 +29,8 @@ describe('basic mark with separateWordSearch and blanks', function() {
   });
 
   it('should wrap matches, ignore blanks and call done', function() {
-    expect($ctx1.find('mark')).toHaveLength(4);
-    expect($ctx2.find('mark')).toHaveLength(4);
-    expect($ctx3.find('mark')).toHaveLength(0);
+    expect($ctx1.find('mark').length).toBe(4);
+    expect($ctx2.find('mark').length).toBe(4);
+    expect($ctx3.find('mark').length).toBe(0);
   });
 });

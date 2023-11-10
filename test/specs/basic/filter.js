@@ -36,7 +36,7 @@ describe('basic mark with filter callback', function() {
           }
         },
         'done': function() {
-          expect($ctx.find('mark')).toHaveLength(15);
+          expect($ctx.find('mark').length).toBe(15);
           done();
         }
       });

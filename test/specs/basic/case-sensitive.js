@@ -25,7 +25,7 @@ describe('basic mark with caseSenstive', function() {
   });
 
   it('should find case sensitive matches', function() {
-    expect($ctx1.find('mark')).toHaveLength(2);
-    expect($ctx2.find('mark')).toHaveLength(4);
+    expect($ctx1.find('mark').length).toBe(2);
+    expect($ctx2.find('mark').length).toBe(4);
   });
 });

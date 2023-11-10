@@ -23,7 +23,7 @@ describe('mark with regular expression and filter callback', function() {
         }
       },
       'done': function() {
-        expect($ctx.find('mark')).toHaveLength(4);
+        expect($ctx.find('mark').length).toBe(4);
         done();
       }
     });

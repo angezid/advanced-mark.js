@@ -22,7 +22,7 @@ describe('basic mark with HTML entities', function() {
   });
 
   it('should wrap matches', function() {
-    expect($ctx1.find('mark')).toHaveLength(1);
-    expect($ctx2.find('mark')).toHaveLength(1);
+    expect($ctx1.find('mark').length).toBe(1);
+    expect($ctx2.find('mark').length).toBe(1);
   });
 });

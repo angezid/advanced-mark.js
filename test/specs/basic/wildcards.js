@@ -40,15 +40,15 @@ describe('basic mark with wildcards', function() {
   });
 
   it('should find \'?\' wildcard matches', function() {
-    expect($ctx1.find('mark')).toHaveLength(6);
+    expect($ctx1.find('mark').length).toBe(6);
   });
   it('should find \'*\' wildcard matches', function() {
-    expect($ctx2.find('mark')).toHaveLength(8);
+    expect($ctx2.find('mark').length).toBe(8);
   });
   it('should find both \'?\' and \'*\' matches', function() {
-    expect($ctx3.find('mark')).toHaveLength(14);
+    expect($ctx3.find('mark').length).toBe(14);
   });
   it('should find wildcards as plain characters when disabled', function() {
-    expect($ctx4.find('mark')).toHaveLength(2);
+    expect($ctx4.find('mark').length).toBe(2);
   });
 });

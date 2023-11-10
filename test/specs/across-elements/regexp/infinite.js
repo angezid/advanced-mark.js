@@ -18,7 +18,7 @@ describe(
     it(
       'should not mark regular expressions with infinite matches',
       function() {
-        expect($ctx.find('mark')).toHaveLength(0);
+        expect($ctx.find('mark').length).toBe(0);
       }
     );
   }

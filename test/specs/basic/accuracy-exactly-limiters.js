@@ -20,7 +20,7 @@ describe('basic mark with accuracy exactly and limiters', function() {
   });
 
   it('should wrap matches without custom limiters', function() {
-    expect($ctx.find('mark')).toHaveLength(6);
+    expect($ctx.find('mark').length).toBe(6);
     $ctx.find('mark').each(function() {
       expect($(this).text()).toBe('test');
     });

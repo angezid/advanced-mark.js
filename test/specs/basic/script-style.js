@@ -17,7 +17,7 @@ describe(
     });
 
     it('should wrap matches', function() {
-      expect($ctx.find('mark')).toHaveLength(4);
+      expect($ctx.find('mark').length).toBe(4);
     });
     it('should not wrap anything inside these tags', function() {
       expect($ctx.find('style, script')).not.toContainElement('mark');

@@ -19,7 +19,7 @@ describe('basic mark with an array of keywords', function() {
   });
 
   it('should wrap all matching keywords from the array', function() {
-    expect($ctx.find('mark')).toHaveLength(8);
+    expect($ctx.find('mark').length).toBe(8);
   });
   it('should call noMatch for not found array items', function() {
     expect(notFound).toEqual(['test', 'hey']);

@@ -13,7 +13,7 @@ describe('basic mark with wildcards between words', function() {
       'diacritics': false,
       'wildcards': 'enabled',
       'done': function() {
-        expect($ctx1.find('mark')).toHaveLength(4);
+        expect($ctx1.find('mark').length).toBe(4);
         done();
       }
     });
@@ -27,7 +27,7 @@ describe('basic mark with wildcards between words', function() {
       'diacritics': false,
       'wildcards': 'enabled',
       'done': function() {
-        expect($ctx2.find('mark')).toHaveLength(5);
+        expect($ctx2.find('mark').length).toBe(5);
         done();
       }
     });
@@ -41,7 +41,7 @@ describe('basic mark with wildcards between words', function() {
       'diacritics': false,
       'wildcards': 'withSpaces',
       'done': function() {
-        expect($ctx3.find('mark')).toHaveLength(6);
+        expect($ctx3.find('mark').length).toBe(6);
         done();
       }
     });
@@ -55,7 +55,7 @@ describe('basic mark with wildcards between words', function() {
       'diacritics': false,
       'wildcards': 'withSpaces',
       'done': function() {
-        expect($ctx4.find('mark')).toHaveLength(9);
+        expect($ctx4.find('mark').length).toBe(9);
         done();
       }
     });

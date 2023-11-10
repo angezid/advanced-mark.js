@@ -15,7 +15,7 @@ describe('basic mark with accuracy partially', function() {
   });
 
   it('should wrap the right matches', function() {
-    expect($ctx.find('mark')).toHaveLength(4);
+    expect($ctx.find('mark').length).toBe(4);
     $ctx.find('mark').each(function() {
       expect($(this).text()).toBe('Lorem');
     });

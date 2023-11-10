@@ -24,7 +24,7 @@ describe('mark with acrossElements and multiple blanks', function() {
   });
 
   it('should wrap matches regardless of the number of blanks', function() {
-    expect($ctx1.find('mark')).toHaveLength(5);
-    expect($ctx2.find('mark')).toHaveLength(5);
+    expect($ctx1.find('mark').length).toBe(5);
+    expect($ctx2.find('mark').length).toBe(5);
   });
 });

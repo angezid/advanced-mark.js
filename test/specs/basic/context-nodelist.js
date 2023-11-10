@@ -16,6 +16,6 @@ describe('basic mark called with a NodeList context', function() {
   });
 
   it('should wrap matches', function() {
-    expect($ctx.find('mark')).toHaveLength(8);
+    expect($ctx.find('mark').length).toBe(8);
   });
 });

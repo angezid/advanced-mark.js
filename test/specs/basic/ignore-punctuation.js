@@ -33,7 +33,7 @@ describe('basic mark with ignorePunctuation', function() {
       'diacritics': false,
       'ignorePunctuation': punctuation.split(''),
       'done': function() {
-        expect($ctx1.find('mark')).toHaveLength(5);
+        expect($ctx1.find('mark').length).toBe(5);
         var count = 0;
         $ctx1.find('mark').each(function() {
           if ($(this).text().replace(regexp, '') === 'ipsum') {
@@ -54,7 +54,7 @@ describe('basic mark with ignorePunctuation', function() {
       'diacritics': false,
       'ignorePunctuation': punctuation.split(''),
       'done': function() {
-        expect($ctx2.find('mark')).toHaveLength(5);
+        expect($ctx2.find('mark').length).toBe(5);
         var count = 0,
           regex = /lorem\s+ipsum/i;
         $ctx2.find('mark').each(function() {
@@ -76,7 +76,7 @@ describe('basic mark with ignorePunctuation', function() {
       'diacritics': false,
       'ignorePunctuation': '',
       'done': function() {
-        expect($ctx3.find('mark')).toHaveLength(1);
+        expect($ctx3.find('mark').length).toBe(1);
         done();
       }
     });

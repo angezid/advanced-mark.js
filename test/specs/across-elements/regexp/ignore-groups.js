@@ -13,7 +13,7 @@ describe(
       new Mark($ctx1[0]).markRegExp(/(Lor)([^]?m[\s]*)(ipsum)/gmi, {
         'acrossElements': true,
         'done': function() {
-          expect($ctx1.find('mark')).toHaveLength(4);
+          expect($ctx1.find('mark').length).toBe(4);
           $ctx1.find('mark').each(function() {
             expect($(this).text()).toBe('Lorem ipsum');
           });
@@ -29,7 +29,7 @@ describe(
         'acrossElements': true,
         'ignoreGroups': 2,
         'done': function() {
-          expect($ctx2.find('mark')).toHaveLength(4);
+          expect($ctx2.find('mark').length).toBe(4);
           $ctx2.find('mark').each(function() {
             expect($(this).text()).toBe('ipsum');
           });

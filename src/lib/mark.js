@@ -155,7 +155,7 @@ class Mark {
   /**
    * Checks the validity of cache objects (mark instance can calls several methods with different setting
    * of the cacheTextNodes option, which breaks the relation of the DOM nodes and cache object nodes)
-   * @param  {object} [opt] - Optional options object
+   * @param {object} [opt] - Optional options object
    * @return {object}
    */
   checkOption(opt, del) {
@@ -167,10 +167,10 @@ class Mark {
       // It allows using cache object if the type and cacheTextNodes option doesn't change
       if ( !del && this.opt.cacheTextNodes) {
         if (this.opt.acrossElements) {
-          if (dict.type === 'across') {
+          if (dict.across) {
             clear = false;
           }
-        } else if (dict.type === 'every') {
+        } else if ( !dict.across) {
           clear = false;
         }
       }
@@ -184,20 +184,24 @@ class Mark {
    * Splits string into separate words if 'separateWordSearch' option has value 'true' but,
    * if it has string value 'preserveTerms', prevents splitting terms surrounding by double quotes.
    * Removes duplicate or empty entries and sort by the length in descending order.
-   * @param {string|string[]} [sv] - Search value, either a string or an array of strings
-   * @return {array}
+   * It also initializes termStats object.
+   * @param {string|string[]} sv - Search value, either a string or an array of strings
+   * @return {object}
    * @access protected
    */
   getSeachTerms(sv) {
     const search = typeof sv === 'string' ? [sv] : sv,
       separate = this.opt.separateWordSearch,
       array = [],
+      termStats = {},
       split = str => {
         str.split(/ +/).forEach(word => add(word));
       },
       add = str => {
         if (str.trim() && array.indexOf(str) === -1) {
           array.push(str);
+          // initializes term property
+          termStats[str] = 0;
         }
       };
 
@@ -220,9 +224,8 @@ class Mark {
         add(str);
       }
     });
-    // sort because of https://git.io/v6USg
     array.sort((a, b) => b.length - a.length);
-    return array;
+    return { terms : array, termStats };
   }
 
   /**
@@ -406,14 +409,14 @@ class Mark {
           }
           return false;
         }
-        return !this.excludeElements(node.parentNode);
+        return !this.excluded(node.parentNode);
 
       }, () => { // done
         // processes the last node
         if (prevNode) {
-          nodes.push(this.getNodeInfo(prevNode, prevNode, type, obj));
+          nodes.push(this.getNodeInfo(prevNode, null, type, obj));
         }
-        cb(this.createDict(obj.text, nodes, 'across'));
+        cb(this.createDict(obj.text, nodes, true));
       });
   }
 
@@ -422,7 +425,7 @@ class Mark {
    * @param {Text} prevNode - The previous DOM text node
    * @param {Text} node - The current DOM text node
    * @param {number|null} type - define how to separate the previous and current text nodes textContent;
-   * is null when nodes doesn't separated by block elements
+   * type is null when nodes doesn't separated by block elements
    * @param {object} obj - The auxiliary object to pass multiple parameters to the method
    */
   getNodeInfo(prevNode, node, type, obj) {
@@ -433,7 +436,7 @@ class Mark {
       str = obj.str,
       text = prevNode.textContent;
 
-    if (prevNode !== node) {
+    if (node) {
       const startBySpace = obj.regex.test(node.textContent[0]),
         both = startBySpace && obj.regex.test(text[text.length - 1]);
 
@@ -545,10 +548,10 @@ class Mark {
         }
         return false;
       }
-      return !this.excludeElements(node.parentNode);
+      return !this.excluded(node.parentNode);
 
     }, () => { // done
-      const dict = this.createDict(text, nodes, 'every');
+      const dict = this.createDict(text, nodes, false);
 
       if (lines) {
         newLines.push(len);
@@ -560,11 +563,11 @@ class Mark {
 
   /**
    * Creates dict object
-   * @param  {string} text - The composite string
-   * @param  {Mark~nodeInfo[]|Mark~nodeInfoAcross[]} nodes - The array of info objects
-   * @param  {string} type - The cache dict type
+   * @param {string} text - The composite string
+   * @param {Mark~nodeInfo[]|Mark~nodeInfoAcross[]} nodes - The array of info objects
+   * @param {boolean} across - Indicate that cache dict type
    */
-  createDict(text, nodes, type) {
+  createDict(text, nodes, across) {
     const dict = {
       text : text,
       nodes: nodes,
@@ -574,18 +577,18 @@ class Mark {
 
     if (this.opt.cacheTextNodes) {
       this.cacheDict = dict;
-      this.cacheDict.type = type;
+      this.cacheDict.across = across;
     }
     return dict;
   }
 
   /**
    * Checks if an element matches any of the specified exclude selectors.
-   * @param  {HTMLElement} elem - The element to check
+   * @param {HTMLElement} elem - The element to check
    * @return {boolean}
    * @access protected
    */
-  excludeElements(elem) {
+  excluded(elem) {
     // it's faster to check if an array contains the node name than a selector in 'DOMIterator.matches()'
     // also it allows using a string of selectors instead of an array with the 'exclude' option
     return this.nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 || DOMIterator.matches(elem, this.opt.exclude);
@@ -611,7 +614,6 @@ class Mark {
     let type = 1,
       splitIndex = e,
       node = n.node;
-
     // prevents creating empty sibling text nodes at the start/end of a text node
     if (s !== 0) {
       node = node.splitText(s);
@@ -623,24 +625,22 @@ class Mark {
     }
 
     const retNode = ended ? this.empty : node.splitText(splitIndex),
-      mark = this.wrapTextNode(node);
+      mark = this.wrapTextNode(node),
+      markChild = mark.childNodes[0],
+      nodeInfo = this.createInfo(retNode, type === 0 || type === 2 ? end : n.start + e, end, n.offset, n.startOffset);
 
     if (type === 0) {
-      n.node = mark.childNodes[0];
-      return { mark, nodeInfo : this.createInfo(retNode, end, end, n.offset, 0), increment : 0 };
+      n.node = markChild;
+      return { mark, nodeInfo, increment : 0 };
     }
 
-    const info = this.createInfo(mark.childNodes[0], type === 1 ? n.start : start, n.start + e, 0, n.startOffset),
-      nodeInfo = this.createInfo(retNode, type === 2 ? end : n.start + e, end, n.offset, n.startOffset);
-
+    const info = this.createInfo(markChild, type === 1 ? n.start : start, n.start + e, 0, n.startOffset);
     // inserts new node(s) info in dict.nodes depending where a range is located in a text node
     if (type === 1) {
       dict.nodes.splice(index, 1, info, nodeInfo);
-
     } else {
       if (type === 2) {
         dict.nodes.splice(index + 1, 0, info);
-
       } else {
         dict.nodes.splice(index + 1, 0, info, nodeInfo);
       }
@@ -652,12 +652,12 @@ class Mark {
 
   /**
    * Creates object
-   * @param  {Text} node - The DOM text node
-   * @param  {number} start - The position where to start wrapping
-   * @param  {number} end - The position where to end wrapping
-   * @param  {number} offset - The length of space/string that is added to end of composite string
+   * @param {Text} node - The DOM text node
+   * @param {number} start - The position where to start wrapping
+   * @param {number} end - The position where to end wrapping
+   * @param {number} offset - The length of space/string that is added to end of composite string
    * after this node textContent
-   * @param  {number} startOffset - The sum of all offsets that were added before this node
+   * @param {number} startOffset - The sum of all offsets that were added before this node
    */
   createInfo(node, start, end, offset, startOffset) {
     return { node, start, end, offset, startOffset };
@@ -666,10 +666,10 @@ class Mark {
   /**
    * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
    * It doesn't create empty sibling text nodes when `Text.splitText()` method splits a text node at the start/end
-   * @param  {Text} node - The DOM text node
-   * @param  {number} start - The position where to start wrapping
-   * @param  {number} end - The position where to end wrapping
-   * @param  {Mark~wrapRangeEachCallback} eachCb - Each callback
+   * @param {Text} node - The DOM text node
+   * @param {number} start - The position where to start wrapping
+   * @param {number} end - The position where to end wrapping
+   * @param {Mark~wrapRangeEachCallback} eachCb - Each callback
    * @return {Text}
    * @access protected
    */
@@ -690,7 +690,7 @@ class Mark {
 
   /**
    * Wraps the new element with the necessary attributes around text node
-   * @param  {Text} node - The DOM text node
+   * @param {Text} node - The DOM text node
    * @return {HTMLElement} Returns the created DOM node
    */
   wrapTextNode(node) {
@@ -729,11 +729,11 @@ class Mark {
   /**
    * Determines matches by start and end positions using the text node dictionary
    * and calls {@link Mark#wrapRange} or {@link Mark#wrapRangeInsert} to wrap them
-   * @param  {Mark~wrapRangeAcrossDict} dict - The dictionary
-   * @param  {number} start - The start index of the match
-   * @param  {number} end - The end index of the match
-   * @param  {Mark~wrapRangeAcrossFilterCallback} filterCb - Filter callback
-   * @param  {Mark~wrapRangeAcrossEachCallback} eachCb - Each callback
+   * @param {Mark~wrapRangeAcrossDict} dict - The dictionary
+   * @param {number} start - The start index of the match
+   * @param {number} end - The end index of the match
+   * @param {Mark~wrapRangeAcrossFilterCallback} filterCb - Filter callback
+   * @param {Mark~wrapRangeAcrossEachCallback} eachCb - Each callback
    * @access protected
    */
   wrapRangeAcross(dict, start, end, filterCb, eachCb) {
@@ -764,7 +764,7 @@ class Mark {
         const s = start - n.start,
           e = (end > n.end ? n.end : end) - n.start;
 
-        // prevents creating an empty mark node and browser exception if something went wrong. Useful for debug purpose
+        // prevents creating an empty mark node, prevents exception if something went wrong, useful for debug
         if (s >= 0 && e > s) {
           if (wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
@@ -913,7 +913,7 @@ class Mark {
       group = match[index];
 
       if (group) {
-        // this approach only reliable with contiguous groups; unwanted group(s) can be easily filtered out
+        // this approach only reliable with adjacent groups; unwanted group(s) can be easily filtered out
         start = text.indexOf(group, startIndex);
 
         if (start !== -1) {
@@ -1069,38 +1069,26 @@ class Mark {
    * @param {RegExp} regex - The regular expression to be searched for
    * @return {array} groups - The array containing main groups indexes
    */
-  collectRegexGroupIndexes(regex) {
+  collectGroupIndexes(regex) {
     let groups = [], stack = [],
-      i = -1, index = 1, brackets = 0, charSet = false,
-      str = regex.source,
-      // matches the start of capturing groups (?<, (
-      reg = /^\(\?<(?![=!])|^\((?!\?)/;
+      index = 0, brackets = 0,
+      str = regex.source, rm,
+      // any escaped char | charSet | start of capturing groups '(?<, (' | rest open parentheses | close parenthesis
+      reg = /(?:\\.)+|\[(?:[^\\\]]|(?:\\.))+\]|(\(\?<(?![=!])|\((?!\?))|(\()|(\))/g;
 
-    while (++i < str.length) {
-      switch (str[i]) {
-        case '(':
-          if ( !charSet) {
-            if (reg.test(str.substring(i))) {
-              stack.push(1);
-              if (brackets === 0) {
-                groups.push(index);
-              }
-              brackets++;
-              index++;
-            } else {
-              stack.push(0);
-            }
-          }
-          break;
-        case ')':
-          if ( !charSet && stack.pop() === 1) {
-            brackets--;
-          }
-          break;
-        case '\\' : i++; break;
-        case '[' : charSet = true; break;
-        case ']' : charSet = false; break;
-        default : break;
+    while ((rm = reg.exec(str)) !== null) {
+      if (rm[1]) {
+        stack.push(1);
+        index++;
+
+        if (brackets++ === 0) {
+          groups.push(index);
+        }
+      } else if (rm[2]) {
+        stack.push(0);
+
+      } else if (rm[3] && stack.pop()) {
+        brackets--;
       }
     }
     return groups;
@@ -1139,7 +1127,7 @@ class Mark {
    * @callback Mark~wrapSeparateGroupsFilterCallback
    * @param {Text} node - The text node where the match occurs
    * @param {string} group - The matching string of the current group
-   * @param {Mark~filterInfoObject} filterInfo - The object containing the match information
+   * @param {Mark~filterInfoObject} info - The object containing the match information
    */
   /**
    * Callback for each wrapped element
@@ -1167,27 +1155,27 @@ class Mark {
       fn = hasIndices ? 'wrapGroupsDFlag' : 'wrapGroups',
       params = {
         regex : regex,
-        groups : hasIndices ? {} : this.collectRegexGroupIndexes(regex)
+        groups : hasIndices ? {} : this.collectGroupIndexes(regex)
       },
       execution = { abort : false },
-      filterInfo = { execution : execution };
+      info = { execution : execution };
 
     let node, match, filterStart, eachStart, count = 0;
 
     this.getTextNodes(dict => {
-      dict.nodes.every(info => {
-        node = info.node;
-        filterInfo.offset = info.start;
+      dict.nodes.every(obj => {
+        node = obj.node;
+        info.offset = obj.start;
 
         while ((match = regex.exec(node.textContent)) !== null && (hasIndices || match[0] !== '')) {
-          filterInfo.match = match;
+          info.match = match;
           filterStart = eachStart = true;
 
           node = this[fn](node, match, params, (node, group, grIndex) => { // filter
-            filterInfo.matchStart = filterStart;
-            filterInfo.groupIndex = grIndex;
+            info.matchStart = filterStart;
+            info.groupIndex = grIndex;
             filterStart = false;
-            return filterCb(node, group, filterInfo);
+            return filterCb(node, group, info);
 
           }, (node, grIndex) => { // each
             if (eachStart) {
@@ -1218,7 +1206,7 @@ class Mark {
    * @callback Mark~wrapSeparateGroupsAcrossFilterCallback
    * @param {Text} node - The text node where the match occurs or is part of the match
    * @param {string} group - The matching string of the current group
-   * @param {Mark~filterInfoObject} filterInfo - The object containing the match information
+   * @param {Mark~filterInfoObject} info - The object containing the match information
    */
   /**
    * Callback for each wrapped element
@@ -1245,24 +1233,24 @@ class Mark {
       fn = hasIndices ? 'wrapGroupsDFlagAcross' : 'wrapGroupsAcross',
       params = {
         regex : regex,
-        groups : hasIndices ? {} : this.collectRegexGroupIndexes(regex)
+        groups : hasIndices ? {} : this.collectGroupIndexes(regex)
       },
       execution = { abort : false },
-      filterInfo = { execution : execution };
+      info = { execution : execution };
 
     let match, filterStart, eachStart, count = 0;
 
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null && (hasIndices || match[0] !== '')) {
-        filterInfo.match = match;
+        info.match = match;
         filterStart = eachStart = true;
 
         this[fn](dict, match, params, (obj, group, grIndex) => { // filter
-          filterInfo.matchStart = filterStart;
-          filterInfo.groupIndex = grIndex;
-          filterInfo.offset = obj.startOffset;
+          info.matchStart = filterStart;
+          info.groupIndex = grIndex;
+          info.offset = obj.startOffset;
           filterStart = false;
-          return filterCb(obj.node, group, filterInfo);
+          return filterCb(obj.node, group, info);
 
         }, (node, groupStart, grIndex) => { // each
           if (eachStart) {
@@ -1545,7 +1533,7 @@ class Mark {
   /**
    * Unwraps the specified DOM node with its content (text nodes or HTML)
    * without destroying possibly present events (using innerHTML) and normalizes text nodes
-   * @param  {HTMLElement} node - The DOM node to unwrap
+   * @param {HTMLElement} node - The DOM node to unwrap
    * @access protected
    */
   unwrapMatches(node) {
@@ -1634,8 +1622,8 @@ class Mark {
    */
   /**
    * Marks a custom regular expression
-   * @param  {RegExp} regexp - The regular expression
-   * @param  {Mark~markRegExpOptions} [opt] - Optional options object
+   * @param {RegExp} regexp - The regular expression
+   * @param {Mark~markRegExpOptions} [opt] - Optional options object
    * @access public
    */
   markRegExp(regexp, opt) {
@@ -1646,7 +1634,7 @@ class Mark {
       fn = this.opt.separateGroups ? 'wrapSeparateGroups' : 'wrapMatches';
 
     if (this.opt.acrossElements) {
-      fn = this.opt.separateGroups ? 'wrapSeparateGroupsAcross' : 'wrapMatchesAcross';
+      fn +=  'Across'; // creates wrapSeparateGroupsAcross or wrapMatchesAcross
       // it solves the backward-compatibility issue but open gate for new code to slip in without g flag
       if ( !regexp.global && !regexp.sticky) {
         let splits = regexp.toString().split('/');
@@ -1685,20 +1673,19 @@ class Mark {
    * Callback for each marked element
    * @callback Mark~markEachCallback
    * @param {HTMLElement} element - The marked DOM element
-   * @param {Mark~filterInfoObject} filterInfo - The object containing the match information.
+   * @param {Mark~eachInfoObject} eachInfo - The object containing the match information.
    */
   /**
    * Callback if there were no matches
    * @callback Mark~markNoMatchCallback
-   * @param {RegExp} term - The search term that was not found
+   * @param {string|string[]} term - Not found search term(s)
    */
   /**
    * Callback when finished
    * @callback Mark~commonDoneCallback
    * @param {number} totalMarks - The total number of marked elements
    * @param {number} totalMatches - The total number of matches
-   * @param {object} termStats - The object containing an individual term's
-   * matches counts for {@link Mark#mark} method.
+   * @param {object} termStats - The object containing an individual term's matches counts for {@link Mark#mark} method
    */
 
   /**
@@ -1712,31 +1699,36 @@ class Mark {
    */
   /**
    * Marks the specified search terms
-   * @param {string|string[]} [sv] - Search value, either a search string or an
-   * array containing multiple search strings
-   * @param  {Mark~markOptions} [opt] - Optional options object
+   * @param {string|string[]} [sv] - A search string or an array of search strings
+   * @param {Mark~markOptions} [opt] - Optional options object
    * @access public
    */
   mark(sv, opt) {
     this.checkOption(opt);
+    const { terms, termStats } = this.getSeachTerms(sv);
+
+    if ( !terms.length) {
+      this.opt.done(0, 0, termStats);
+      return;
+    }
 
     if (this.opt.combinePatterns) {
-      this.markCombinePatterns(sv);
+      this.markCombinePatterns(terms, termStats);
       return;
     }
 
     let index = 0,
       totalMarks = 0,
       matches = 0,
-      totalMatches = 0;
+      totalMatches = 0,
+      termMatches;
+
     const regCreator = new RegExpCreator(this.opt),
-      fn = this.opt.acrossElements ? 'wrapMatchesAcross' : 'wrapMatches',
-      termStats = {},
-      terms = this.getSeachTerms(sv);
+      fn = this.opt.acrossElements ? 'wrapMatchesAcross' : 'wrapMatches';
 
     const loop = term => {
+      termMatches = 0;
       const regex = regCreator.create(term);
-      let termMatches = 0;
       this.log(`RegExp "${regex}"`);
 
       this[fn](regex, 1, (node, t, filterInfo) => { // filter
@@ -1764,32 +1756,26 @@ class Mark {
       });
     };
 
-    if (terms.length) {
-      loop(terms[index]);
-    } else {
-      this.opt.done(0, 0, termStats);
-    }
+    loop(terms[index]);
   }
 
   /**
     * Marks the specified search terms
-    * @param {string|string[]} [sv] - Search value, either a search string or an
-    * array containing multiple search strings
+    * @param {string[]} terms - An array of search terms
+    * @param {object} termStats - An object for collecting terms statistics
     * @access protected
     */
-  markCombinePatterns(sv) {
+  markCombinePatterns(terms, termStats) {
     let index = 0,
       totalMarks = 0,
       totalMatches = 0,
-      patterns = [],
-      termsParts = [],
       term,
       termMatches;
+
     const across = this.opt.acrossElements,
       fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
       flags = `g${this.opt.caseSensitive ? '' : 'i'}`,
-      termStats = {},
-      terms = this.getSeachTerms(sv);
+      { termsParts, patterns } = this.getPatterns(terms);
 
     const loop = pattern => {
       const regex = new RegExp(pattern, flags),
@@ -1830,18 +1816,7 @@ class Mark {
       });
     };
 
-    if (terms.length) {
-      // initializes term statistics properties
-      terms.forEach(term => termStats[term] = 0);
-
-      const obj = this.getPatterns(terms);
-      termsParts = obj.termsParts;
-      patterns = obj.patterns;
-
-      loop(patterns[index]);
-    } else {
-      this.opt.done(0, 0, termStats);
-    }
+    loop(patterns[index]);
   }
 
   /**
@@ -1887,17 +1862,13 @@ class Mark {
     // the number of chunks to be created
     let count = Math.ceil(terms.length / num);
 
-    for (let k = 0; k < count; k++)  {
-      const patternTerms = [],
-        length = Math.min(k * num + num, terms.length);
-      // get a chunk of terms to create combine pattern
-      for (let i = k * num; i < length; i++)  {
-        patternTerms.push(terms[i]);
-      }
-      // wrapping an individual term pattern in a capturing group is necessary to determine
-      // later which term is currently matched
-      let str = `${obj.lookbehind}(${creator.createCombinePattern(patternTerms, true).pattern})${obj.lookahead}`;
-      patterns.push(str);
+    for (let i = 0; i < count; i++) {
+      const start = i * num,
+        // get a chunk of terms to create combine pattern
+        patternTerms = terms.slice(start, Math.min(start + num, terms.length));
+
+      // wraps an individual term pattern in a capturing group to determine later which term is currently matched
+      patterns.push(`${obj.lookbehind}(${creator.createCombinePattern(patternTerms, true).pattern})${obj.lookahead}`);
       array.push(patternTerms);
     }
     return {  patterns, termsParts : array };
@@ -1954,8 +1925,8 @@ class Mark {
 
   /**
    * Marks an array of objects containing start and length properties
-   * @param  {Mark~setOfRanges} ranges - The original array of objects
-   * @param  {Mark~markRangesOptions} [opt] - Optional options object
+   * @param {Mark~setOfRanges} ranges - The original array of objects
+   * @param {Mark~markRangesOptions} [opt] - Optional options object
    * @access public
    */
   markRanges(ranges, opt) {
@@ -1984,7 +1955,7 @@ class Mark {
 
   /**
    * Removes all marked elements inside the context with their HTML and normalizes text nodes
-   * @param  {Mark~commonOptions} [opt] - Optional options object without each,
+   * @param {Mark~commonOptions} [opt] - Optional options object without each,
    * noMatch and acrossElements properties
    * @access public
    */
@@ -2001,7 +1972,7 @@ class Mark {
     this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT, node => { // each
       this.unwrapMatches(node);
     }, node => { // filter
-      return DOMIterator.matches(node, selector) && !this.excludeElements(node);
+      return DOMIterator.matches(node, selector) && !this.excluded(node);
     }, this.opt.done);
   }
 }

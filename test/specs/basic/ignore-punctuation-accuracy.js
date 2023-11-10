@@ -39,7 +39,7 @@ describe('basic mark with ignorePunctuation and accuracy', function() {
   it(
     'should find matches with spaces and complementary accuracy',
     function() {
-      expect($ctx1.find('mark')).toHaveLength(5);
+      expect($ctx1.find('mark').length).toBe(5);
       var count = 0,
         regex = /lorem\s+ipsum/i;
       $ctx1.find('mark').each(function() {
@@ -51,7 +51,7 @@ describe('basic mark with ignorePunctuation and accuracy', function() {
     }
   );
   it('should find matches with exact accuracy', function() {
-    expect($ctx2.find('mark')).toHaveLength(5);
+    expect($ctx2.find('mark').length).toBe(5);
     var count = 0;
     $ctx2.find('mark').each(function() {
       if ($(this).text().replace(regexp, '') === 'ipsum') {

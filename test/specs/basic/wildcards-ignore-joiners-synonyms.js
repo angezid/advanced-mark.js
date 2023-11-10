@@ -32,7 +32,7 @@ describe('basic mark with wildcards and synonyms', function() {
   });
 
   it('should match wildcards and joiners inside of synonyms', function() {
-    expect($ctx1.find('mark')).toHaveLength(10);
-    expect($ctx2.find('mark')).toHaveLength(17);
+    expect($ctx1.find('mark').length).toBe(10);
+    expect($ctx2.find('mark').length).toBe(17);
   });
 });

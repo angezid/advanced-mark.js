@@ -20,7 +20,7 @@ describe('basic mark with accuracy complementary and limiters', function() {
   });
 
   it('should wrap matches without custom limiters', function() {
-    expect($ctx.find('mark')).toHaveLength(8);
+    expect($ctx.find('mark').length).toBe(8);
     var textOpts = ['loremtestlorem', 'loremtest', 'test'];
     $ctx.find('mark').each(function() {
       expect($.inArray($(this).text(), textOpts)).toBeGreaterThan(-1);

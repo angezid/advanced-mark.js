@@ -33,8 +33,8 @@ describe('mark with regular expression with infinite results', function() {
     function() {
       expect(errorThrown1).toBe(false);
       expect(errorThrown2).toBe(false);
-      expect($ctx1.find('mark')).toHaveLength(0);
-      expect($ctx2.find('mark')).toHaveLength(0);
+      expect($ctx1.find('mark').length).toBe(0);
+      expect($ctx2.find('mark').length).toBe(0);
     }
   );
 });

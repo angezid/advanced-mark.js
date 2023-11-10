@@ -19,13 +19,13 @@ describe('mark with regular expression and ignoreGroups', function() {
   });
 
   it('should silently ignore groups when disabled', function() {
-    expect($ctx1.find('mark')).toHaveLength(4);
+    expect($ctx1.find('mark').length).toBe(4);
     $ctx1.find('mark').each(function() {
       expect($(this).text()).toBe('Lorem ipsum');
     });
   });
   it('should ignore specified groups when enabled', function() {
-    expect($ctx2.find('mark')).toHaveLength(4);
+    expect($ctx2.find('mark').length).toBe(4);
     $ctx2.find('mark').each(function() {
       expect($(this).text()).toBe('ipsum');
     });

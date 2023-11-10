@@ -18,6 +18,6 @@ describe('basic mark with synonyms and multiple blanks', function() {
   });
 
   it('should find synonyms with diacritics', function() {
-    expect($ctx.find('mark')).toHaveLength(4);
+    expect($ctx.find('mark').length).toBe(4);
   });
 });

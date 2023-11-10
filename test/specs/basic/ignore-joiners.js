@@ -12,7 +12,7 @@ describe('basic mark with ignoreJoiners', function() {
       'separateWordSearch': false,
       'ignoreJoiners': true,
       'done': function() {
-        expect($ctx1.find('mark')).toHaveLength(4);
+        expect($ctx1.find('mark').length).toBe(4);
         done();
       }
     });
@@ -25,7 +25,7 @@ describe('basic mark with ignoreJoiners', function() {
       'separateWordSearch': false,
       'ignoreJoiners': false,
       'done': function() {
-        expect($ctx2.find('mark')).toHaveLength(2);
+        expect($ctx2.find('mark').length).toBe(2);
         done();
       }
     });
