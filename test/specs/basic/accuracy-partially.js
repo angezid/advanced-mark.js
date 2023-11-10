@@ -1,23 +1,23 @@
 'use strict';
-describe('basic mark with accuracy partially', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('basic mark with accuracy partially', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('basic/accuracy-partially.html');
 
     $ctx = $('.basic-accuracy-partially');
     new Mark($ctx[0]).mark('lorem', {
       'accuracy': 'partially',
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should wrap the right matches', function() {
+  it('should wrap the right matches', () => {
     expect($ctx.find('mark').length).toBe(4);
-    $ctx.find('mark').each(function() {
-      expect($(this).text()).toBe('Lorem');
+    $ctx.find('mark').each((i, elem) => {
+      expect($(elem).text()).toBe('Lorem');
     });
   });
 });

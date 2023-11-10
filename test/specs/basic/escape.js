@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with regex characters', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('basic mark with regex characters', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('basic/escape.html');
 
     $ctx = $('.basic-escape');
@@ -10,14 +10,14 @@ describe('basic mark with regex characters', function() {
     ], {
       'diacritics': false,
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should escape search terms and not modify text node values', function() {
-    var marks = $ctx.find('mark');
+  it('should escape search terms and not modify text node values', () => {
+    let marks = $ctx.find('mark');
     expect(marks).toHaveLength(5);
     expect(marks.get(0)).toContainText('39,00 €');
     expect(marks.get(1)).toContainText('0.009 €');

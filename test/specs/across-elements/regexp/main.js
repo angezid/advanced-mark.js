@@ -1,19 +1,19 @@
 'use strict';
-describe('mark with acrossElements and regular expression', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('mark with acrossElements and regular expression', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('across-elements/regexp/main.html');
 
     $ctx = $('.across-elements-regexp');
     new Mark($ctx[0]).markRegExp(/lorem[\s]+ipsum/gmi, {
       'acrossElements': true,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should wrap matches', function() {
+  it('should wrap matches', () => {
     expect($ctx.find('mark').length).toBe(6);
   });
 });

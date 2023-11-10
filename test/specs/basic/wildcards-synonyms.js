@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with wildcards and synonyms', function() {
-  var $ctx1, $ctx2, $ctx3;
-  beforeEach(function(done) {
+describe('basic mark with wildcards and synonyms', () => {
+  let $ctx1, $ctx2, $ctx3;
+  beforeEach(done => {
     loadFixtures('basic/wildcards-synonyms.html');
 
     $ctx1 = $('.basic-wildcards-synonyms > div:nth-child(1)');
@@ -14,7 +14,7 @@ describe('basic mark with wildcards and synonyms', function() {
       'separateWordSearch': false,
       'diacritics': true,
       'wildcards': 'enabled',
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark('Lor*m', {
           'synonyms': {
             'Lor*m': 'Ips*m'
@@ -22,7 +22,7 @@ describe('basic mark with wildcards and synonyms', function() {
           'separateWordSearch': false,
           'diacritics': true,
           'wildcards': 'enabled',
-          'done': function() {
+          'done': () => {
             new Mark($ctx3[0]).mark(['lorem', 'good(s)'], {
               'synonyms': {
                 'lorem': '1+1',
@@ -31,7 +31,7 @@ describe('basic mark with wildcards and synonyms', function() {
               'separateWordSearch': false,
               'diacritics': false,
               'wildcards': 'enabled',
-              'done': function() {
+              'done': () => {
                 done();
               }
             });
@@ -41,11 +41,11 @@ describe('basic mark with wildcards and synonyms', function() {
     });
   });
 
-  it('should match wildcards inside of synonyms', function() {
+  it('should match wildcards inside of synonyms', () => {
     expect($ctx1.find('mark').length).toBe(10);
     expect($ctx2.find('mark').length).toBe(17);
   });
-  it('regexp special chars in each synonym set should be escaped', function() {
+  it('regexp special chars in each synonym set should be escaped', () => {
     expect($ctx3.find('mark').length).toBe(4);
   });
 });

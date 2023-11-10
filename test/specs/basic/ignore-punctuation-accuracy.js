@@ -1,14 +1,14 @@
 'use strict';
-describe('basic mark with ignorePunctuation and accuracy', function() {
+describe('basic mark with ignorePunctuation and accuracy', () => {
   function getPunctuation() {
     return ':;.,-–—‒_(){}[]!\'"+='
       .replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')
       .split('');
   }
-  var $ctx1, $ctx2,
+  let $ctx1, $ctx2,
     punctuation = getPunctuation(),
     regexp = new RegExp('[' + punctuation.join('') + ']', 'g');
-  beforeEach(function(done) {
+  beforeEach(done => {
     loadFixtures('basic/ignore-punctuation-accuracy.html');
 
     $ctx1 = $('.basic-ignore-punctuation-accuracy > div:nth-child(1)');
@@ -22,13 +22,13 @@ describe('basic mark with ignorePunctuation and accuracy', function() {
         'limiters': '!#$%&*+,-./:;<=>?@^_`{|}~¡¿'.split('')
       },
       'ignorePunctuation': punctuation,
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark(['ipsum'], {
           'separateWordSearch': false,
           'diacritics': false,
           'accuracy': 'exact',
           'ignorePunctuation': punctuation,
-          'done': function() {
+          'done': () => {
             done();
           }
         });
@@ -40,21 +40,21 @@ describe('basic mark with ignorePunctuation and accuracy', function() {
     'should find matches with spaces and complementary accuracy',
     function() {
       expect($ctx1.find('mark').length).toBe(5);
-      var count = 0,
+      let count = 0,
         regex = /lorem\s+ipsum/i;
-      $ctx1.find('mark').each(function() {
-        if (regex.test($(this).text().replace(regexp, ''))) {
+      $ctx1.find('mark').each((i, elem) => {
+        if (regex.test($(elem).text().replace(regexp, ''))) {
           count++;
         }
       });
       expect(count).toBe(5);
     }
   );
-  it('should find matches with exact accuracy', function() {
+  it('should find matches with exact accuracy', () => {
     expect($ctx2.find('mark').length).toBe(5);
-    var count = 0;
-    $ctx2.find('mark').each(function() {
-      if ($(this).text().replace(regexp, '') === 'ipsum') {
+    let count = 0;
+    $ctx2.find('mark').each((i, elem) => {
+      if ($(elem).text().replace(regexp, '') === 'ipsum') {
         count++;
       }
     });

@@ -1,36 +1,36 @@
 'use strict';
-describe('shadow DOM without acrossElements option', function() {
-  var $ctx,
+describe('shadow DOM without acrossElements option', () => {
+  let $ctx,
     array = ['dom', 'nested', 'excluded'],
     exclude = ['p.exclude', 'p.exclude *'];
 
-  beforeEach(function() {
+  beforeEach(() => {
     loadFixtures('basic/shadow-dom.html');
 
     $ctx = $('.context');
 
-    var div = $ctx[0].querySelector('#shadow-dom');
-    var root = div.attachShadow({ mode : 'open' });
+    let div = $ctx[0].querySelector('#shadow-dom');
+    let root = div.attachShadow({ mode : 'open' });
     root.innerHTML = $('.shadow-dom-html').html();
 
-    var div2 = root.querySelector('#nested-shadow-dom');
-    var root2 = div2.attachShadow({ mode : 'open' });
+    let div2 = root.querySelector('#nested-shadow-dom');
+    let root2 = div2.attachShadow({ mode : 'open' });
     root2.innerHTML = $('.nested-shadow-dom-html').html();
 
-    var div3 = root2.querySelector('#nested2-shadow-dom');
-    var root3 = div3.attachShadow({ mode : 'open' });
+    let div3 = root2.querySelector('#nested2-shadow-dom');
+    let root3 = div3.attachShadow({ mode : 'open' });
     root3.innerHTML = $('.nested2-shadow-dom-html').html();
   });
 
-  it('should mark/unmark shadow DOM', function(done) {
+  it('should mark/unmark shadow DOM', done => {
     const styleObj = { style : 'mark[data-markjs] { background: #ffe408; }' };
 
     new Mark($ctx[0]).mark(array, {
       'diacritics' : false,
       'shadowDOM' : styleObj,
       'exclude' : exclude,
-      'done' : function() {
-        var obj = collectElements($ctx[0], styleObj);
+      'done' : () => {
+        let obj = collectElements($ctx[0], styleObj);
         expect(obj.elements).toHaveLength(11);
         expect(obj.styles).toHaveLength(3);
         testExcluded(obj.elements);
@@ -40,7 +40,7 @@ describe('shadow DOM without acrossElements option', function() {
   });
 
   // important to test 'cacheTextNodes' option
-  it('should mark/unmark shadow DOM with cacheTextNodes option', function(done) {
+  it('should mark/unmark shadow DOM with cacheTextNodes option', done => {
     const styleObj = {};
 
     new Mark($ctx[0]).mark(array, {
@@ -48,8 +48,8 @@ describe('shadow DOM without acrossElements option', function() {
       'shadowDOM' : styleObj,
       'cacheTextNodes' : true,
       'exclude' : exclude,
-      'done' : function() {
-        var obj = collectElements($ctx[0]);
+      'done' : () => {
+        let obj = collectElements($ctx[0]);
         expect(obj.elements).toHaveLength(11);
         testExcluded(obj.elements);
         unmark(done);
@@ -58,7 +58,7 @@ describe('shadow DOM without acrossElements option', function() {
   });
 
   function testExcluded(elements) {
-    expect(elements.filter(function(el) {
+    expect(elements.filter((el) => {
       return /excluded/i.test(el.textContent);
     })).toHaveLength(0);
   }
@@ -66,8 +66,8 @@ describe('shadow DOM without acrossElements option', function() {
   function unmark(done) {
     new Mark($ctx[0]).unmark({
       'shadowDOM' : true,
-      'done' : function() {
-        var obj = collectElements($ctx[0]);
+      'done' : () => {
+        let obj = collectElements($ctx[0]);
         expect(obj.elements).toHaveLength(0);
         expect(obj.styles).toHaveLength(0);
         done();
@@ -76,10 +76,10 @@ describe('shadow DOM without acrossElements option', function() {
   }
 
   function collectElements(root, obj) {
-    var elements = [],
+    let elements = [],
       styles = [];
 
-    var loop = function(node) {
+    let loop = function(node) {
       while (node) {
         if (node.nodeType === Node.ELEMENT_NODE) {
           if (node.nodeName.toLowerCase() === 'mark' && node.hasAttribute('data-markjs')) {

@@ -1,7 +1,7 @@
 'use strict';
-describe('mark in inaccessible iframes', function() {
-  var $ctx, $elements, errCall;
-  beforeEach(function(done) {
+describe('mark in inaccessible iframes', () => {
+  let $ctx, $elements, errCall;
+  beforeEach(done => {
     loadFixtures('iframes/inaccessible.html');
 
     $elements = $();
@@ -15,7 +15,7 @@ describe('mark in inaccessible iframes', function() {
         'each': function($m) {
           $elements = $elements.add($($m));
         },
-        'done': function() {
+        'done': () => {
           done();
         }
       });
@@ -24,7 +24,7 @@ describe('mark in inaccessible iframes', function() {
     }
   }, 30000); // 30 sec timeout
 
-  it('should silently skip iframes which can not be accessed', function() {
+  it('should silently skip iframes which can not be accessed', () => {
     expect(errCall).toBe(0);
     expect($elements).toHaveLength(4);
   });

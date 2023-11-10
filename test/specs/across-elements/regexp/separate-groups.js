@@ -1,6 +1,6 @@
 'use strict';
-describe('markRegExp with acrossElements and separateGroups', function() {
-  var $ctx,
+describe('markRegExp with acrossElements and separateGroups', () => {
+  let $ctx,
     matchCount, group1Count, group2Count, group3Count,
     message = 'should count and test content of separate groups ',
     //groupReg = /\b(group1)\b.+?\b(group2)\b@?(?:\s+(?:\w+\s+)?(\w+3))?\b/gi,
@@ -8,23 +8,23 @@ describe('markRegExp with acrossElements and separateGroups', function() {
     //nestedGr = /\b([a-z]+1\b.+?\b(group2)\b@?)(?:\s+(?:\w+\s+)?(\w+3))?\b/gi;
     nestedGr = /\b([a-z]+1\b[^]+?\b(group2)\b@?)(?:\s+(?:\w+\s+)?(\w+3))?\b/gi;
 
-  beforeEach(function() {
+  beforeEach(() => {
     loadFixtures('across-elements/regexp/separate-groups.html');
 
     $ctx = $('.across-elements-separate-groups');
     matchCount = 0, group1Count = 0, group2Count = 0, group3Count = 0;
   });
 
-  afterEach(function() {
+  afterEach(() => {
     $ctx.unmark();
   });
 
-  it(message, function(done) {
+  it(message, done => {
     new Mark($ctx[0]).markRegExp(groupReg, {
       'acrossElements' : true,
       'separateGroups' : true,
       each : eachMark,
-      'done' : function() {
+      'done' : () => {
         // mch, gr1, gr2, gr3,
         test([27, 27, 27, 16]);
         done();
@@ -32,16 +32,16 @@ describe('markRegExp with acrossElements and separateGroups', function() {
     });
   });
 
-  it('should count separate groups in loop of 3 goes', function(done) {
+  it('should count separate groups in loop of 3 goes', done => {
     // it mostly test 'getTextNodesAcrossElements' method
-    for (var i = 1; i < 4; i++)  {
+    for (let i = 1; i < 4; i++)  {
       matchCount = 0, group1Count = 0, group2Count = 0, group3Count = 0;
 
       new Mark($ctx[0]).markRegExp(groupReg, {
         'acrossElements' : true,
         'separateGroups' : true,
         each : eachMark,
-        'done' : function() {
+        'done' : () => {
           expect(matchCount).toBe(27);
           expect(group1Count).toBe(27);
           expect(group2Count).toBe(27);
@@ -52,11 +52,11 @@ describe('markRegExp with acrossElements and separateGroups', function() {
     done();
   });
 
-  it('should count filtered separate groups', function(done) {
+  it('should count filtered separate groups', done => {
     new Mark($ctx[0]).markRegExp(groupReg, {
       'acrossElements' : true,
       'separateGroups' : true,
-      filter : function(node, group, total, obj) {
+      filter : (node, group, total, obj) => {
         // current group index. Note: if group lays across several elements
         // the index will be the same while the current group is wrapping
         if (obj.groupIndex === 1 || obj.groupIndex === 3) {
@@ -65,7 +65,7 @@ describe('markRegExp with acrossElements and separateGroups', function() {
         return true;
       },
       each : eachMark,
-      'done' : function() {
+      'done' : () => {
         // mch, gr1, gr2, gr3,
         test([27, 0, 27, 0]);
         done();
@@ -73,12 +73,12 @@ describe('markRegExp with acrossElements and separateGroups', function() {
     });
   });
 
-  it(message + 'with nested group', function(done) {
+  it(message + 'with nested group', done => {
     new Mark($ctx[0]).markRegExp(nestedGr, {
       'acrossElements' : true,
       'separateGroups' : true,
       each : eachMark,
-      'done' : function() {
+      'done' : () => {
         // mch, gr1, gr2, gr3,
         test([27, 27, 0, 16]);
         done();
@@ -108,7 +108,7 @@ describe('markRegExp with acrossElements and separateGroups', function() {
   }
 
   function test(val) {
-    var count, marks = $ctx.find('mark');
+    let count, marks = $ctx.find('mark');
 
     expect(matchCount).toBe(val[0]);
 
@@ -126,10 +126,10 @@ describe('markRegExp with acrossElements and separateGroups', function() {
   }
 
   function testMarkedText(marks, klass, reg) {
-    var count = 0;
-    marks.filter(function() {
+    let count = 0;
+    marks.filter((i, elem) => {
       // filter all start elements
-      return $(this).hasClass(klass);
+      return $(elem).hasClass(klass);
 
     }).each(function(i, elem) {
       expect(getMarkedText(elem, marks)).toMatch(reg);
@@ -140,7 +140,7 @@ describe('markRegExp with acrossElements and separateGroups', function() {
 
   // it aggregates text across elements
   function getMarkedText(elem, marks) {
-    var text = '', found = false;
+    let text = '', found = false;
     marks.each(function(i, el) {
       if ( !found) {
         // start element of the group

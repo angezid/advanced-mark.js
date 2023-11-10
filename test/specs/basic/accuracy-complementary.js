@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with accuracy complementary', function() {
-  var $ctx1, $ctx2;
-  beforeEach(function(done) {
+describe('basic mark with accuracy complementary', () => {
+  let $ctx1, $ctx2;
+  beforeEach(done => {
     loadFixtures('basic/accuracy-complementary.html');
 
     $ctx1 = $('.basic-accuracy-complementary > div:first-child');
@@ -9,11 +9,11 @@ describe('basic mark with accuracy complementary', function() {
     new Mark($ctx1[0]).mark(['lorem', 'ipsumx'], {
       'accuracy': 'complementary',
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark(['lorem', 'ipsumtest'], {
           'accuracy': 'complementary',
           'separateWordSearch': true,
-          'done': function() {
+          'done': () => {
             done();
           }
         });
@@ -21,18 +21,18 @@ describe('basic mark with accuracy complementary', function() {
     });
   });
 
-  it('should wrap the correct matches', function() {
+  it('should wrap the correct matches', () => {
     expect($ctx1.find('mark').length).toBe(4);
-    var textOpts = ['testLoremtest', 'ipsumx', 'ipsumx-test', 'öipsumxö'];
-    $ctx1.find('mark').each(function() {
-      expect($.inArray($(this).text(), textOpts)).toBeGreaterThan(-1);
+    let textOpts = ['testLoremtest', 'ipsumx', 'ipsumx-test', 'öipsumxö'];
+    $ctx1.find('mark').each((i, elem) => {
+      expect($.inArray($(elem).text(), textOpts)).toBeGreaterThan(-1);
     });
   });
-  it('should work with separateWordSearch', function() {
+  it('should work with separateWordSearch', () => {
     expect($ctx2.find('mark').length).toBe(2);
-    var textOpts = ['testLorem', 'ipsumtest'];
-    $ctx2.find('mark').each(function() {
-      expect($.inArray($(this).text(), textOpts)).toBeGreaterThan(-1);
+    let textOpts = ['testLorem', 'ipsumtest'];
+    $ctx2.find('mark').each((i, elem) => {
+      expect($.inArray($(elem).text(), textOpts)).toBeGreaterThan(-1);
     });
   });
 });

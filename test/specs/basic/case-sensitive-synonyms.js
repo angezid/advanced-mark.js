@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with caseSensitive synonyms', function() {
-  var $ctx1, $ctx2;
-  beforeEach(function(done) {
+describe('basic mark with caseSensitive synonyms', () => {
+  let $ctx1, $ctx2;
+  beforeEach(done => {
     loadFixtures('basic/case-sensitive-synonyms.html');
 
     $ctx1 = $('.basic-case-sensitive-synonyms > div:nth-child(1)');
@@ -13,7 +13,7 @@ describe('basic mark with caseSensitive synonyms', function() {
       'separateWordSearch': false,
       'diacritics': false,
       'caseSensitive': true,
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark(['one', '2', 'lüfte'], {
           'separateWordSearch': false,
           'diacritics': false,
@@ -23,7 +23,7 @@ describe('basic mark with caseSensitive synonyms', function() {
             'one': '1',
             'two': '2'
           },
-          'done': function() {
+          'done': () => {
             done();
           }
         });
@@ -31,7 +31,7 @@ describe('basic mark with caseSensitive synonyms', function() {
     });
   });
 
-  it('should wrap keywords and synonyms', function() {
+  it('should wrap keywords and synonyms', () => {
     expect($ctx1.find('mark').length).toBe(6);
     expect($ctx2.find('mark').length).toBe(5);
   });

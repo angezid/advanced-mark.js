@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with HTML entities', function() {
-  var $ctx1, $ctx2;
-  beforeEach(function(done) {
+describe('basic mark with HTML entities', () => {
+  let $ctx1, $ctx2;
+  beforeEach(done => {
     loadFixtures('basic/entities.html');
 
     $ctx1 = $('.basic-entities > div:first-child');
@@ -9,11 +9,11 @@ describe('basic mark with HTML entities', function() {
     new Mark($ctx1[0]).mark('Lorem © ipsum', {
       'diacritics': false,
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark('justo √ duo', {
           'diacritics': false,
           'separateWordSearch': false,
-          'done': function() {
+          'done': () => {
             done();
           }
         });
@@ -21,7 +21,7 @@ describe('basic mark with HTML entities', function() {
     });
   });
 
-  it('should wrap matches', function() {
+  it('should wrap matches', () => {
     expect($ctx1.find('mark').length).toBe(1);
     expect($ctx2.find('mark').length).toBe(1);
   });

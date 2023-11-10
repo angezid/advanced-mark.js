@@ -1,6 +1,6 @@
 'use strict';
-describe('sorting a custom array of elements', function() {
-  var array = [],
+describe('sorting a custom array of elements', () => {
+  let array = [],
     ranges = [
       { start: 0, length: 2 },
       { start: 20, length: 2 },
@@ -11,7 +11,7 @@ describe('sorting a custom array of elements', function() {
     ],
     matches = ['p1', 'p2', 'p3', 'p1', 'p3', 'p2'];
 
-  beforeEach(function() {
+  beforeEach(() => {
     loadFixtures('ranges/array-of-elements.html');
     // collects elements not following the document order
     getElements('.p3');
@@ -19,13 +19,13 @@ describe('sorting a custom array of elements', function() {
     getElements('.p1');
   });
 
-  it('mark an array of ranges following the document order', function(done) {
+  it('mark an array of ranges following the document order', done => {
     new Mark(array).markRanges(ranges, {
-      'filter' : function(node, range, match, index) {
+      'filter' : (node, range, match, index) => {
         expect(matches[index]).toBe(match);
         return true;
       },
-      'done' : function(marks, matches) {
+      'done' : (marks, matches) => {
         expect(matches).toBe(6);
         done();
       }

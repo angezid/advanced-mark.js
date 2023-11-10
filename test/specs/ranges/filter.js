@@ -1,6 +1,6 @@
 'use strict';
-describe('mark with range filter callback', function() {
-  var $ctx, filterCalled, nodeCounter, termCount, rangeCount, ranges, results,
+describe('mark with range filter callback', () => {
+  let $ctx, filterCalled, nodeCounter, termCount, rangeCount, ranges, results,
     // will target the first unique term
     terms = ['ipsum', 'amet', 'elitr', 'tempor', 'nonumy'],
     // term to filter out
@@ -8,12 +8,12 @@ describe('mark with range filter callback', function() {
 
   // in case the fixture whitespace is altered
   function getRange($el, string) {
-    var start = $el.text().indexOf(string),
+    let start = $el.text().indexOf(string),
       length = string.length;
     return start > -1 ? {'start': start, 'length': length} : null;
   }
 
-  beforeEach(function(done) {
+  beforeEach(done => {
     loadFixtures('ranges/filter.html');
 
     filterCalled = 0;
@@ -25,7 +25,7 @@ describe('mark with range filter callback', function() {
     results = {};
 
     terms.forEach(function(item, index) {
-      var range = getRange($ctx, item);
+      let range = getRange($ctx, item);
       if (range) {
         results[item] = {
           'name': item,
@@ -41,12 +41,12 @@ describe('mark with range filter callback', function() {
     });
 
     new Mark($ctx[0]).markRanges(ranges, {
-      'filter': function(node, range, match, counter) {
+      'filter': (node, range, match, counter) => {
         filterCalled++;
         if (node.nodeType === 3) {
           nodeCounter++;
         }
-        var item = results[match];
+        let item = results[match];
         // check indexes; this won't always equal the counter
         // because the values within "terms" may not be in order
         if (
@@ -67,14 +67,14 @@ describe('mark with range filter callback', function() {
         }
         return match !== skip;
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should call the filter callback for each range element', function() {
-    var length = terms.length;
+  it('should call the filter callback for each range element', () => {
+    let length = terms.length;
     expect(filterCalled).toBe(length);
     expect(nodeCounter).toBe(length);
     expect(termCount).toBe(length);

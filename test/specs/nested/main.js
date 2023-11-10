@@ -1,7 +1,7 @@
 'use strict';
-describe('nested mark', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('nested mark', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('nested/main.html');
 
     $ctx = $('.nested');
@@ -9,16 +9,16 @@ describe('nested mark', function() {
       'diacritics': false,
       'separateWordSearch': false,
       'className': 'mark',
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should wrap matches', function() {
+  it('should wrap matches', () => {
     expect($ctx.find('mark.mark')).toHaveLength(7);
   });
-  it('should also wrap matches in nested mark elements', function() {
+  it('should also wrap matches in nested mark elements', () => {
     expect($ctx.find('.nested-mark > mark.mark')).toHaveLength(1);
   });
 });

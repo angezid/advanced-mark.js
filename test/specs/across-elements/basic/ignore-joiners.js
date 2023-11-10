@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with acrossElements and ignoreJoiners', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('mark with acrossElements and ignoreJoiners', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('across-elements/basic/ignore-joiners.html');
 
     $ctx = $('.across-elements-ignore-joiners');
@@ -10,13 +10,13 @@ describe('mark with acrossElements and ignoreJoiners', function() {
       'separateWordSearch': false,
       'acrossElements': true,
       'ignoreJoiners': true,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should wrap matches and ignoreJoiners', function() {
+  it('should wrap matches and ignoreJoiners', () => {
     expect($ctx.find('mark').length).toBe(6);
   });
 });

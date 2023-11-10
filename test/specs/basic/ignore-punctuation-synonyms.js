@@ -1,11 +1,11 @@
 'use strict';
-describe('basic mark with ignorePunctuation and synonyms', function() {
+describe('basic mark with ignorePunctuation and synonyms', () => {
   function getPunctuation() {
     return '^:;.,-–—‒_(){}[]!\'"+='.split('');
   }
-  var $ctx1, $ctx2,
+  let $ctx1, $ctx2,
     punctuation = getPunctuation();
-  beforeEach(function(done) {
+  beforeEach(done => {
     loadFixtures('basic/ignore-punctuation-synonyms.html');
 
     $ctx1 = $('.basic-ignore-punctuation-synonyms > div:nth-child(1)');
@@ -17,7 +17,7 @@ describe('basic mark with ignorePunctuation and synonyms', function() {
       'synonyms': {
         'Lorem': 'ipsum'
       },
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark(['one', 'dos', 'lüfte'], {
           'separateWordSearch': false,
           'diacritics': false,
@@ -27,7 +27,7 @@ describe('basic mark with ignorePunctuation and synonyms', function() {
             'one': 'uno',
             'two': 'dos'
           },
-          'done': function() {
+          'done': () => {
             done();
           }
         });
@@ -35,7 +35,7 @@ describe('basic mark with ignorePunctuation and synonyms', function() {
     });
   });
 
-  it('should wrap synonyms', function() {
+  it('should wrap synonyms', () => {
     expect($ctx1.find('mark').length).toBe(8);
     expect($ctx2.find('mark').length).toBe(9);
   });

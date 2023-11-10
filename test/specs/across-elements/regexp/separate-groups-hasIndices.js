@@ -4,7 +4,7 @@
 describe(
   'markRegExp with acrossElements and separateGroups and RegExp.hasIndices',
   function() {
-    var $ctx,
+    let $ctx,
       matchCount, group1Count, group2Count, group3Count,
       message = 'should count and test content of separate groups ',
       flags = 'dgi',
@@ -13,7 +13,7 @@ describe(
       r2 = '\\b(group1\\b[^]+?\\b(group2)\\b@?)(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
       nestedGr = new RegExp(r2, flags);
 
-    beforeEach(function() {
+    beforeEach(() => {
       // it used the same fixture as a spec separate-groups.js
       loadFixtures('across-elements/regexp/separate-groups.html');
 
@@ -21,16 +21,16 @@ describe(
       matchCount = 0, group1Count = 0, group2Count = 0, group3Count = 0;
     });
 
-    afterEach(function() {
+    afterEach(() => {
       $ctx.unmark();
     });
 
-    it(message, function(done) {
+    it(message, done => {
       new Mark($ctx[0]).markRegExp(groupReg, {
         'acrossElements' : true,
         'separateGroups' : true,
         each : eachMark,
-        'done' : function() {
+        'done' : () => {
           // mch, gr1, gr2, gr3,
           test([27, 27, 27, 16]);
           done();
@@ -38,11 +38,11 @@ describe(
       });
     });
 
-    it('should count filtered separate groups', function(done) {
+    it('should count filtered separate groups', done => {
       new Mark($ctx[0]).markRegExp(groupReg, {
         'acrossElements' : true,
         'separateGroups' : true,
-        filter : function(node, group, total, obj) {
+        filter : (node, group, total, obj) => {
           // current group index. Note: if group lays across several elements
           // the index will be the same while the current group is wrapping
           if (obj.groupIndex === 1 || obj.groupIndex === 3) {
@@ -51,7 +51,7 @@ describe(
           return true;
         },
         each : eachMark,
-        'done' : function() {
+        'done' : () => {
           // mch, gr1, gr2, gr3,
           test([27, 0, 27, 0]);
           done();
@@ -59,11 +59,11 @@ describe(
       });
     });
 
-    it(message + 'with nested group in filtered out one', function(done) {
+    it(message + 'with nested group in filtered out one', done => {
       new Mark($ctx[0]).markRegExp(nestedGr, {
         'acrossElements' : true,
         'separateGroups' : true,
-        filter : function(node, group) {
+        filter : (node, group) => {
           // current group matching string. Note: if group lays across several
           // elements the matching string will be the same while the current
           // group is wrapping
@@ -73,7 +73,7 @@ describe(
           return true;
         },
         each : eachMark,
-        'done' : function() {
+        'done' : () => {
           // mch, gr1, gr2, gr3,
           test([27, 0, 27, 16]);
           done();
@@ -81,12 +81,12 @@ describe(
       });
     });
 
-    it(message + 'with nested group', function(done) {
+    it(message + 'with nested group', done => {
       new Mark($ctx[0]).markRegExp(nestedGr, {
         'acrossElements' : true,
         'separateGroups' : true,
         each : eachMark,
-        'done' : function() {
+        'done' : () => {
           // mch, gr1, gr2, gr3,
           test([27, 27, 0, 16]);
           done();
@@ -116,7 +116,7 @@ describe(
     }
 
     function test(val) {
-      var count, marks = $ctx.find('mark');
+      let count, marks = $ctx.find('mark');
 
       expect(matchCount).toBe(val[0]);
 
@@ -134,10 +134,10 @@ describe(
     }
 
     function testMarkedText(marks, klass, reg) {
-      var count = 0;
-      marks.filter(function() {
+      let count = 0;
+      marks.filter((i, elem) => {
         // filter all start elements
-        return $(this).hasClass(klass);
+        return $(elem).hasClass(klass);
 
       }).each(function(i, elem) {
         expect(getMarkedText(elem, marks)).toMatch(reg);
@@ -148,7 +148,7 @@ describe(
 
     // it aggregate text across elements
     function getMarkedText(elem, marks) {
-      var text = '', found = false;
+      let text = '', found = false;
       marks.each(function(i, el) {
         if ( !found) {
           // start element of a group

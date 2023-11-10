@@ -1,11 +1,11 @@
 'use strict';
-describe('mark with "separateWordSearch: \'preserveTerms\'" option', function() {
-  beforeEach(function() {
+describe('mark with "separateWordSearch: \'preserveTerms\'" option', () => {
+  beforeEach(() => {
     loadFixtures('basic/exact-terms.html');
   });
 
-  it('should wrap exact terms and individual words', function(done) {
-    var $ctx1 = $('.exact-terms'),
+  it('should wrap exact terms and individual words', done => {
+    let $ctx1 = $('.exact-terms'),
       str = 'lorem "dolore magna" ""ipsum"" """"sit amet"" dolor',
       array = ['lorem', 'dolore magna', '"ipsum"', '"""sit amet"', 'dolor'];
     
@@ -13,10 +13,10 @@ describe('mark with "separateWordSearch: \'preserveTerms\'" option', function() 
       'diacritics': false,
       'accuracy' : 'exactly',
       'separateWordSearch': 'preserveTerms',
-      'done': function(m, mch, termStats) {
+      'done': (m, mch, termStats) => {
         expect($ctx1.find('mark').length).toBe(12);
         
-        for (var key in termStats) {
+        for (let key in termStats) {
           expect(array).toContain(key);
         }
         

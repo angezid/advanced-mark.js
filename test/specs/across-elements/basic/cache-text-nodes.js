@@ -1,27 +1,27 @@
 'use strict';
-describe('cache text nodes with acrossElements option', function() {
-  var $ctx;
-  var words = ['lorem', 'ipsum', 'dolor'];
+describe('cache text nodes with acrossElements option', () => {
+  let $ctx;
+  let words = ['lorem', 'ipsum', 'dolor'];
 
-  beforeEach(function() {
+  beforeEach(() => {
     loadFixtures('across-elements/basic/cache-text-nodes.html');
 
     $ctx = $('.context');
   });
   
-  it('should mark array without cacheTextNodes option', function(done) {
-    var count = 0;
+  it('should mark array without cacheTextNodes option', done => {
+    let count = 0;
 
     new Mark($ctx[0]).mark(words, {
       'accuracy' : 'exactly',
       'acrossElements' : true,
-      'each' : function(elem, info) {
+      'each' : (elem, info) => {
         if (info.matchStart) {
           count++;
         }
         $(elem).attr('data-markjs', count);
       },
-      'done' : function(m, totalMatches) {
+      'done' : (m, totalMatches) => {
         expect(totalMatches).toBe(56);
         expect(checkWords()).toBe(true);
         done();
@@ -29,20 +29,20 @@ describe('cache text nodes with acrossElements option', function() {
     });
   });
 
-  it('should mark array with cacheTextNodes option', function(done) {
-    var count = 0;
+  it('should mark array with cacheTextNodes option', done => {
+    let count = 0;
 
     new Mark($ctx[0]).mark(words, {
       'cacheTextNodes' : true,
       'accuracy' : 'exactly',
       'acrossElements' : true,
-      'each' : function(elem, info) {
+      'each' : (elem, info) => {
         if (info.matchStart) {
           count++;
         }
         $(elem).attr('data-markjs', count);
       },
-      'done' : function(m, totalMatches) {
+      'done' : (m, totalMatches) => {
         expect(totalMatches).toBe(56);
         expect(checkWords()).toBe(true);
         done();
@@ -50,14 +50,14 @@ describe('cache text nodes with acrossElements option', function() {
     });
   });
 
-  it('should build & wrap ranges from array', function(done) {
-    var ranges = [], count = 0;
+  it('should build & wrap ranges from array', done => {
+    let ranges = [], count = 0;
 
     new Mark($ctx[0]).mark(words, {
       'cacheTextNodes' : true,
       'accuracy' : 'exactly',
       'acrossElements' : true,
-      'filter' : function(node, term, t, c, info) {
+      'filter' : (node, term, t, c, info) => {
         if (info.matchStart) {
           count++;
         }
@@ -70,12 +70,12 @@ describe('cache text nodes with acrossElements option', function() {
         // it should only build ranges
         return  false;
       },
-      'done' : function() {
+      'done' : () => {
         new Mark($ctx[0]).markRanges(ranges, {
-          'each' : function(elem, range) {
+          'each' : (elem, range) => {
             $(elem).attr('data-markjs', range.count);
           },
-          done : function(totalMarks, totalMatches) {
+          done : (totalMarks, totalMatches) => {
             expect(totalMatches).toBe(count);
             expect(totalMatches).toBe(56);
             expect(checkWords()).toBe(true);
@@ -87,7 +87,7 @@ describe('cache text nodes with acrossElements option', function() {
   });
 
   function checkWords() {
-    var attr, attrPrev = '-1', word = '', success = true;
+    let attr, attrPrev = '-1', word = '', success = true;
     // combines text node content with the same attribute values into words
     $('mark').each(function(i, elem) {
       attr = $(elem).attr('data-markjs');

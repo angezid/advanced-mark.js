@@ -2,8 +2,8 @@
 describe(
   'basic mark in already marked element',
   function() {
-    var $ctx, instance;
-    beforeEach(function(done) {
+    let $ctx, instance;
+    beforeEach(done => {
       loadFixtures('basic/nested-mark.html');
 
       $ctx = $('.basic-nested-mark');
@@ -12,12 +12,12 @@ describe(
         'diacritics': false,
         'separateWordSearch': false,
         'className': 'root',
-        'done': function() {
+        'done': () => {
           instance.mark('test', {
             'diacritics': false,
             'separateWordSearch': false,
             'className': 'nested',
-            'done': function() {
+            'done': () => {
               done();
             }
           });
@@ -25,7 +25,7 @@ describe(
       });
     });
 
-    it('should wrap matches even in already marked elements', function() {
+    it('should wrap matches even in already marked elements', () => {
       expect($ctx.find('mark').length).toBe(5);
       expect($ctx.find('mark.root')).toHaveLength(2);
       expect($ctx.find('mark.nested')).toHaveLength(3);
@@ -33,16 +33,16 @@ describe(
       expect($ctx.find('mark.root')).toContainText('lorem test ipsum');
       expect($ctx.find('mark.nested')).toContainText('test');
     });
-    it('should unwrap nested mark elements correctly', function(done) {
+    it('should unwrap nested mark elements correctly', done => {
       instance.unmark({
         'className': 'root',
-        'done': function() {
+        'done': () => {
           expect($ctx.find('mark.root')).not.toExist();
           expect($ctx.find('mark.nested')).toHaveLength(3);
           expect($ctx.find('mark.nested')).toContainText('test');
           instance.unmark({
             'className': 'nested',
-            'done': function() {
+            'done': () => {
               expect($ctx.find('mark.nested')).not.toExist();
               done();
             }

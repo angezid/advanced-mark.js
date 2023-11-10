@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with separateWordsearch', function() {
-  var $ctx1, $ctx2, notFound;
-  beforeEach(function(done) {
+describe('basic mark with separateWordsearch', () => {
+  let $ctx1, $ctx2, notFound;
+  beforeEach(done => {
     loadFixtures('basic/separate-word-search.html');
 
     $ctx1 = $('.basic-separate > div:first-child');
@@ -10,14 +10,14 @@ describe('basic mark with separateWordsearch', function() {
     new Mark($ctx1[0]).mark('lorem ipsum test', {
       'diacritics': false,
       'separateWordSearch': true,
-      'noMatch': function(term) {
+      'noMatch': term => {
         notFound.push(term);
       },
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark(['lorem ipsum'], {
           'diacritics': false,
           'separateWordSearch': true,
-          'done': function() {
+          'done': () => {
             done();
           }
         });
@@ -25,11 +25,11 @@ describe('basic mark with separateWordsearch', function() {
     });
   });
 
-  it('should wrap separated words', function() {
+  it('should wrap separated words', () => {
     expect($ctx1.find('mark').length).toBe(8);
     expect($ctx2.find('mark').length).toBe(8);
   });
-  it('should call the noMatch callback for separated words', function() {
+  it('should call the noMatch callback for separated words', () => {
     expect(notFound).toEqual(['test']);
   });
 });

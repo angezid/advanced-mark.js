@@ -1,41 +1,41 @@
 'use strict';
-describe('when one instance calls multiple methods', function() {
-  var $ctx, exception, count;
+describe('when one instance calls multiple methods', () => {
+  let $ctx, exception, count;
 
-  beforeEach(function(done) {
+  beforeEach(done => {
     loadFixtures('across-elements/basic/main.html');
 
     $ctx = $('.across-elements');
     exception = false;
     count = 0;
 
-    var instance = new Mark($ctx[0]);
+    let instance = new Mark($ctx[0]);
 
     try {
       instance.mark('lorem ipsum', {
         'separateWordSearch': false,
         'acrossElements' : true,
         'cacheTextNodes' : true,
-        'done' : function(_, matches) {
+        'done' : (_, matches) => {
           count += matches;
 
           instance.mark('ipsum dolor', {
             'separateWordSearch': false,
             'acrossElements' : true,
-            'done' : function(_, matches) {
+            'done' : (_, matches) => {
               count += matches;
 
               instance.mark('lorem ipsum', {
                 'separateWordSearch': false,
                 'acrossElements' : true,
                 'cacheTextNodes' : true,
-                'done' : function(_, matches) {
+                'done' : (_, matches) => {
                   count += matches;
 
                   instance.mark('sit', {
                     'acrossElements' : true,
                     'cacheTextNodes' : true,
-                    'done' : function(_, matches) {
+                    'done' : (_, matches) => {
                       count += matches;
                       done();
                     }
@@ -52,7 +52,7 @@ describe('when one instance calls multiple methods', function() {
     }
   });
 
-  it('should not throw an exception with different settings of the cacheTextNodes options', function() {
+  it('should not throw an exception with different settings of the cacheTextNodes options', () => {
     expect(count).toBe(16);
     expect(exception).toBe(false);
   });

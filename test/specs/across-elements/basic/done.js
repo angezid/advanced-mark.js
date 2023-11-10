@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with acrossElements and done callback', function() {
-  var $ctx, doneCalled, totalMatches, totalMarks;
-  beforeEach(function(done) {
+describe('mark with acrossElements and done callback', () => {
+  let $ctx, doneCalled, totalMatches, totalMarks;
+  beforeEach(done => {
     loadFixtures('across-elements/basic/main.html');
 
     totalMarks = totalMatches = doneCalled = 0;
@@ -10,7 +10,7 @@ describe('mark with acrossElements and done callback', function() {
       'diacritics': false,
       'separateWordSearch': false,
       'acrossElements': true,
-      'done': function(counter, matchCount) {
+      'done': (counter, matchCount) => {
         doneCalled++;
         totalMarks = counter;
         totalMatches = matchCount;
@@ -19,13 +19,13 @@ describe('mark with acrossElements and done callback', function() {
     });
   });
 
-  it('should call the done callback once only', function(done) {
-    setTimeout(function() {
+  it('should call the done callback once only', done => {
+    setTimeout(() => {
       expect(doneCalled).toBe(1);
       done();
     }, 300);
   });
-  it('should call the done callback with total matches', function() {
+  it('should call the done callback with total matches', () => {
     expect(totalMarks).toBe(11);
     expect(totalMatches).toBe(8);
   });

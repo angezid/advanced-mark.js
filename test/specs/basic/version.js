@@ -1,12 +1,12 @@
 'use strict';
-describe('get mark library version', function() {
-  var version;
-  beforeEach(function(done) {
+describe('get mark library version', () => {
+  let version;
+  beforeEach(done => {
     version = new Mark('').getVersion();
     done();
   });
 
-  it('should match version pattern', function() {
+  it('should match version pattern', () => {
     expect(version).toMatch(/^\d+\.\d+\.\d+$/i);
   });
 });

@@ -1,17 +1,17 @@
 'use strict';
-describe('mark with regular expression and filter callback', function() {
-  var $ctx;
-  beforeEach(function() {
+describe('mark with regular expression and filter callback', () => {
+  let $ctx;
+  beforeEach(() => {
     loadFixtures('regexp/filter.html');
 
     $ctx = $('.regexp-filter');
   });
 
-  it('should call the callback with the right parameters', function(done) {
-    var k = 0,
+  it('should call the callback with the right parameters', done => {
+    let k = 0,
       textOpts = ['Lorem', 'ipsum'];
     new Mark($ctx[0]).markRegExp(/(Lore?m)|(ipsum)/gmi, {
-      'filter': function(node, term, totalMatches) {
+      'filter': (node, term, totalMatches) => {
         expect(node.nodeType).toBe(3);
         expect($.inArray(term, textOpts)).toBeGreaterThan(-1);
         expect(k).toBe(totalMatches);
@@ -22,7 +22,7 @@ describe('mark with regular expression and filter callback', function() {
           return false;
         }
       },
-      'done': function() {
+      'done': () => {
         expect($ctx.find('mark').length).toBe(4);
         done();
       }

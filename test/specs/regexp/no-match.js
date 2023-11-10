@@ -1,24 +1,24 @@
 'use strict';
-describe('mark with regular expression and noMatch callback', function() {
-  var $ctx, notFound, notFoundCalled;
-  beforeEach(function(done) {
+describe('mark with regular expression and noMatch callback', () => {
+  let $ctx, notFound, notFoundCalled;
+  beforeEach(done => {
     loadFixtures('regexp/main.html');
 
     $ctx = $('.regexp > div:first-child');
     notFound = null;
     notFoundCalled = 0;
     new Mark($ctx[0]).markRegExp(/test/gmi, {
-      'noMatch': function(regexp) {
+      'noMatch': regexp => {
         notFoundCalled++;
         notFound = regexp;
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should call noMatch with the regular expression', function() {
+  it('should call noMatch with the regular expression', () => {
     expect(notFoundCalled).toBe(1);
     expect(notFound instanceof RegExp).toBe(true);
   });

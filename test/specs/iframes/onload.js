@@ -1,10 +1,10 @@
 'use strict';
-describe('mark with iframes where onload was not fired yet', function() {
+describe('mark with iframes where onload was not fired yet', () => {
   // Note that in Chrome the onload event will already be fired. Reason
   // is that Chrome initializes every iframe with an empty page, which will
   // fire the onload event too respectively set readyState complete
-  var $ctx, $elements, errCall;
-  beforeEach(function(done) {
+  let $ctx, $elements, errCall;
+  beforeEach(done => {
     loadFixtures('iframes/onload.html');
 
     $elements = $();
@@ -18,7 +18,7 @@ describe('mark with iframes where onload was not fired yet', function() {
         'each': function($m) {
           $elements = $elements.add($($m));
         },
-        'done': function() {
+        'done': () => {
           done();
         }
       });
@@ -27,12 +27,12 @@ describe('mark with iframes where onload was not fired yet', function() {
     }
   }, 30000); // 30 sec timeout
 
-  it('should wrap matches inside iframes', function() {
+  it('should wrap matches inside iframes', () => {
     expect(errCall).toBe(0);
     expect($elements).toHaveLength(2);
-    var unequal = false;
-    $elements.each(function() {
-      if ($(this).prop('ownerDocument') !== $ctx.prop('ownerDocument')) {
+    let unequal = false;
+    $elements.each((i, elem) => {
+      if ($(elem).prop('ownerDocument') !== $ctx.prop('ownerDocument')) {
         unequal = true;
       }
     });

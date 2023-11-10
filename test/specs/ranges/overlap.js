@@ -1,7 +1,7 @@
 'use strict';
-describe('mark ranges ignoring overlapping values', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('mark ranges ignoring overlapping values', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('ranges/overlap.html');
 
     $ctx = $('.ranges-overlap');
@@ -13,16 +13,16 @@ describe('mark ranges ignoring overlapping values', function() {
       { start: 45, length: 1 }, // nesting
       { start: 45, length: 20 } // overlapping
     ], {
-      'each': function(node, range) {
+      'each': (node, range) => {
         $(node).attr('data-range-start', range.start);
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should ignore nesting/overlapping ranges', function() {
+  it('should ignore nesting/overlapping ranges', () => {
     // length = 3 because whitespace before the <p> is wrapped
     expect($ctx.find('mark').length).toBe(3);
     expect($ctx.find('mark[data-range-start=20]')).toHaveLength(0);

@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with range across elements', function() {
-  var $ctx, txt, ranges, index, totalMatches, totalMarks;
-  beforeEach(function(done) {
+describe('mark with range across elements', () => {
+  let $ctx, txt, ranges, index, totalMatches, totalMarks;
+  beforeEach(done => {
     loadFixtures('ranges/across-elements.html');
 
     $ctx = $('.ranges-across-elements');
@@ -21,10 +21,10 @@ describe('mark with range across elements', function() {
     });
 
     new Mark($ctx[0]).markRanges(ranges, {
-      'each': function(node, range) {
+      'each': (node, range) => {
         $(node).attr('data-range-start', range.start);
       },
-      'done': function(counter, matchCount) {
+      'done': (counter, matchCount) => {
         totalMarks = counter;
         totalMatches = matchCount;
         done();
@@ -32,8 +32,8 @@ describe('mark with range across elements', function() {
     });
   });
 
-  it('should properly mark ranges across elements', function() {
-    var match1 = $ctx.find(
+  it('should properly mark ranges across elements', () => {
+    let match1 = $ctx.find(
         'mark[data-range-start=' + ranges[0].start + ']'
       ).text(),
       match2 = $ctx.find(

@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with regular expression with infinite results', function() {
-  var $ctx1, $ctx2, errorThrown1, errorThrown2;
-  beforeEach(function(done) {
+describe('mark with regular expression with infinite results', () => {
+  let $ctx1, $ctx2, errorThrown1, errorThrown2;
+  beforeEach(done => {
     loadFixtures('regexp/infinite.html');
 
     $ctx1 = $('.regexp-infinite > div:first-child');
@@ -9,10 +9,10 @@ describe('mark with regular expression with infinite results', function() {
     errorThrown1 = errorThrown2 = false;
     try {
       new Mark($ctx1[0]).markRegExp(/(|)/gmi, {
-        'done': function() {
+        'done': () => {
           try {
             new Mark($ctx2[0]).markRegExp(/\b/gmi, {
-              'done': function() {
+              'done': () => {
                 done();
               }
             });

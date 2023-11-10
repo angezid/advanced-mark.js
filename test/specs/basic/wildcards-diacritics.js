@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with wildcards and diacritics', function() {
-  var $ctx1, $ctx2;
-  beforeEach(function(done) {
+describe('basic mark with wildcards and diacritics', () => {
+  let $ctx1, $ctx2;
+  beforeEach(done => {
     loadFixtures('basic/wildcards-diacritics.html');
 
     $ctx1 = $('.basic-wildcards-diacritics > div:nth-child(1)');
@@ -10,12 +10,12 @@ describe('basic mark with wildcards and diacritics', function() {
       'separateWordSearch': false,
       'diacritics': true,
       'wildcards': 'enabled',
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark('lör*m', {
           'separateWordSearch': false,
           'diacritics': true,
           'wildcards': 'enabled',
-          'done': function() {
+          'done': () => {
             done();
           }
         });
@@ -23,7 +23,7 @@ describe('basic mark with wildcards and diacritics', function() {
     });
   });
 
-  it('should find wildcard matches containing diacritics', function() {
+  it('should find wildcard matches containing diacritics', () => {
     expect($ctx1.find('mark').length).toBe(7);
     expect($ctx2.find('mark').length).toBe(13);
   });

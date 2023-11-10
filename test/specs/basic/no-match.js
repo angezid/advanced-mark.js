@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with noMatch callback', function() {
-  var $ctx, notFound;
-  beforeEach(function(done) {
+describe('basic mark with noMatch callback', () => {
+  let $ctx, notFound;
+  beforeEach(done => {
     loadFixtures('basic/main.html');
 
     notFound = [];
@@ -9,16 +9,16 @@ describe('basic mark with noMatch callback', function() {
     new Mark($ctx[0]).mark('test', {
       'diacritics': false,
       'separateWordSearch': false,
-      'noMatch': function(term) {
+      'noMatch': term => {
         notFound.push(term);
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should call the noMatch callback for not found terms', function() {
+  it('should call the noMatch callback for not found terms', () => {
     expect(notFound).toEqual(['test']);
   });
 });

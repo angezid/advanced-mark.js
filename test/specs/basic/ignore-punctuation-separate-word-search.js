@@ -1,15 +1,15 @@
 'use strict';
 describe(
-  'basic mark with ignorePunctuation and separateWordSearch', function() {
+  'basic mark with ignorePunctuation and separateWordSearch', () => {
     function getPunctuation() {
       return '^:;.,-–—‒_(){}[]!\'"+='
         .replace(/[-^\]\\]/g, '\\$&')
         .split('');
     }
-    var $ctx1, $ctx2, $container,
+    let $ctx1, $ctx2, $container,
       punctuation = getPunctuation(),
       regexp = new RegExp('[' + punctuation.join('') + ']', 'g');
-    beforeEach(function(done) {
+    beforeEach(done => {
       loadFixtures('basic/ignore-punctuation-separate-word-search.html');
 
       $container = $('.basic-ignore-punctuation-separate-word-search');
@@ -19,12 +19,12 @@ describe(
         'separateWordSearch': true,
         'diacritics': false,
         'ignorePunctuation': punctuation,
-        'done': function() {
+        'done': () => {
           new Mark($ctx2[0]).mark(['amet ipsum'], {
             'separateWordSearch': true,
             'diacritics': false,
             'ignorePunctuation': punctuation,
-            'done': function() {
+            'done': () => {
               done();
             }
           });
@@ -32,13 +32,13 @@ describe(
       });
     });
 
-    it('should find separate matches', function() {
+    it('should find separate matches', () => {
       expect($ctx1.find('mark').length).toBe(11);
 
-      var count = 0,
+      let count = 0,
         regex = /^(lorem|ipsum)$/i;
-      $ctx1.find('mark').each(function() {
-        if (regex.test($(this).text().replace(regexp, ''))) {
+      $ctx1.find('mark').each((i, elem) => {
+        if (regex.test($(elem).text().replace(regexp, ''))) {
           count++;
         }
       });
@@ -47,8 +47,8 @@ describe(
 
       count = 0;
       regex = /^(ipsum|amet)$/i;
-      $ctx2.find('mark').each(function() {
-        if (regex.test($(this).text().replace(regexp, ''))) {
+      $ctx2.find('mark').each((i, elem) => {
+        if (regex.test($(elem).text().replace(regexp, ''))) {
           count++;
         }
       });

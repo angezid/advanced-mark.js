@@ -1,14 +1,14 @@
 'use strict';
-describe('basic mark with filter callback', function() {
-  var $ctx;
-  beforeEach(function() {
+describe('basic mark with filter callback', () => {
+  let $ctx;
+  beforeEach(() => {
     loadFixtures('basic/filter.html');
 
     $ctx = $('.basic-filter');
   });
 
-  it('should call the callback with the right parameters', function(done) {
-    var counter = {
+  it('should call the callback with the right parameters', done => {
+    let counter = {
         'lorem': 0,
         'ipsum': 0,
         'dolor': 0
@@ -19,7 +19,7 @@ describe('basic mark with filter callback', function() {
       new Mark($ctx[0]).mark(Object.keys(counter), {
         'diacritics': false,
         'separateWordSearch': false,
-        'filter': function(node, term, totalMatches, matches) {
+        'filter': (node, term, totalMatches, matches) => {
           expect(node.nodeType).toBe(3);
 
           expect($.inArray(term, Object.keys(counter))).toBeGreaterThan(-1);
@@ -35,7 +35,7 @@ describe('basic mark with filter callback', function() {
             return false;
           }
         },
-        'done': function() {
+        'done': () => {
           expect($ctx.find('mark').length).toBe(15);
           done();
         }

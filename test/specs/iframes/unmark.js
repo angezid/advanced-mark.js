@@ -1,14 +1,14 @@
 'use strict';
-describe('unmark with iframes', function() {
-  var $ctx, $elements, errCall;
-  beforeEach(function(done) {
+describe('unmark with iframes', () => {
+  let $ctx, $elements, errCall;
+  beforeEach(done => {
     loadFixtures('iframes/main.html');
 
     $ctx = $('.iframes');
     $elements = $();
     errCall = 0;
     try {
-      var instance = new Mark($ctx[0]);
+      let instance = new Mark($ctx[0]);
       instance.mark('lorem', {
         'diacritics': false,
         'separateWordSearch': false,
@@ -16,10 +16,10 @@ describe('unmark with iframes', function() {
         'each': function($el) {
           $elements = $elements.add($($el));
         },
-        'done': function() {
+        'done': () => {
           instance.unmark({
             'iframes': true,
-            'done': function() {
+            'done': () => {
               done();
             }
           });
@@ -30,9 +30,9 @@ describe('unmark with iframes', function() {
     }
   });
 
-  it('should remove all marked elements inside iframes', function() {
+  it('should remove all marked elements inside iframes', () => {
     expect(errCall).toBe(0);
-    $elements.each(function() {
+    $elements.each(() => {
       expect(this).not.toBeInDOM();
     });
   });

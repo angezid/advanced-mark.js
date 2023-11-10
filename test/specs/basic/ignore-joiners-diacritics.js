@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with ignoreJoiners and diacritics', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('basic mark with ignoreJoiners and diacritics', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('basic/ignore-joiners-diacritics.html');
 
     $ctx = $('.basic-ignore-joiners-diacritics');
@@ -9,13 +9,13 @@ describe('basic mark with ignoreJoiners and diacritics', function() {
       'separateWordSearch': false,
       'ignoreJoiners': true,
       'diacritics': true,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should find matches containing diacritics', function() {
+  it('should find matches containing diacritics', () => {
     expect($ctx.find('mark').length).toBe(15);
   });
 });

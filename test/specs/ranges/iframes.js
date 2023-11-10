@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with range in iframes', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('mark with range in iframes', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('ranges/iframes.html');
 
     $ctx = $('.ranges-iframes');
@@ -14,13 +14,13 @@ describe('mark with range in iframes', function() {
       { start: 82, length: 7 }
     ], {
       'iframes': true,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should mark correct range including iframes', function() {
+  it('should mark correct range including iframes', () => {
     expect($ctx.find('mark').length).toBe(1);
     expect($ctx.find('iframe').contents().find('mark').length).toBe(2);
   });

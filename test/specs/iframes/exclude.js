@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with iframes and exclude', function() {
-  var $ctx, $elements;
-  beforeEach(function(done) {
+describe('mark with iframes and exclude', () => {
+  let $ctx, $elements;
+  beforeEach(done => {
     loadFixtures('iframes/exclude.html');
 
     $elements = $();
@@ -16,13 +16,13 @@ describe('mark with iframes and exclude', function() {
       'each': function($m) {
         $elements = $elements.add($($m));
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should ignore iframes matching exclude selectors', function() {
+  it('should ignore iframes matching exclude selectors', () => {
     expect($elements).toHaveLength(4);
   });
 });

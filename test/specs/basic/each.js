@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with each callback', function() {
-  var $ctx, eachCalled;
-  beforeEach(function(done) {
+describe('basic mark with each callback', () => {
+  let $ctx, eachCalled;
+  beforeEach(done => {
     loadFixtures('basic/main.html');
 
     eachCalled = 0;
@@ -9,16 +9,16 @@ describe('basic mark with each callback', function() {
     new Mark($ctx[0]).mark('lorem ipsum', {
       'diacritics': false,
       'separateWordSearch': false,
-      'each': function() {
+      'each': () => {
         eachCalled++;
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should call the each callback for each marked element', function() {
+  it('should call the each callback for each marked element', () => {
     expect(eachCalled).toBe(4);
   });
 });

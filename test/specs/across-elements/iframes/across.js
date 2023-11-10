@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with acrossElements and matches across iframes', function() {
-  var $ctx, $elements, errCall;
-  beforeEach(function(done) {
+describe('mark with acrossElements and matches across iframes', () => {
+  let $ctx, $elements, errCall;
+  beforeEach(done => {
     loadFixtures('across-elements/iframes/across.html');
 
     $elements = $();
@@ -16,7 +16,7 @@ describe('mark with acrossElements and matches across iframes', function() {
         'each': function($m) {
           $elements = $elements.add($($m));
         },
-        'done': function() {
+        'done': () => {
           done();
         }
       });
@@ -25,7 +25,7 @@ describe('mark with acrossElements and matches across iframes', function() {
     }
   }, 30000); // 30 sec timeout
 
-  it('should wrap matches across iframes recursively', function() {
+  it('should wrap matches across iframes recursively', () => {
     expect(errCall).toBe(0);
     expect($elements).toHaveLength(30); // including whitespace matches
   });

@@ -1,8 +1,8 @@
 'use strict';
-describe('Test the random generated ranges', function() {
-  var $ctx, ranges, max, text = 'should wrap ';
+describe('Test the random generated ranges', () => {
+  let $ctx, ranges, max, text = 'should wrap ';
 
-  beforeEach(function() {
+  beforeEach(() => {
     loadFixtures('ranges/main.html');
     $ctx = $('.ranges');
     max = $ctx.text().length;
@@ -10,8 +10,8 @@ describe('Test the random generated ranges', function() {
     ranges = generateRanges();
   });
   
-  it(text + 'only valid ranges', function(done) {
-    var valid = true, lastIndex = 0, end;
+  it(text + 'only valid ranges', done => {
+    let valid = true, lastIndex = 0, end;
 
     new Mark($ctx[0]).markRanges(ranges, {
       'each' : (elem, range, info) => {
@@ -24,7 +24,7 @@ describe('Test the random generated ranges', function() {
           lastIndex = end;
         }
       },
-      'done' : function(totalMarks, totalMatches) {
+      'done' : (totalMarks, totalMatches) => {
         expect(totalMatches).toBeGreaterThan(0);
         expect(valid).toBe(true);
         done();
@@ -32,8 +32,8 @@ describe('Test the random generated ranges', function() {
     });
   });
 
-  it(text + 'nesting/overlapping ranges with wrapAllRanges option', function(done) {
-    var valid = true, count = 0, lastIndex = 0, end = 0, nested = false, overlapped = false;
+  it(text + 'nesting/overlapping ranges with wrapAllRanges option', done => {
+    let valid = true, count = 0, lastIndex = 0, end = 0, nested = false, overlapped = false;
     
     new Mark($ctx[0]).markRanges(ranges, {
       'wrapAllRanges' : true,
@@ -60,7 +60,7 @@ describe('Test the random generated ranges', function() {
           }
         }
       },
-      'done' : function(totalMarks, totalMatches) {
+      'done' : (totalMarks, totalMatches) => {
         expect(totalMatches).toBeGreaterThan(0);
         expect(totalMatches).toBe(count);
         expect(nested).toBe(true);
@@ -72,9 +72,9 @@ describe('Test the random generated ranges', function() {
   });
 
   function generateRanges() {
-    var start, length, ranges = [];
+    let start, length, ranges = [];
 
-    for (var i = 0; i < 200; i++) {
+    for (let i = 0; i < 200; i++) {
       if (i > 32 && (i % 10) === 0) {
         start = String.fromCharCode(232 - i);
         length = String.fromCharCode(i);

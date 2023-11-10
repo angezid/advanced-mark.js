@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with ignoreJoiners and special characters', function() {
-  var err, $ctx;
-  beforeEach(function(done) {
+describe('basic mark with ignoreJoiners and special characters', () => {
+  let err, $ctx;
+  beforeEach(done => {
     loadFixtures('basic/ignore-joiners-escape.html');
 
     $ctx = $('.basic-ignore-joiners-escape');
@@ -17,7 +17,7 @@ describe('basic mark with ignoreJoiners and special characters', function() {
       ], {
         'separateWordSearch': false,
         'ignoreJoiners': true,
-        'done': function() {
+        'done': () => {
           done();
         }
       });
@@ -27,7 +27,7 @@ describe('basic mark with ignoreJoiners and special characters', function() {
     }
   });
 
-  it('should find matches', function() {
+  it('should find matches', () => {
     expect(err).toBe(false);
     expect($ctx.find('mark').length).toBe(9);
   });

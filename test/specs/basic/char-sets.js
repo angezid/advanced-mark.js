@@ -1,7 +1,7 @@
 'use strict';
-xdescribe('charSets option', function() {
-  var $ctx, $ctx2;
-  var quantifiers = ['se[a]?t', '[b]*eat', 'su[c]+ess', '[d]{3,}', 'g[e]*?t'],
+xdescribe('charSets option', () => {
+  let $ctx, $ctx2;
+  let quantifiers = ['se[a]?t', '[b]*eat', 'su[c]+ess', '[d]{3,}', 'g[e]*?t'],
     quantifiersObj = {
       'se[a]?t' : ['set',  'seat'],
       '[b]*eat' : ['beat',  'eat'],
@@ -18,25 +18,25 @@ xdescribe('charSets option', function() {
       '\\\\\\\\[e]+' : '\\\\\\eee',
     };
 
-  beforeEach(function() {
+  beforeEach(() => {
     loadFixtures('basic/char-sets.html');
 
     $ctx = $('.char-sets-escape');
     $ctx2 = $('.char-sets-quantifiers');
   });
 
-  it('should mark charSets with quantifiers', function(done) {
-    var curTerm = '';
+  it('should mark charSets with quantifiers', done => {
+    let curTerm = '';
     new Mark($ctx2[0]).mark(quantifiers, {
       'charSets' : true,
-      filter: function(nd, term) {
+      filter: (nd, term) => {
         curTerm = term;
         return true;
       },
-      each : function(elem) {
+      each : elem => {
         expect(quantifiersObj[curTerm]).toContain(elem.textContent);
       },
-      'done' : function() {
+      'done' : () => {
         expect($ctx2.find('mark').length).toBe(9);
 
         done();
@@ -44,18 +44,18 @@ xdescribe('charSets option', function() {
     });
   });
 
-  it('should correctly handle escaped characters', function(done) {
-    var curTerm = '';
+  it('should correctly handle escaped characters', done => {
+    let curTerm = '';
     new Mark($ctx[0]).mark(escapes, {
       'charSets' : true,
-      filter: function(nd, term) {
+      filter: (nd, term) => {
         curTerm = term;
         return true;
       },
-      each : function(elem) {
+      each : elem => {
         expect(elem.textContent).toBe(escapeObj[curTerm]);
       },
-      'done' : function() {
+      'done' : () => {
         expect($ctx.find('mark').length).toBe(5);
 
         done();

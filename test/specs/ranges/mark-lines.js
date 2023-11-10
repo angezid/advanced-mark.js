@@ -1,13 +1,13 @@
 'use strict';
-describe('mark lines ranges with markLines option', function() {
-  var $ctx;
-  beforeEach(function() {
+describe('mark lines ranges with markLines option', () => {
+  let $ctx;
+  beforeEach(() => {
     loadFixtures('ranges/mark-lines.html');
   });
 
-  it('should mark lines in \'p\' element', function(done) {
+  it('should mark lines in \'p\' element', done => {
     $ctx = $('.mark-lines p');
-    var lines = [
+    let lines = [
       { start: 1, length: 1, content : 'one' },
       { start: 2, length: 2, content : 'two\nthree' },
       { start: 6, length: 1, content : 'six' },
@@ -15,10 +15,10 @@ describe('mark lines ranges with markLines option', function() {
     ];
     new Mark($ctx[0]).markRanges(lines, {
       'markLines' : true,
-      'each': function(node, range) {
+      'each': (node, range) => {
         $(node).attr('data-content', range.content);
       },
-      'done': function() {
+      'done': () => {
         testResult(lines, 4, 0);
 
         done();
@@ -26,9 +26,9 @@ describe('mark lines ranges with markLines option', function() {
     });
   });
 
-  it('should mark lines in \'pre\' element', function(done) {
+  it('should mark lines in \'pre\' element', done => {
     $ctx = $('.mark-lines-pre pre');
-    var lines = [
+    let lines = [
       { start: 0, length: 1, content : 'non-valid' },    // non-valid
       { start: 1, length: 1, content : 'one' },
       { start: 2, length: 2, content : 'two\nthree' },
@@ -38,10 +38,10 @@ describe('mark lines ranges with markLines option', function() {
     ];
     new Mark($ctx[0]).markRanges(lines, {
       'markLines' : true,
-      'each': function(node, range) {
+      'each': (node, range) => {
         $(node).attr('data-content', range.content);
       },
-      'done': function() {
+      'done': () => {
         testResult(lines, 4, 1);
 
         done();
@@ -49,9 +49,9 @@ describe('mark lines ranges with markLines option', function() {
     });
   });
 
-  it('should mark nesting/overlaping lines in \'pre\' element', function(done) {
+  it('should mark nesting/overlaping lines in \'pre\' element', done => {
     $ctx = $('.mark-lines-pre pre');
-    var lines = [
+    let lines = [
       { start: 3, length: 1 },
       { start: 2, length: 3 },
       { start: 6, length: 2 },
@@ -60,7 +60,7 @@ describe('mark lines ranges with markLines option', function() {
     new Mark($ctx[0]).markRanges(lines, {
       'markLines' : true,
       'wrapAllRanges' : true,
-      'done': function() {
+      'done': () => {
         expect($ctx.find('mark').length).toBe(6);
 
         done();
@@ -69,7 +69,7 @@ describe('mark lines ranges with markLines option', function() {
   });
 
   function testResult(lines, num, offset) {
-    var marks = $ctx.find('mark');
+    let marks = $ctx.find('mark');
     expect(marks.length).toBe(num);
 
     marks.each((i, item) => {

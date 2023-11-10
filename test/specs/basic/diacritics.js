@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with diacritics', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('basic mark with diacritics', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('basic/diacritics.html');
 
     $ctx = $('.basic-diacritics');
@@ -9,13 +9,13 @@ describe('basic mark with diacritics', function() {
     // behavior in combination with diacritics
     new Mark($ctx[0]).mark(['dolor', 'amet', 'justo', 'lores ipsum'], {
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should treat normal and diacritic characters equally', function() {
+  it('should treat normal and diacritic characters equally', () => {
     expect($ctx.find('mark').length).toBe(15);
   });
 });

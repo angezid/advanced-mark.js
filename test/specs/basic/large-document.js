@@ -1,23 +1,23 @@
 'use strict';
-describe('basic mark in large documents', function() {
-  var $ctx, err, start, end, diff;
+describe('basic mark in large documents', () => {
+  let $ctx, err, start, end, diff;
 
-  var browser = {
-    isIe: function() {
+  let browser = {
+    isIe: () => {
       return navigator.appVersion.indexOf('MSIE') !== -1;
     },
     navigator: navigator.appVersion,
-    getVersion: function() {
-      var version = 999; // we assume a sane browser
+    getVersion: () => {
+      let version = 999; // we assume a sane browser
       if (navigator.appVersion.indexOf('MSIE') !== -1) {
         version = parseFloat(navigator.appVersion.split('MSIE')[1]);
       }
       return version;
     }
   };
-  var time = browser.isIe() && browser.getVersion() <= 9 ? 30000 : 10000;
+  let time = browser.isIe() && browser.getVersion() <= 9 ? 30000 : 10000;
 
-  beforeEach(function(done) {
+  beforeEach(done => {
     loadFixtures('basic/large-document.html');
 
     $ctx = $('.basic-large-document');
@@ -27,7 +27,7 @@ describe('basic mark in large documents', function() {
       new Mark($ctx[0]).mark('lorem', {
         'diacritics': false,
         'separateWordSearch': false,
-        'done': function() {
+        'done': () => {
           end = new Date();
           diff = end.getTime() - start.getTime();
           done();
@@ -38,7 +38,7 @@ describe('basic mark in large documents', function() {
     }
   }, 60000);
 
-  it('should not throw a recursion error and be faster than ' + time + ' ms', function() {
+  it('should not throw a recursion error and be faster than ' + time + ' ms', () => {
     expect($ctx.find('mark').length).toBe(9569);
     expect(err).toBe(false);
     expect(diff).toBeLessThan(time);

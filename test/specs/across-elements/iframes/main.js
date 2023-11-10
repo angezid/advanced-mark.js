@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with acrossElements and iframes', function() {
-  var $ctx, $elements, errCall;
-  beforeEach(function(done) {
+describe('mark with acrossElements and iframes', () => {
+  let $ctx, $elements, errCall;
+  beforeEach(done => {
     loadFixtures('across-elements/iframes/main.html');
 
     $elements = $();
@@ -16,7 +16,7 @@ describe('mark with acrossElements and iframes', function() {
         'each': function($m) {
           $elements = $elements.add($($m));
         },
-        'done': function() {
+        'done': () => {
           done();
         }
       });
@@ -25,13 +25,13 @@ describe('mark with acrossElements and iframes', function() {
     }
   }, 30000); // 30 sec timeout
 
-  it('should wrap matches inside iframes', function() {
+  it('should wrap matches inside iframes', () => {
     expect(errCall).toBe(0);
     expect($elements).toHaveLength(8);
-    var unequal = false;
-    $elements.each(function() {
+    let unequal = false;
+    $elements.each((i, elem) => {
       // make sure that some elements are inside an iframe
-      if ($(this).prop('ownerDocument') !== $ctx.prop('ownerDocument')) {
+      if ($(elem).prop('ownerDocument') !== $ctx.prop('ownerDocument')) {
         unequal = true;
       }
     });

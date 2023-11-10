@@ -1,21 +1,21 @@
 'use strict';
-describe('unmark with click event', function() {
-  var $ctx, eventCalled;
-  beforeEach(function(done) {
+describe('unmark with click event', () => {
+  let $ctx, eventCalled;
+  beforeEach(done => {
     loadFixtures('basic/events.html');
 
     $ctx = $('.basic-events');
     eventCalled = 0;
-    $ctx.find('.event-target').on('click', function() {
+    $ctx.find('.event-target').on('click', () => {
       ++eventCalled;
     });
-    var instance = new Mark($ctx[0]);
+    let instance = new Mark($ctx[0]);
     instance.mark('test', {
       'diacritics': false,
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         instance.unmark({
-          'done': function() {
+          'done': () => {
             $ctx.find('.event-target').click();
             done();
           }
@@ -24,7 +24,7 @@ describe('unmark with click event', function() {
     });
   });
 
-  it('should not remove bound events', function() {
+  it('should not remove bound events', () => {
     expect(eventCalled).toBe(1);
   });
 

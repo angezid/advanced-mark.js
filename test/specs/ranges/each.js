@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with range each callback', function() {
-  var $ctx, $elements, ranges;
-  beforeEach(function(done) {
+describe('mark with range each callback', () => {
+  let $ctx, $elements, ranges;
+  beforeEach(done => {
     loadFixtures('ranges/each.html');
 
     $elements = $();
@@ -11,23 +11,23 @@ describe('mark with range each callback', function() {
       { start: 20, length: 5 },
       { start: 64, length: 5 }
     ], {
-      'each': function(node, range) {
+      'each': (node, range) => {
         $elements = $elements.add($(node));
         ranges.push(range);
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should call the each callback and pass the correct parameters', function() {
-    var textOpts = ['ipsum', 'elitr'];
+  it('should call the each callback and pass the correct parameters', () => {
+    let textOpts = ['ipsum', 'elitr'];
     
     expect($elements).toHaveLength(2);
     
-    $elements.each(function() {
-      expect($.inArray($(this).text(), textOpts)).toBeGreaterThan(-1);
+    $elements.each((i, elem) => {
+      expect($.inArray($(elem).text(), textOpts)).toBeGreaterThan(-1);
     });
     expect(ranges).toEqual([
       { start: 20, length: 5 },

@@ -1,8 +1,8 @@
 'use strict';
-describe('basic mark in an empty context', function() {
-  var $ctx1, $ctx2, done1 = false,
+describe('basic mark in an empty context', () => {
+  let $ctx1, $ctx2, done1 = false,
     done2 = false;
-  beforeEach(function(done) {
+  beforeEach(done => {
     loadFixtures('basic/empty.html');
 
     $ctx1 = $('.notExistingSelector');
@@ -10,12 +10,12 @@ describe('basic mark in an empty context', function() {
     new Mark($ctx1[0]).mark('lorem', {
       'diacritics': false,
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         done1 = true;
         new Mark($ctx2[0]).mark('lorem', {
           'diacritics': false,
           'separateWordSearch': false,
-          'done': function() {
+          'done': () => {
             done2 = true;
             done();
           }
@@ -24,7 +24,7 @@ describe('basic mark in an empty context', function() {
     });
   });
 
-  it('should call the done function', function() {
+  it('should call the done function', () => {
     expect(done1).toBe(true);
     expect(done2).toBe(true);
   });

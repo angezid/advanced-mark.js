@@ -1,20 +1,20 @@
 'use strict';
-describe('basic unmark with exclude', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('basic unmark with exclude', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('basic/unmark-exclude.html');
 
     $ctx = $('.basic-unmark-exclude');
     new Mark($ctx[0]).mark('lorem ipsum', {
       'diacritics': false,
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         new Mark($ctx[0]).unmark({
           'exclude': [
             '*[data-ignore] *',
             '.ignore *'
           ],
-          'done': function(){
+          'done': () => {
             done();
           }
         });
@@ -22,7 +22,7 @@ describe('basic unmark with exclude', function() {
     });
   });
 
-  it('should not unmark inside exclude selectors', function() {
+  it('should not unmark inside exclude selectors', () => {
     expect($ctx.find('mark').length).toBe(2);
   });
 });

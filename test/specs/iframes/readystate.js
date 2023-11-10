@@ -1,15 +1,15 @@
 'use strict';
-describe('mark with iframes where onload was already fired', function() {
-  var $ctx, $elements, errCall;
-  beforeEach(function(done) {
+describe('mark with iframes where onload was already fired', () => {
+  let $ctx, $elements, errCall;
+  beforeEach(done => {
     loadFixtures('iframes/readystate.html');
 
     $elements = $();
     $ctx = $('.iframes-readystate');
     errCall = 0;
     try {
-      var int = setInterval(function() {
-        var iCon = $ctx.find('iframe').first()[0].contentWindow,
+      let int = setInterval(() => {
+        let iCon = $ctx.find('iframe').first()[0].contentWindow,
           readyState = iCon.document.readyState,
           href = iCon.location.href;
         // about:blank check is necessary for Chrome
@@ -23,7 +23,7 @@ describe('mark with iframes where onload was already fired', function() {
             'each': function($m) {
               $elements = $elements.add($($m));
             },
-            'done': function() {
+            'done': () => {
               done();
             }
           });
@@ -34,12 +34,12 @@ describe('mark with iframes where onload was already fired', function() {
     }
   }, 30000); // 30 sec timeout
 
-  it('should wrap matches inside iframes', function() {
+  it('should wrap matches inside iframes', () => {
     expect(errCall).toBe(0);
     expect($elements).toHaveLength(8);
-    var unequal = false;
-    $elements.each(function() {
-      if ($(this).prop('ownerDocument') !== $ctx.prop('ownerDocument')) {
+    let unequal = false;
+    $elements.each((i, elem) => {
+      if ($(elem).prop('ownerDocument') !== $ctx.prop('ownerDocument')) {
         unequal = true;
       }
     });

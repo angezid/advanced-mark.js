@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with acrossElements', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('mark with acrossElements', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('across-elements/basic/main.html');
 
     $ctx = $('.across-elements');
@@ -9,13 +9,13 @@ describe('mark with acrossElements', function() {
       'diacritics': false,
       'separateWordSearch': false,
       'acrossElements': true,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should wrap matches', function() {
+  it('should wrap matches', () => {
     expect($ctx.find('mark').length).toBe(6);
   });
 });

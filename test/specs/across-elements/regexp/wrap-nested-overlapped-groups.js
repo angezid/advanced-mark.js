@@ -1,7 +1,7 @@
 
 'use strict';
-describe('markRegExp with separateGroups & wrapAllRanges option', function() {
-  var $ctx,
+describe('markRegExp with separateGroups & wrapAllRanges option', () => {
+  let $ctx,
     flags = 'dg',
     message = 'should mark capture groups inside positive ',
     // the RegExp patterns below create overlapping groups in the same match
@@ -9,29 +9,29 @@ describe('markRegExp with separateGroups & wrapAllRanges option', function() {
     lookahead = '\\b(?=\\w*(a))(?=\\w*(b))(?=\\w*(c))(?=\\w*(d))(?=\\w*(e))',
     lookbehind = '\\b(?:(?<=(a)\\w*)(?<=(b)\\w*)(?<=(c)\\w*)(?<=(d)\\w*))';
 
-  beforeEach(function() {
+  beforeEach(() => {
     loadFixtures('across-elements/regexp/nested-overlapped-groups.html');
     $ctx = $('.overlapping-groups');
   });
 
-  afterEach(function() {
+  afterEach(() => {
     $ctx.unmark();
   });
   
-  it('should mark separateGroups without d flag', function(done) {
-    var groupCount = 0,
+  it('should mark separateGroups without d flag', done => {
+    let groupCount = 0,
       regex =/\w(\d+).+?(\d+).+?(\d+).+?(\d+([a-z]+)\d+)\w+/gi;
     
     new Mark($('.nesting-groups')[0]).markRegExp(regex, {
       'acrossElements' : true,
       'separateGroups' : true,
       'wrapAllRanges' : true,
-      'each' : function(nd, info) {
+      'each' : (nd, info) => {
         if (info.groupStart) {
           groupCount++;
         }
       },
-      'done' : function() {
+      'done' : () => {
         // match[0] + gr1 + gr2 + gr3 + gr4
         expect(groupCount).toBe(5);
         done();
@@ -39,48 +39,48 @@ describe('markRegExp with separateGroups & wrapAllRanges option', function() {
     });
   });
   
-  it(message + 'lookbehind assertion', function(done) {
-    var groupCount = 0;
+  it(message + 'lookbehind assertion', done => {
+    let groupCount = 0;
     new Mark($ctx[0]).markRegExp(new RegExp(lookbehind, flags), {
       'acrossElements' : true,
       'separateGroups' : true,
       'wrapAllRanges' : true,
-      each : function() {
+      each : () => {
         groupCount++;
       },
-      'done' : function() {
+      'done' : () => {
         expect(groupCount).toBe(24);
         done();
       }
     });
   });
 
-  it(message + 'lookahead assertion', function(done) {
-    var groupCount = 0;
+  it(message + 'lookahead assertion', done => {
+    let groupCount = 0;
     new Mark($ctx[0]).markRegExp(new RegExp(lookahead, flags), {
       'acrossElements' : true,
       'separateGroups' : true,
       'wrapAllRanges' : true,
-      each : function() {
+      each : () => {
         groupCount++;
       },
-      'done' : function() {
+      'done' : () => {
         expect(groupCount).toBe(30);
         done();
       }
     });
   });
 
-  it(message + 'lookaround assertions', function(done) {
-    var groupCount = 0;
+  it(message + 'lookaround assertions', done => {
+    let groupCount = 0;
     new Mark($ctx[0]).markRegExp(new RegExp(lookaround, flags), {
       'acrossElements' : true,
       'separateGroups' : true,
       'wrapAllRanges' : true,
-      each : function() {
+      each : () => {
         groupCount++;
       },
-      'done' : function() {
+      'done' : () => {
         expect(groupCount).toBe(10);
         done();
       }
@@ -88,16 +88,16 @@ describe('markRegExp with separateGroups & wrapAllRanges option', function() {
   });
   
   // a hack to mark groups inside positive lookaround.
-  it(message + 'lookaround without acrossElements option', function(done) {
+  it(message + 'lookaround without acrossElements option', done => {
     let rangeCount = 0,
       ranges = buildRanges($ctx[0], new RegExp(lookaround, flags));
 
     new Mark($ctx[0]).markRanges(ranges, {
       'wrapAllRanges' : true,
-      each : function() {
+      each : () => {
         rangeCount++;
       },
-      'done' : function() {
+      'done' : () => {
         expect(rangeCount).toBe(10);
         done();
       }
@@ -105,7 +105,7 @@ describe('markRegExp with separateGroups & wrapAllRanges option', function() {
   });
   
   // a hack to mark nesting groups.
-  it('should mark nested groups without acrossElements opt', function(done) {
+  it('should mark nested groups without acrossElements opt', done => {
     let rangeCount = 0,
       context = $('.nesting-groups')[0],
       pattern = '(.+?(\\d+)\\w)(.+?(\\d+).+?(\\d+)\\w)(.+?(\\d+(.+?)\\d+).+)',
@@ -113,10 +113,10 @@ describe('markRegExp with separateGroups & wrapAllRanges option', function() {
 
     new Mark(context).markRanges(ranges, {
       'wrapAllRanges' : true,
-      each : function() {
+      each : () => {
         rangeCount++;
       },
-      'done' : function() {
+      'done' : () => {
         expect(rangeCount).toBe(8);
         done();
       }
@@ -129,7 +129,7 @@ describe('markRegExp with separateGroups & wrapAllRanges option', function() {
     // the regex normal workflow
     new Mark(context).markRegExp(regex, {
       'separateGroups' : true,
-      'filter' : function(node, group, totalMatch, info) {
+      'filter' : (node, group, totalMatch, info) => {
         if (info.matchStart) {
           // 'i = 1' - skips match[0] group
           for (let i = 1; i < info.match.length; i++)  {

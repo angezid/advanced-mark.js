@@ -1,13 +1,13 @@
 'use strict';
-describe('mark with regular expression and done callback', function() {
-  var $ctx, doneCalled, totalMatches;
-  beforeEach(function(done) {
+describe('mark with regular expression and done callback', () => {
+  let $ctx, doneCalled, totalMatches;
+  beforeEach(done => {
     loadFixtures('regexp/main.html');
 
     totalMatches = doneCalled = 0;
     $ctx = $('.regexp > div:first-child');
     new Mark($ctx[0]).markRegExp(/lorem/gmi, {
-      'done': function(counter) {
+      'done': counter => {
         doneCalled++;
         totalMatches = counter;
         done();
@@ -15,13 +15,13 @@ describe('mark with regular expression and done callback', function() {
     });
   });
 
-  it('should call the done callback once only', function(done) {
-    setTimeout(function() {
+  it('should call the done callback once only', done => {
+    setTimeout(() => {
       expect(doneCalled).toBe(1);
       done();
     }, 3000);
   });
-  it('should call the done callback with total matches', function() {
+  it('should call the done callback with total matches', () => {
     expect(totalMatches).toBe(4);
   });
 });

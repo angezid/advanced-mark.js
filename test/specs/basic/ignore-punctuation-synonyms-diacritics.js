@@ -5,9 +5,9 @@ describe(
     function getPunctuation() {
       return '^:;.,-–—‒_(){}[]!\'"+='.split('');
     }
-    var $ctx,
+    let $ctx,
       punctuation = getPunctuation();
-    beforeEach(function(done) {
+    beforeEach(done => {
       loadFixtures('basic/ignore-punctuation-synonyms-diacritics.html');
 
       $ctx = $('.basic-ignore-punctuation-synonyms-diacritics');
@@ -19,13 +19,13 @@ describe(
           'Sed': 'justø',
           'Dołor': 'ãmet'
         },
-        'done': function() {
+        'done': () => {
           done();
         }
       });
     });
 
-    it('should find synonyms with diacritics', function() {
+    it('should find synonyms with diacritics', () => {
       expect($ctx.find('mark').length).toBe(33);
     });
   }

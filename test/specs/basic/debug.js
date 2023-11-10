@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with debug callback', function() {
-  var $ctx, debugCalled;
-  beforeEach(function(done) {
+describe('basic mark with debug callback', () => {
+  let $ctx, debugCalled;
+  beforeEach(done => {
     loadFixtures('basic/main.html');
 
     debugCalled = 0;
@@ -11,20 +11,20 @@ describe('basic mark with debug callback', function() {
       'separateWordSearch': false,
       'debug': true,
       'log': {
-        'debug': function() {
+        'debug': () => {
           debugCalled++;
         },
-        'warn': function() {
+        'warn': () => {
           debugCalled++;
         }
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should call the log function when debug is enabled', function() {
+  it('should call the log function when debug is enabled', () => {
     expect(debugCalled).toBeGreaterThan(0);
   });
 });

@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with disabled iframes', function() {
-  var $ctx, $elements, errCall;
-  beforeEach(function(done) {
+describe('mark with disabled iframes', () => {
+  let $ctx, $elements, errCall;
+  beforeEach(done => {
     loadFixtures('iframes/disabled.html');
 
     $elements = $();
@@ -15,7 +15,7 @@ describe('mark with disabled iframes', function() {
         'each': function($m) {
           $elements = $elements.add($($m));
         },
-        'done': function() {
+        'done': () => {
           done();
         }
       });
@@ -24,11 +24,11 @@ describe('mark with disabled iframes', function() {
     }
   }, 30000); // 30 sec timeout
 
-  it('should ignore matches inside iframes if specified', function() {
+  it('should ignore matches inside iframes if specified', () => {
     expect(errCall).toBe(0);
-    var unequal = false;
-    $elements.each(function() {
-      if ($(this).prop('ownerDocument') !== $ctx.prop('ownerDocument')) {
+    let unequal = false;
+    $elements.each((i, elem) => {
+      if ($(elem).prop('ownerDocument') !== $ctx.prop('ownerDocument')) {
         unequal = true;
       }
     });

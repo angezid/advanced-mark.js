@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with accuracy complementary and limiters', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('basic mark with accuracy complementary and limiters', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('basic/accuracy-complementary-limiters.html');
 
     $ctx = $('.basic-accuracy-complementary-limiters');
@@ -13,17 +13,17 @@ describe('basic mark with accuracy complementary and limiters', function() {
         ]
       },
       'separateWordSearch': false,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should wrap matches without custom limiters', function() {
+  it('should wrap matches without custom limiters', () => {
     expect($ctx.find('mark').length).toBe(8);
-    var textOpts = ['loremtestlorem', 'loremtest', 'test'];
-    $ctx.find('mark').each(function() {
-      expect($.inArray($(this).text(), textOpts)).toBeGreaterThan(-1);
+    let textOpts = ['loremtestlorem', 'loremtest', 'test'];
+    $ctx.find('mark').each((i, elem) => {
+      expect($.inArray($(elem).text(), textOpts)).toBeGreaterThan(-1);
     });
   });
 });

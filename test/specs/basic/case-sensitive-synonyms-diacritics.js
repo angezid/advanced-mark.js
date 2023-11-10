@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with caseSensitive synonyms and diacritics', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('basic mark with caseSensitive synonyms and diacritics', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('basic/case-sensitive-synonyms-diacritics.html');
 
     $ctx = $('.basic-case-sensitive-synonyms-diacritics');
@@ -12,13 +12,13 @@ describe('basic mark with caseSensitive synonyms and diacritics', function() {
         'Dolor': 'Ãmet'
       },
       'caseSensitive': true,
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should find case sensitive synonyms with diacritics', function() {
+  it('should find case sensitive synonyms with diacritics', () => {
     expect($ctx.find('mark').length).toBe(15);
   });
 });

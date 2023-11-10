@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with iframes DOM order', function() {
-  var $ctx, elements;
-  beforeEach(function(done) {
+describe('mark with iframes DOM order', () => {
+  let $ctx, elements;
+  beforeEach(done => {
     loadFixtures('iframes/order.html');
 
     $ctx = $('.iframes-order');
@@ -10,19 +10,19 @@ describe('mark with iframes DOM order', function() {
       'diacritics': false,
       'separateWordSearch': false,
       'iframes': true,
-      'each': function(node) {
+      'each': node => {
         elements.push(node);
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should wrap elements in the DOM order', function() {
+  it('should wrap elements in the DOM order', () => {
     expect(elements.length).toBe(6);
     elements.forEach(function(node, i){
-      var thisDoc = $(node).prop('ownerDocument'),
+      let thisDoc = $(node).prop('ownerDocument'),
         ownerDoc = $ctx.prop('ownerDocument'),
         equalDocs = thisDoc === ownerDoc;
       if ((i + 1) === 1 || (i + 1) === 6){ // first and last element

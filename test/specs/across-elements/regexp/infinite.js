@@ -2,14 +2,14 @@
 describe(
   'mark with acrossElements and regular expression with infinite matches',
   function() {
-    var $ctx;
-    beforeEach(function(done) {
+    let $ctx;
+    beforeEach(done => {
       loadFixtures('across-elements/regexp/infinite.html');
 
       $ctx = $('.across-elements-regexp-infinite');
       new Mark($ctx[0]).markRegExp(/(|)/gmi, {
         'acrossElements': true,
-        'done': function() {
+        'done': () => {
           done();
         }
       });

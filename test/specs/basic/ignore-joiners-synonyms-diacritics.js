@@ -2,8 +2,8 @@
 describe(
   'basic mark with ignoreJoiners and synonyms with diacritics',
   function() {
-    var $ctx;
-    beforeEach(function(done) {
+    let $ctx;
+    beforeEach(done => {
       loadFixtures('basic/ignore-joiners-synonyms-diacritics.html');
 
       $ctx = $('.basic-ignore-joiners-synonyms-diacritics');
@@ -15,13 +15,13 @@ describe(
           'Dołor': 'ãmet'
         },
         'diacritics': true,
-        'done': function() {
+        'done': () => {
           done();
         }
       });
     });
 
-    it('should find synonyms with diacritics', function() {
+    it('should find synonyms with diacritics', () => {
       expect($ctx.find('mark').length).toBe(33);
     });
   }

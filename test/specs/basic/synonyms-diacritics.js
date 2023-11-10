@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with synonyms and diacritics', function() {
-  var $ctx1, $ctx2;
-  beforeEach(function(done) {
+describe('basic mark with synonyms and diacritics', () => {
+  let $ctx1, $ctx2;
+  beforeEach(done => {
     loadFixtures('basic/synonyms-diacritics.html');
 
     $ctx1 = $('.basic-synonyms-diacritics > div:nth-child(1)');
@@ -11,13 +11,13 @@ describe('basic mark with synonyms and diacritics', function() {
       'synonyms': {
         'dolor': 'justo'
       },
-      'done': function() {
+      'done': () => {
         new Mark($ctx2[0]).mark('Lorem', {
           'separateWordSearch': false,
           'synonyms': {
             'Lorem': 'amet'
           },
-          'done': function() {
+          'done': () => {
             done();
           }
         });
@@ -25,7 +25,7 @@ describe('basic mark with synonyms and diacritics', function() {
     });
   });
 
-  it('should find synonyms with diacritics', function() {
+  it('should find synonyms with diacritics', () => {
     expect($ctx1.find('mark').length).toBe(14);
     expect($ctx2.find('mark').length).toBe(8);
   });

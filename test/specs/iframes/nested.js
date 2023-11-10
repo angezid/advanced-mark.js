@@ -1,7 +1,7 @@
 'use strict';
-describe('mark in nested iframes', function() {
-  var $ctx, $elements, errCall;
-  beforeEach(function(done) {
+describe('mark in nested iframes', () => {
+  let $ctx, $elements, errCall;
+  beforeEach(done => {
     loadFixtures('iframes/nested.html');
 
     $elements = $();
@@ -15,7 +15,7 @@ describe('mark in nested iframes', function() {
         'each': function($m) {
           $elements = $elements.add($($m));
         },
-        'done': function() {
+        'done': () => {
           done();
         }
       });
@@ -24,7 +24,7 @@ describe('mark in nested iframes', function() {
     }
   }, 30000); // 30 sec timeout
 
-  it('should wrap matches inside iframes recursively', function() {
+  it('should wrap matches inside iframes recursively', () => {
     expect(errCall).toBe(0);
     expect($elements).toHaveLength(12);
   });

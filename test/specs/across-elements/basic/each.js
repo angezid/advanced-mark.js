@@ -1,7 +1,7 @@
 'use strict';
-describe('mark with acrossElements and each callback', function() {
-  var $ctx, eachCalled;
-  beforeEach(function(done) {
+describe('mark with acrossElements and each callback', () => {
+  let $ctx, eachCalled;
+  beforeEach(done => {
     loadFixtures('across-elements/basic/main.html');
 
     eachCalled = 0;
@@ -10,16 +10,16 @@ describe('mark with acrossElements and each callback', function() {
       'diacritics': false,
       'separateWordSearch': false,
       'acrossElements': true,
-      'each': function() {
+      'each': () => {
         eachCalled++;
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should call the each callback for each marked element', function() {
+  it('should call the each callback for each marked element', () => {
     expect(eachCalled).toBe(6);
   });
 });

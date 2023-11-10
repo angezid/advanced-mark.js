@@ -1,7 +1,7 @@
 'use strict';
-describe('basic mark with synonyms and multiple blanks', function() {
-  var $ctx;
-  beforeEach(function(done) {
+describe('basic mark with synonyms and multiple blanks', () => {
+  let $ctx;
+  beforeEach(done => {
     loadFixtures('basic/synonyms-merge-blanks.html');
 
     $ctx = $('.basic-synonyms-merge-blanks');
@@ -11,13 +11,13 @@ describe('basic mark with synonyms and multiple blanks', function() {
       'synonyms': {
         'dolor': 'lorem  ipsum'
       },
-      'done': function() {
+      'done': () => {
         done();
       }
     });
   });
 
-  it('should find synonyms with diacritics', function() {
+  it('should find synonyms with diacritics', () => {
     expect($ctx.find('mark').length).toBe(4);
   });
 });
