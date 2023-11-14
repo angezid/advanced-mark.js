@@ -14,10 +14,10 @@ $(context).mark(search[, options]);
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} - A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
-    See [exclude](options.html#exclude-option) for more details.
+    See [exclude](options.html#exclude-option) option for more details.
   * `separateWordSearch` {boolean|string} - A **boolean** value `true` specifies to break term(s) into separate words and search for each individual word. (default is `true`)
     A **string** value `'preserveTerms'` preserved term(s) surrounding by double quotes from breaking into separate words.
-    See [separateWordSearch](options.html#separatewordsearch-option) for more details.
+    See [separateWordSearch](options.html#separatewordsearch-option) option for more details.
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
   * `accuracy` {string|object} -   (default is `'partially'`):
@@ -51,6 +51,7 @@ $(context).mark(search[, options]);
     The value can be an array, e.g. `{ 'be': ['am', 'is', 'are'] }`.
  
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
+    See [acrossElements](options.html#acrosselements-option) option for more details.
   * `combinePatterns` {number|boolean} - Combine a specified number of individual term patterns into one (default is `10`)
     See [Performance](performance.md#ways-to-boost-performance) for more details.
   * `cacheTextNodes` {boolean} - Caching information to improve performance (default is `undefined`)

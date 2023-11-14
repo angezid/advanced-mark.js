@@ -28,19 +28,17 @@ class DOMIterator {
     return fn && selectors.some(sel => fn.call(element, sel));
   }
   getContexts() {
-    let ctx,
+    let ctx = this.ctx,
       sort = false;
-    if ( !this.ctx) {
-      ctx = [];
-    } else if (this.opt.window.NodeList.prototype.isPrototypeOf(this.ctx)) {
-      ctx = this.ctx;
-    } else if (Array.isArray(this.ctx)) {
-      ctx = this.ctx;
-      sort = true;
-    } else if (typeof this.ctx === 'string') {
-      ctx = this.opt.window.document.querySelectorAll(this.ctx);
-    } else {
-      ctx = [this.ctx];
+    if ( !ctx) return [];
+    if ( !this.opt.window.NodeList.prototype.isPrototypeOf(ctx)) {
+      if (Array.isArray(ctx)) {
+        sort = true;
+      } else if (typeof ctx === 'string') {
+        ctx = this.opt.window.document.querySelectorAll(ctx);
+      } else {
+        ctx = [ctx];
+      }
     }
     const array = [];
     ctx.forEach(elem => {
@@ -359,7 +357,8 @@ class RegExpCreator {
       .replace(/\x02/g, spaces ? anyChar : '\\S*');
   }
   setupIgnoreJoiners(str) {
-    return str.replace(/(\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
+    const reg = /((?:\\\\)+|\x02|\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)\x02]|$)|.)/g;
+    return str.replace(reg, (m, gr1, gr2) => {
       return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
     });
   }
@@ -517,11 +516,8 @@ class Mark$1 {
       if (separate) {
         if (separate === 'preserveTerms') {
           str.split(/"("*[^"]+"*)"/).forEach((term, i) => {
-            if (i % 2 > 0) {
-              add(term);
-            } else {
-              split(term);
-            }
+            if (i % 2 > 0) add(term);
+            else split(term);
           });
         } else {
           split(str);
@@ -807,9 +803,7 @@ class Mark$1 {
     for (i; i < dict.nodes.length; i++) {
       if (i + 1 === dict.nodes.length || dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
-        if ( !filterCb(n)) {
-          break;
-        }
+        if ( !filterCb(n)) break;
         const s = start - n.start,
           e = (end > n.end ? n.end : end) - n.start;
         if (s >= 0 && e > s) {
@@ -1010,9 +1004,7 @@ class Mark$1 {
             });
             eachStart = false;
           });
-          if (execution.abort) {
-            break;
-          }
+          if (execution.abort) break;
         }
         return !execution.abort;
       });
@@ -1052,9 +1044,7 @@ class Mark$1 {
           });
           eachStart = false;
         });
-        if (execution.abort) {
-          break;
-        }
+        if (execution.abort) break;
       }
       endCb(count);
     });
@@ -1087,9 +1077,7 @@ class Mark$1 {
               match : match,
               count : ++count,
             });
-            if (obj.increment === 0) {
-              break;
-            }
+            if (obj.increment === 0) break;
             k += obj.increment;
             info = obj.nodeInfo;
             node = info.node;
@@ -1102,13 +1090,9 @@ class Mark$1 {
             });
           }
           regex.lastIndex = 0;
-          if (execution.abort) {
-            break;
-          }
+          if (execution.abort) break;
         }
-        if (execution.abort) {
-          break;
-        }
+        if (execution.abort) break;
       }
       endCb(count);
     });
@@ -1144,9 +1128,7 @@ class Mark$1 {
             count : count,
           });
         });
-        if (execution.abort) {
-          break;
-        }
+        if (execution.abort) break;
       }
       endCb(count);
     });
@@ -1313,14 +1295,13 @@ class Mark$1 {
     const across = this.opt.acrossElements,
       fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
       flags = `g${this.opt.caseSensitive ? '' : 'i'}`,
-      { termsParts, patterns } = this.getPatterns(terms);
-    const loop = pattern => {
-      const regex = new RegExp(pattern, flags),
-        patternTerms = termsParts[index];
+      patterns = this.getPatterns(terms);
+    const loop = ({ pattern, regTerms }) => {
+      const regex = new RegExp(pattern, flags);
       this.log(`RegExp "${regex}"`);
       this[fn](regex, 1, (node, t, filterInfo) => {
         if ( !across || filterInfo.matchStart) {
-          term = this.getCurrentTerm(filterInfo.match, patternTerms);
+          term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
         termMatches = termStats[term];
         return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
@@ -1332,7 +1313,7 @@ class Mark$1 {
         this.opt.each(element, eachInfo);
       }, (count) => {
         totalMatches += count;
-        const array = patternTerms.filter((term) => termStats[term] === 0);
+        const array = regTerms.filter((term) => termStats[term] === 0);
         if (array.length) {
           this.opt.noMatch(array);
         }
@@ -1356,25 +1337,23 @@ class Mark$1 {
   }
   getPatterns(terms) {
     const creator = new RegExpCreator(this.opt),
-      obj = creator.create(terms[0], true),
       option = this.opt.combinePatterns,
-      patterns = [],
       array = [];
     let num = 10,
       value;
     if (option === Infinity) {
       num = Math.pow(2, 31);
-    } else if (this.isNumeric(option) && (value = parseInt(option)) > 0) {
+    } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
       num = value;
     }
-    let count = Math.ceil(terms.length / num);
+    const count = Math.ceil(terms.length / num);
     for (let i = 0; i < count; i++) {
       const start = i * num,
-        patternTerms = terms.slice(start, Math.min(start + num, terms.length));
-      patterns.push(`${obj.lookbehind}(${creator.createCombinePattern(patternTerms, true).pattern})${obj.lookahead}`);
-      array.push(patternTerms);
+        slice = terms.slice(start, Math.min(start + num, terms.length)),
+        obj = creator.createCombinePattern(slice, true);
+      array.push({ pattern : `${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, regTerms : slice });
     }
-    return {  patterns, termsParts : array };
+    return array;
   }
   markRanges(ranges, opt) {
     this.checkOption(opt, true);

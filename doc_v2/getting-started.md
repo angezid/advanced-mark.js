@@ -33,7 +33,15 @@ A `dist` directory contains files:
 </ul>
 </details>
 
-<strong>Note:</strong> advanced-mark.js requires UTF-8 encoding.
+### HTML
+To include library in web page just add:
+``` html
+<script src="path/to/mark.js"></script>
+```
+<strong>Note:</strong>the library requires UTF-8 encoding and may needs adding `charset` attribute:
+``` html
+<script src="path/to/mark.min.js" charset="utf-8"></script>
+```
 
 ### API
 There are four API methods:

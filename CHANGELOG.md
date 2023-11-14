@@ -1,4 +1,9 @@
 
+### 2.4.0
+* Fixed handling escaped wildcards characters (backslashes were strippid from searching string, e.g. 'C:\\\\*' resulted in 'C:\\*' and is treated as escape '*', not a wildcard)
+* Fixed breaking UTF-16 surrogate pairs and continues pairs of backslashes by joiners/punctuations
+* Slightly reduce a code size
+
 ### 2.3.0
 
 * Added `preserveTerms` value for `separateWordSearch` option that allows highlight exact term(s) alone side with separate word(s).

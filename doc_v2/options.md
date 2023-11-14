@@ -40,32 +40,30 @@ new Mark(document.querySelector("section")).mark("Lorem dolor", {
 ```
 
 ### `accuracy` option
-The accuracy option allows you to specify how library should perform searching.
+The option values specify how library should perform searching:
 
-* Option value `partially` (contains) - searches for matches within a text node content (AE - within an aggregated context string). Can highlight practically anything.
+* `partially` (contains) - searches for matches within a text node content (AE - within an aggregated context string). Can highlight practically anything.
 
-* Option value `exactly` - the searching is restricted by word boundaries.  
-The default word boundaries are:
-  * start - white-spaces and the start of a text node content (AE - to the start of a context).
-  * end - white-spaces and the end of a text node content (AE - to the end of a context).
+* `exactly` - the default word boundaries are:
+  * start - the start of a text node (AE - start of a context) and the *built-in* boundaries.
+  * end - the end of a text node (AE - end of a context) and the *built-in* boundaries.
 
-* Option value `startsWith` - the search is restricted by word boundaries.  
-The default word boundaries are:
-  * start - the start of a text node (AE - start of a context) and the built-in boundaries.
-  * end - searching will continued til built-in word boundaries or to the end of a text node content (AE - to the end of a context).
-Actually, the `startsWith` and  `endsWith` functionalities can be implemented using `*` wildcards but it also will required using an accuracy object.
+* `startsWith` - the default word boundaries are:
+  * start - the start of a text node (AE - start of a context) and the *built-in* boundaries.
+  * end - searching will continued til *built-in* word boundaries or to the end of a text node content (AE - to the end of a context).
 
-* Option value `complementary` - the search is restricted by word boundaries.  
-The default word boundaries are:
-  * start - will search for the start of built-in boundaries or to the start of a text node content (AE - to the start of a context).
-  * end - searching will continued til built-in word boundaries or to the end of a text node content (AE - to the end of a context).
+* `complementary` - the default word boundaries are:
+  * start - will search for the start of *built-in* boundaries or to the start of a text node content (AE - to the start of a context).
+  * end - searching will continued til *built-in* word boundaries or to the end of a text node content (AE - to the end of a context).
 
-* The **built-in** word boundary characters are: white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿`.
-* AE - with option `acrossElements: true`.
+The **built-in** word boundary characters are: white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿`.
 
+An accuracy object can be used if the default boundaries are not satisfactory:
+* `value`: `'exactly'` or `'startsWith'` or `'complementary'`
+* `limiters`: a string or an array of custom word boundary characters,  
+  e.g. `{ value : 'exactly', limiters : ",.;:?!'\\"()" }`
 
-
-
+**AE** - with option `acrossElements: true` or `acrossElements: inline`.
 
 
 ``` js

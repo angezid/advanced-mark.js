@@ -304,9 +304,11 @@ class RegExpCreator {
    * @return {string}
    */
   setupIgnoreJoiners(str) {
-    // It's not added '\0' after `(?:` grouping construct, around `|`, before `)` chars, and at the end of a string,
-    // not breaks the grouping construct `(?:` and UTF-16 surrogate pairs
-    return str.replace(/(\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
+    // it's not added '\0' after `(?:` grouping construct, around `|` char and wildcard `\x02` placeholder,
+    // before `)` char, and at the end of a string,
+    // not breaks the grouping construct `(?:`, continues pairs of backslashes, and UTF-16 surrogate pairs
+    const reg = /((?:\\\\)+|\x02|\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)\x02]|$)|.)/g;
+    return str.replace(reg, (m, gr1, gr2) => {
       return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
     });
   }

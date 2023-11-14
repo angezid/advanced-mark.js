@@ -11,16 +11,18 @@ $(context).markRegExp(regex[, options]);
 #### Parameters:
 * `regex` {RegExp} - The regular expression. With `acrossElements` option it **must** have `g` flag - it works with indexes and only two `g` and `y` flags allow control RegExp `lastIndex`.  
   **Note** that for backward compatibility, RegExp without `g` flag is recompile internally with `g` flag.  
-  Although without `acrossElements` option it doesn't require `g` flag, it still recommended having this flag.
+  Although without `acrossElements` option it doesn't require `g` flag, it still recommended having this flag for future changes.
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
   * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
+    See [exclude](options.html#exclude-option) option for more details.
   * `ignoreGroups` {number} - The number of adjacent capturing groups that should be ignored from the start of RegExp (default is `0`)  
     e.g. `/(\w+)(\.)(\w+)(?!\2)/g`, `ignoreGroups : 2` - mark the group 3
   * `separateGroups` {boolean} - Whether to mark RegExp capturing groups instead of whole match (default is `false`)
     See [Highlighting separate groups](separate-groups.md) for more details.
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
+    See [acrossElements](options.html#acrosselements-option) option for more details.
   * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups  (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
   * `blockElementsBoundary` {boolean|object} - Whether to limit matches within default HTML block elements and/or custom elements (default is `undefined`)  AE

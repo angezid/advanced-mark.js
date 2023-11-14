@@ -211,11 +211,8 @@ class Mark {
           // allows highlight quoted terms no matter how many quotes it contains on each side,
           // e.g. ' ""term"" ' or ' """"term" '
           str.split(/"("*[^"]+"*)"/).forEach((term, i) => {
-            if (i % 2 > 0) {
-              add(term);
-            } else {
-              split(term);
-            }
+            if (i % 2 > 0) add(term);
+            else split(term);
           });
         } else {
           split(str);
@@ -757,9 +754,8 @@ class Mark {
       if (i + 1 === dict.nodes.length || dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
 
-        if ( !filterCb(n)) {
-          break;
-        }
+        if ( !filterCb(n)) break;
+
         // map range from dict.text to text node
         const s = start - n.start,
           e = (end > n.end ? n.end : end) - n.start;
@@ -1190,9 +1186,7 @@ class Mark {
             eachStart = false;
           });
 
-          if (execution.abort) {
-            break;
-          }
+          if (execution.abort) break;
         }
         // breaks loop on custom abort
         return !execution.abort;
@@ -1266,9 +1260,7 @@ class Mark {
           eachStart = false;
         });
 
-        if (execution.abort) {
-          break;
-        }
+        if (execution.abort) break;
       }
       endCb(count);
     });
@@ -1338,9 +1330,8 @@ class Mark {
             });
 
             // matches the whole text node
-            if (obj.increment === 0) {
-              break;
-            }
+            if (obj.increment === 0) break;
+
             // corrects the current index because new info object(s) were inserted into dict.nodes
             k += obj.increment;
             info = obj.nodeInfo;
@@ -1357,13 +1348,9 @@ class Mark {
           // with 'g' flag the lastIndex is required resetting; without 'g' flag it resets internally.
           regex.lastIndex = 0;
 
-          if (execution.abort) {
-            break;
-          }
+          if (execution.abort) break;
         }
-        if (execution.abort) {
-          break;
-        }
+        if (execution.abort) break;
       }
       endCb(count);
     });
@@ -1435,9 +1422,7 @@ class Mark {
           });
         });
 
-        if (execution.abort) {
-          break;
-        }
+        if (execution.abort) break;
       }
       endCb(count);
     });
@@ -1775,17 +1760,16 @@ class Mark {
     const across = this.opt.acrossElements,
       fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
       flags = `g${this.opt.caseSensitive ? '' : 'i'}`,
-      { termsParts, patterns } = this.getPatterns(terms);
+      patterns = this.getPatterns(terms);
 
-    const loop = pattern => {
-      const regex = new RegExp(pattern, flags),
-        patternTerms = termsParts[index];
+    const loop = ({ pattern, regTerms }) => {
+      const regex = new RegExp(pattern, flags);
 
       this.log(`RegExp "${regex}"`);
 
       this[fn](regex, 1, (node, t, filterInfo) => { // filter
         if ( !across || filterInfo.matchStart) {
-          term = this.getCurrentTerm(filterInfo.match, patternTerms);
+          term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
         // termStats[term] is the number of wrapped matches so far for the current term
         termMatches = termStats[term];
@@ -1803,7 +1787,7 @@ class Mark {
       }, (count) => { // end
         totalMatches += count;
 
-        const array = patternTerms.filter((term) => termStats[term] === 0);
+        const array = regTerms.filter((term) => termStats[term] === 0);
         if (array.length) {
           this.opt.noMatch(array);
         }
@@ -1846,32 +1830,28 @@ class Mark {
     */
   getPatterns(terms) {
     const creator = new RegExpCreator(this.opt),
-      obj = creator.create(terms[0], true),
       option = this.opt.combinePatterns,
-      patterns = [],
       array = [];
     let num = 10,
       value;
 
     if (option === Infinity) {
       num = Math.pow(2, 31);
-    } else if (this.isNumeric(option) && (value = parseInt(option)) > 0) {
+    } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
       num = value;
     }
-
     // the number of chunks to be created
-    let count = Math.ceil(terms.length / num);
+    const count = Math.ceil(terms.length / num);
 
     for (let i = 0; i < count; i++) {
       const start = i * num,
         // get a chunk of terms to create combine pattern
-        patternTerms = terms.slice(start, Math.min(start + num, terms.length));
+        slice = terms.slice(start, Math.min(start + num, terms.length)),
+        obj = creator.createCombinePattern(slice, true);
 
-      // wraps an individual term pattern in a capturing group to determine later which term is currently matched
-      patterns.push(`${obj.lookbehind}(${creator.createCombinePattern(patternTerms, true).pattern})${obj.lookahead}`);
-      array.push(patternTerms);
+      array.push({ pattern : `${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, regTerms : slice });
     }
-    return {  patterns, termsParts : array };
+    return array;
   }
 
   /**

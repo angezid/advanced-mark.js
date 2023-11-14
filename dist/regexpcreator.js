@@ -203,7 +203,8 @@
     }, {
       key: "setupIgnoreJoiners",
       value: function setupIgnoreJoiners(str) {
-        return str.replace(/(\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)]|$)|.)/g, function (m, gr1, gr2) {
+        var reg = /((?:\\\\)+|\x02|\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)\x02]|$)|.)/g;
+        return str.replace(reg, function (m, gr1, gr2) {
           return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
         });
       }

@@ -118,7 +118,8 @@ class RegExpCreator$1 {
       .replace(/\x02/g, spaces ? anyChar : '\\S*');
   }
   setupIgnoreJoiners(str) {
-    return str.replace(/(\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)]|$)|.)/g, (m, gr1, gr2) => {
+    const reg = /((?:\\\\)+|\x02|\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)\x02]|$)|.)/g;
+    return str.replace(reg, (m, gr1, gr2) => {
       return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
     });
   }

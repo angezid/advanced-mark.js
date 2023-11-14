@@ -72,22 +72,20 @@ class DOMIterator {
    * @access protected
    */
   getContexts() {
-    let ctx,
+    let ctx = this.ctx,
       sort = false;
 
-    if ( !this.ctx) {
-      ctx = [];
-    } else if (this.opt.window.NodeList.prototype.isPrototypeOf(this.ctx)) {
-      ctx = this.ctx;
-    } else if (Array.isArray(this.ctx)) {
-      ctx = this.ctx;
-      sort = true;
-    } else if (typeof this.ctx === 'string') {
-      ctx = this.opt.window.document.querySelectorAll(this.ctx);
-    } else { // e.g. HTMLElement or element inside iframe
-      ctx = [this.ctx];
-    }
+    if ( !ctx) return [];
 
+    if ( !this.opt.window.NodeList.prototype.isPrototypeOf(ctx)) {
+      if (Array.isArray(ctx)) {
+        sort = true;
+      } else if (typeof ctx === 'string') {
+        ctx = this.opt.window.document.querySelectorAll(ctx);
+      } else { // e.g. HTMLElement or element inside iframe
+        ctx = [ctx];
+      }
+    }
     // filters out duplicate/nested elements
     const array = [];
     ctx.forEach(elem => {
@@ -338,7 +336,7 @@ class DOMIterator {
    * @access protected
    */
   iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
-    const nodeFilter = this.opt.window.NodeFilter, 
+    const nodeFilter = this.opt.window.NodeFilter,
       shadow = this.opt.shadowDOM,
       iframe = this.opt.iframes;
 
@@ -373,7 +371,7 @@ class DOMIterator {
               traverse(node.shadowRoot);
             }
 
-          } else  if (showText && node.nodeType === 3 && filterCb(node)) {
+          } else  if (showText && node.nodeType === 3 && filterCb(node)) { // text node
             eachCb(node);
           }
         }

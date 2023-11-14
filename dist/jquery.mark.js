@@ -86,19 +86,17 @@
     _createClass(DOMIterator, [{
       key: "getContexts",
       value: function getContexts() {
-        var ctx,
+        var ctx = this.ctx,
           sort = false;
-        if (!this.ctx) {
-          ctx = [];
-        } else if (this.opt.window.NodeList.prototype.isPrototypeOf(this.ctx)) {
-          ctx = this.ctx;
-        } else if (Array.isArray(this.ctx)) {
-          ctx = this.ctx;
-          sort = true;
-        } else if (typeof this.ctx === 'string') {
-          ctx = this.opt.window.document.querySelectorAll(this.ctx);
-        } else {
-          ctx = [this.ctx];
+        if (!ctx) return [];
+        if (!this.opt.window.NodeList.prototype.isPrototypeOf(ctx)) {
+          if (Array.isArray(ctx)) {
+            sort = true;
+          } else if (typeof ctx === 'string') {
+            ctx = this.opt.window.document.querySelectorAll(ctx);
+          } else {
+            ctx = [ctx];
+          }
         }
         var array = [];
         ctx.forEach(function (elem) {
@@ -496,7 +494,8 @@
     }, {
       key: "setupIgnoreJoiners",
       value: function setupIgnoreJoiners(str) {
-        return str.replace(/(\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)]|$)|.)/g, function (m, gr1, gr2) {
+        var reg = /((?:\\\\)+|\x02|\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)\x02]|$)|.)/g;
+        return str.replace(reg, function (m, gr1, gr2) {
           return gr1 || typeof gr2 !== 'undefined' ? m : m + '\x00';
         });
       }
@@ -690,11 +689,7 @@
           if (separate) {
             if (separate === 'preserveTerms') {
               str.split(/"("*[^"]+"*)"/).forEach(function (term, i) {
-                if (i % 2 > 0) {
-                  add(term);
-                } else {
-                  split(term);
-                }
+                if (i % 2 > 0) add(term);else split(term);
               });
             } else {
               split(str);
@@ -1099,9 +1094,7 @@
         for (i; i < dict.nodes.length; i++) {
           if (i + 1 === dict.nodes.length || dict.nodes[i + 1].start > start) {
             var n = dict.nodes[i];
-            if (!filterCb(n)) {
-              break;
-            }
+            if (!filterCb(n)) break;
             var s = start - n.start,
               e = (end > n.end ? n.end : end) - n.start;
             if (s >= 0 && e > s) {
@@ -1337,9 +1330,7 @@
                 });
                 eachStart = false;
               });
-              if (execution.abort) {
-                break;
-              }
+              if (execution.abort) break;
             }
             return !execution.abort;
           });
@@ -1389,9 +1380,7 @@
               });
               eachStart = false;
             });
-            if (execution.abort) {
-              break;
-            }
+            if (execution.abort) break;
           }
           endCb(count);
         });
@@ -1436,9 +1425,7 @@
                   match: match,
                   count: ++count
                 });
-                if (obj.increment === 0) {
-                  break;
-                }
+                if (obj.increment === 0) break;
                 k += obj.increment;
                 info = obj.nodeInfo;
                 node = info.node;
@@ -1451,13 +1438,9 @@
                 });
               }
               regex.lastIndex = 0;
-              if (execution.abort) {
-                break;
-              }
+              if (execution.abort) break;
             }
-            if (execution.abort) {
-              break;
-            }
+            if (execution.abort) break;
           }
           endCb(count);
         });
@@ -1503,9 +1486,7 @@
                 count: count
               });
             });
-            if (execution.abort) {
-              break;
-            }
+            if (execution.abort) break;
           }
           endCb(count);
         });
@@ -1699,16 +1680,15 @@
         var across = this.opt.acrossElements,
           fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
           flags = "g".concat(this.opt.caseSensitive ? '' : 'i'),
-          _this$getPatterns = this.getPatterns(terms),
-          termsParts = _this$getPatterns.termsParts,
-          patterns = _this$getPatterns.patterns;
-        var loop = function loop(pattern) {
-          var regex = new RegExp(pattern, flags),
-            patternTerms = termsParts[index];
+          patterns = this.getPatterns(terms);
+        var loop = function loop(_ref) {
+          var pattern = _ref.pattern,
+            regTerms = _ref.regTerms;
+          var regex = new RegExp(pattern, flags);
           _this13.log("RegExp \"".concat(regex, "\""));
           _this13[fn](regex, 1, function (node, t, filterInfo) {
             if (!across || filterInfo.matchStart) {
-              term = _this13.getCurrentTerm(filterInfo.match, patternTerms);
+              term = _this13.getCurrentTerm(filterInfo.match, regTerms);
             }
             termMatches = termStats[term];
             return _this13.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
@@ -1720,7 +1700,7 @@
             _this13.opt.each(element, eachInfo);
           }, function (count) {
             totalMatches += count;
-            var array = patternTerms.filter(function (term) {
+            var array = regTerms.filter(function (term) {
               return termStats[term] === 0;
             });
             if (array.length) {
@@ -1750,28 +1730,26 @@
       key: "getPatterns",
       value: function getPatterns(terms) {
         var creator = new RegExpCreator(this.opt),
-          obj = creator.create(terms[0], true),
           option = this.opt.combinePatterns,
-          patterns = [],
           array = [];
         var num = 10,
           value;
         if (option === Infinity) {
           num = Math.pow(2, 31);
-        } else if (this.isNumeric(option) && (value = parseInt(option)) > 0) {
+        } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
           num = value;
         }
         var count = Math.ceil(terms.length / num);
         for (var i = 0; i < count; i++) {
           var start = i * num,
-            patternTerms = terms.slice(start, Math.min(start + num, terms.length));
-          patterns.push("".concat(obj.lookbehind, "(").concat(creator.createCombinePattern(patternTerms, true).pattern, ")").concat(obj.lookahead));
-          array.push(patternTerms);
+            slice = terms.slice(start, Math.min(start + num, terms.length)),
+            obj = creator.createCombinePattern(slice, true);
+          array.push({
+            pattern: "".concat(obj.lookbehind, "(").concat(obj.pattern, ")").concat(obj.lookahead),
+            regTerms: slice
+          });
         }
-        return {
-          patterns: patterns,
-          termsParts: array
-        };
+        return array;
       }
     }, {
       key: "markRanges",
