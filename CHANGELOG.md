@@ -1,7 +1,7 @@
 
 ### 2.4.0
-* Fixed handling escaped wildcards characters (backslashes were strippid from searching string, e.g. 'C:\\\\*' resulted in 'C:\\*' and is treated as escape '*', not a wildcard)
-* Fixed breaking UTF-16 surrogate pairs and continues pairs of backslashes by joiners/punctuations
+* Fixed handling escaped wildcards characters (backslashes were stripped from searching string, e.g. 'C:\\\\\\\\&#42;' resulted in 'C:\\\\&#42;' and is treated as escape '*', not a wildcard)
+* Fixed breaking UTF-16 surrogate pairs and continues pairs of backslashes by joiners/punctuation
 * Slightly reduce a code size
 
 ### 2.3.0

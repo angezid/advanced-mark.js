@@ -97,7 +97,7 @@ class DOMIterator {
     // sorts elements by the DOM order
     if (sort) {
       array.sort((a, b) => {
-        return (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
+        return (a.compareDocumentPosition(b) & this.opt.window.Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
       });
     }
     return array;

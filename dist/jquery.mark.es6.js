@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.4.0
+* advanced-mark.js v2.4.1
 * https://github.com/angezid/advanced-mark.js#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -48,7 +48,7 @@ class DOMIterator {
     });
     if (sort) {
       array.sort((a, b) => {
-        return (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
+        return (a.compareDocumentPosition(b) & this.opt.window.Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
       });
     }
     return array;
@@ -1061,7 +1061,7 @@ class Mark {
         while ((match = regex.exec(node.textContent)) !== null && (str = match[index]) !== '') {
           filterInfo.match = match;
           filterInfo.offset = info.start;
-          if ( !filterCb(node, str, filterInfo) || !str) {
+          if ( !filterCb(node, str, filterInfo)) {
             continue;
           }
           let i = 0, start = match.index;
@@ -1113,7 +1113,7 @@ class Mark {
             start += match[i].length;
           }
         }
-        this.wrapRangeAcross(dict, start, start + (str ? str.length : 0), obj => {
+        this.wrapRangeAcross(dict, start, start + str.length, obj => {
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;
@@ -1405,7 +1405,7 @@ $.fn.unmark = function(opt) {
   return this;
 };
 $.fn.getVersion = function() {
-  return '2.4.0';
+  return '2.4.1';
 };
 var $$1 = $;
 

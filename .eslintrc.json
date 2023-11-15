@@ -37,7 +37,6 @@
     "no-eval": "error",
     "no-with": "error",
     "consistent-return": "warn",
-    "curly": "warn",
     "no-tabs": "error",
     "arrow-spacing": "error",
     "no-undefined": "error",

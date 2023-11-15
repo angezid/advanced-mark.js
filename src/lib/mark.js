@@ -1309,8 +1309,8 @@ class Mark {
         while ((match = regex.exec(node.textContent)) !== null && (str = match[index]) !== '') {
           filterInfo.match = match;
           filterInfo.offset = info.start;
-          // in case of undefined 'str' the filter callback should be called first
-          if ( !filterCb(node, str, filterInfo) || !str) {
+
+          if ( !filterCb(node, str, filterInfo)) {
             continue;
           }
           // calculates the start index inside node.textContent
@@ -1404,8 +1404,8 @@ class Mark {
             start += match[i].length;
           }
         }
-        // in case of undefined 'str' 0 allows the filter callback to be called
-        this.wrapRangeAcross(dict, start, start + (str ? str.length : 0), obj => { // filter
+
+        this.wrapRangeAcross(dict, start, start + str.length, obj => { // filter
           filterInfo.matchStart = matchStart;
           filterInfo.offset = obj.startOffset;
           matchStart = false;

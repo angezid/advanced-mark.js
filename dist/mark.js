@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.4.0
+* advanced-mark.js v2.4.1
 * https://github.com/angezid/advanced-mark.js#readme
 * MIT licensed
 * Copyright (c) 2022–2023, angezid
@@ -82,6 +82,7 @@
     _createClass(DOMIterator, [{
       key: "getContexts",
       value: function getContexts() {
+        var _this = this;
         var ctx = this.ctx,
           sort = false;
         if (!ctx) return [];
@@ -104,7 +105,7 @@
         });
         if (sort) {
           array.sort(function (a, b) {
-            return (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
+            return (a.compareDocumentPosition(b) & _this.opt.window.Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
           });
         }
         return array;
@@ -140,7 +141,7 @@
     }, {
       key: "observeIframeLoad",
       value: function observeIframeLoad(ifr, successFn, errorFn) {
-        var _this = this;
+        var _this2 = this;
         if (ifr.hasAttribute(this.attrName)) {
           return;
         }
@@ -148,7 +149,7 @@
         var listener = function listener() {
           clearTimeout(id);
           ifr.removeEventListener('load', listener);
-          _this.getIframeContents(ifr, successFn, errorFn);
+          _this2.getIframeContents(ifr, successFn, errorFn);
         };
         ifr.addEventListener('load', listener);
         ifr.setAttribute(this.attrName, true);
@@ -174,7 +175,7 @@
     }, {
       key: "waitForAllIframes",
       value: function waitForAllIframes(ctx, doneCb) {
-        var _this2 = this;
+        var _this3 = this;
         var count = 0,
           iframes = [],
           array = [],
@@ -191,7 +192,7 @@
         };
         var checkDone = function checkDone() {
           if (count === iframes.filter(function (ifr) {
-            return !_this2.hasAttributeValue(ifr, _this2.attrName, 'error');
+            return !_this3.hasAttributeValue(ifr, _this3.attrName, 'error');
           }).length) {
             done();
           }
@@ -200,9 +201,9 @@
           if (!obj.iframe || obj.context.location.href !== 'about:blank') {
             array = [];
             obj.context.querySelectorAll(obj.iframe ? 'body iframe' : 'iframe').forEach(function (iframe) {
-              if (!DOMIterator.matches(iframe, _this2.opt.exclude)) {
+              if (!DOMIterator.matches(iframe, _this3.opt.exclude)) {
                 iframes.push(iframe);
-                if (!iframe.hasAttribute(_this2.attrName)) {
+                if (!iframe.hasAttribute(_this3.attrName)) {
                   array.push(iframe);
                 }
               }
@@ -214,11 +215,11 @@
           }
           if (array.length) {
             array.forEach(function (iframe) {
-              _this2.onIframeReady(iframe, function (obj) {
+              _this3.onIframeReady(iframe, function (obj) {
                 count++;
                 loop(obj);
               }, function (obj) {
-                if (_this2.opt.debug) {
+                if (_this3.opt.debug) {
                   console.log(obj.error);
                 }
                 checkDone();
@@ -262,7 +263,7 @@
     }, {
       key: "iterateThroughNodes",
       value: function iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
-        var _this3 = this;
+        var _this4 = this;
         var nodeFilter = this.opt.window.NodeFilter,
           shadow = this.opt.shadowDOM,
           iframe = this.opt.iframes;
@@ -273,21 +274,21 @@
             whatToShow = nodeFilter.SHOW_ELEMENT | nodeFilter.SHOW_TEXT;
           }
           var traverse = function traverse(node) {
-            var iterator = _this3.createIterator(node, whatToShow);
+            var iterator = _this4.createIterator(node, whatToShow);
             while (node = iterator.nextNode()) {
               if (node.nodeType === 1) {
                 if (showElement && filterCb(node)) {
                   eachCb(node);
                 }
-                if (iframe && node.nodeName.toLowerCase() === 'iframe' && !DOMIterator.matches(node, _this3.opt.exclude)) {
-                  if (_this3.hasAttributeValue(node, _this3.attrName, 'completed')) {
-                    _this3.getIframeContents(node, function (obj) {
+                if (iframe && node.nodeName.toLowerCase() === 'iframe' && !DOMIterator.matches(node, _this4.opt.exclude)) {
+                  if (_this4.hasAttributeValue(node, _this4.attrName, 'completed')) {
+                    _this4.getIframeContents(node, function (obj) {
                       traverse(obj.context);
                     }, function () {});
                   }
                 }
                 if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
-                  _this3.addRemoveStyle(node.shadowRoot, shadow.style, showText);
+                  _this4.addRemoveStyle(node.shadowRoot, shadow.style, showText);
                   traverse(node.shadowRoot);
                 }
               } else if (showText && node.nodeType === 3 && filterCb(node)) {
@@ -310,7 +311,7 @@
     }, {
       key: "forEachNode",
       value: function forEachNode(whatToShow, each, filter) {
-        var _this4 = this;
+        var _this5 = this;
         var done = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : function () {};
         var contexts = this.getContexts();
         var open = contexts.length;
@@ -320,14 +321,14 @@
         contexts.forEach(function (ctx) {
           open--;
           var ready = function ready() {
-            _this4.iterateThroughNodes(ctx, whatToShow, filter, each, function () {
+            _this5.iterateThroughNodes(ctx, whatToShow, filter, each, function () {
               if (open <= 0) {
                 done();
               }
             });
           };
-          if (_this4.opt.iframes) {
-            _this4.waitForAllIframes(ctx, ready);
+          if (_this5.opt.iframes) {
+            _this5.waitForAllIframes(ctx, ready);
           } else {
             ready();
           }
@@ -1404,7 +1405,7 @@
             while ((match = regex.exec(node.textContent)) !== null && (str = match[index]) !== '') {
               filterInfo.match = match;
               filterInfo.offset = info.start;
-              if (!filterCb(node, str, filterInfo) || !str) {
+              if (!filterCb(node, str, filterInfo)) {
                 continue;
               }
               var i = 0,
@@ -1467,7 +1468,7 @@
                 start += match[i].length;
               }
             }
-            _this9.wrapRangeAcross(dict, start, start + (str ? str.length : 0), function (obj) {
+            _this9.wrapRangeAcross(dict, start, start + str.length, function (obj) {
               filterInfo.matchStart = matchStart;
               filterInfo.offset = obj.startOffset;
               matchStart = false;
@@ -1814,7 +1815,7 @@
       return _this;
     };
     this.getVersion = function () {
-      return '2.4.0';
+      return '2.4.1';
     };
     return this;
   }
