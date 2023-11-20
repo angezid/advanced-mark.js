@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>Code examples of using `each` and `done` callbacks</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="code-examples-of-using-each-and-done-callbacks">Code examples of using <code>each</code> and <code>done</code> callbacks</h2>
+<p>See <a href="mark-method.html#mark-each">mark() each callback</a> about callback <code>info</code> object properties.</p>
+<h4 id="in-mark-method-with-acrosselements-option">In <code>mark()</code> method with <code>acrossElements</code> option</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> matchCount = 0;
+
+instance.mark([<span class="str">'AB CD'</span>, <span class="str">'EF'</span>], {
+    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
+    <span class="str">'each'</span> : (markElement, info) =&gt; {
+        <span class="com">// sets external counter</span>
+        matchCount = info.count;
+
+        <span class="com">// internal use</span>
+        <span class="kwd">if</span> (info.count ..) {}
+
+        <span class="com">// if start of the match</span>
+        <span class="kwd">if</span>(info.matchStart) {
+            markElement.className = <span class="str">'start-1'</span>;
+            <span class="com">// markElement.setAttribute('data-markjs', 'start-1'); // to use the attribute instead of class</span>
+
+            <span class="com">// matchCount++; // to use the custom counter instead of info.count</span>
+        }
+    },
+    <span class="str">'done'</span> : (totalMarks, totalMatches, termStats) =&gt; {
+        <span class="kwd">for</span> (<span class="kwd">const</span> term <span class="kwd">in</span> termStats) {
+            console.log(term + <span class="str">' = '</span> + termStats[term]);
+        }
+    }
+});</code></pre>
+<h4 id="in-mark-method-without-acrosselements-option">In <code>mark()</code> method without <code>acrossElements</code> option</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> matchCount = 0;
+
+context.mark(<span class="str">'AB CD EF'</span>, {
+    <span class="str">'separateWordSearch'</span> : <span class="kwd">true</span>,
+    <span class="str">'each'</span> : (markElement, info) =&gt; {
+        <span class="com">// for external counter</span>
+        matchCount = info.count; <span class="com">// also possible matchCount++;</span>
+
+        <span class="com">// for internal use</span>
+        <span class="kwd">if</span>(info.count ..) {}
+    },
+    <span class="str">'done'</span> : (totalMarks, totalMatches, termStats) =&gt; {
+        console.log(<span class="str">'Total matches = '</span> + totalMatches);
+
+        <span class="kwd">for</span>(<span class="kwd">var</span> term <span class="kwd">in</span> termStats) {
+            console.log(term + <span class="str">' = '</span> + termStats[term]);
+        }
+    }
+});</code></pre>
+<h4 id="in-markregexp-method-with-acrosselements-option">In <code>markRegExp()</code> method with <code>acrossElements</code> option</h4>
+<p>See <a href="markRegExp-method.html#markRegExp-each">markRegExp() each callback</a> about callback <code>info</code> object properties.</p>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> matchCount = 0;
+
+instance.markRegExp(<span class="jreg">/.../gi</span>, {
+    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
+    <span class="str">'each'</span> : (markElement, info) =&gt; {
+        <span class="com">// usage of info.count and custom counter are the same
+        // as in mark() method with `acrossElements` option</span>
+
+        <span class="com">// use of info.count as a unique match identifier</span>
+        markElement.setAttribute(<span class="str">'data-markjs'</span>, info.count);
+    },
+    <span class="str">'done'</span> : (totalMarks, totalMatches) =&gt; {
+        console.log(<span class="str">'Total matches = '</span> + totalMatches);
+    }
+});</code></pre>
+<h4 id="simple-example-with-nextprevious-buttons">Simple example with next/previous buttons</h4>
+<p>Unusable with <code>markRegExp()</code> method having <code>wrapAllRanges</code> option. See <a href="nesting-overlapping.html#simple-example-with-nextprevious-buttons">Example with next/previous buttons</a> that can be used for this case.</p>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> currentIndex = 0,
+    marks = $(<span class="str">'mark'</span>),
+    startElements = marks.filter((i, elem) =&gt; $(elem).hasClass(<span class="str">'start-1'</span>));
+    <span class="com">//startElements = marks.filter((i, elem) =&gt; $(elem).data('markjs') === 'start-1');</span>
+
+prevButton.on(<span class="str">'click'</span>, <span class="kwd">function</span>() {
+    <span class="kwd">if</span> (--currentIndex &lt;= 0) currentIndex = 0;
+
+    <span class="kwd">let</span> elem = startElements.eq(currentIndex);
+    <span class="kwd">if</span> (elem.length) highlightMatch(elem[0]);
+});
+
+nextButton.on(<span class="str">'click'</span>, <span class="kwd">function</span>() {
+    <span class="kwd">if</span> (++currentIndex &gt;= startElements.length) currentIndex = startElements.length - 1;
+
+    <span class="kwd">let</span> elem = startElements.eq(currentIndex);
+    <span class="kwd">if</span> (elem.length) highlightMatch(elem[0]);
+});
+
+<span class="com">// adds class 'current' to all mark elements of the found match if it located across elements
+// or to the first mark element</span>
+<span class="kwd">function</span> highlightMatch(elem) {
+    <span class="kwd">let</span> found = <span class="kwd">false</span>;
+    marks.each((i, el) =&gt; {
+        <span class="kwd">if</span> ( !found) {
+            <span class="kwd">if</span> (el === elem[0]) found = <span class="kwd">true</span>;
+
+        <span class="com">// start of the next 'start element' means the end of the current match</span>
+        } <span class="kwd">else</span> <span class="kwd">if</span> ($(el).hasClass(<span class="str">'start-1'</span>)) <span class="kwd">return</span>  <span class="kwd">false</span>;
+        <span class="com">//} else if ($(el).data('markjs') === 'start-1') return  false;</span>
+
+        <span class="kwd">if</span> (found){
+            $(el).addClass(<span class="str">'current'</span>);
+            $(el).find(<span class="str">'*[data-markjs]'</span>).addClass(<span class="str">'current'</span>);  <span class="com">// add class to all descendant too</span>
+        }
+    });
+}</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,18 @@
+
+# Dependencies
+node_modules/
+
+# Files
+.eslintrc.json
+.npmignore
+CHANGELOG.md
+package-lock.json
+
+# Folders
+.github
+test/
+doc/
+doc_v2/
+
+# Build
+build/

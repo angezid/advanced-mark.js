@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>Highlighting line ranges</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="highlighting-line-ranges">Highlighting line ranges</h2>
+<p>An option <code>markLines</code> changes the behavior of the <code>markRanges()</code> method. Instead of dealing with text ranges, it is dealt with line ranges.<br />
+It correctly handles <code>br</code> elements. With an option <code>wrapAllRanges</code> it can highlight nesting/overlapping lines.<br />
+This option is useful in <code>pre</code> elements. It can be used in other elements, if HTLM page isn't minified or used <code>br</code> elements for formatting.</p>
+<p>You can play with Playground - Examples -&gt; Mark line ranges.</p>
+<p><strong>Note</strong> that minimal line number is 1 (a text range can start with 0).</p>
+<h4 id="highlight-and-scroll-into-view-the-specified-code-line">Highlight and scroll into view the specified code line:</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> elem;
+<span class="kwd">const</span> instance = <span class="kwd">new</span> Mark(document.querySelector(<span class="str">'pre'</span>));
+instance.markRanges([{ start: line, length: 1 }], {
+  <span class="str">'markLines'</span> : <span class="kwd">true</span>,
+  <span class="str">'each'</span> : (markElement, range, info) =&gt; {
+    <span class="kwd">if</span> (info.matchStart) elem = markElement;
+    markElement.className = <span class="str">'mark-line'</span>;
+  },
+  <span class="str">'done'</span> : () =&gt; {
+    <span class="kwd">if</span> (elem) elem.scrollIntoView();
+  }
+});</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

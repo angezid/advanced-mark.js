@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Playground</title>
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/logo.png">
+<link rel="stylesheet" href="css/main.css">
+<script src="js/plugins.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script src="js/highlighter.js"></script>
+</head>
+<body class="playground">
+<header class="playground-header">
+<div class="section">
+<div class="content">
+<div class="mark-type left">
+<ul>
+<li class="selected" data-type="string_">String</li>
+<li data-type="array">Array</li>
+<li data-type="regexp">RegExp</li>
+<li data-type="ranges">Ranges</li>
+</ul>
+</div>
+<div class="button-block left">
+<button class="run" type="button" onclick="runCode(true);">Run</button>
+</div>
+<div class="button-block right">
+<select id="examples" onchange="selectExample(this)">
+</select>
+<button class="save" type="button" title="Save to local storage" onclick="save();">Save</button>
+<button class="load" type="button" title="Load from local storage" onclick="load();">Load</button>
+<button class="open-file-form" title="Open file form" type="button">File</button>
+<button class="open-json-form" title="Open JSON form" type="button">JSON</button>
+<button class="open-setting-form" title="Open setting form" type="button">&#x2600;</button>
+<button class="show-instructions" type="button" onclick="showInstructions(true);"><b>?</b></button>
+</div>
+</div>
+</div>
+</header>
+<div class="json-form">
+<div class="close"></div>
+<div class="row actions right">
+<button class="export-json" type="button" title="Build JSON for the current tab" onclick="exportJson();">Export JSON</button>
+<button class="import-json" type="button" title="Set options from the JSON" onclick="importJson();">Import JSON</button>
+<button class="copy" type="button" title="Copy to clipboard">Copy</button>
+<button class="clear" type="button" onclick="clearJsonEditor(this);"></button>
+</div>
+<p>JSON</p>
+<div class="editor">
+</div>
+</div>
+<div class="file-form">
+<div class="close"></div>
+<div class="row">
+<div class="save-button">
+<a href="#" class="save-file">Save as</a>
+</div>
+<input class="file-name" value="" placeholder="playground.json" type="text">
+</div>
+<div class="row">
+<label id="label-button" for="file-dialog">Load file</label>
+<label class="loaded-file-name">No file selected.</label>
+<input id="file-dialog" type="file" accept=".json">
+</div>
+</div>
+<div class="setting-form">
+<div class="close"></div>
+<div class="row">
+<div class="load-default">
+<input id="load-default" type="checkbox" onchange="settings.changed(this);">
+<label for="load-default" title="When disabled - if there is a saved tab, loads the saved one, otherwise load default tab">Load default</label>
+</div>
+</div>
+<div class="row">
+<div class="show-tooltips">
+<input id="show-tooltips" type="checkbox" onchange="settings.changed(this);">
+<label for="show-tooltips" title="When disabled, tooltips can be called by pressing Ctrl/Cmd key">Show tooltips</label>
+</div>
+</div>
+<div class="row">
+<div class="unsaved">
+<input id="unsaved" type="checkbox" onchange="settings.changed(this);">
+<label for="unsaved" title="Show a confirmation message before leaving a page if it has an unsaved data">Alert on unsaved data</label>
+</div>
+</div>
+<div class="row">
+<div class="run-onchange">
+<input id="run-onchange" type="checkbox" onchange="settings.changed(this);">
+<label for="run-onchange" title="Highlight when checkbox or selector is changed. Can be slow with large HTML content">Run on settings changes</label>
+</div>
+</div>
+<div class="row">
+<div class="show-test-btn" style="display: none;">
+<input id="test" type="checkbox" onchange="toggleTestButton(this);">
+<label for="test">Show test button</label>
+<div class="row">
+<button class="test-btn hide" type="button" onclick="test.run();">Run tests</button>
+</div>
+</div>
+</div>
+</div>
+<main class="playground-main">
+<article id="playground-article">
+<h1 class="title"></h1>
+<section class="string_ row">
+<div class="left-column">
+<div class="queryString">
+<div class="actions right">
+<button class="clear" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>String</p>
+<div class="editor">
+</div>
+</div>
+<div class="selectors">
+<details><summary>Selectors editor</summary>
+<div class="selector-all">
+<input name="selector-all" id="string_-selector-all" type="checkbox" checked>
+<label for="string_-selector-all">All</label>
+</div>
+<div class="editor">
+</div>
+</details>
+</div>
+<div class="testString">
+<div class="actions right">
+<button class="previous" type="button" onclick="previousMatch();"></button>
+<button class="next" type="button" onclick="nextMatch();"></button>
+<button class="html" type="button" onclick="setHtmlMode(event)">Html</button>
+<button class="text" type="button" onclick="setTextMode(event)">Text</button>
+<select class="default-html" onchange="selectHtml(this)">
+</select>
+<button class="clear" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>HTML</p>
+<shadow-dom-string_ class="test-container">
+</shadow-dom-string_>
+</div>
+</div>
+<div class="right-column">
+<div class="row">
+<div class="checkboxes">
+<div class="separateWordSearch">
+<input name="separateWordSearch" id="string_-separateWordSearch" type="checkbox" checked onchange="setCacheAndCombine(this)">
+<label for="string_-separateWordSearch" name="separateWordSearch">Separate words</label>
+</div>
+<div class="diacritics">
+<input name="diacritics" id="string_-diacritics" type="checkbox" checked>
+<label for="string_-diacritics" name="diacritics">Diacritics</label>
+</div>
+<div class="caseSensitive">
+<input name="caseSensitive" id="string_-caseSensitive" type="checkbox">
+<label for="string_-caseSensitive" name="caseSensitive">Case sensitive</label>
+</div>
+<div class="ignoreJoiners">
+<input name="ignoreJoiners" id="string_-ignoreJoiners" type="checkbox">
+<label for="string_-ignoreJoiners" name="ignoreJoiners">Ignore joiners</label>
+</div>
+<div class="charSets hide">
+<input name="charSets" id="string_-charSets" type="checkbox">
+<label for="string_-charSets" name="charSets">Char sets</label>
+</div>
+<div class="acrossElements">
+<input name="acrossElements" id="string_-acrossElements" type="checkbox" onchange="setAcrossElementsDependable(this)">
+<label for="string_-acrossElements" name="acrossElements">Across elements</label>
+</div>
+<div class="blockElementsBoundary advanced dependable hide">
+<input name="blockElementsBoundary" id="string_-blockElementsBoundary" type="checkbox" onchange="setBlockElements(this)">
+<label for="string_-blockElementsBoundary" name="blockElementsBoundary">Block elements boundary</label>
+</div>
+<div class="combinePatterns advanced dependable hide">
+<input name="combinePatterns" id="string_-combinePatterns" type="checkbox" onchange="setCombineNumber(this)">
+<label for="string_-combinePatterns" name="combinePatterns">Combine patterns</label>
+</div>
+<div class="cacheTextNodes advanced dependable hide">
+<input name="cacheTextNodes" id="string_-cacheTextNodes" type="checkbox">
+<label for="string_-cacheTextNodes" name="cacheTextNodes">Cache text nodes</label>
+</div>
+<div class="shadowDOM advanced">
+<input name="shadowDOM" id="string_-shadowDOM" type="checkbox" onchange="setShadowDOMStyle(this)">
+<label for="string_-shadowDOM" name="shadowDOM">Shadow DOM</label>
+</div>
+<div class="iframes">
+<input name="iframes" id="string_-iframes" type="checkbox" onchange="setIframesTimeout(this)">
+<label for="string_-iframes" name="iframes">Iframes</label>
+</div>
+<div class="debug">
+<input name="debug" id="string_-debug" type="checkbox">
+<label for="string_-debug" name="debug">Debug</label>
+</div>
+</div>
+<div class="mixed-options">
+<div class="element">
+<label for="string_-element" name="element">Element name:</label>
+<input name="element" id="string_-element" type="text" value="mark">
+</div>
+<div class="className">
+<label for="string_-className" name="className">Class name:</label>
+<input name="className" id="string_-className" type="text" placeholder="(e.g. word)">
+</div>
+<div class="separateWordValue">
+<label for="string_-separateWordValue" name="separateWordSearch">Separate words:</label>
+<select name="separateWordSearch" id="string_-separateWordValue">
+<option value="true" selected>true</option>
+<option value="preserveTerms">preserveTerms</option>
+</select>
+</div>
+<div class="accuracy">
+<label for="string_-accuracy" name="accuracy">Accuracy:</label>
+<select name="accuracy" id="string_-accuracy" onchange="setAccuracy(this)">
+<option value="exactly">exactly</option>
+<option value="partially" selected>partially</option>
+<option value="startsWith" selected>startsWith</option>
+<option value="complementary">complementary</option>
+</select>
+</div>
+<div class="wildcards">
+<label for="string_-wildcards" name="wildcards">Wildcards:</label>
+<select name="wildcards" id="string_-wildcards">
+<option value="disabled" selected>disabled</option>
+<option value="enabled">enabled</option>
+<option value="withSpaces">withSpaces</option>
+</select>
+</div>
+<div class="acrossElementsValue advanced dependable hide disable">
+<label for="string_-acrossElementsValue" name="acrossElements">Across elements</label>
+<select name="acrossElements" id="string_-acrossElementsValue">
+<option value="true" selected>true</option>
+<option value="inline">inline</option>
+</select>
+</div>
+<div class="combineNumber advanced dependable hide">
+<label for="string_-combineNumber" name="combinePatterns">Combine by:</label>
+<input name="combinePatterns" id="string_-combineNumber" type="number" min="1" max="10000" value="10">
+</div>
+<div class="iframesTimeout dependable hide">
+<label for="string_-iframesTimeout" name="iframesTimeout">Iframes timeout:</label>
+<input name="iframesTimeout" id="string_-iframesTimeout" type="number" min="0" max="50000" value="5000">
+</div>
+</div>
+</div>
+<div class="row">
+<div class="edit-options">
+<div class="synonyms">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Synonyms</p>
+<div class="editor" name="synonyms">
+</div>
+</div>
+<div class="exclude">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Exclude</p>
+<div class="editor" name="exclude">
+</div>
+</div>
+<div class="ignorePunctuation">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Ignore punctuation</p>
+<div class="editor" name="ignorePunctuation">
+</div>
+</div>
+<div class="accuracyObject hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Accuracy object e.g. { 'value': <span class="accuracy-exactly">'exactly'</span><span class="accuracy-startsWith">'startsWith'</span><span class="accuracy-complementary hide">'complementary'</span>, 'limiters': ',.;:!?"()[]{}' }</p>
+<div class="editor" name="accuracyObject">
+</div>
+</div>
+<div class="blockElements advanced dependable hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Custom block elements e.g. { tagNames : ['my-tag'], /* extend : true */ }</p>
+<div class="editor" name="blockElements">
+</div>
+</div>
+<div class="shadowStyle advanced dependable hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Custom shadow DOM style e.g. { style : "mark[data-markjs] { color:red; }" }</p>
+<div class="editor" name="shadowStyle">
+</div>
+</div>
+<div class="customCode">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearCodeEditor(this);"></button>
+</div>
+<details><summary>Custom code editor</summary>
+<div class="editor language-js" name="stringArrayCustomCode">
+</div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="array row hide">
+<div class="left-column">
+<div class="queryArray">
+<div class="actions right">
+<button class="clear" type="button" onclick="clearEditor(this);"></button>
+</div>
+<label for="arrays">Array of strings</label>
+<select name="arrays" id="arrays" onchange="selectArray(this)">
+</select>
+<div class="editor">
+</div>
+</div>
+<div class="selectors">
+<details><summary>Selectors editor</summary>
+<div class="selector-all">
+<input name="selector-all" id="array-selector-all" type="checkbox" checked>
+<label for="array-selector-all">All</label>
+</div>
+<div class="editor">
+</div>
+</details>
+</div>
+<div class="testString">
+<div class="actions right">
+<button class="previous" type="button" onclick="previousMatch();"></button>
+<button class="next" type="button" onclick="nextMatch();"></button>
+<button class="html" type="button" onclick="setHtmlMode(event)">Html</button>
+<button class="text" type="button" onclick="setTextMode(event)">Text</button>
+<select class="default-html" onchange="selectHtml(this)">
+</select>
+<button class="clear" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>HTML</p>
+<shadow-dom-array class="test-container">
+</shadow-dom-array>
+</div>
+</div>
+<div class="right-column">
+<div class="row">
+<div class="checkboxes">
+<div class="separateWordSearch">
+<input name="separateWordSearch" id="array-separateWordSearch" type="checkbox" checked onchange="setSeparateWordValue(this)">
+<label for="array-separateWordSearch" name="separateWordSearch">Separate words</label>
+</div>
+<div class="diacritics">
+<input name="diacritics" id="array-diacritics" type="checkbox" checked>
+<label for="array-diacritics" name="diacritics">Diacritics</label>
+</div>
+<div class="caseSensitive">
+<input name="caseSensitive" id="array-caseSensitive" type="checkbox">
+<label for="array-caseSensitive" name="caseSensitive">Case sensitive</label>
+</div>
+<div class="ignoreJoiners">
+<input name="ignoreJoiners" id="array-ignoreJoiners" type="checkbox">
+<label for="array-ignoreJoiners" name="ignoreJoiners">Ignore joiners</label>
+</div>
+<div class="charSets hide">
+<input name="charSets" id="array-charSets" type="checkbox">
+<label for="array-charSets" name="charSets">Char sets</label>
+</div>
+<div class="acrossElements">
+<input name="acrossElements" id="array-acrossElements" type="checkbox" onchange="setAcrossElementsDependable(this)">
+<label for="array-acrossElements" name="acrossElements">Across elements</label>
+</div>
+<div class="blockElementsBoundary advanced dependable hide">
+<input name="blockElementsBoundary" id="array-blockElementsBoundary" type="checkbox" onchange="setBlockElements(this)">
+<label for="array-blockElementsBoundary" name="blockElementsBoundary">Block elements boundary</label>
+</div>
+<div class="combinePatterns advanced">
+<input name="combinePatterns" id="array-combinePatterns" type="checkbox" onchange="setCombineNumber(this)">
+<label for="array-combinePatterns" name="combinePatterns">Combine patterns</label>
+</div>
+<div class="cacheTextNodes advanced">
+<input name="cacheTextNodes" id="array-cacheTextNodes" type="checkbox">
+<label for="array-cacheTextNodes" name="cacheTextNodes">Cache text nodes</label>
+</div>
+<div class="shadowDOM advanced">
+<input name="shadowDOM" id="array-shadowDOM" type="checkbox" onchange="setShadowDOMStyle(this)">
+<label for="array-shadowDOM" name="shadowDOM">Shadow DOM</label>
+</div>
+<div class="iframes">
+<input name="iframes" id="array-iframes" type="checkbox" onchange="setIframesTimeout(this)">
+<label for="array-iframes" name="iframes">Iframes</label>
+</div>
+<div class="debug">
+<input name="debug" id="array-debug" type="checkbox">
+<label for="array-debug" name="debug">Debug</label>
+</div>
+</div>
+<div class="mixed-options">
+<div class="element">
+<label for="array-element" name="element">Element name:</label>
+<input name="element" id="array-element" type="text" value="mark">
+</div>
+<div class="className">
+<label for="array-className" name="className">Class name:</label>
+<input name="className" id="array-className" type="text" placeholder="(e.g. word)">
+</div>
+<div class="separateWordValue">
+<label for="array-separateWordValue" name="separateWordSearch">Separate words:</label>
+<select name="separateWordSearch" id="array-separateWordValue">
+<option value="true" selected>true</option>
+<option value="preserveTerms">preserveTerms</option>
+</select>
+</div>
+<div class="accuracy">
+<label for="array-accuracy" name="accuracy">Accuracy:</label>
+<select name="accuracy" id="array-accuracy" onchange="setAccuracy(this)">
+<option value="exactly">exactly</option>
+<option value="partially" selected>partially</option>
+<option value="startsWith" selected>startsWith</option>
+<option value="complementary">complementary</option>
+</select>
+</div>
+<div class="wildcards">
+<label for="array-wildcards" name="wildcards">Wildcards:</label>
+<select name="wildcards" id="array-wildcards">
+<option value="disabled" selected>disabled</option>
+<option value="enabled">enabled</option>
+<option value="withSpaces">withSpaces</option>
+</select>
+</div>
+<div class="acrossElementsValue advanced dependable hide disable">
+<label for="array-acrossElementsValue" name="acrossElements">Across elements</label>
+<select name="acrossElements" id="array-acrossElementsValue">
+<option value="true" selected>true</option>
+<option value="inline">inline</option>
+</select>
+</div>
+<div class="combineNumber advanced dependable hide">
+<label for="array-combineNumber" name="combinePatterns">Combine by:</label>
+<input name="combinePatterns" id="array-combineNumber" type="number" min="1" max="10000" value="10">
+</div>
+<div class="iframesTimeout dependable hide">
+<label for="array-iframesTimeout" name="iframesTimeout">Iframes timeout:</label>
+<input name="iframesTimeout" id="array-iframesTimeout" type="number" min="0" max="50000" value="5000">
+</div>
+</div>
+</div>
+<div class="row">
+<div class="edit-options">
+<div class="synonyms">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Synonyms</p>
+<div class="editor" name="synonyms">
+</div>
+</div>
+<div class="exclude">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Exclude</p>
+<div class="editor" name="exclude">
+</div>
+</div>
+<div class="ignorePunctuation">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Ignore punctuation</p>
+<div class="editor" name="ignorePunctuation">
+</div>
+</div>
+<div class="accuracyObject hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Accuracy object e.g. { 'value': <span class="accuracy-exactly">'exactly'</span><span class="accuracy-startsWith">'startsWith'</span><span class="accuracy-complementary hide">'complementary'</span>, 'limiters': ',.;:!?"()[]{}' }</p>
+<div class="editor" name="accuracyObject">
+</div>
+</div>
+<div class="blockElements advanced dependable hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Custom block elements e.g. { tagNames : ['my-tag'], /* extend : true */ }</p>
+<div class="editor" name="blockElements">
+</div>
+</div>
+<div class="shadowStyle advanced dependable hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Custom shadow DOM style e.g. { style : "mark[data-markjs] { color:red; }" }</p>
+<div class="editor" name="shadowStyle">
+</div>
+</div>
+<div class="customCode">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearCodeEditor(this);"></button>
+</div>
+<details><summary>Custom code editor</summary>
+<div class="editor language-js" name="stringArrayCustomCode">
+</div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="regexp row hide">
+<div class="left-column">
+<div class="queryRegExp">
+<div class="actions right">
+<button class="clear" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>RegExp</p>
+<div class="editor">
+</div>
+</div>
+<div class="selectors">
+<details><summary>Selectors editor</summary>
+<div class="selector-all">
+<input name="selector-all" id="regexp-selector-all" type="checkbox" checked>
+<label for="regexp-selector-all">All</label>
+</div>
+<div class="editor">
+</div>
+</details>
+</div>
+<div class="testString">
+<div class="actions right">
+<button class="previous" type="button" onclick="previousMatch();"></button>
+<button class="next" type="button" onclick="nextMatch();"></button>
+<button class="html" type="button" onclick="setHtmlMode(event)">Html</button>
+<button class="text" type="button" onclick="setTextMode(event)">Text</button>
+<select class="default-html" onchange="selectHtml(this)">
+</select>
+<button class="clear" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>HTML</p>
+<shadow-dom-regexp class="test-container">
+</shadow-dom-regexp>
+</div>
+</div>
+<div class="right-column">
+<div class="row">
+<div class="checkboxes">
+<div class="acrossElements">
+<input name="acrossElements" id="regexp-acrossElements" type="checkbox" onchange="setBlockElementsBoundary(this)">
+<label for="regexp-acrossElements" name="acrossElements">Across elements</label>
+</div>
+<div class="separateGroups advanced">
+<input name="separateGroups" id="regexp-separateGroups" type="checkbox" onchange="setSeparateGroupsDependable(this)">
+<label for="regexp-separateGroups" name="separateGroups">Separate groups</label>
+</div>
+<div class="blockElementsBoundary advanced dependable hide">
+<input name="blockElementsBoundary" id="regexp-blockElementsBoundary" type="checkbox" onchange="setBlockElements(this)">
+<label for="regexp-blockElementsBoundary" name="blockElementsBoundary">Block elements boundary</label>
+</div>
+<div class="wrapAllRanges advanced dependable hide">
+<input name="wrapAllRanges" id="regexp-wrapAllRanges" type="checkbox">
+<label for="regexp-wrapAllRanges" name="wrapAllRanges">Wrap nesting/overlaping</label>
+</div>
+<div class="shadowDOM advanced">
+<input name="shadowDOM" id="regexp-shadowDOM" type="checkbox" onchange="setShadowDOMStyle(this)">
+<label for="regexp-shadowDOM" name="shadowDOM">Shadow DOM</label>
+</div>
+<div class="iframes">
+<input name="iframes" id="regexp-iframes" type="checkbox" onchange="setIframesTimeout(this)">
+<label for="regexp-iframes" name="iframes">Iframes</label>
+</div>
+<div class="debug">
+<input name="debug" id="regexp-debug" type="checkbox">
+<label for="regexp-debug" name="debug">Debug</label>
+</div>
+</div>
+<div class="mixed-options">
+<div class="element">
+<label for="regexp-element" name="element">Element name:</label>
+<input name="element" id="regexp-element" type="text" placeholder="mark">
+</div>
+<div class="className">
+<label for="regexp-className" name="className">Class name:</label>
+<input name="className" id="regexp-className" type="text" placeholder="(e.g. word)">
+</div>
+<div class="ignoreGroups">
+<label for="regexp-ignoreGroups" name="ignoreGroups">Ignore groups:</label>
+<input name="ignoreGroups" id="regexp-ignoreGroups" type="number" min="0" max="5" value="0">
+</div>
+<div class="iframesTimeout dependable hide">
+<label for="regexp-iframesTimeout" name="iframesTimeout">Iframes timeout:</label>
+<input name="iframesTimeout" id="regexp-iframesTimeout" type="number" min="0" max="50000" value="5000">
+</div>
+</div>
+</div>
+<div class="row">
+<div class="edit-options">
+<div class="exclude">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Exclude</p>
+<div class="editor" name="exclude">
+</div>
+</div>
+<div class="blockElements advanced dependable hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Custom block elements e.g. { tagNames : ['my-tag'], /* extend : true */ }</p>
+<div class="editor" name="blockElements">
+</div>
+</div>
+<div class="shadowStyle advanced dependable hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Custom shadow DOM style e.g. { style : "mark[data-markjs] { color:red; }" }</p>
+<div class="editor" name="shadowStyle">
+</div>
+</div>
+<div class="customCode">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearCodeEditor(this);"></button>
+</div>
+<details><summary>Custom code editor</summary>
+<div class="editor language-js" name="regexpCustomCode">
+</div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="ranges row hide">
+<div class="left-column">
+<div class="queryRanges">
+<div class="actions right">
+<button class="clear" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Array of ranges</p>
+<div class="editor">
+</div>
+</div>
+<div class="selectors">
+<details><summary>Selectors editor</summary>
+<div class="selector-all">
+<input name="selector-all" id="ranges-selector-all" type="checkbox" checked>
+<label for="ranges-selector-all">All</label>
+</div>
+<div class="editor">
+</div>
+</details>
+</div>
+<div class="testString">
+<div class="actions right">
+<button class="previous" type="button" onclick="previousMatch();"></button>
+<button class="next" type="button" onclick="nextMatch();"></button>
+<button class="html" type="button" onclick="setHtmlMode(event)">Html</button>
+<button class="text" type="button" onclick="setTextMode(event)">Text</button>
+<select class="default-html" onchange="selectHtml(this)">
+</select>
+<button class="clear" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>HTML</p>
+<shadow-dom-ranges class="test-container">
+</shadow-dom-ranges>
+</div>
+</div>
+<div class="right-column">
+<div class="row">
+<div class="checkboxes">
+<div class="wrapAllRanges advanced">
+<input name="wrapAllRanges" id="ranges-wrapAllRanges" type="checkbox">
+<label for="ranges-wrapAllRanges" name="wrapAllRanges">Wrap nesting/overlaping</label>
+</div>
+<div class="shadowDOM advanced">
+<input name="shadowDOM" id="ranges-shadowDOM" type="checkbox" onchange="setShadowDOMStyle(this)">
+<label for="ranges-shadowDOM" name="shadowDOM">Shadow DOM</label>
+</div>
+<div class="markLines advanced">
+<input name="markLines" id="ranges-markLines" type="checkbox">
+<label for="ranges-markLines" name="markLines">Mark lines</label>
+</div>
+<div class="iframes">
+<input name="iframes" id="ranges-iframes" type="checkbox" onchange="setIframesTimeout(this)">
+<label for="ranges-iframes" name="iframes">Iframes</label>
+</div>
+<div class="debug">
+<input name="debug" id="ranges-debug" type="checkbox">
+<label for="ranges-debug" name="debug">Debug</label>
+</div>
+</div>
+<div class="mixed-options">
+<div class="element">
+<label for="ranges-element" name="element">Element name:</label>
+<input name="element" id="ranges-element" type="text" value="mark">
+</div>
+<div class="className">
+<label for="ranges-className" name="className">Class name:</label>
+<input name="className" id="ranges-className" type="text" placeholder="(e.g. word)">
+</div>
+<div class="iframesTimeout dependable hide">
+<label for="ranges-iframesTimeout" name="iframesTimeout">Iframes timeout:</label>
+<input name="iframesTimeout" id="ranges-iframesTimeout" type="number" min="0" max="50000" value="5000">
+</div>
+</div>
+</div>
+<div class="row">
+<div class="edit-options">
+<div class="exclude">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Exclude</p>
+<div class="editor" name="exclude">
+</div>
+</div>
+<div class="shadowStyle advanced dependable hide">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearEditor(this);"></button>
+</div>
+<p>Custom shadow DOM style e.g. { style : "mark[data-markjs] { color:red; }" }</p>
+<div class="editor" name="shadowStyle">
+</div>
+</div>
+<div class="customCode">
+<div class="actions right">
+<button class="clear hide" type="button" onclick="clearCodeEditor(this);"></button>
+</div>
+<details><summary>Custom code editor</summary>
+<div class="editor language-js" name="rangesCustomCode">
+</div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="row">
+<div class="column">
+<div class="results">
+<p>Results</p>
+<pre><code class="language-text"></code></pre>
+</div>
+<div class="row">
+<div class="internal-code hide">
+<details id="internal-code"><summary>Internal code</summary>
+<pre><code class="language-js"></code></pre>
+</details>
+</div>
+</div>
+</div>
+<div class="right-column">
+<div class="generated-code">
+<div class="unmark-method right">
+<input id="unmark" type="checkbox" onchange="unmarkMethod(this)">
+<label for="unmark">unmark</label>
+</div>
+<div class="callbacks right">
+<input id="callbacks" type="checkbox">
+<label for="callbacks">callbacks</label>
+</div>
+<details><summary>Generated code</summary>
+<pre><code class="language-js"></code></pre>
+</details>
+</div>
+</div>
+</div>
+</article>
+<article class="options-info">
+<div class="options">
+<div id="element"><span><code>element</code></span><span><em class="type">string</em></span><span> <code>mark</code></span><div>A custom mark element e.g. <code>span</code>. </div></div>
+
+<div id="className"><span><code>className</code></span><span><em class="type">string</em></span><span> <code>''</code></span><div>A custom class to be added to mark elements. </div></div>
+
+<div id="exclude"><span><code>exclude</code></span><span><em class="type">string <span class="or">or</span> string[]</em></span><span> <code>[]</code></span><div>A string or an array of selectors. Specifies DOM elements that should be excluded from searching. 
+<p>See <a href="../doc-v2/options.html#exclude-option" target="_blank">exclude</a> option for more details.</div></div>
+
+<div id="separateWordSearch"><span><code>separateWordSearch</code></span><span><em class="type">boolean <span class="or">or</span> string</em></span><span> <code>true</code></span><div>A <b>boolean</b> value <code>true</code> specifies to break term(s) into separate words and search for each individual word. 
+<p>A <b>string</b> value <code>'preserveTerms'</code> preserved term(s) surrounding by double quotes from breaking into separate words.
+See <a href="../doc-v2/options.html#separatewordsearch-option" target="_blank">separateWordSearch</a> option for more details.</div></div>
+
+<div id="diacritics"><span><code>diacritics</code></span><span><em class="type">boolean</em></span><span> <code>true</code></span><div>Whether to match diacritic characters </div></div>
+
+<div id="caseSensitive"><span><code>caseSensitive</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to search case sensitive </div></div>
+
+<div id="accuracy"><span><code>accuracy</code></span><span><em class="type">string <span class="or">or</span> object</em></span><span> <code>'partially'</code></span><div>  
+<ul>
+<li><p>Either one of the following <b>string</b> value:</p>
+<ul>
+<li><code>'partially'</code> e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.</li>
+<li><code>'exactly'</code> This option is actually forced to use an accuracy object, because the default word boundaries are white spaces and start/end of a text node content (with <code>acrossElements</code> option - start/end of a context).</li>
+<li><code>'startsWith'</code> e.g. searching 'pre' mark the whole words 'prefix', 'predict', and 'prefab'.</li>
+<li><code>'complementary'</code> e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.</li>
+</ul>
+<p>The <b>built-in</b> boundaries for values <code>startsWith</code> and <code>complementary</code> are:<br>
+white spaces and <code>!&quot;#$%&amp;'`()*+,-./:;&lt;=&gt;?@[\]^_{|}~¡¿</code> characters.</p>
+</li>
+<li><p>Or an <b>object</b> with two properties:</p>
+<ul>
+<li><code>value</code>: <code>'exactly'</code> or <code>'startsWith'</code> or <code>'complementary'</code></li>
+<li><code>limiters</code>: a string or an array of custom word boundary characters,<br>
+e.g. <code>{ value : &quot;exactly&quot;, limiters : &quot;,.;:?!'\&quot;()&quot; }</code></li>
+</ul>
+</li>
+</ul>
+</div></div>
+
+<div id="wildcards"><span><code>wildcards</code></span><span><em class="type">string</em></span><span> <code>disabled</code></span><div>Two characters <code>?</code> and <code>*</code> used as wildcards unless they are escaped 
+<ul>
+<li><code>disabled</code>: The characters <code>?</code> and <code>*</code> match itself</li>
+<li><code>enabled</code>:
+<ul>
+<li>The character <code>?</code> match any non-white-space character zero or one time.</li>
+<li>The character <code>*</code> match any non-white-space character zero or more times.</li>
+</ul>
+</li>
+<li><code>withSpaces</code>:
+<ul>
+<li>The character <code>?</code> match any character zero or one time.</li>
+<li>The character <code>*</code> match any character zero or more times, but as few times as possible.</ul></ul></div></div>
+
+<div id="ignoreJoiners"><span><code>ignoreJoiners</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner </div></div>
+
+<div id="ignorePunctuation"><span><code>ignorePunctuation</code></span><span><em class="type">string <span class="or">or</span> string[]</em></span><span> <code>[]</code></span><div>A string or an array of punctuation characters </div></div>
+
+<div id="synonyms"><span><code>synonyms</code></span><span><em class="type">object</em></span><span> <code>{}</code></span><div>An object with synonyms  
+<p>e.g. <code>{ 'one': '1' }</code> - '1' is synonym for 'one' and vice versa.<br>
+The value can be an array, e.g. <code>{ 'be': ['am', 'is', 'are'] }</code>.</p>
+ </div></div>
+
+<div id="acrossElements"><span><code>acrossElements</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to search for matches across elements 
+<p>See <a href="../doc-v2/options.html#acrosselements-option" target="_blank">acrossElements</a> option for more details.</div></div>
+
+<div id="combinePatterns"><span><code>combinePatterns</code></span><span><em class="type">number <span class="or">or</span> boolean</em></span><span> <code>10</code></span><div>Combine a specified number of individual term patterns into one 
+<p>See <a href="../doc-v2/performance.html#ways-to-boost-performance" target="_blank">Performance</a> for more details.</div></div>
+
+<div id="cacheTextNodes"><span><code>cacheTextNodes</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Caching information to improve performance 
+<p>See <a href="../doc-v2/performance.html#ways-to-boost-performance" target="_blank">Performance</a> for more details.</div></div>
+
+<div id="blockElementsBoundary"><span><code>blockElementsBoundary</code></span><span><em class="type">boolean <span class="or">or</span> object</em></span><span> <code>undefined</code></span><div>Whether to limit matches within default HTML block elements and/or custom elements 
+<p>See <a href="../doc-v2/elements-boundaries.html" target="_blank">Elements boundaries</a> for more details.</p>
+<ul>
+<li><code>tagNames</code> <em class="type">string[]</em> - An array of custom HTML tag names</li>
+<li><code>extend</code> <em class="type">boolean</em> - <code>true</code> extends default boundary elements by the custom elements
+otherwise only the custom elements do have boundaries</li>
+<li><code>char</code> <em class="type">string</em> - A custom boundary character. The default is <code>\x01</code>.</li>
+</ul>
+</div></div>
+
+<div id="shadowDOM"><span><code>shadowDOM</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Whether to mark inside shadow DOMs 
+<p>See <a href="../doc-v2/shadow-dom.html" target="_blank">Highlighting in shadow DOM</a> for more details.</div></div>
+
+<div id="iframes"><span><code>iframes</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to mark inside iframes </div></div>
+
+<div id="iframesTimeout"><span><code>iframesTimeout</code></span><span><em class="type">number</em></span><span> <code>5000</code> ms</span><div>The max time to wait for iframe(s) to load before skipping </div></div>
+
+<div id="debug"><span><code>debug</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to log messages </div></div>
+
+<div id="log"><span><code>log</code></span><span><em class="type">object</em></span><span> <code>console</code></span><div>Log messages to a specific object 
+</div></div>
+
+<div id="noMatch"><span><code>noMatch</code></span><span><em class="type">function</em></span><span> </span><div>A callback that is called when a term has no match at all 
+<br><b>noMatch : (term) => {}</b>
+<ul>
+<li><code>term</code> <em class="type">string <span class="or">or</span> string[]</em> - The not found term(s); the parameter is an array when <code>combinePatterns</code> option is used</ul></div></div>
+
+<div id="wrapAllRanges"><span><code>wrapAllRanges</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Mark nesting/overlapping capturing groups 
+<p>See <a href="../doc-v2/nesting-overlapping.html" target="_blank">Marking nesting and overlapping ranges and match groups</a> for more details.</p>
+</div></div>
+
+<div id="markLines"><span><code>markLines</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Whether to mark ranges of lines instead of ranges of texts 
+<p>See <a href="../doc-v2/mark-lines.html" target="_blank">Highlighting line ranges</a> for more details.</div></div>
+
+<div id="ignoreGroups"><span><code>ignoreGroups</code></span><span><em class="type">number</em></span><span> <code>0</code></span><div>The number of adjacent capturing groups that should be ignored from the start of RegExp 
+<p>e.g. <code>/(\w+)(.)(\w+)(?!\2)/g</code>, <code>ignoreGroups : 2</code> - mark the group 3</div></div>
+
+<div id="separateGroups"><span><code>separateGroups</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to mark RegExp capturing groups instead of whole match 
+<p>See <a href="../doc-v2/separate-groups.html" target="_blank">Highlighting separate groups</a> for more details.</div></div>
+</div>
+<div id="accuracyObject">
+<ul>
+<li><code>value</code> <em class="type">string</em> 'exactly' or 'startsWith' or 'complementary'</li>
+<li><code>limiters</code> <em class="type">object</em> : a string or an array of custom word boundary characters, e.g. <span class="accuracy-exactly hide"><code>{ value : &quot;exactly&quot;, limiters : &quot;,.;:?!'\&quot;&quot; }</code></span><span class="accuracy-startsWith hide"><code>{ value : &quot;exactly&quot;, limiters : &quot;,.;:?!'\&quot;&quot; }</code></span><span class="accuracy-complementary hide"><code>{ value : &quot;complementary&quot;, limiters : &quot;,.;:?!'\&quot;&quot; }</code><br>The default word boundary chars are: <code>!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~¡¿</code></span></li>
+</ul>
+</div>
+<div id="shadowStyle">If you provided an object with property <code>style</code>, the style element with the object value will be created and added to every shadowRoot.<p>See <a href="shadow-dom.html">Highlighting in shadow DOM</a> for more details.</div>
+<div id="blockElements">
+<code>blockElementsBoundary</code> <em class="type">object</em> <code>undefined</code>
+<ul>
+<li><code>tagNames</code> <em class="type">string[]</em> <code>undefined</code> An array of custom HTML tag names</li>
+<li><code>extend</code> <em class="type">boolean</em> <code>undefined</code> If an array of <code>tagNames</code> is provided:<ul>
+<li>when <code>extend: true</code> the custom elements extend the default boundary elements</li>
+<li>otherwise only the custom elements will have boundaries</li>
+</ul>
+</li>
+<li><code>char</code> <em class="type">string</em> <code>\x01</code> A custom boundary character</li>
+</ul>
+</div>
+<div id="stringArrayCustomCode">
+<div class="stringArrayFilter">
+<code>filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}</code>
+<p>A callback to filter or limit matches. It calls for each match (with <code>acrossElements</code> option, if a match is located across several elements, it calls for each text node which is part of the match).</p>Parameters:<ol>
+<li>The text node which includes<span class="acrossElements"> or is part of</span> the match</li>
+<li>The current term</li>
+<li>A number of all matches so far</li>
+<li>A number of wrapped matches of the current term so far</li>
+<li class="advanced">An object containing the match information:<ol>
+<li>the <code>match</code> - result of RegExp exec() method</li>
+<li class="acrossElements">the <code>matchStart</code> - boolean property indicating the start of the match</li>
+<li>the <code>execution</code> - object with a boolean <code>abort</code> property</li>
+<li>the <code>offset</code> - numerical property which can be used to translate the local text node indexes to the absolute ones, e.g build ranges.</li>
+</ol>
+</li>
+</ol>
+<p>The function must return <code>false</code> if the mark should be stopped, otherwise <code>true</code>.</p>
+</div>
+<hr>
+<div class="stringArrayEach">
+<code>each : (markElement, eachInfo) => {}</code>
+<p>A callback for each marked element.</p>Parameters:<ol>
+<li>The marked DOM element</li>
+<li>An object containing the match information:<ol>
+<li>the <code>match</code> - result of RegExp exec() method</li>
+<li class="acrossElements">the <code>matchStart</code> - boolean property indicating the start of the match</li>
+<li>the <code>count</code> - number of wrapped matches so far</li>
+</ol>
+</li>
+</ol>
+</div>
+<hr>
+<div class="stringArrayDone">
+<code>done : (totalMarks, totalMatches, termStats) => {}</code>
+<p>A callback function after all marks are done.</p>Parameters:<ol>
+<li>The total number of marks</li>
+<li>The total number of matches</li>
+<li>The object containing terms statistics</li>
+</ol>
+</div>
+</div>
+<div id="regexpCustomCode">
+<div class="regexpFilter">
+<code>filter : (textNode, term, matchesSoFar, filterInfo) => {}</code>
+<p>A callback to filter or limit matches. It calls for each match (with <code>acrossElements</code> option, if a match is located across several elements, it calls for each text node which is part of the match).</p>Parameters:<ol>
+<li>The text node which includes<span class="acrossElements"> or is part of</span> the match</li>
+<li>The matching string:<ol>
+<li>without <code>ignoreGroups</code> and <code>separateGroups</code> options - the whole match</li>
+<li>with <code>ignoreGroups</code> - the match[ignoreGroups+1] group matching string</li>
+<li>with <code>separateGroups</code> option - the current group matching string</li>
+</ol>
+</li>
+<li>The number of all matches so far</li>
+<li class="advanced">An object containing the match information:<ol>
+<li>the <code>match</code> - result of RegExp exec() method</li>
+<li class="acrossElements">the <code>matchStart</code> - boolean property indicating the start of the match</li>
+<li class="separateGroups">the <code>groupIndex</code> - index of the current capturing group</li>
+<li>the <code>execution</code> - object with a boolean <code>abort</code> property</li>
+<li class="acrossElements">the <code>offset</code> - numerical property which can be used to translate the local text node indexes to the absolute ones, e.g build ranges.</li>
+</ol>
+</li>
+</ol>
+<p>The function must return <code>false</code> if the mark should be stopped, otherwise <code>true</code>.</p>
+</div>
+<hr>
+<div class="regexpEach">
+<code>each : (markElement, eachInfo) => {}</code>
+<p>A callback for each marked element.</p>Parameters:<ol>
+<li>The marked DOM element</li>
+<li>An object containing the match information:<ol>
+<li>the <code>match</code> is result of RegExp exec() method</li>
+<li class="acrossElements">the <code>matchStart</code> - boolean property indicating the start of the match</li>
+<li class="separateGroups">the <code>groupIndex</code> - index of the current capturing group</li>
+<li class="acrossElements separateGroups">the <code>groupStart</code> - boolean property indicating the start of group</li>
+<li>the <code>count</code> - number of wrapped matches so far</li>
+</ol>
+</li>
+</ol>
+</div>
+<hr>
+<div class="regexpDone">
+<code>done : (totalMarks, totalMatches) => {}</code>
+<p>A callback function after all marks are done.</p>Parameters:<ol>
+<li>The total number of marks</li>
+<li>The total number of matches</li>
+</ol>
+</div>
+</div>
+<div id="rangesCustomCode">
+<div class="rangesFilter">
+<code>filter : (textNode, range, match, index) => {}</code>
+<p>A callback to filter or limit matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range).</p>Parameters:<ol>
+<li>The text node which includes the range or is part of the range</li>
+<li>The current range object</li>
+<li>The string which range is covered</li>
+<li>The current range index</li>
+</ol>
+<p>The function must return <code>false</code> if the mark should be stopped, otherwise <code>true</code>.</p>
+</div>
+<hr>
+<div class="rangesEach">
+<code>each : (markElement, range, rangeInfo) => {}</code>
+<p>A callback for each marked element.</p>Parameters:<ol>
+<li>The marked DOM element</li>
+<li>The current range object</li>
+<li>An object containing the match information:<ol>
+<li>the <code>matchStart</code> - boolean property indicating the start of the range</li>
+<li>the <code>count</code> - number of ranges so far</li>
+</ol>
+</li>
+</ol>
+</div>
+<hr>
+<div class="rangesDone">
+<code>done : (totalMarks, totalRanges) => {}</code>
+<p>A callback function after all marks are done.</p>Parameters:<ol>
+<li>The total number of marks</li>
+<li>The total number of ranges</li>
+</ol>
+</div>
+</div>
+</article>
+<article class="instructions">
+<div id="playground-instructions">
+<h1 id="how-to-use">How to use</h1>
+<p>There are two test content modes - Text and Html. If you want to add HTML content, you need to switch to the Html mode.</p>
+<p>When you paste a HTML content into the Html editor or load/import, the content runs through the HTML sanitizer, which removes <code>head</code>, <code>script</code>, <code>style</code>, <code>link</code>, and <code>meta</code> elements and comments. It also removes attributes containing <code>javascript:</code> or having name start with <code>on</code>.<br>The values of <code>href</code>, <code>src</code>, <code>srcset</code> attributes are replaced by <code>#</code> (except iframe's <code>src</code> attribute).</p>
+<p>The sanitized content is added to a Html container by <code>innerHTML</code> (i.e. it safe enough to paste a raw HTML page).</p>
+<p>Note that the Html containers are Shadow DOMs and require special access (cannot be accessed by, e.g. <code>document.querySelector</code>).</p>
+<br>
+<p>If you enable a <b>Custom code editor</b>, the program evaluates the whole internal code (see 'Internal code' which appears below the 'Results').</p>
+<p>Otherwise, only the options that accept <code>Object</code>, <code>Array</code> or <code>RegExp</code> are evaluated.</p>
+<p>Tooltips can be called by pressing <code>Ctrl/Cmd</code> key and cursor over an item.</p>
+<p>The <code>Ctrl/Cmd</code> key also can be used to prevent highlighting when switching mode in Html/Text editor.</p>
+<p>In Html/Text editors undo/redo won't work (only while typing).</p>
+<p>The performance is around two times slower than on the real browser page.</p>
+<details class="instructions"><summary><b>Using custom code</b></summary>
+<p>When the <b>Custom code editor</b> is activated, a minimal code with all callbacks is generated. For normal playground workflow, a two internal functions are necessary:</p>
+<ul>
+<li><code>highlighter.flagStartElement()</code> in the <code>each</code> callback for next/previous buttons functionality</li>
+<li><code>highlighter.finish()</code> in the <code>done</code> callback for highlighting matches and logging results</li>
+</ul>They're automatically added to the internal code if their parameters and functions parameters are the same.<p>There are several function which can be used in custom code editor:</p>
+<ul>
+<li><code>code.setHtml(text)</code> - dynamically sets HTML string in the HTML editor. See <code>Iframes</code> example.</li>
+<li><code>code.setText(text)</code> - dynamically sets text string in the Text editor</li>
+<li><code>code.setListener(even, function)</code> - sets action on event in the search editor. See <code>Mark while typing</code> example.</li>
+</ul>
+</details>
+<p><b>Warning:</b> for the security reasons, do not import JSON from unknown origin without examination.</p>
+<p>Saving tab state to the browser local storage isn't reliable. Save to file important tabs.</p>
+</div></article>
+</main>
+<footer><div class="info">
+<span><a href="../doc-v2/index.html" target="_blank">Doc</a></span>
+<span><a href="https://github.com/angezid/advanced-mark.js" target="_blank">advanced-mark.js</a></span>
+<span><a href="https://github.com/angezid/advanced-mark.js-playground" target="_blank">playground</a></span>
+<span>v2</span>
+</div>
+</footer>
+<br><br>
+</body></html>

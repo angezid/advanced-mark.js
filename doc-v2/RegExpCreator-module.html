@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>RegExpCreator module</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="regexpcreator-module">RegExpCreator module</h2>
+<p>It has three API methods:</p>
+<ul>
+<li><a href="regexpcreator.html#117">create()</a></li>
+<li><a href="regexpcreator.html#155">createCombinePattern()</a></li>
+<li><a href="regexpcreator.html#344">createDiacritics()</a></li>
+</ul>
+<h4 id="create">create()</h4>
+<p>The <code>create(string, true)</code> method with the second parameter set to <code>true</code> instead of RegExp, returns an object containing three properties:</p>
+<ul>
+<li> <code>lookbehind</code> - is actuality a capturing group; is non-empty group only with <a href="mark-method.html#mark-accuracy">accuracy</a> options: <code>'exactly'</code> or <code>{ 'value' : 'exactly', 'limiters': .. }</code>, and <code>'startsWith'</code> or <code>{ 'value' : 'startsWith', 'limiters': .. }</code>.<br />
+It can be easily converted to lookbehind assertion by replacing the first <code>(</code> by <code>(?&lt;=</code>.</li>
+<li> <code>pattern</code> - a string pattern</li>
+<li> <code>lookahead</code> - is real lookahead assertion pattern; is non-empty string only with <a href="mark-method.html#mark-accuracy">accuracy</a> option: <code>'exactly'</code> or <code>{ 'value' : 'exactly', 'limiters': .. }</code>.<br />
+These properties can be used in options object: <a href="mark-method.html#mark-accuracy">accuracy</a>, <a href="mark-method.html#mark-diacritics">diacritics</a>, <a href="mark-method.html#mark-synonyms">synonyms</a>, <a href="mark-method.html#mark-caseSensitive">caseSensitive</a>, <a href="mark-method.html#mark-ignoreJoiners">ignoreJoiners</a>, <a href="mark-method.html#mark-ignorePunctuation">ignorePunctuation</a>, and <a href="mark-method.html#mark-wildcards">wildcards</a>.</li>
+</ul>
+<p>See <a href="mark-method.html">mark() method</a> for properties details.</p>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">import</span> RegExpCreator from <span class="str">'./regexpcreator.es6.js'</span>;
+<span class="kwd">const</span> creator = <span class="kwd">new</span> RegExpCreator(options);
+<span class="kwd">const</span> obj = creator.create(string, <span class="kwd">true</span>);
+console.log(obj.lookbehind, obj.pattern, obj.lookahead);</code></pre>
+<h4 id="createcombinepattern">createCombinePattern()</h4>
+<p>The <code>createCombinePattern(array, capture)</code> method creates combine pattern from an array of string; returns an object containing three properties:</p>
+<ul>
+<li> <code>lookbehind</code> - is the same as in <code>create()</code> method;</li>
+<li> <code>pattern</code> - a combine pattern itself.
+If the <code>capture</code> parameter set to true, an individual pattern is wrapped in a capturing group, false - non-capturing group.</li>
+<li> <code>lookahead</code> - is the same as in <code>create()</code> method;</li>
+</ul>
+<pre><code class="language-js"><span class="com">// the 'creator' and the accepted options are the same as in above example</span>
+<span class="kwd">const</span> obj = creator.createCombinePattern(array, <span class="kwd">true</span>);
+console.log(obj.pattern);  <span class="com">// true - (ptn1)|(ptn2)|(ptn3); false - (?:ptn1)|(?:ptn2)|(?:ptn3)</span></code></pre>
+<h4 id="creatediacritics">createDiacritics()</h4>
+<p>The <code>createDiacritics(string)</code> method returns a string diacritic pattern.
+It's affected only by one option : <a href="mark-method.html#mark-caseSensitive">caseSensitive</a>.</p>
+<pre><code class="language-js"><span class="kwd">import</span> creator from <span class="str">'./regexpcreator.es6.js'</span>;
+<span class="kwd">const</span> pattern = <span class="kwd">new</span> creator(options).createDiacritics(string);
+console.log(pattern);</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>Highlighting separate groups</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="highlighting-separate-groups">Highlighting separate groups</h2>
+<p><strong>Important:</strong> in this implementation two branches of code process separate groups, which one, depending on the existence of <code>d</code> flag.</p>
+<ol>
+<li>Primitive, base on <code>indexOf()</code>, only reliable with contiguous groups - unwanted group(s) can be easily filtered out.</li>
+<li>Exact, but not all browsers currently supported group <code>indices</code>.</li>
+</ol>
+<ul>
+<li>Case without <code>wrapAllRanges</code> option:
+<ul>
+<li>They both have identical logic for nested groups - if a parent group has been marked, there is no way to mark nested groups.<br />
+This means you can use a nested group(s) as auxiliary and don't care about filtering them.</li>
+</ul>
+</li>
+<li>Case <code>wrapAllRanges : true</code>:
+<ul>
+<li>With <code>acrossElements</code> option, the primitive one wrap a whole match as a group 0 and then all groups that are child of match[0] as a nested (see <a href="nesting-overlapping.html#mark-nesting-groups">Example</a>).</li>
+<li>The exact one wrap all nested groups - you need to filter nested an auxiliary group(s).</li>
+</ul>
+</li>
+</ul>
+<p>They have different parent groups logic:</p>
+<ul>
+<li>The exact one does allow using a parent group as an auxiliary - you need to filter out it in order to mark a nested group(s).</li>
+<li>The primitive one does not allow this - if a parent group has filtered out, a nested group(s) won't be marked.</li>
+</ul>
+<p>To test the primitive branch compatibility, just add the <code>d</code> flag.</p>
+<p>There is no strict requirement for the contiguity of capturing groups.<br />
+Compare: string - 'AAB xxx BCD xx BC', to mark groups AB and BC</p>
+<ul>
+<li>in <code>/(AB)\b.+?\b(BC)/g</code> the indexOf('BC', start) find first 'BC', which is correct</li>
+<li>in <code>/(AB)\b(.+?)\b(BC)(?!D)/g</code> the indexOf('BC', start) also find first 'BC', which is wrong, because of condition '(?!D)', so group 2 is required.</li>
+</ul>
+<p>Warning: related using RegExp without the <code>d</code> flag:</p>
+<ul>
+<li>Do not add a capturing group(s) to lookbehind assertion <code>(?&lt;=)</code>, there is no code which handles such cases.</li>
+<li>With <code>acrossElements</code> option, it is not possible to highlight a capturing group(s) inside a lookahead assertion <code>(?=)</code>.</li>
+</ul>
+<p>See <a href="markRegExp-method.html#markRegExp-filter">markRegExp() method</a> about <code>info</code> object properties used in <code>filter</code> and <code>each</code> callbacks.<br />
+How to filter matches see <a href="filtering-matches.html">Filtering matches</a>.<br />
+How to highlight nesting groups see <a href="nesting-overlapping.html">Nesting groups</a>.</p>
+<h4 id="filtering-capturing-groups">Filtering capturing groups:</h4>
+<pre><code class="language-js"><span class="copy-code"></span>instance.markRegExp(<span class="jreg">/(AB)\b(.+)\b(?&lt;gr3&gt;CD)?(.+)(EF)\b/gi</span>, {
+    <span class="com">// 'acrossElements' : true,</span>
+    <span class="str">'separateGroups'</span> : <span class="kwd">true</span>,
+    <span class="str">'filter'</span> : (textNode, matchString, marksSoFar, info) =&gt; {
+        <span class="com">// To filter any group use info.groupIndex - a current group index
+        // Note: if a group lays across several elements, the index be the same while a group is wrapping</span>
+        <span class="kwd">if</span> (info.groupIndex === 2 || info.groupIndex === 4) <span class="kwd">return</span> <span class="kwd">false</span>;
+
+        <span class="com">// also can be used a group content
+       // if (matchString === 'AB') return  false;</span>
+
+        <span class="com">// To filter a whole match on a group presence
+        // Note: it iterates through all groups and only then returns</span>
+        <span class="kwd">if</span> (info.match[3]) <span class="kwd">return</span> <span class="kwd">true</span>/<span class="kwd">false</span>;
+        <span class="com">// or
+        // also can be used a named capturing group</span>
+        <span class="kwd">if</span> (info.match.groups.gr3) <span class="kwd">return</span>  <span class="kwd">true</span>/<span class="kwd">false</span>;
+
+        <span class="kwd">return</span>  <span class="kwd">true</span>;
+    },
+});</code></pre>
+<h4 id="example-to-mark-separate-groups-with-acrosselements-option">Example to mark separate groups with <code>acrossElements</code> option:</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> groupCount = 0, gr1Count = 0, gr2Count = 0;
+
+instance.markRegExp(<span class="jreg">/(AB)\b.+?\b(CD)/gi</span>, {
+    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
+    <span class="str">'separateGroups'</span> : <span class="kwd">true</span>,
+    <span class="str">'each'</span> : (markElement, info) =&gt; {
+        <span class="com">// info.count - matches count so far</span>
+        
+        <span class="com">// if start of match group</span>
+        <span class="kwd">if</span> (info.groupStart) {
+            <span class="com">// all group count</span>
+            groupCount++;
+            
+            <span class="com">// info.groupIndex is the index of a current match group</span>
+            <span class="kwd">if</span> (info.groupIndex === 1) {
+                markElement.className = <span class="str">'group1-1'</span>;
+                gr1Count++;
+
+            } <span class="kwd">else</span> <span class="kwd">if</span> (info.groupIndex === 2) {
+                markElement.className = <span class="str">'group2-1'</span>;
+                gr2Count++;
+            }
+        }
+    }
+});</code></pre>
+<h4 id="example-to-mark-separate-groups-without-acrosselements-option">Example to mark separate groups without <code>acrossElements</code> option:</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0, gr1Count = 0;
+
+instance.markRegExp(<span class="jreg">/(AB).+?(CD)/gi</span>, {
+    <span class="str">'separateGroups'</span> : <span class="kwd">true</span>,
+    <span class="str">'each'</span> : (markElement, info) =&gt; {
+        <span class="com">// all group count</span>
+        count++;
+        
+        <span class="kwd">if</span> (info.groupIndex === 1) {
+            <span class="com">// an individual group count</span>
+            gr1Count++;
+        }
+    }
+});</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> Version 1</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

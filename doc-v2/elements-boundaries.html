@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>Elements boundaries</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="elements-boundaries">Elements boundaries</h2>
+<p><strong>Note</strong> that using a <code>blockElementsBoundary</code> option only makes sense with <code>acrossElements</code> option when highlighting phrases, or RegExp capturing groups, or using a wildcards character <code>*</code> with <code><a href="mark-method.html#mark-wildcards">wildcards</a> : 'withSpaces'</code> option (can match multiple words).</p>
+<p>This, how library aggregates all context(s) text node contents into a single string with <code>blockElementsBoundary: true</code> option:
+if a block element 'divides' two text nodes, <code>\x01</code> character with spaces (it depends) is added between them,<br />
+e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Header \x01 Paragraph'.</p>
+<p>With different values the option allows matches across all HTML elements:</p>
+<ul>
+<li><code>blockElementsBoundary: true</code> except default block elements</li>
+<li><code>blockElementsBoundary: { tagNames: [..] }</code> except custom element(s)</li>
+<li><code>blockElementsBoundary: { tagNames: [..], extend : true }</code> except default block elements and custom element(s)</li>
+</ul>
+<h4 id="boundary-object">Boundary object:</h4>
+<ul>
+<li><code>tagNames</code> {string[]} - An array of custom tag names. (default is <code>undefined</code>)</li>
+<li><code>extend</code> {boolean} - Whether to extend default block elements with custom elements (<code>true</code>) or to make only custom elements have boundaries. (default is <code>false</code>)</li>
+<li><code>char</code> {string} - A custom boundary char. (default is <code>\x01</code>)</li>
+</ul>
+<h3 id="example">Example:</h3>
+<pre><code class="language-js"><span class="copy-code"></span>instance.mark(<span class="str">'lorem ipsum dolor'</span>, {
+    <span class="str">'separateWordSearch'</span> : <span class="kwd">false</span>,
+    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
+    <span class="str">'blockElementsBoundary'</span> : <span class="kwd">true</span>
+    <span class="com">// or</span>
+    <span class="str">'blockElementsBoundary'</span> : {
+        <span class="com">// only these custom elements have boundaries</span>
+        <span class="str">'tagNames'</span> : [<span class="str">'div'</span>, <span class="str">'p'</span>, <span class="str">'h1'</span>, <span class="str">'h2'</span>],  <span class="com">// optional</span>
+        <span class="com">// custom boundary char, default is '\x01'</span>
+        <span class="str">'char'</span> : <span class="str">'.'</span>   <span class="com">// optional</span>
+    }
+});</code></pre>
+<h3 id="extending-default-block-elements-with-custom-elements">Extending default block elements with custom elements:</h3>
+<pre><code class="language-js"><span class="copy-code"></span>instance.markRegExp(<span class="jreg">/.../gi</span>, {
+    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
+    <span class="str">'blockElementsBoundary'</span> : {
+        <span class="com">// custom elements are added to the default block elements</span>
+        <span class="str">'tagNames'</span> : [<span class="str">'tab-container'</span>, <span class="str">'custom-tag'</span>],
+        <span class="str">'extend'</span> : <span class="kwd">true</span>
+    }
+});</code></pre>
+<p>The default elements are:</p>
+<blockquote>
+<p>address, area, article, aside, audio, blockquote, body, br, button, canvas, dd, details, div, dl, dt,
+fieldset, figcaption, figure, footer, form, h1, h2, h3, h4, h5, h6, header, hr, iframe, img, input,
+label, li, main, map, menu, menuitem, meter, nav, object, ol, output, p, picture, pre, section,
+select, svg, table, tbody, td, textarea, tfoot, th, thead, tr, track, ul, video</p>
+</blockquote>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

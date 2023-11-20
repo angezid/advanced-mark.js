@@ -1,0 +1,2003 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>Mark class</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h1 id="mark-class">Mark class</h1>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">import</span> DOMIterator from <span class="str">'./domiterator'</span>;
+<span class="kwd">import</span> RegExpCreator from <span class="str">'./regexpcreator'</span>;
+
+<span class="doc">/**
+ * Marks search terms in DOM elements
+ * @</span><span class="dtag">example</span><span class="doc">
+ * new Mark(document.querySelector('.context')).mark('lorem ipsum');
+ * @</span><span class="dtag">example</span><span class="doc">
+ * new Mark(document.querySelector('.context')).markRegExp(/lorem/gmi);
+ * @</span><span class="dtag">example</span><span class="doc">
+ * new Mark('.context').markRanges([{start:10,length:0}]);
+ */</span>
+<span class="kwd">class</span> Mark {
+
+  <span class="doc">/**
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement|HTMLElement[]|NodeList|string} ctx - The context DOM
+   * element, an array of DOM elements, a NodeList or a selector
+   */</span>
+  constructor(ctx) {
+    <span class="doc">/**
+     * The context of the instance. Either a DOM element, an array of DOM
+     * elements, a NodeList or a selector
+     * @</span><span class="dtag">type</span><span class="doc"> {HTMLElement|HTMLElement[]|NodeList|string}
+     * @</span><span class="dtag">access</span><span class="doc"> protected
+     */</span>
+    <span class="kwd">this</span>.ctx = ctx;
+    <span class="doc">/**
+     * The array of node names which must be excluded from search
+     * @</span><span class="dtag">type</span><span class="doc"> {array}
+     * @</span><span class="dtag">access</span><span class="doc"> protected
+     */</span>
+    <span class="kwd">this</span>.nodeNames = [<span class="str">'script'</span>, <span class="str">'style'</span>, <span class="str">'title'</span>, <span class="str">'head'</span>, <span class="str">'html'</span>];
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~commonOptions
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {object} [window] - A window object
+   * @</span><span class="dtag">property</span><span class="doc"> {string} [element="mark"] - HTML element tag name
+   * @</span><span class="dtag">property</span><span class="doc"> {string} [className] - An optional class name
+   * @</span><span class="dtag">property</span><span class="doc"> {string[]} [exclude] - An array with exclusion selectors.
+   * Elements matching those selectors will be ignored
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [iframes=false] - Whether to search inside iframes
+   * @</span><span class="dtag">property</span><span class="doc"> {number} [iframesTimeout=5000] - Maximum ms to wait for a load
+   * event of an iframe
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [acrossElements=false] - Whether to find matches across HTML elements.
+   * By default, only matches within single HTML elements will be found
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markEachCallback} [each]
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markNoMatchCallback} [noMatch]
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~commonDoneCallback} [done]
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [debug=false] - Whether to log messages
+   * @</span><span class="dtag">property</span><span class="doc"> {object} [log=window.console] - Where to log messages (only if debug is true)
+   */</span>
+
+  <span class="doc">/**
+   * Options defined by the user. They will be initialized from one of the
+   * public methods. See {@link Mark#mark}, {@link Mark#markRegExp},
+   * {@link Mark#markRanges} and {@link Mark#unmark} for option properties.
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">param</span><span class="doc"> {object} [val] - An object that will be merged with defaults
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  set opt(val) {
+    <span class="kwd">if</span> ( !(val &amp;&amp; val.window &amp;&amp; val.window.document) &amp;&amp; <span class="kwd">typeof</span> window === <span class="str">'undefined'</span>) {
+      <span class="kwd">throw</span> <span class="kwd">new</span> Error(<span class="str">'Mark.js: please provide a window object as an option.'</span>);
+    }
+
+    <span class="kwd">const</span> win = val &amp;&amp; val.window || window;
+
+    <span class="kwd">this</span>._opt = Object.assign({}, {
+      <span class="str">'window'</span>: win,
+      <span class="str">'element'</span>: <span class="str">''</span>,
+      <span class="str">'className'</span>: <span class="str">''</span>,
+      <span class="str">'exclude'</span>: [],
+      <span class="str">'iframes'</span>: <span class="kwd">false</span>,
+      <span class="str">'iframesTimeout'</span>: 5000,
+      <span class="str">'separateWordSearch'</span>: <span class="kwd">true</span>,
+      <span class="str">'acrossElements'</span>: <span class="kwd">false</span>,
+      <span class="str">'ignoreGroups'</span>: 0,
+      <span class="str">'each'</span>: () =&gt; {},
+      <span class="str">'noMatch'</span>: () =&gt; {},
+      <span class="str">'filter'</span>: () =&gt; <span class="kwd">true</span>,
+      <span class="str">'done'</span>: () =&gt; {},
+      <span class="str">'debug'</span>: <span class="kwd">false</span>,
+      <span class="str">'log'</span>: win.console
+    }, val);
+
+    <span class="kwd">if</span> ( !<span class="kwd">this</span>._opt.element) {
+      <span class="kwd">this</span>._opt.element = <span class="str">'mark'</span>;
+    }
+    <span class="com">// shortens a lengthy name</span>
+    <span class="kwd">this</span>.filter = win.NodeFilter;
+    <span class="com">// this empty text node used to simplify code</span>
+    <span class="kwd">this</span>.empty = win.document.createTextNode(<span class="str">''</span>);
+  }
+
+  get opt() {
+    <span class="kwd">return</span> <span class="kwd">this</span>._opt;
+  }
+
+  <span class="doc">/**
+   * An instance of DOMIterator
+   * @</span><span class="dtag">type</span><span class="doc"> {DOMIterator}
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  get iterator() {
+    <span class="com">// always return new instance in case there were option changes</span>
+    <span class="kwd">return</span> <span class="kwd">new</span> DOMIterator(<span class="kwd">this</span>.ctx, <span class="kwd">this</span>.opt);
+  }
+
+  <span class="doc">/**
+   * Logs a message if log is enabled
+   * @</span><span class="dtag">param</span><span class="doc"> {string} msg - The message to log
+   * @</span><span class="dtag">param</span><span class="doc"> {string} [level="debug"] - The log level, e.g. &lt;code&gt;warn&lt;/code&gt;
+   * &lt;code&gt;error&lt;/code&gt;, &lt;code&gt;debug&lt;/code&gt;
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  log(msg, level = <span class="str">'debug'</span>) {
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.debug) {
+      <span class="kwd">const</span> log = <span class="kwd">this</span>.opt.log;
+      <span class="kwd">if</span> (<span class="kwd">typeof</span> log === <span class="str">'object'</span> &amp;&amp; <span class="kwd">typeof</span> log[level] === <span class="str">'function'</span>) {
+        log[level](<span class="str">`mark.js: $</span>{msg}<span class="str">`</span>);
+      }
+    }
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~logObject
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {string} message - The message
+   * @</span><span class="dtag">property</span><span class="doc"> {object} obj - The object
+   */</span>
+
+  <span class="doc">/**
+   * Logs errors and info
+   * @</span><span class="dtag">param</span><span class="doc"> {array} array - The array of objects
+   */</span>
+  report(array) {
+    array.forEach(item =&gt; {
+      <span class="kwd">this</span>.log(<span class="str">`$</span>{item.text}<span class="str"> $</span>{JSON.stringify(item.obj)}<span class="str">`</span>, item.level || <span class="str">'debug'</span>);
+      <span class="kwd">if</span> ( !item.skip) {
+        <span class="kwd">this</span>.opt.noMatch(item.obj);
+      }
+    });
+  }
+
+  <span class="doc">/**
+   * Checks the validity of cache objects (mark instance can calls several methods with different setting
+   * of the cacheTextNodes option, which breaks the relation of the DOM nodes and cache object nodes)
+   * @</span><span class="dtag">param</span><span class="doc"> {object} [opt] - Optional options object
+   * @</span><span class="dtag">return</span><span class="doc"> {object}
+   */</span>
+  checkOption(opt, del) {
+    <span class="kwd">this</span>.opt = opt;
+    <span class="kwd">let</span> dict = <span class="kwd">this</span>.cacheDict,
+      clear = <span class="kwd">true</span>;
+
+    <span class="kwd">if</span> (dict) {
+      <span class="com">// It allows using cache object if the type and cacheTextNodes option doesn't change</span>
+      <span class="kwd">if</span> ( !del &amp;&amp; <span class="kwd">this</span>.opt.cacheTextNodes) {
+        <span class="kwd">if</span> (<span class="kwd">this</span>.opt.acrossElements) {
+          <span class="kwd">if</span> (dict.across) {
+            clear = <span class="kwd">false</span>;
+          }
+        } <span class="kwd">else</span> <span class="kwd">if</span> ( !dict.across) {
+          clear = <span class="kwd">false</span>;
+        }
+      }
+      <span class="kwd">if</span> (clear) {
+        <span class="kwd">this</span>.cacheDict = <span class="kwd">null</span>;
+      }
+    }
+  }
+
+  <span class="doc">/**
+   * Splits string into separate words if 'separateWordSearch' option has value 'true' but,
+   * if it has string value 'preserveTerms', prevents splitting terms surrounding by double quotes.
+   * Removes duplicate or empty entries and sort by the length in descending order.
+   * It also initializes termStats object.
+   * @</span><span class="dtag">param</span><span class="doc"> {string|string[]} sv - Search value, either a string or an array of strings
+   * @</span><span class="dtag">return</span><span class="doc"> {object}
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  getSeachTerms(sv) {
+    <span class="kwd">const</span> search = <span class="kwd">typeof</span> sv === <span class="str">'string'</span> ? [sv] : sv,
+      separate = <span class="kwd">this</span>.opt.separateWordSearch,
+      array = [],
+      termStats = {},
+      split = str =&gt; {
+        str.split(<span class="jreg">/ +/</span>).forEach(word =&gt; add(word));
+      },
+      add = str =&gt; {
+        <span class="kwd">if</span> (str.trim() &amp;&amp; array.indexOf(str) === -1) {
+          array.push(str);
+          <span class="com">// initializes term property</span>
+          termStats[str] = 0;
+        }
+      };
+
+    search.forEach(str =&gt; {
+      <span class="kwd">if</span> (separate) {
+        <span class="kwd">if</span> (separate === <span class="str">'preserveTerms'</span>) {
+          <span class="com">// allows highlight quoted terms no matter how many quotes it contains on each side,
+          // e.g. ' ""term"" ' or ' """"term" '</span>
+          str.split(<span class="jreg">/"("*[^"]+"*)"/</span>).forEach((term, i) =&gt; {
+            <span class="kwd">if</span> (i % 2 &gt; 0) add(term);
+            <span class="kwd">else</span> split(term);
+          });
+        } <span class="kwd">else</span> {
+          split(str);
+        }
+      } <span class="kwd">else</span> {
+        add(str);
+      }
+    });
+    array.sort((a, b) =&gt; b.length - a.length);
+    <span class="kwd">return</span> { terms : array, termStats };
+  }
+
+  <span class="doc">/**
+   * Check if a value is a number
+   * @</span><span class="dtag">param</span><span class="doc"> {number|string} value - the value to check;
+   * numeric strings allowed
+   * @</span><span class="dtag">return</span><span class="doc"> {boolean}
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  isNumeric(value) {
+    <span class="com">// http://stackoverflow.com/a/16655847/145346
+    // eslint-disable-next-line eqeqeq</span>
+    <span class="kwd">return</span> Number(parseFloat(value)) == value;
+  }
+
+  <span class="doc">/**
+   * Filters valid ranges, sorts and, if wrapAllRanges option is false, filters out nesting/overlapping ranges
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~setOfRanges} array - unprocessed raw array
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~logObject} logs - The array of logs objects
+   * @</span><span class="dtag">return</span><span class="doc"> {Mark~setOfRanges} - processed array with any invalid entries removed
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  checkRanges(array, logs, min, max) {
+    <span class="com">// a range object must have the start and length properties with numeric values
+    // [{start: 0, length: 5}, ..]</span>
+    <span class="kwd">const</span> level = <span class="str">'error'</span>;
+
+    <span class="com">// filters and sorts valid ranges</span>
+    <span class="kwd">const</span> ranges = array.filter(range =&gt; {
+      <span class="kwd">if</span> (<span class="kwd">this</span>.isNumeric(range.start) &amp;&amp; <span class="kwd">this</span>.isNumeric(range.length)) {
+        range.start = parseInt(range.start);
+        range.length = parseInt(range.length);
+
+        <span class="kwd">if</span> (range.start &gt;= min &amp;&amp; range.start &lt; max &amp;&amp; range.length &gt; 0) {
+          <span class="kwd">return</span> <span class="kwd">true</span>;
+        }
+      }
+      logs.push({ text : <span class="str">'Invalid range: '</span>, obj : range, level });
+      <span class="kwd">return</span> <span class="kwd">false</span>;
+    }).sort((a, b) =&gt; a.start - b.start);
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.wrapAllRanges) {
+      <span class="kwd">return</span> ranges;
+    }
+
+    <span class="kwd">let</span> lastIndex = 0, index;
+    <span class="com">// filters out nesting/overlapping ranges</span>
+    <span class="kwd">return</span> ranges.filter(range =&gt; {
+      index = range.start + range.length;
+
+      <span class="kwd">if</span> (range.start &gt;= lastIndex) {
+        lastIndex = index;
+        <span class="kwd">return</span> <span class="kwd">true</span>;
+      }
+      logs.push({ text : (index &lt; lastIndex ? <span class="str">'Nest'</span> : <span class="str">'Overlapp'</span>) + <span class="str">'ing range: '</span>, obj : range, level });
+      <span class="kwd">return</span> <span class="kwd">false</span>;
+    });
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~blockElementsBoundaryObject
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {array} [tagNames] - The array of custom tag names
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [extend] - Whether to extend the default boundary elements with custom elements
+   * or set only custom elements to boundary type
+   * @</span><span class="dtag">property</span><span class="doc"> {string} [char] - The custom separating char
+   */</span>
+  <span class="doc">/**
+  * Sets type: 1 - separate by space, 2 - separate by boundary char with space(s)
+  * @</span><span class="dtag">param</span><span class="doc"> {object} tags - The object containing HTML element tag names
+  */</span>
+  setType(tags, boundary) {
+    <span class="kwd">const</span> custom = Array.isArray(boundary.tagNames) &amp;&amp; boundary.tagNames.length;
+
+    <span class="kwd">if</span> (custom) {
+      <span class="com">// normalizes custom elements names and adds to the tags object with boundary type value</span>
+      boundary.tagNames.forEach(name =&gt; tags[name.toLowerCase()] = 2);
+    }
+    <span class="com">// if not extend, the only custom tag names are set to a boundary type</span>
+    <span class="kwd">if</span> ( !custom || boundary.extend) {
+      <span class="com">// sets all tags value to the boundary</span>
+      <span class="kwd">for</span> (<span class="kwd">const</span> key <span class="kwd">in</span> tags) {
+        tags[key] = 2;
+      }
+    }
+    tags[<span class="str">'br'</span>] = 3;
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~nodeInfoAcross
+   * @</span><span class="dtag">property</span><span class="doc"> {Text} node - The DOM text node
+   * @</span><span class="dtag">property</span><span class="doc"> {number} start - The start index within the composite string
+   * @</span><span class="dtag">property</span><span class="doc"> {number} end - The end index within the composite string
+   * @</span><span class="dtag">property</span><span class="doc"> {number} offset - The offset is used to correct position if space or string
+   * was added to end of composite string after this node textContent
+   * @</span><span class="dtag">property</span><span class="doc"> {number} startOffset - The sum of all offsets that were added
+   * to the composite string before this node. It has a negative value.
+   */</span>
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~getTextNodesAcrossDict
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {string} text - The composite string of all text nodes
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~nodeInfoAcross[]} nodes - An array of node info objects
+   * @</span><span class="dtag">property</span><span class="doc"> {number} lastIndex - The property used to store the nodes last index
+   * @</span><span class="dtag">property</span><span class="doc"> {number} lastTextIndex - The property used to store the composite string last index
+   */</span>
+
+  <span class="doc">/**
+   * Callback
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~getTextNodesAcrossCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~getTextNodesAcrossDict}
+   */</span>
+  <span class="doc">/**
+   * Calls the callback with an object containing all text nodes (including iframe text nodes)
+   * with start and end positions and the composite value of them (string)
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~getTextNodesAcrossCallback} cb - Callback
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  getTextNodesAcross(cb) {
+    <span class="com">// uses cache dict if it's already built</span>
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.cacheTextNodes &amp;&amp; <span class="kwd">this</span>.cacheDict) {
+      <span class="com">// it's only requires reset two indexes</span>
+      <span class="kwd">this</span>.cacheDict.lastIndex = 0;
+      <span class="kwd">this</span>.cacheDict.lastTextIndex = 0;
+
+      cb(<span class="kwd">this</span>.cacheDict);
+      <span class="kwd">return</span>;
+    }
+
+    <span class="com">// a space or string can be safely added to the end of a text node when two text nodes
+    // are 'separated' by element with one of these names</span>
+    <span class="kwd">const</span> tags = { div : 1, p : 1, li : 1, td : 1, tr : 1, th : 1, ul : 1,
+      ol : 1, dd : 1, dl : 1, dt : 1, h1 : 1, h2 : 1, h3 : 1, h4 : 1,
+      h5 : 1, h6 : 1, hr : 1, blockquote : 1, figcaption : 1, figure : 1,
+      pre : 1, table : 1, thead : 1, tbody : 1, tfoot : 1, input : 1,
+      img : 1, nav : 1, details : 1, label : 1, form : 1, select : 1, menu : 1,
+      br : 3, menuitem : 1,
+      main : 1, section : 1, article : 1, aside : 1, picture : 1, output : 1,
+      button : 1, header : 1, footer : 1, address : 1, area : 1, canvas : 1,
+      map : 1, fieldset : 1, textarea : 1, track : 1, video : 1, audio : 1,
+      body : 1, iframe : 1, meter : 1, object : 1, svg : 1 };
+
+    <span class="kwd">const</span> nodes = [],
+      boundary = <span class="kwd">this</span>.opt.blockElementsBoundary,
+      priorityType = boundary ? 2 : 1;
+
+    <span class="kwd">let</span> ch = <span class="str">'\x01'</span>, tempType, type, prevNode;
+
+    <span class="kwd">if</span> (boundary) {
+      <span class="kwd">this</span>.setType(tags, boundary);
+
+      <span class="kwd">if</span> (boundary.char) {
+        ch = boundary.char.charAt(0);
+      }
+    }
+
+    <span class="kwd">const</span> obj = {
+      text : <span class="str">''</span>, regex : <span class="jreg">/\s/</span>, tags : tags,
+      boundary : boundary, startOffset : 0, str : <span class="str">''</span>, ch : ch
+    };
+
+    <span class="kwd">this</span>.iterator.forEachNode(<span class="kwd">this</span>.filter.SHOW_ELEMENT | <span class="kwd">this</span>.filter.SHOW_TEXT, node =&gt; { <span class="com">// each</span>
+      <span class="kwd">if</span> (prevNode) {
+        nodes.push(<span class="kwd">this</span>.getNodeInfo(prevNode, node, type, obj));
+      }
+      type = <span class="kwd">null</span>;
+      prevNode = node;
+
+    }, node =&gt; { <span class="com">// filter</span>
+      <span class="kwd">if</span> (node.nodeType === 1) { <span class="com">// element</span>
+        tempType = tags[node.nodeName.toLowerCase()];
+
+        <span class="kwd">if</span> (tempType === 3) { <span class="com">// br element</span>
+          obj.str += <span class="str">'\n'</span>;
+        }
+
+        <span class="kwd">if</span> ( !type || tempType === priorityType) {
+          type = tempType;
+        }
+        <span class="kwd">return</span> <span class="kwd">false</span>;
+      }
+      <span class="kwd">return</span> !<span class="kwd">this</span>.excluded(node.parentNode);
+
+    }, () =&gt; { <span class="com">// done</span>
+      <span class="com">// processes the last node</span>
+      <span class="kwd">if</span> (prevNode) {
+        nodes.push(<span class="kwd">this</span>.getNodeInfo(prevNode, <span class="kwd">null</span>, type, obj));
+      }
+      cb(<span class="kwd">this</span>.createDict(obj.text, nodes, <span class="kwd">true</span>));
+    });
+  }
+
+  <span class="doc">/**
+   * Creates object
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} prevNode - The previous DOM text node
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The current DOM text node
+   * @</span><span class="dtag">param</span><span class="doc"> {number|null} type - define how to separate the previous and current text nodes textContent;
+   * type is null when nodes doesn't separated by block elements
+   * @</span><span class="dtag">param</span><span class="doc"> {object} obj - The auxiliary object to pass multiple parameters to the method
+   */</span>
+  getNodeInfo(prevNode, node, type, obj) {
+    <span class="kwd">const</span> start = obj.text.length,
+      startOffset = obj.startOffset,
+      ch = obj.ch;
+    <span class="kwd">let</span> offset = 0,
+      str = obj.str,
+      text = prevNode.textContent;
+
+    <span class="kwd">if</span> (node) {
+      <span class="kwd">const</span> startBySpace = obj.regex.test(node.textContent[0]),
+        both = startBySpace &amp;&amp; obj.regex.test(text[text.length - 1]);
+
+      <span class="kwd">if</span> (obj.boundary || !both) {
+        <span class="kwd">let</span> separate = type;
+        <span class="com">// searches for the first parent of the previous text node that met condition
+        // and checks does they have the same parent or the parent contains the current text node</span>
+        <span class="kwd">if</span> (!type) {
+          <span class="kwd">let</span> parent = prevNode.parentNode;
+          <span class="kwd">while</span> (parent) {
+            type = obj.tags[parent.nodeName.toLowerCase()];
+            <span class="kwd">if</span> (type) {
+              separate = !(parent === node.parentNode || parent.contains(node));
+              <span class="kwd">break</span>;
+            }
+            parent = parent.parentNode;
+          }
+        }
+
+        <span class="kwd">if</span> (separate) {
+          <span class="kwd">if</span> ( !both) {
+            str += type === 1 ? <span class="str">' '</span> : type === 2 ? <span class="str">' '</span> + ch + <span class="str">' '</span> : <span class="str">''</span>;
+
+          } <span class="kwd">else</span> <span class="kwd">if</span> (type === 2) {
+            str += both ? ch : startBySpace ? <span class="str">' '</span> + ch : ch + <span class="str">' '</span>;
+          }
+        }
+      }
+    }
+
+    <span class="kwd">if</span> (str) {
+      text += str;
+      offset = str.length;
+      obj.startOffset -= offset;
+      obj.str = <span class="str">''</span>;
+    }
+    obj.text += text;
+
+    <span class="kwd">return</span> <span class="kwd">this</span>.createInfo(prevNode, start, obj.text.length - offset, offset, startOffset);
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~nodeInfo
+   * @</span><span class="dtag">property</span><span class="doc"> {Text} node - The DOM text node
+   * @</span><span class="dtag">property</span><span class="doc"> {number} start - The start index within the composite string
+   * @</span><span class="dtag">property</span><span class="doc"> {number} end - The end index within the composite string
+   * @</span><span class="dtag">property</span><span class="doc"> {number} offset - This property is required for compatibility with [Mark~nodeInfoAcross]
+   * for {@link Mark#markRanges}
+   */</span>
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~getTextNodesDict
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {string} text - The composite value of all text nodes
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~nodeInfo[]} nodes - The array of objects
+   * @</span><span class="dtag">property</span><span class="doc"> {number} lastIndex - The property used to store the nodes the last index
+   * @</span><span class="dtag">property</span><span class="doc"> {number} lastTextIndex - This property is required for compatibility with [Mark~getTextNodesAcrossDict]
+   * for {@link Mark#markRanges}
+   */</span>
+
+  <span class="doc">/**
+   * Callback
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~getTextNodesCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~getTextNodesDict}
+   */</span>
+  <span class="doc">/**
+   * Calls the callback with an object containing all text nodes (including iframe text nodes)
+   * with start and end positions and the composite value of them (string)
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~getTextNodesCallback} cb - Callback
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  getTextNodes(cb) {
+    <span class="com">// uses cache cacheDict if it's already built</span>
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.cacheTextNodes &amp;&amp; <span class="kwd">this</span>.cacheDict) {
+      cb(<span class="kwd">this</span>.cacheDict);
+      <span class="kwd">return</span>;
+    }
+
+    <span class="kwd">const</span> nodes = [],
+      regex = <span class="jreg">/\n/g</span>,
+      newLines = [0],
+      lines = <span class="kwd">this</span>.opt.markLines,
+      show = <span class="kwd">this</span>.filter.SHOW_TEXT | (lines ? <span class="kwd">this</span>.filter.SHOW_ELEMENT : 0);
+    <span class="kwd">let</span> text = <span class="str">''</span>,
+      len = 0,
+      rm;
+
+    <span class="kwd">this</span>.iterator.forEachNode(show, node =&gt; { <span class="com">// each</span>
+      <span class="kwd">if</span> (lines) {
+        <span class="kwd">while</span> ((rm = regex.exec(node.textContent)) !== <span class="kwd">null</span>) {
+          newLines.push(len + rm.index);
+        }
+      }
+      text += node.textContent;
+
+      nodes.push({
+        start : len,
+        end : (len = text.length),
+        offset : 0,
+        node : node
+      });
+
+    }, node =&gt; { <span class="com">// filter</span>
+      <span class="kwd">if</span> (lines &amp;&amp; node.nodeType === 1) {
+        <span class="kwd">if</span> (node.tagName.toLowerCase() === <span class="str">'br'</span>) {
+          newLines.push(len);
+        }
+        <span class="kwd">return</span> <span class="kwd">false</span>;
+      }
+      <span class="kwd">return</span> !<span class="kwd">this</span>.excluded(node.parentNode);
+
+    }, () =&gt; { <span class="com">// done</span>
+      <span class="kwd">const</span> dict = <span class="kwd">this</span>.createDict(text, nodes, <span class="kwd">false</span>);
+
+      <span class="kwd">if</span> (lines) {
+        newLines.push(len);
+        dict.newLines = newLines;
+      }
+      cb(dict);
+    });
+  }
+
+  <span class="doc">/**
+   * Creates dict object
+   * @</span><span class="dtag">param</span><span class="doc"> {string} text - The composite string
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~nodeInfo[]|Mark~nodeInfoAcross[]} nodes - The array of info objects
+   * @</span><span class="dtag">param</span><span class="doc"> {boolean} across - Indicate that cache dict type
+   */</span>
+  createDict(text, nodes, across) {
+    <span class="kwd">const</span> dict = {
+      text : text,
+      nodes: nodes,
+      lastIndex: 0,
+      lastTextIndex: 0
+    };
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.cacheTextNodes) {
+      <span class="kwd">this</span>.cacheDict = dict;
+      <span class="kwd">this</span>.cacheDict.across = across;
+    }
+    <span class="kwd">return</span> dict;
+  }
+
+  <span class="doc">/**
+   * Checks if an element matches any of the specified exclude selectors.
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} elem - The element to check
+   * @</span><span class="dtag">return</span><span class="doc"> {boolean}
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  excluded(elem) {
+    <span class="com">// it's faster to check if an array contains the node name than a selector in 'DOMIterator.matches()'
+    // also it allows using a string of selectors instead of an array with the 'exclude' option</span>
+    <span class="kwd">return</span> <span class="kwd">this</span>.nodeNames.indexOf(elem.nodeName.toLowerCase()) !== -1 || DOMIterator.matches(elem, <span class="kwd">this</span>.opt.exclude);
+  }
+
+  <span class="doc">/**
+   * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
+   * Creates info object(s) related to the newly created node(s) and inserts into dict.nodes or replace an existing one
+   * It doesn't create empty sibling text nodes when `Text.splitText()` method splits a text node at the start/end
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapRangeInsertDict} dict - The dictionary
+   * @</span><span class="dtag">param</span><span class="doc"> {object} n - The currently processed info object
+   * @</span><span class="dtag">param</span><span class="doc"> {number} s - The position where to start wrapping
+   * @</span><span class="dtag">param</span><span class="doc"> {number} e - The position where to end wrapping
+   * @</span><span class="dtag">param</span><span class="doc"> {number} start - The start position of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {number} index - The current index of the processed object
+   * @</span><span class="dtag">return</span><span class="doc"> {object} Returns object containing the mark element, the splitted text node
+   * that will appear after the wrapped text node, and increment number
+   */</span>
+  wrapRangeInsert(dict, n, s, e, start, index) {
+    <span class="kwd">const</span> ended = e === n.node.textContent.length,
+      end = n.end;
+    <span class="com">// type: 0 - whole text node, 1 - from the start, 2 - to the end, 3 - between</span>
+    <span class="kwd">let</span> type = 1,
+      splitIndex = e,
+      node = n.node;
+    <span class="com">// prevents creating empty sibling text nodes at the start/end of a text node</span>
+    <span class="kwd">if</span> (s !== 0) {
+      node = node.splitText(s);
+      splitIndex = e - s;
+      type = ended ? 2 : 3;
+
+    } <span class="kwd">else</span> <span class="kwd">if</span> (ended) { <span class="com">// whole</span>
+      type = 0;
+    }
+
+    <span class="kwd">const</span> retNode = ended ? <span class="kwd">this</span>.empty : node.splitText(splitIndex),
+      mark = <span class="kwd">this</span>.wrapTextNode(node),
+      markChild = mark.childNodes[0],
+      nodeInfo = <span class="kwd">this</span>.createInfo(retNode, type === 0 || type === 2 ? end : n.start + e, end, n.offset, n.startOffset);
+
+    <span class="kwd">if</span> (type === 0) {
+      n.node = markChild;
+      <span class="kwd">return</span> { mark, nodeInfo, increment : 0 };
+    }
+
+    <span class="kwd">const</span> info = <span class="kwd">this</span>.createInfo(markChild, type === 1 ? n.start : start, n.start + e, 0, n.startOffset);
+    <span class="com">// inserts new node(s) info in dict.nodes depending where a range is located in a text node</span>
+    <span class="kwd">if</span> (type === 1) {
+      dict.nodes.splice(index, 1, info, nodeInfo);
+    } <span class="kwd">else</span> {
+      <span class="kwd">if</span> (type === 2) {
+        dict.nodes.splice(index + 1, 0, info);
+      } <span class="kwd">else</span> {
+        dict.nodes.splice(index + 1, 0, info, nodeInfo);
+      }
+      n.end = start;
+      n.offset = 0;
+    }
+    <span class="kwd">return</span> { mark, nodeInfo, increment : type &lt; 3 ? 1 : 2 };
+  }
+
+  <span class="doc">/**
+   * Creates object
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The DOM text node
+   * @</span><span class="dtag">param</span><span class="doc"> {number} start - The position where to start wrapping
+   * @</span><span class="dtag">param</span><span class="doc"> {number} end - The position where to end wrapping
+   * @</span><span class="dtag">param</span><span class="doc"> {number} offset - The length of space/string that is added to end of composite string
+   * after this node textContent
+   * @</span><span class="dtag">param</span><span class="doc"> {number} startOffset - The sum of all offsets that were added before this node
+   */</span>
+  createInfo(node, start, end, offset, startOffset) {
+    <span class="kwd">return</span> { node, start, end, offset, startOffset };
+  }
+
+  <span class="doc">/**
+   * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
+   * It doesn't create empty sibling text nodes when `Text.splitText()` method splits a text node at the start/end
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The DOM text node
+   * @</span><span class="dtag">param</span><span class="doc"> {number} start - The position where to start wrapping
+   * @</span><span class="dtag">param</span><span class="doc"> {number} end - The position where to end wrapping
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapRangeEachCallback} eachCb - Each callback
+   * @</span><span class="dtag">return</span><span class="doc"> {Text}
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  wrapRange(node, start, end, eachCb) {
+    <span class="kwd">let</span> ended = end === node.textContent.length,
+      index = end,
+      retNode;
+
+    <span class="kwd">if</span> (start !== 0) {
+      node = node.splitText(start);
+      index = end - start;
+    }
+    retNode = ended ? <span class="kwd">this</span>.empty : node.splitText(index);
+
+    eachCb(<span class="kwd">this</span>.wrapTextNode(node));
+    <span class="kwd">return</span> retNode;
+  }
+
+  <span class="doc">/**
+   * Wraps the new element with the necessary attributes around text node
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The DOM text node
+   * @</span><span class="dtag">return</span><span class="doc"> {HTMLElement} Returns the created DOM node
+   */</span>
+  wrapTextNode(node) {
+    <span class="kwd">let</span> markNode = <span class="kwd">this</span>.opt.window.document.createElement(<span class="kwd">this</span>.opt.element);
+    markNode.setAttribute(<span class="str">'data-markjs'</span>, <span class="str">'true'</span>);
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.className) {
+      markNode.setAttribute(<span class="str">'class'</span>, <span class="kwd">this</span>.opt.className);
+    }
+    markNode.textContent = node.textContent;
+    node.parentNode.replaceChild(markNode, node);
+
+    <span class="kwd">return</span> markNode;
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~wrapRangeAcrossDict
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {string} text - The composite string of all text nodes
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~nodeInfoAcross[]} nodes - An array of node info objects
+   * @</span><span class="dtag">property</span><span class="doc"> {number} lastIndex - The property used to store the nodes last index
+   * @</span><span class="dtag">property</span><span class="doc"> {number} lastTextIndex - The property used to store the string last index
+   */</span>
+  <span class="doc">/**
+   * Each callback
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapRangeAcrossEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} node - The wrapped DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {boolean} rangeStart - Indicate the start of the current range
+   */</span>
+
+  <span class="doc">/**
+   * Filter callback
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapRangeAcrossFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {object} n - The current node info object of the dict.nodes
+   */</span>
+  <span class="doc">/**
+   * Determines matches by start and end positions using the text node dictionary
+   * and calls {@link Mark#wrapRange} or {@link Mark#wrapRangeInsert} to wrap them
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapRangeAcrossDict} dict - The dictionary
+   * @</span><span class="dtag">param</span><span class="doc"> {number} start - The start index of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {number} end - The end index of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapRangeAcrossFilterCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapRangeAcrossEachCallback} eachCb - Each callback
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  wrapRangeAcross(dict, start, end, filterCb, eachCb) {
+    <span class="com">// dict.lastIndex stores the last node index to avoid iteration from the beginning</span>
+    <span class="kwd">let</span> i = dict.lastIndex,
+      rangeStart = <span class="kwd">true</span>;
+    <span class="com">// 'cacheTextNodes' option must enable 'wrapAllRanges' code here</span>
+    <span class="kwd">const</span> wrapAllRanges = <span class="kwd">this</span>.opt.wrapAllRanges || <span class="kwd">this</span>.opt.cacheTextNodes;
+
+    <span class="kwd">if</span> (wrapAllRanges) {
+      <span class="com">// finds the starting index in case of nesting/overlapping</span>
+      <span class="kwd">while</span> (i &gt; 0 &amp;&amp; dict.nodes[i].start &gt; start) {
+        i--;
+      }
+
+    } <span class="kwd">else</span> <span class="kwd">if</span> (start &lt; dict.lastTextIndex) {
+      <span class="com">// case of overlapping match; can occurs with separateGroups option and capturing group inside assertion</span>
+      <span class="kwd">return</span>;
+    }
+
+    <span class="kwd">for</span> (i; i &lt; dict.nodes.length; i++) {
+      <span class="kwd">if</span> (i + 1 === dict.nodes.length || dict.nodes[i+1].start &gt; start) {
+        <span class="kwd">let</span> n = dict.nodes[i];
+
+        <span class="kwd">if</span> ( !filterCb(n)) <span class="kwd">break</span>;
+
+        <span class="com">// map range from dict.text to text node</span>
+        <span class="kwd">const</span> s = start - n.start,
+          e = (end &gt; n.end ? n.end : end) - n.start;
+
+        <span class="com">// prevents exception if something went wrong, useful for debugging purpose</span>
+        <span class="kwd">if</span> (s &gt;= 0 &amp;&amp; e &gt; s) {
+          <span class="kwd">if</span> (wrapAllRanges) {
+            <span class="kwd">const</span> obj = <span class="kwd">this</span>.wrapRangeInsert(dict, n, s, e, start, i);
+            n = obj.nodeInfo;
+            eachCb(obj.mark, rangeStart);
+
+          } <span class="kwd">else</span> {
+            n.node = <span class="kwd">this</span>.wrapRange(n.node, s, e, node =&gt; {
+              eachCb(node, rangeStart);
+            });
+            <span class="com">// sets the new text node start index in the case of subsequent matches in the same text node</span>
+            n.start += e;
+            <span class="com">// sets the last text index</span>
+            dict.lastTextIndex = n.start;
+          }
+          rangeStart = <span class="kwd">false</span>;
+        }
+
+        <span class="kwd">if</span> (end &gt; n.end) {
+          <span class="com">// the range extends to the next text node</span>
+          start = n.end + n.offset;
+        } <span class="kwd">else</span> {
+          <span class="kwd">break</span>;
+        }
+      }
+    }
+    <span class="com">// sets the last index</span>
+    dict.lastIndex = i;
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~paramsObject
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
+   * @</span><span class="dtag">property</span><span class="doc"> {array} groups - The array containing main groups indexes
+   */</span>
+
+  <span class="doc">/**
+   * Filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapGroupsFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {string} group - The current group matching string
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs
+   * @</span><span class="dtag">param</span><span class="doc"> {number} index - The current group index
+   */</span>
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapGroupsEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {number} index - The current group index
+   */</span>
+
+  <span class="doc">/**
+   * Wraps match groups
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs
+   * @</span><span class="dtag">param</span><span class="doc"> {array} match - The result of RegExp exec() method
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~paramsObject} params - The object containing two properties
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsFilterCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsEachCallback} eachCb - Each callback
+   */</span>
+  wrapGroups(node, match, params, filterCb, eachCb) {
+    <span class="kwd">let</span> startIndex = match.index,
+      isWrapped = <span class="kwd">false</span>,
+      group, start;
+
+    <span class="com">// the only way to avoid nested group being searched by the indexOf method
+    // is to parse the RegExp pattern and collect main groups indexes</span>
+    params.groups.forEach(index =&gt; {
+      group = match[index];
+
+      <span class="kwd">if</span> (group) {
+        start = node.textContent.indexOf(group, startIndex);
+
+        <span class="kwd">if</span> (start !== -1) {
+          <span class="kwd">if</span> (filterCb(node, group, index)) {
+            node = <span class="kwd">this</span>.wrapRange(node, start, start + group.length, node =&gt; {
+              eachCb(node, index);
+            });
+            <span class="com">// resets the startIndex to start searching the beginning of new text node</span>
+            startIndex = 0;
+            isWrapped = <span class="kwd">true</span>;
+
+          } <span class="kwd">else</span> {
+            <span class="com">// group is filtered out, so start next search from the group end</span>
+            startIndex = start + group.length;
+          }
+        }
+      }
+    });
+    <span class="com">// resets the lastIndex only when any of group is wrapped (to avoid infinite loop)</span>
+    <span class="kwd">if</span> (isWrapped) {
+      params.regex.lastIndex = 0;
+    }
+    <span class="kwd">return</span> node;
+  }
+
+  <span class="doc">/**
+   * Filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapGroupsAcrossFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {string} group - The current group matching string
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs or is part of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {number} index - The current group index
+   */</span>
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapGroupsAcrossEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {boolean} groupStart - Indicate the start of a group
+   * @</span><span class="dtag">param</span><span class="doc"> {number} index - The current group index
+   */</span>
+
+  <span class="doc">/**
+   * Wraps match groups across elements
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsAcrossDict} dict - The dictionary
+   * @</span><span class="dtag">param</span><span class="doc"> {array} match - The result of RegExp exec() method
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~paramsObject} params - The object containing two properties
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsAcrossFilterCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsAcrossEachCallback} eachCb - Each callback
+   */</span>
+  wrapGroupsAcross(dict, match, params, filterCb, eachCb) {
+    <span class="kwd">let</span> startIndex = 0,
+      group, start, end;
+
+    <span class="kwd">const</span> s = match.index,
+      text = match[0],
+      wrap = (start, end, index) =&gt; {
+        <span class="kwd">this</span>.wrapRangeAcross(dict, s + start, s + end, obj =&gt; {
+          <span class="kwd">return</span> filterCb(obj, text, index);
+
+        }, (node, groupStart) =&gt; {
+          eachCb(node, groupStart, index);
+        });
+      };
+
+    <span class="com">//a way to mark nesting groups, it first wraps the whole match as a group 0</span>
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.wrapAllRanges) {
+      wrap(0, text.length, 0);
+    }
+
+    <span class="com">// the only way to avoid nested group being searched by the indexOf method
+    // is to parse the RegExp pattern and collect main groups indexes</span>
+    params.groups.forEach(index =&gt; {
+      group = match[index];
+
+      <span class="kwd">if</span> (group) {
+        <span class="com">// this approach only reliable with adjacent groups; unwanted group(s) can be easily filtered out</span>
+        start = text.indexOf(group, startIndex);
+
+        <span class="kwd">if</span> (start !== -1) {
+          end = start + group.length;
+          wrap(start, end, index);
+          startIndex = end;
+        }
+      }
+    });
+  }
+
+  <span class="doc">/**
+   * Filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapGroupsDFlagFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs
+   * @</span><span class="dtag">param</span><span class="doc"> {string} group - The current group matching string
+   * @</span><span class="dtag">param</span><span class="doc"> {number} i - The current group index
+   */</span>
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapGroupsDFlagEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {number} i - The current group index
+   */</span>
+
+  <span class="doc">/**
+   * Wraps match groups with RegExp.hasIndices
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs
+   * @</span><span class="dtag">param</span><span class="doc"> {array} match - The result of RegExp exec() method
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~paramsObject} params - The object containing one property
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsDFlagCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsDFlagEachCallback} eachCb - Each callback
+   */</span>
+  wrapGroupsDFlag(node, match, params, filterCb, eachCb) {
+    <span class="kwd">let</span> lastIndex = 0,
+      offset = 0,
+      i = 0,
+      isWrapped = <span class="kwd">false</span>,
+      group, start, end = 0;
+
+    <span class="kwd">while</span> (++i &lt; match.length) {
+      group = match[i];
+
+      <span class="kwd">if</span> (group) {
+        start = match.indices[i][0];
+        <span class="com">//it prevents marking nested group - parent group is already marked</span>
+        <span class="kwd">if</span> (start &gt;= lastIndex) {
+          end = match.indices[i][1];
+
+          <span class="kwd">if</span> (filterCb(node, group, i)) {
+            <span class="com">// when a group is wrapping, a text node is split at the end index,
+            // so to correct the start &amp; end indexes of a new text node, subtract
+            // the end index of the last wrapped group (offset)</span>
+            node = <span class="kwd">this</span>.wrapRange(node, start - offset, end - offset, node =&gt; {
+              eachCb(node, i);
+            });
+
+            <span class="kwd">if</span> (end &gt; lastIndex) {
+              lastIndex = end;
+            }
+            offset = end;
+            isWrapped = <span class="kwd">true</span>;
+          }
+        }
+      }
+    }
+    <span class="com">// resets the lastIndex when at least one group is wrapped (prevents infinite loop)</span>
+    <span class="kwd">if</span> (isWrapped) {
+      params.regex.lastIndex = 0;
+
+    <span class="com">// when the match has zero length, we need to control the RegExp lastIndex</span>
+    } <span class="kwd">else</span> <span class="kwd">if</span> (match[0].length === 0) {
+      <span class="kwd">this</span>.setLastIndex(params.regex, end);
+    }
+    <span class="kwd">return</span> node;
+  }
+
+  <span class="doc">/**
+   * Filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapGroupsDFlagAcrossFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs or is part of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {string} group - The current group matching string
+   * @</span><span class="dtag">param</span><span class="doc"> {number} i - The current group index
+   */</span>
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapGroupsDFlagAcrossEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {boolean} groupStart - Indicate the start of a group
+   * @</span><span class="dtag">param</span><span class="doc"> {number} i - The current group index
+   */</span>
+
+  <span class="doc">/**
+   * Wraps match groups with RegExp.hasIndices across elements
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsDFlagAcrossDict} dict - The dictionary
+   * @</span><span class="dtag">param</span><span class="doc"> {array} match - The result of RegExp exec() method
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~paramsObject} params - The empty object
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsDFlagAcrossFilterCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapGroupsDFlagAcrossEachCallback} eachCb - Each callback
+   */</span>
+  wrapGroupsDFlagAcross(dict, match, params, filterCb, eachCb) {
+    <span class="kwd">let</span> lastIndex = 0,
+      i = 0,
+      group, start, end = 0,
+      isWrapped;
+
+    <span class="kwd">while</span> (++i &lt; match.length) {
+      group = match[i];
+
+      <span class="kwd">if</span> (group) {
+        start = match.indices[i][0];
+        <span class="com">// the wrapAllRanges option allows wrapping nested group(s),
+        // the 'start &gt;= lastIndex' prevents wrapping nested group(s) - the parent group is already wrapped</span>
+        <span class="kwd">if</span> (<span class="kwd">this</span>.opt.wrapAllRanges || start &gt;= lastIndex) {
+          end = match.indices[i][1];
+          isWrapped = <span class="kwd">false</span>;
+
+          <span class="kwd">this</span>.wrapRangeAcross(dict, start, end, obj =&gt; {
+            <span class="kwd">return</span> filterCb(obj, group, i);
+
+          }, (node, groupStart) =&gt; {
+            isWrapped = <span class="kwd">true</span>;
+            eachCb(node, groupStart, i);
+          });
+          <span class="com">// group may be filtered out</span>
+          <span class="kwd">if</span> (isWrapped &amp;&amp; end &gt; lastIndex) {
+            lastIndex = end;
+          }
+        }
+      }
+    }
+    <span class="com">// when the match has zero length, we need to control the RegExp lastIndex</span>
+    <span class="kwd">if</span> (match[0].length === 0) {
+      <span class="kwd">this</span>.setLastIndex(params.regex, end);
+    }
+  }
+
+  <span class="doc">/**
+   * When processing zero length match, there is a need to set the RegExp lastIndex depending on conditions.
+   * It's necessary to avoid infinite loop and set position from which to start the next match
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
+   * @</span><span class="dtag">param</span><span class="doc"> {number} end - The end index of the last processed group
+   */</span>
+  setLastIndex(regex, end) {
+    <span class="kwd">const</span> index = regex.lastIndex;
+    <span class="com">// end &gt; index - case when a capturing group is inside positive lookahead assertion
+    // end &gt; 0 - case when a match is filtered out or a capturing group is inside positive lookbehind assertion</span>
+    regex.lastIndex = end &gt; index ? end : end &gt; 0 ? index + 1 : Infinity;
+  }
+
+  <span class="doc">/**
+   * Parses the RegExp pattern and collects main groups (children of the group[0]) indexes
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
+   * @</span><span class="dtag">return</span><span class="doc"> {array} groups - The array containing main groups indexes
+   */</span>
+  collectGroupIndexes(regex) {
+    <span class="kwd">let</span> groups = [], stack = [],
+      index = 0, brackets = 0,
+      str = regex.source, rm,
+      <span class="com">// any escaped char | charSet | start of a capturing groups '(?&lt;, (' | rest open parentheses | close parenthesis</span>
+      reg = <span class="jreg">/(?:\\.)+|\[(?:[^\\\]]|(?:\\.))+\]|(\(\?&lt;(?![=!])|\((?!\?))|(\()|(\))/g</span>;
+
+    <span class="kwd">while</span> ((rm = reg.exec(str)) !== <span class="kwd">null</span>) {
+      <span class="kwd">if</span> (rm[1]) { <span class="com">// the start of a capturing group</span>
+        stack.push(1);
+        index++;
+
+        <span class="kwd">if</span> (brackets++ === 0) {
+          groups.push(index);
+        }
+      } <span class="kwd">else</span> <span class="kwd">if</span> (rm[2]) { <span class="com">// an open parenthesis</span>
+        stack.push(0);
+
+      } <span class="kwd">else</span> <span class="kwd">if</span> (rm[3] &amp;&amp; stack.pop()) { <span class="com">// a close parenthesis</span>
+        brackets--;
+      }
+    }
+    <span class="kwd">return</span> groups;
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~filterInfoObject
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {array} match - The result of RegExp exec() method
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} matchStart - Indicate the start of match. It's only available
+   * with the 'acrossElements' option
+   * @</span><span class="dtag">property</span><span class="doc"> {number} groupIndex - The group index. It's only available
+   * with 'separateGroups' option
+   * @</span><span class="dtag">property</span><span class="doc"> {object} execution - The helper object for early abort. Contains
+   * boolean 'abort' property.
+   * @</span><span class="dtag">property</span><span class="doc"> {number} offset - With the 'acrossElements' option: the length
+   * of spaces/strings that were added to the composite string so far.
+   * Without this option: the absolute start index of a text node in joined contexts.
+   * It is necessary to translate the local node indexes to the absolute ones.
+   */</span>
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~eachInfoObject
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {array} match - The result of RegExp exec() method
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} matchStart - Indicate the start of match. It's only available
+   * with the 'acrossElements' option
+   * @</span><span class="dtag">property</span><span class="doc"> {number} count - The current number of matches
+   * @</span><span class="dtag">property</span><span class="doc"> {number} groupIndex - The index of current match group. It's only
+   * available with 'separateGroups' option
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} groupStart - Indicate the start of group. It's only
+   * available with both 'acrossElements' and 'separateGroups' options
+   */</span>
+
+  <span class="doc">/**
+   * Group filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapSeparateGroupsFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs
+   * @</span><span class="dtag">param</span><span class="doc"> {string} group - The matching string of the current group
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~filterInfoObject} info - The object containing the match information
+   */</span>
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapSeparateGroupsEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~eachInfoObject} - The object containing the match information
+   */</span>
+  <span class="doc">/**
+   * Callback on end
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapSeparateGroupsEndCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {number} count - The number of matches
+   */</span>
+
+  <span class="doc">/**
+   * Wraps match capturing groups
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
+   * @</span><span class="dtag">param</span><span class="doc"> {number} unused
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapSeparateGroupsFilterCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapSeparateGroupsEachCallback} eachCb - Each callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapSeparateGroupsEndCallback} endCb
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  wrapSeparateGroups(regex, unused, filterCb, eachCb, endCb) {
+    <span class="kwd">const</span> hasIndices = regex.hasIndices,
+      fn = hasIndices ? <span class="str">'wrapGroupsDFlag'</span> : <span class="str">'wrapGroups'</span>,
+      params = {
+        regex : regex,
+        groups : hasIndices ? {} : <span class="kwd">this</span>.collectGroupIndexes(regex)
+      },
+      execution = { abort : <span class="kwd">false</span> },
+      info = { execution : execution };
+
+    <span class="kwd">let</span> node, match, filterStart, eachStart, count = 0;
+
+    <span class="kwd">this</span>.getTextNodes(dict =&gt; {
+      dict.nodes.every(obj =&gt; {
+        node = obj.node;
+        info.offset = obj.start;
+
+        <span class="kwd">while</span> ((match = regex.exec(node.textContent)) !== <span class="kwd">null</span> &amp;&amp; (hasIndices || match[0] !== <span class="str">''</span>)) {
+          info.match = match;
+          filterStart = eachStart = <span class="kwd">true</span>;
+
+          node = <span class="kwd">this</span>[fn](node, match, params, (node, group, grIndex) =&gt; { <span class="com">// filter</span>
+            info.matchStart = filterStart;
+            info.groupIndex = grIndex;
+            filterStart = <span class="kwd">false</span>;
+            <span class="kwd">return</span> filterCb(node, group, info);
+
+          }, (node, grIndex) =&gt; { <span class="com">// each</span>
+            <span class="kwd">if</span> (eachStart) {
+              count++;
+            }
+            eachCb(node, {
+              match : match,
+              matchStart : eachStart,
+              count : count,
+              groupIndex : grIndex,
+            });
+            eachStart = <span class="kwd">false</span>;
+          });
+
+          <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+        }
+        <span class="com">// breaks loop on custom abort</span>
+        <span class="kwd">return</span> !execution.abort;
+      });
+      endCb(count);
+    });
+  }
+
+  <span class="doc">/**
+   * Filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapSeparateGroupsAcrossFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs or is part of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {string} group - The matching string of the current group
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~filterInfoObject} info - The object containing the match information
+   */</span>
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapSeparateGroupsAcrossEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} node - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~eachInfoObject} - The object containing the match information
+   */</span>
+  <span class="doc">/**
+   * Callback on end
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapSeparateGroupsAcrossEndCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {number} count - The number of all matches
+   */</span>
+  <span class="doc">/**
+   * Wraps match capturing groups across elements
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
+   * @</span><span class="dtag">param</span><span class="doc"> {number} unused
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapSeparateGroupsAcrossFilterCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapSeparateGroupsAcrossEachCallback} eachCb - Each callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapSeparateGroupsAcrossEndCallback} endCb
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  wrapSeparateGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
+    <span class="kwd">const</span> hasIndices = regex.hasIndices,
+      fn = hasIndices ? <span class="str">'wrapGroupsDFlagAcross'</span> : <span class="str">'wrapGroupsAcross'</span>,
+      params = {
+        regex : regex,
+        groups : hasIndices ? {} : <span class="kwd">this</span>.collectGroupIndexes(regex)
+      },
+      execution = { abort : <span class="kwd">false</span> },
+      info = { execution : execution };
+
+    <span class="kwd">let</span> match, filterStart, eachStart, count = 0;
+
+    <span class="kwd">this</span>.getTextNodesAcross(dict =&gt; {
+      <span class="kwd">while</span> ((match = regex.exec(dict.text)) !== <span class="kwd">null</span> &amp;&amp; (hasIndices || match[0] !== <span class="str">''</span>)) {
+        info.match = match;
+        filterStart = eachStart = <span class="kwd">true</span>;
+
+        <span class="kwd">this</span>[fn](dict, match, params, (obj, group, grIndex) =&gt; { <span class="com">// filter</span>
+          info.matchStart = filterStart;
+          info.groupIndex = grIndex;
+          info.offset = obj.startOffset;
+          filterStart = <span class="kwd">false</span>;
+          <span class="kwd">return</span> filterCb(obj.node, group, info);
+
+        }, (node, groupStart, grIndex) =&gt; { <span class="com">// each</span>
+          <span class="kwd">if</span> (eachStart) {
+            count++;
+          }
+          eachCb(node, {
+            match : match,
+            matchStart : eachStart,
+            count : count,
+            groupIndex : grIndex,
+            groupStart : groupStart,
+          });
+          eachStart = <span class="kwd">false</span>;
+        });
+
+        <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+      }
+      endCb(count);
+    });
+  }
+
+  <span class="doc">/**
+   * Filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapMatchesFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The matching string
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~filterInfoObject} filterInfo - The object containing the match information
+   */</span>
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapMatchesEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~eachInfoObject} eachInfo - The object containing the match information
+   */</span>
+  <span class="doc">/**
+   * Callback on end
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapMatchesEndCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {number} count - The number of all matches
+   */</span>
+
+  <span class="doc">/**
+   * Wraps the instance element and class around matches within single HTML elements in all contexts
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
+   * @</span><span class="dtag">param</span><span class="doc"> {number} ignoreGroups - A number of RegExp capturing groups to ignore from the beginning of a match
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapMatchesFilterCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapMatchesEachCallback} eachCb - Each callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapMatchesEndCallback} endCb
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  wrapMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
+    <span class="kwd">const</span> index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
+      execution = { abort : <span class="kwd">false</span> },
+      filterInfo = { execution : execution };
+
+    <span class="kwd">let</span> info, node, match, str, count = 0;
+
+    <span class="kwd">this</span>.getTextNodes(dict =&gt; {
+      <span class="kwd">for</span> (<span class="kwd">let</span> k = 0; k &lt; dict.nodes.length; k++) {
+        info = dict.nodes[k];
+        node = info.node;
+
+        <span class="kwd">while</span> ((match = regex.exec(node.textContent)) !== <span class="kwd">null</span> &amp;&amp; (str = match[index]) !== <span class="str">''</span>) {
+          filterInfo.match = match;
+          filterInfo.offset = info.start;
+
+          <span class="kwd">if</span> ( !filterCb(node, str, filterInfo)) {
+            <span class="kwd">continue</span>;
+          }
+          <span class="com">// calculates the start index inside node.textContent</span>
+          <span class="kwd">let</span> i = 0, start = match.index;
+          <span class="kwd">while</span> (++i &lt; index) {
+            <span class="kwd">if</span> (match[i]) { <span class="com">// allows any ignore group to be undefined</span>
+              start += match[i].length;
+            }
+          }
+          <span class="kwd">const</span> end = start + str.length;
+
+          <span class="kwd">if</span> (<span class="kwd">this</span>.opt.cacheTextNodes) {
+            <span class="kwd">const</span> obj = <span class="kwd">this</span>.wrapRangeInsert(dict, info, start, end, info.start + start, k);
+            eachCb(obj.mark, {
+              match : match,
+              count : ++count,
+            });
+
+            <span class="com">// matches the whole text node</span>
+            <span class="kwd">if</span> (obj.increment === 0) <span class="kwd">break</span>;
+
+            <span class="com">// corrects the current index because new info object(s) were inserted into dict.nodes</span>
+            k += obj.increment;
+            info = obj.nodeInfo;
+            node = info.node;
+
+          } <span class="kwd">else</span> {
+            node = <span class="kwd">this</span>.wrapRange(node, start, end, node =&gt; {
+              eachCb(node, {
+                match : match,
+                count : ++count
+              });
+            });
+          }
+          <span class="com">// with 'g' flag the lastIndex is required resetting; without 'g' flag it resets internally.</span>
+          regex.lastIndex = 0;
+
+          <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+        }
+        <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+      }
+      endCb(count);
+    });
+  }
+
+  <span class="doc">/**
+   * Filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapMatchesAcrossFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node where the match occurs or is part of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The matching string
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~filterInfoObject} filterInfo - The object containing the match information
+   */</span>
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapMatchesAcrossEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~eachInfoObject} - The object containing the match information
+   */</span>
+
+  <span class="doc">/**
+   * Callback on end
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapMatchesAcrossEndCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {number} count - The number of all matches
+   */</span>
+  <span class="doc">/**
+   * Wraps the instance element and class around matches across all HTML elements in all contexts
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
+   * @</span><span class="dtag">param</span><span class="doc"> {number} ignoreGroups - A number of RegExp capturing groups to ignore from the beginning of a match
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapMatchesAcrossFilterCallback} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapMatchesAcrossEachCallback} eachCb - Each callback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapMatchesAcrossEndCallback} endCb
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  wrapMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
+    <span class="kwd">const</span> index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
+      execution = { abort : <span class="kwd">false</span> },
+      filterInfo = { execution : execution };
+
+    <span class="kwd">let</span> match, str, matchStart, count = 0;
+
+    <span class="kwd">this</span>.getTextNodesAcross(dict =&gt; {
+      <span class="kwd">while</span> ((match = regex.exec(dict.text)) !== <span class="kwd">null</span> &amp;&amp; (str = match[index]) !== <span class="str">''</span>) {
+        filterInfo.match = match;
+        matchStart = <span class="kwd">true</span>;
+
+        <span class="com">// calculates the start index inside dict.text</span>
+        <span class="kwd">let</span> i = 0, start = match.index;
+        <span class="kwd">while</span> (++i &lt; index) {
+          <span class="kwd">if</span> (match[i]) { <span class="com">// allows any ignore group to be undefined</span>
+            start += match[i].length;
+          }
+        }
+
+        <span class="kwd">this</span>.wrapRangeAcross(dict, start, start + str.length, obj =&gt; { <span class="com">// filter</span>
+          filterInfo.matchStart = matchStart;
+          filterInfo.offset = obj.startOffset;
+          matchStart = <span class="kwd">false</span>;
+          <span class="kwd">return</span> filterCb(obj.node, str, filterInfo);
+
+        }, (node, mStart) =&gt; { <span class="com">// each</span>
+          <span class="kwd">if</span> (mStart) {
+            count++;
+          }
+          eachCb(node, {
+            match : match,
+            matchStart : mStart,
+            count : count,
+          });
+        });
+
+        <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+      }
+      endCb(count);
+    });
+  }
+
+  <span class="doc">/**
+   * Callback for each wrapped element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapRangesEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~rangeObject} range - the current range object; the start and length values can be
+   * modified if they are not numeric integers
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~rangeInfoObject} rangeInfo - The object containing the range information
+   */</span>
+  <span class="doc">/**
+   * Filter callback before each wrapping
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapRangesFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node which includes the range or is part of the range
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~rangeObject} range - the current range object
+   * @</span><span class="dtag">param</span><span class="doc"> {string} substr - string extracted from the matching range
+   * @</span><span class="dtag">param</span><span class="doc"> {number} index - The current range index ???
+   */</span>
+
+  <span class="doc">/**
+   * Callback on end
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~wrapRangesEndCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {number} count - The number of wrapped ranges
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~logObject[]} logs - The array of objects
+   */</span>
+  <span class="doc">/**
+   * Wraps the indicated ranges across all HTML elements in all contexts
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~setOfRanges} ranges
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapRangesFilterCallback} filterCb
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapRangesEachCallback} eachCb
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~wrapRangesEndCallback} endCb
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  wrapRanges(ranges, filterCb, eachCb, endCb) {
+    <span class="kwd">const</span> lines = <span class="kwd">this</span>.opt.markLines,
+      logs = [],
+      skipped = [],
+      level = <span class="str">'warn'</span>;
+    <span class="kwd">let</span> count = 0;
+
+    <span class="kwd">this</span>.getTextNodes(dict =&gt; {
+      <span class="kwd">const</span> max = lines ? dict.newLines.length : dict.text.length,
+        array = <span class="kwd">this</span>.checkRanges(ranges, logs, lines ? 1 : 0, max);
+
+      array.forEach((range, index) =&gt; {
+        <span class="kwd">let</span> start = range.start,
+          end = start + range.length;
+
+        <span class="kwd">if</span> (end &gt; max) {
+          <span class="com">// with wrapAllRanges option, there can be several report of limited ranges</span>
+          logs.push({ text : <span class="str">`Range was limited to: $</span>{max}<span class="str">`</span>, obj : range, skip : <span class="kwd">true</span>, level });
+          end = max;
+        }
+
+        <span class="kwd">if</span> (lines) {
+          start = dict.newLines[start-1];
+          <span class="kwd">if</span> (dict.text[start] === <span class="str">'\n'</span>) {
+            start++;
+          }
+          end = dict.newLines[end-1];
+        }
+
+        <span class="kwd">const</span> substr = dict.text.substring(start, end);
+
+        <span class="kwd">if</span> (substr.trim()) {
+          <span class="kwd">this</span>.wrapRangeAcross(dict, start, end, obj =&gt; {    <span class="com">// filter</span>
+            <span class="kwd">return</span> filterCb(obj.node, range, substr, index);
+
+          }, (node, rangeStart) =&gt; {    <span class="com">// each</span>
+            <span class="kwd">if</span> (rangeStart) {
+              count++;
+            }
+            eachCb(node, range, {
+              matchStart : rangeStart,
+              count : count
+            });
+          });
+        } <span class="kwd">else</span> {
+          <span class="com">// whitespace only; even if wrapped it is not visible</span>
+          logs.push({ text : <span class="str">'Skipping whitespace only range: '</span>, obj : range, level });
+          skipped.push(range);
+        }
+      });
+
+      <span class="kwd">this</span>.log(<span class="str">`Valid ranges: $</span>{JSON.stringify(array.filter(range =&gt; skipped.indexOf(range) === -1))}<span class="str">`</span>);
+      endCb(count, logs);
+    });
+  }
+
+  <span class="doc">/**
+   * Unwraps the specified DOM node with its content (text nodes or HTML)
+   * without destroying possibly present events (using innerHTML) and normalizes text nodes
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} node - The DOM node to unwrap
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  unwrapMatches(node) {
+    <span class="kwd">const</span> parent = node.parentNode,
+      first = node.firstChild;
+
+    <span class="kwd">if</span> (node.childNodes.length === 1) {
+      <span class="com">// unwraps and normalizes text nodes</span>
+      <span class="kwd">if</span> (first.nodeType === 3) {
+        <span class="com">// the most common case - mark element with child text node</span>
+        <span class="kwd">const</span> previous = node.previousSibling,
+          next = node.nextSibling;
+
+        <span class="kwd">if</span> (previous &amp;&amp; previous.nodeType === 3) {
+          <span class="kwd">if</span> (next &amp;&amp; next.nodeType === 3) {
+            previous.nodeValue += first.nodeValue + next.nodeValue;
+            parent.removeChild(next);
+
+          } <span class="kwd">else</span> {
+            previous.nodeValue += first.nodeValue;
+          }
+
+        } <span class="kwd">else</span> <span class="kwd">if</span> (next &amp;&amp; next.nodeType === 3) {
+          next.nodeValue = first.nodeValue + next.nodeValue;
+
+        } <span class="kwd">else</span> {
+          parent.replaceChild(node.firstChild, node);
+          <span class="kwd">return</span>;
+        }
+        parent.removeChild(node);
+
+      } <span class="kwd">else</span> {
+        <span class="com">// most likely is a nested mark element or modified by user element</span>
+        parent.replaceChild(node.firstChild, node);
+      }
+
+    } <span class="kwd">else</span> {
+      <span class="kwd">if</span> ( !first) {
+        <span class="com">// an empty mark element</span>
+        parent.removeChild(node);
+
+      } <span class="kwd">else</span> {
+        <span class="com">// most likely is a nested mark element(s) with sibling text node(s) or modified by user element(s)</span>
+        <span class="kwd">let</span> docFrag = <span class="kwd">this</span>.opt.window.document.createDocumentFragment();
+        <span class="kwd">while</span> (node.firstChild) {
+          docFrag.appendChild(node.removeChild(node.firstChild));
+        }
+        parent.replaceChild(docFrag, node);
+      }
+      parent.normalize();
+    }
+  }
+
+  <span class="doc">/**
+   * Callback to filter matches
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markRegExpFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node which includes the match or with acrossElements option can be part of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {string} match - The matching string:
+   * 1) without 'ignoreGroups' and 'separateGroups' options - the whole match.
+   * 2) with 'ignoreGroups' option - the match[ignoreGroups+1] group matching string.
+   * 3) with 'separateGroups' option - the current group matching string
+   * @</span><span class="dtag">param</span><span class="doc"> {number} matchesSoFar - The number of wrapped matches so far
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~filterInfoObject} filterInfo - The object containing the match information.
+   */</span>
+  <span class="doc">/**
+   * Callback for each marked element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markRegExpEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~eachInfoObject} eachInfo - The object containing the match information.
+   */</span>
+  <span class="doc">/**
+   * Callback if there were no matches
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markRegExpNoMatchCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regexp - The regular expression
+   */</span>
+
+  <span class="doc">/**
+   * These options also include the common options from {@link Mark~commonOptions}
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~markRegExpOptions
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {number} [ignoreGroups=0] - A number of RegExp capturing groups to ignore from the beginning of a match
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [separateGroups] - Whether to mark RegExp capturing groups instead of whole match
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markRegExpNoMatchCallback} [noMatch]
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markRegExpFilterCallback} [filter]
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markRegExpEachCallback} [each]
+   */</span>
+  <span class="doc">/**
+   * Marks a custom regular expression
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regexp - The regular expression
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~markRegExpOptions} [opt] - Optional options object
+   * @</span><span class="dtag">access</span><span class="doc"> public
+   */</span>
+  markRegExp(regexp, opt) {
+    <span class="kwd">this</span>.checkOption(opt);
+
+    <span class="kwd">let</span> totalMarks = 0,
+      matchesSoFar = 0,
+      fn = <span class="kwd">this</span>.opt.separateGroups ? <span class="str">'wrapSeparateGroups'</span> : <span class="str">'wrapMatches'</span>;
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.acrossElements) {
+      fn +=  <span class="str">'Across'</span>; <span class="com">// creates wrapSeparateGroupsAcross or wrapMatchesAcross</span>
+      <span class="com">// it solves the backward-compatibility issue but open gate for new code to slip in without g flag</span>
+      <span class="kwd">if</span> ( !regexp.global &amp;&amp; !regexp.sticky) {
+        <span class="kwd">let</span> splits = regexp.toString().split(<span class="str">'/'</span>);
+        regexp = <span class="kwd">new</span> RegExp(regexp.source, <span class="str">'g'</span> + splits[splits.length-1]);
+        <span class="kwd">this</span>.log(<span class="str">'RegExp is recompiled - it must have a `g` flag'</span>);
+      }
+    }
+    <span class="kwd">this</span>.log(<span class="str">`RegExp "$</span>{regexp}<span class="str">"`</span>);
+
+    <span class="kwd">this</span>[fn](regexp, <span class="kwd">this</span>.opt.ignoreGroups, (node, match, filterInfo) =&gt; { <span class="com">// filter</span>
+      <span class="kwd">return</span> <span class="kwd">this</span>.opt.filter(node, match, matchesSoFar, filterInfo);
+
+    }, (element, eachInfo) =&gt; { <span class="com">// each</span>
+      matchesSoFar = eachInfo.count;
+      totalMarks++;
+      <span class="kwd">this</span>.opt.each(element, eachInfo);
+
+    }, (totalMatches) =&gt; { <span class="com">// done</span>
+      <span class="kwd">if</span> (totalMatches === 0) {
+        <span class="kwd">this</span>.opt.noMatch(regexp);
+      }
+      <span class="kwd">this</span>.opt.done(totalMarks, totalMatches);
+    });
+  }
+
+  <span class="doc">/**
+   * Callback to filter matches
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node which includes the match or with acrossElements option can be part of the match
+   * @</span><span class="dtag">param</span><span class="doc"> {string} term - The current term
+   * @</span><span class="dtag">param</span><span class="doc"> {number} matches - The number of all wrapped matches so far
+   * @</span><span class="dtag">param</span><span class="doc"> {number} termMatches - The number of wrapped matches for the current term so far
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~filterInfoObject} filterInfo - The object containing the match information.
+   */</span>
+  <span class="doc">/**
+   * Callback for each marked element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~eachInfoObject} eachInfo - The object containing the match information.
+   */</span>
+  <span class="doc">/**
+   * Callback if there were no matches
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markNoMatchCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {string|string[]} term - Not found search term(s)
+   */</span>
+  <span class="doc">/**
+   * Callback when finished
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~commonDoneCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {number} totalMarks - The total number of marked elements
+   * @</span><span class="dtag">param</span><span class="doc"> {number} totalMatches - The total number of matches
+   * @</span><span class="dtag">param</span><span class="doc"> {object} termStats - The object containing an individual term's matches counts for {@link Mark#mark} method
+   */</span>
+
+  <span class="doc">/**
+   * These options also include the common options from {@link Mark~commonOptions}
+   * and the options from {@link RegExpCreator~options}
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~markOptions
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [separateWordSearch=true] - Whether to break term into words
+   * and search for individual word instead of the complete term
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markFilterCallback} [filter]
+   */</span>
+  <span class="doc">/**
+   * Marks the specified search terms
+   * @</span><span class="dtag">param</span><span class="doc"> {string|string[]} [sv] - A search string or an array of search strings
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~markOptions} [opt] - Optional options object
+   * @</span><span class="dtag">access</span><span class="doc"> public
+   */</span>
+  mark(sv, opt) {
+    <span class="kwd">this</span>.checkOption(opt);
+    <span class="kwd">const</span> { terms, termStats } = <span class="kwd">this</span>.getSeachTerms(sv);
+
+    <span class="kwd">if</span> ( !terms.length) {
+      <span class="kwd">this</span>.opt.done(0, 0, termStats);
+      <span class="kwd">return</span>;
+    }
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.combinePatterns) {
+      <span class="kwd">this</span>.markCombinePatterns(terms, termStats);
+      <span class="kwd">return</span>;
+    }
+
+    <span class="kwd">let</span> index = 0,
+      totalMarks = 0,
+      matches = 0,
+      totalMatches = 0,
+      termMatches;
+
+    <span class="kwd">const</span> regCreator = <span class="kwd">new</span> RegExpCreator(<span class="kwd">this</span>.opt),
+      fn = <span class="kwd">this</span>.opt.acrossElements ? <span class="str">'wrapMatchesAcross'</span> : <span class="str">'wrapMatches'</span>;
+
+    <span class="kwd">const</span> loop = term =&gt; {
+      termMatches = 0;
+      <span class="kwd">const</span> regex = regCreator.create(term);
+      <span class="kwd">this</span>.log(<span class="str">`RegExp "$</span>{regex}<span class="str">"`</span>);
+
+      <span class="kwd">this</span>[fn](regex, 1, (node, t, filterInfo) =&gt; { <span class="com">// filter</span>
+        matches = totalMatches + termMatches;
+        <span class="kwd">return</span> <span class="kwd">this</span>.opt.filter(node, term, matches, termMatches, filterInfo);
+
+      }, (element, eachInfo) =&gt; { <span class="com">// each</span>
+        termMatches = eachInfo.count;
+        totalMarks++;
+        <span class="kwd">this</span>.opt.each(element, eachInfo);
+
+      }, (count) =&gt; { <span class="com">// end</span>
+        totalMatches += count;
+
+        <span class="kwd">if</span> (count === 0) {
+          <span class="kwd">this</span>.opt.noMatch(term);
+        }
+        termStats[term] = count;
+
+        <span class="kwd">if</span> (++index &lt; terms.length) {
+          loop(terms[index]);
+        } <span class="kwd">else</span> {
+          <span class="kwd">this</span>.opt.done(totalMarks, totalMatches, termStats);
+        }
+      });
+    };
+
+    loop(terms[index]);
+  }
+
+  <span class="doc">/**
+    * Marks the specified search terms
+    * @</span><span class="dtag">param</span><span class="doc"> {string[]} terms - An array of search terms
+    * @</span><span class="dtag">param</span><span class="doc"> {object} termStats - An object for collecting terms statistics
+    * @</span><span class="dtag">access</span><span class="doc"> protected
+    */</span>
+  markCombinePatterns(terms, termStats) {
+    <span class="kwd">let</span> index = 0,
+      totalMarks = 0,
+      totalMatches = 0,
+      term,
+      termMatches;
+
+    <span class="kwd">const</span> across = <span class="kwd">this</span>.opt.acrossElements,
+      fn = across ? <span class="str">'wrapMatchesAcross'</span> : <span class="str">'wrapMatches'</span>,
+      flags = <span class="str">`g$</span>{<span class="kwd">this</span>.opt.caseSensitive ? <span class="str">''</span> : <span class="str">'i'</span>}<span class="str">`</span>,
+      patterns = <span class="kwd">this</span>.getPatterns(terms);
+
+    <span class="kwd">const</span> loop = ({ pattern, regTerms }) =&gt; {
+      <span class="kwd">const</span> regex = <span class="kwd">new</span> RegExp(pattern, flags);
+
+      <span class="kwd">this</span>.log(<span class="str">`RegExp "$</span>{regex}<span class="str">"`</span>);
+
+      <span class="kwd">this</span>[fn](regex, 1, (node, t, filterInfo) =&gt; { <span class="com">// filter</span>
+        <span class="kwd">if</span> ( !across || filterInfo.matchStart) {
+          term = <span class="kwd">this</span>.getCurrentTerm(filterInfo.match, regTerms);
+        }
+        <span class="com">// termStats[term] is the number of wrapped matches so far for the current term</span>
+        termMatches = termStats[term];
+        <span class="kwd">return</span> <span class="kwd">this</span>.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
+
+      }, (element, eachInfo) =&gt; { <span class="com">// each</span>
+        totalMarks++;
+
+        <span class="kwd">if</span> ( !across || eachInfo.matchStart) {
+          termStats[term] += 1;
+        }
+
+        <span class="kwd">this</span>.opt.each(element, eachInfo);
+
+      }, (count) =&gt; { <span class="com">// end</span>
+        totalMatches += count;
+
+        <span class="kwd">const</span> array = regTerms.filter((term) =&gt; termStats[term] === 0);
+        <span class="kwd">if</span> (array.length) {
+          <span class="kwd">this</span>.opt.noMatch(array);
+        }
+
+        <span class="kwd">if</span> (++index &lt; patterns.length) {
+          loop(patterns[index]);
+        } <span class="kwd">else</span> {
+          <span class="kwd">this</span>.opt.done(totalMarks, totalMatches, termStats);
+        }
+      });
+    };
+
+    loop(patterns[index]);
+  }
+
+  <span class="doc">/**
+    * @</span><span class="dtag">param</span><span class="doc"> {array} match - The result of RegExp exec() method
+    * @</span><span class="dtag">param</span><span class="doc"> {array} terms - The array of strings
+    * @</span><span class="dtag">return</span><span class="doc"> {string} - The matched term
+    */</span>
+  getCurrentTerm(match, terms) {
+    <span class="com">// it's better to search from the end of array because the terms sorted by
+    // their length in descending order - shorter term appears more frequently</span>
+    <span class="kwd">let</span> i = match.length;
+    <span class="kwd">while</span> (--i &gt; 2) {
+      <span class="com">// the current term index is the first not undefined capturing group index minus three</span>
+      <span class="kwd">if</span> (match[i]) {
+        <span class="com">// the first 3 groups are: match[0], lookbehind, and main group</span>
+        <span class="kwd">return</span> terms[i-3];
+      }
+    }
+    <span class="kwd">return</span> <span class="str">' '</span>;
+  }
+
+  <span class="doc">/**
+    * Splits an array of string into chunks by the specified number and
+    * combines each chunk strings into single RegExp pattern
+    * @</span><span class="dtag">param</span><span class="doc"> {array} terms - The array of strings
+    * @</span><span class="dtag">return</span><span class="doc"> {array} - The array of combined RegExp patterns
+    */</span>
+  getPatterns(terms) {
+    <span class="kwd">const</span> creator = <span class="kwd">new</span> RegExpCreator(<span class="kwd">this</span>.opt),
+      option = <span class="kwd">this</span>.opt.combinePatterns,
+      array = [];
+    <span class="kwd">let</span> num = 10,
+      value;
+
+    <span class="kwd">if</span> (option === Infinity) {
+      num = Math.pow(2, 31);
+    } <span class="kwd">else</span> <span class="kwd">if</span> (Number.isInteger(option) &amp;&amp; (value = parseInt(option)) &gt; 0) {
+      num = value;
+    }
+    <span class="com">// the number of chunks to be created</span>
+    <span class="kwd">const</span> count = Math.ceil(terms.length / num);
+
+    <span class="kwd">for</span> (<span class="kwd">let</span> i = 0; i &lt; count; i++) {
+      <span class="kwd">const</span> start = i * num,
+        <span class="com">// get a chunk of terms to create combine pattern</span>
+        slice = terms.slice(start, Math.min(start + num, terms.length)),
+        obj = creator.createCombinePattern(slice, <span class="kwd">true</span>);
+
+      array.push({ pattern : <span class="str">`$</span>{obj.lookbehind}<span class="str">($</span>{obj.pattern}<span class="str">)$</span>{obj.lookahead}<span class="str">`</span>, regTerms : slice });
+    }
+    <span class="kwd">return</span> array;
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~rangeObject
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {number} start - The start index within the composite string
+   * @</span><span class="dtag">property</span><span class="doc"> {number} length - The length of the string to mark within the composite string.
+   */</span>
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~setOfRanges
+   * @</span><span class="dtag">type</span><span class="doc"> {object[]}
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~rangeObject}
+   */</span>
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~rangeInfoObject
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} matchStart - Indicate the start of range
+   * @</span><span class="dtag">property</span><span class="doc"> {number} count - The current number of wrapped ranges
+   */</span>
+  <span class="doc">/**
+   * These options also include the common options from {@link Mark~commonOptions}
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~markRangesOptions
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markRangesEachCallback} [each]
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markRangesNoMatchCallback} [noMatch]
+   * @</span><span class="dtag">property</span><span class="doc"> {Mark~markRangesFilterCallback} [filter]
+   */</span>
+
+  <span class="doc">/**
+   * Callback to filter matches
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markRangesFilterCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text} node - The text node which includes the range or is part of the range
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~rangeObject} range - The range object
+   * @</span><span class="dtag">param</span><span class="doc"> {string} match - The current range matching string
+   * @</span><span class="dtag">param</span><span class="doc"> {number} index - The current range index ???
+   */</span>
+  <span class="doc">/**
+   * Callback for each marked element
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markRangesEachCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The marked DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~rangeObject} range - The range object
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~rangeInfoObject}  - The object containing the range information
+   */</span>
+  <span class="doc">/**
+   * Callback if a processed range is invalid, out-of-bounds, overlaps another
+   * range, or only matches whitespace
+   * @</span><span class="dtag">callback</span><span class="doc"> Mark~markRangesNoMatchCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~rangeObject} range - The range object
+   */</span>
+
+  <span class="doc">/**
+   * Marks an array of objects containing start and length properties
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~setOfRanges} ranges - The original array of objects
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~markRangesOptions} [opt] - Optional options object
+   * @</span><span class="dtag">access</span><span class="doc"> public
+   */</span>
+  markRanges(ranges, opt) {
+    <span class="kwd">this</span>.checkOption(opt, <span class="kwd">true</span>);
+
+    <span class="kwd">if</span> (Array.isArray(ranges) &amp;&amp; ranges.some(obj =&gt; obj.start &amp;&amp; obj.length)) {
+      <span class="kwd">let</span> totalMarks = 0;
+
+      <span class="kwd">this</span>.wrapRanges(ranges, (node, range, match, index) =&gt; { <span class="com">// filter</span>
+        <span class="kwd">return</span> <span class="kwd">this</span>.opt.filter(node, range, match, index);
+
+      }, (elem, range, rangeInfo) =&gt; { <span class="com">// each</span>
+        totalMarks++;
+        <span class="kwd">this</span>.opt.each(elem, range, rangeInfo);
+
+      }, (totalRanges, logs) =&gt; { <span class="com">// end</span>
+        <span class="kwd">this</span>.report(logs);
+        <span class="kwd">this</span>.opt.done(totalMarks, totalRanges);
+      });
+
+    } <span class="kwd">else</span> {
+      <span class="kwd">this</span>.report([{ text : <span class="str">'markRanges() accept an array of objects: '</span>, obj : ranges, level : <span class="str">'error'</span> }]);
+      <span class="kwd">this</span>.opt.done(0, 0);
+    }
+  }
+
+  <span class="doc">/**
+   * Removes all marked elements inside the context with their HTML and normalizes text nodes
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~commonOptions} [opt] - Optional options object without each,
+   * noMatch and acrossElements properties
+   * @</span><span class="dtag">access</span><span class="doc"> public
+   */</span>
+  unmark(opt) {
+    <span class="kwd">this</span>.checkOption(opt, <span class="kwd">true</span>);
+
+    <span class="kwd">let</span> selector = <span class="kwd">this</span>.opt.element + <span class="str">'[data-markjs]'</span>;
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.className) {
+      selector += <span class="str">`.$</span>{<span class="kwd">this</span>.opt.className}<span class="str">`</span>;
+    }
+    <span class="kwd">this</span>.log(<span class="str">`Removal selector "$</span>{selector}<span class="str">"`</span>);
+
+    <span class="kwd">this</span>.iterator.forEachNode(<span class="kwd">this</span>.filter.SHOW_ELEMENT, node =&gt; { <span class="com">// each</span>
+      <span class="kwd">this</span>.unwrapMatches(node);
+    }, node =&gt; { <span class="com">// filter</span>
+      <span class="kwd">return</span> DOMIterator.matches(node, selector) &amp;&amp; !<span class="kwd">this</span>.excluded(node);
+    }, <span class="kwd">this</span>.opt.done);
+  }
+}
+
+<span class="kwd">export</span> <span class="kwd">default</span> Mark;</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

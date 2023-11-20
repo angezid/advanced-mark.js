@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>markRanges() method</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="markranges-method">markRanges() method</h2>
+<h3 id="syntax">Syntax</h3>
+<pre><code class="language-js"><span class="copy-code"></span><span class="com">// javascript</span>
+<span class="kwd">const</span> instance = <span class="kwd">new</span> Mark(context);
+instance.markRanges(ranges[, options]);
+<span class="com">// jQuery</span>
+$(context).markRanges(ranges[, options]);</code></pre>
+<h4 id="parameters">Parameters:</h4>
+<ul>
+<li><code>ranges</code> <em class="type">object[]</em> - An array of objects with <code>start</code> and <code>length</code> properties with integer type values.</li>
+<li><code>options</code> <em class="type">object</em> - Optional options:</li>
+</ul>
+<table class="options">
+<thead>
+<tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr id="markRanges-element"><td><code>element</code></td><td><em class="type">string</em></td><td> <code>mark</code></td><td>A custom mark element e.g. <code>span</code>. </td></tr>
+<tr id="markRanges-className"><td><code>className</code></td><td><em class="type">string</em></td><td> <code>''</code></td><td> A custom class to be added to mark elements. </td></tr>
+<tr id="markRanges-exclude"><td><code>exclude</code></td><td><em class="type">string <span class="or">or</span> string[]</em></td><td> <code>[]</code></td><td>A string or an array of selectors. Specifies DOM elements that should be excluded from searching. 
+<p>See <a href="options.html#exclude-option">exclude</a> option for more details.</td></tr></p>
+<tr id="markRanges-wrapAllRanges"><td><code>wrapAllRanges</code></td><td><em class="type">boolean</em></td><td> <code>undefined</code></td><td>Mark nesting/overlapping capturing groups 
+<p>See <a href="nesting-overlapping.html">Marking nesting and overlapping ranges and match groups</a> for more details.</p>
+</td></tr>
+<tr id="markRanges-shadowDOM"><td><code>shadowDOM</code></td><td><em class="type">boolean</em></td><td> <code>undefined</code></td><td>Whether to mark inside shadow DOMs 
+<p>See <a href="shadow-dom.html">Highlighting in shadow DOM</a> for more details.</td></tr></p>
+<tr id="markRanges-markLines"><td><code>markLines</code></td><td><em class="type">boolean</em></td><td> <code>undefined</code></td><td>Whether to mark ranges of lines instead of ranges of texts 
+<p>See <a href="mark-lines.html">Highlighting line ranges</a> for more details.</td></tr></p>
+<tr id="markRanges-iframes"><td><code>iframes</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to mark inside iframes </td></tr>
+<tr id="markRanges-iframesTimeout"><td><code>iframesTimeout</code></td><td><em class="type">number</em></td><td> <code>5000</code> ms</td><td>The max time to wait for iframe(s) to load before skipping </td></tr>
+<tr id="markRanges-debug"><td><code>debug</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to log messages </td></tr>
+<tr id="markRanges-log"><td><code>log</code></td><td><em class="type">object</em></td><td> <code>console</code></td><td>Log messages to a specific object 
+</td></tr>
+<tr id="markRanges-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) 
+<br><b>filter : (textNode, range, matchString, index) => {}</b>
+<ul>
+<li><code>textNode</code> <em class="type">Text</em> - The text node which includes the range or is the part of the range</li>
+<li><code>range</code> <em class="type">object</em> - The current range object</li>
+<li><code>matchString</code> <em class="type">string</em> - The current range matching string</li>
+<li><code>index</code> <em class="type">number</em> - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)</li>
+</ul>
+<p>The function <b>must</b> return either <code>true</code> (to wrap) or <code>false</code> (to skip wrapping mark element).</p>
+</td></tr>
+<tr id="markRanges-each"><td><code>each</code></td><td><em class="type">function</em></td><td> </td><td>A callback for each marked element 
+<br><b>each : (markElement, range, rangeInfo) => {}</b>
+<ul>
+<li><code>markElement</code> <em class="type">HTMLElement</em> - The marked DOM element</li>
+<li><code>range</code> <em class="type">object</em> - The range object</li>
+<li><code>rangeInfo</code> <em class="type">object</em>:
+<ul>
+<li><code>matchStart</code> <em class="type">boolean</em> - indicate the start of a range;</li>
+<li><code>count</code> <em class="type">number</em> - The number of wrapped ranges so far</li>
+</ul>
+</li>
+</ul>
+</td></tr>
+<tr id="markRanges-done"><td><code>done</code></td><td><em class="type">function</em></td><td> </td><td>A callback on finish 
+<br><b>done : (totalMarks, totalRanges) => {}</b>
+<ul>
+<li><code>totalMarks</code> <em class="type">number</em> - The total number of marked elements</li>
+<li><code>totalRanges</code> <em class="type">number</em> - The number of total ranges</li>
+</ul>
+</td></tr>
+<tr id="markRanges-noMatch"><td><code>noMatch</code></td><td><em class="type">function</em></td><td> </td><td>A callback that is called on non-valid range 
+<br><b>noMatch : (range) => {}</b>
+<ul>
+<li><code>range</code> <em class="type">string</em> - The stringify range</td></tr></li>
+</ul>
+</tbody></table>
+<details class="internal-code">
+<summary><b>Example with default options values</b></summary>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">const</span> options = {
+    element : <span class="str">'mark'</span>,
+    className : <span class="str">''</span>,
+    exclude : [],
+    
+    wrapAllRanges : <span class="kwd">false</span>,
+    markLines : <span class="kwd">false</span>,
+    shadowDOM : <span class="kwd">false</span>,
+    iframes : <span class="kwd">false</span>,
+    iframesTimeout : 5000,
+    
+    filter : (textNode, range, matchingString, index) => {
+        <span class="kwd">return</span> <span class="kwd">true</span>; <span class="com">// must return either true or false</span>
+    },
+    each : (markElement, range, rangeInfo) => {},
+    done : (totalMarks, totalMatches) => {},
+    noMatch : (range) => {},
+    debug : <span class="kwd">false</span>,
+    log : window.console
+};</code></pre>
+<p>JavaScript:</p>
+<pre><code class='lang-javascript'><span class="copy-code"></span><span class="kwd">const</span> instance = <span class="kwd">new</span> Mark(document.querySelector(<span class="str">'selector'</span>)),
+  ranges = [{ start: 0, length: 5 }, { start: 6, length: 5 }];
+
+instance.markRanges(ranges, options);</code></pre>
+<p>jQuery:</p>
+<pre><code class='lang-javascript'>$(<span class="str">'selector'</span>).markRanges(ranges, options);</code></pre>
+</details>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>mark() method</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="mark-method">mark() method</h2>
+<h3 id="syntax">Syntax</h3>
+<pre><code class="language-js"><span class="copy-code"></span><span class="com">// javascript</span>
+<span class="kwd">const</span> instance = <span class="kwd">new</span> Mark(context);
+instance.mark(search[, options]);
+<span class="com">// jQuery</span>
+$(context).mark(search[, options]);</code></pre>
+<h4 id="parameters">Parameters:</h4>
+<ul>
+<li><code>search</code> <em class="type">string <span class="or">or</span> string[]</em> - string or array of strings</li>
+<li><code>options</code> <em class="type">object</em> - Optional options:</li>
+</ul>
+<table class="options">
+<thead>
+<tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr id="mark-element"><td><code>element</code></td><td><em class="type">string</em></td><td> <code>mark</code></td><td>A custom mark element e.g. <code>span</code>. </td></tr>
+<tr id="mark-className"><td><code>className</code></td><td><em class="type">string</em></td><td> <code>''</code></td><td> A class to be added to mark elements. </td></tr>
+<tr id="mark-exclude"><td><code>exclude</code></td><td><em class="type">string <span class="or">or</span> string[]</em></td><td> <code>[]</code></td><td>A string or an array of selectors. Specifies DOM elements that should be excluded from searching. </td></tr>
+<tr id="mark-separateWordSearch"><td><code>separateWordSearch</code></td><td><em class="type">boolean</em></td><td> <code>true</code></td><td>Whether to break term into separate words and search for each individual word </td></tr>
+<tr id="mark-diacritics"><td><code>diacritics</code></td><td><em class="type">boolean</em></td><td> <code>true</code></td><td>Whether to match diacritic characters </td></tr>
+<tr id="mark-caseSensitive"><td><code>caseSensitive</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to search case sensitive </td></tr>
+<tr id="mark-accuracy"><td><code>accuracy</code></td><td><em class="type">string <span class="or">or</span> object</em></td><td> <code>'partially'</code></td><td>  
+<ul>
+<li>Either one of the following string value:
+<ul>
+<li><code>'partially'</code> e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.</li>
+<li><code>'exactly'</code> This option is actually forced to use an accuracy object, because the default word boundaries are white-space characters and start/end of a text node (with <code>acrossElements</code> option - start/end of a context).</li>
+<li><code>'complementary'</code> e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'. The default word boundaries are: whitespaces and <code>!&quot;#$%&amp;'`()*+,-./:;&lt;=&gt;?@[\]^_{|}~¡¿</code> characters.</li>
+</ul>
+</li>
+<li>Or an bject with two properties:
+<ul>
+<li><code>value</code>: 'exactly' or 'complementary'</li>
+<li><code>limiters</code>: an array of custom word boundary characters, e.g. <code>{ value : &quot;exactly&quot;, limiters : &quot;,.;:?!'&quot;&quot;.split() }</code></li>
+</ul>
+</li>
+</ul>
+</td></tr>
+<tr id="mark-wildcards"><td><code>wildcards</code></td><td><em class="type">string</em></td><td> <code>disabled</code></td><td>Two characters <code>?</code> and <code>*</code> used as wildcards unless thay are escaped 
+<ul>
+<li><code>disabled</code>: The characters <code>?</code> and <code>*</code> match itself</li>
+<li><code>enabled</code>:
+<ul>
+<li>The character <code>?</code> match any non-white-space character zero or one time.</li>
+<li>The character <code>*</code> match any non-white-space character zero or more times.</li>
+</ul>
+</li>
+<li><code>withSpaces</code>:
+<ul>
+<li>The character <code>?</code> match any character zero or one time.</li>
+<li>The character <code>*</code> match any character zero or more times, but as few times as possible.</li>
+</ul>
+</li>
+</ul>
+</td></tr>
+<tr id="mark-ignoreJoiners"><td><code>ignoreJoiners</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner </td></tr>
+<tr id="mark-ignorePunctuation"><td><code>ignorePunctuation</code></td><td><em class="type">string[]</em></td><td> <code>[]</code></td><td>An array of punctuation characters </td></tr>
+<tr id="mark-synonyms"><td><code>synonyms</code></td><td><em class="type">object</em></td><td> <code>{}</code></td><td>An object with synonyms  
+<p>e.g. <code>{ 'one': '1' }</code> - '1' is synonym for 'one' and vice versa. Value can be an array <code>{ 'be': ['am', 'is', 'are'] }</code>.</p>
+</td></tr>
+<tr id="mark-acrossElements"><td><code>acrossElements</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to search for matches across elements </td></tr>
+<tr id="mark-combinePatterns"><td><code>combinePatterns</code></td><td><em class="type">number <span class="or">or</span> boolean</em></td><td> <code>10</code></td><td>Combine a specified number of individual term patterns into one 
+<p>See <a href="performance.html#ways-to-boost-performance">Performance</a> for more details.</td></tr></p>
+<tr id="mark-cacheTextNodes"><td><code>cacheTextNodes</code></td><td><em class="type">boolean</em></td><td> <code>undefined</code></td><td>Caching information to improve performance 
+<p>See <a href="performance.html#ways-to-boost-performance">Performance</a> for more details.</td></tr></p>
+<tr id="mark-blockElementsBoundary"><td><code>blockElementsBoundary</code></td><td><em class="type">boolean <span class="or">or</span> object</em></td><td> <code>undefined</code></td><td>Whether to limit matches within default HTML block elements and/or custom elements 
+<p>See <a href="elements-boundaries.html">Elements boundaries</a> for more details.</p>
+<ul>
+<li><code>tagNames</code> <em class="type">string[]</em> - An array of custom HTML tag names</li>
+<li><code>extend</code> <em class="type">boolean</em> - <code>true</code> extends default boundary elements by the custom elements
+otherwise only the custom elements do have boundaries</li>
+<li><code>char</code> <em class="type">string</em> - A custom boundary character. The default is <code>\x01</code>.</li>
+</ul>
+</td></tr>
+<tr id="mark-shadowDOM"><td><code>shadowDOM</code></td><td><em class="type">boolean</em></td><td> <code>undefined</code></td><td>Whether to mark inside shadow DOMs 
+<p>See <a href="shadow-dom.html">Highlighting in shadow DOM</a> for more details.</td></tr></p>
+<tr id="mark-iframes"><td><code>iframes</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to mark inside iframes </td></tr>
+<tr id="mark-iframesTimeout"><td><code>iframesTimeout</code></td><td><em class="type">number</em></td><td> <code>5000</code> ms</td><td>The max time to wait for iframe(s) to load before skipping </td></tr>
+<tr id="mark-debug"><td><code>debug</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to log messages </td></tr>
+<tr id="mark-log"><td><code>log</code></td><td><em class="type">object</em></td><td> <code>console</code></td><td>Log messages to a specific object 
+</td></tr>
+<tr id="mark-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each match (with <code>acrossElements</code> option, if the match is located across several elements, it calls for each text node which is part of the match) 
+<br><b>filter : (textNode, term, marksSoFar, termMarksSoFar, filterInfo) => {}</b>
+<ul>
+<li><code>textNode</code> <em class="type">Text</em> - The text node which includes the match or with <code>acrossElements</code> option can be part of the match</li>
+<li><code>term</code> <em class="type">string</em> - The current term</li>
+<li><code>marksSoFar</code> <em class="type">number</em> - The number of all wrapped matches so far</li>
+<li><code>termMarksSoFar</code> <em class="type">number</em> - The number of wrapped matches for the current term so far</li>
+<li><code>filterInfo</code> <em class="type">object</em>:
+<ul>
+<li><code>match</code> <em class="type">array</em> - The result of RegExp exec() method</li>
+<li><code>matchStart</code> <em class="type">boolean</em> - indicate the start of a match  <em>AE</em></li>
+<li><code>execution</code> <em class="type">object</em> - The helper object for early abort:
+<ul>
+<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks method execution</li>
+</ul>
+</li>
+<li><code>offset</code> <em class="type">number</em> - When 'acrossElements: false': the absolute start index of a text node in joined context.<br />
+When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.</li>
+</ul>
+</li>
+</ul>
+</td></tr>
+<tr id="mark-each"><td><code>each</code></td><td><em class="type">function</em></td><td> </td><td>A callback for each marked element 
+<br><b>each : (markElement, eachInfo) => {}</b>
+<ul>
+<li><code>markElement</code> <em class="type">HTMLElement</em> - The marked DOM element</li>
+<li><code>eachInfo</code> <em class="type">object</em>:
+<ul>
+<li><code>match</code> <em class="type">array</em> - The result of RegExp exec() method</li>
+<li><code>matchStart</code> <em class="type">boolean</em> - Indicate the start of a match  <em>AE</em></li>
+<li><code>count</code> <em class="type">number</em> - The number of matches so far</li>
+</ul>
+</li>
+</ul>
+</td></tr>
+<tr id="mark-done"><td><code>done</code></td><td><em class="type">function</em></td><td> </td><td>A callback on finish 
+<br><b>done : (totalMarks, totalMatches, termStats) => {}</b>
+<ul>
+<li><code>totalMarks</code> <em class="type">number</em> - The total number of marked elements</li>
+<li><code>totalMatches</code> <em class="type">number</em> - The total number of matches</li>
+<li><code>termStats</code> <em class="type">object</em> - An object containing an individual term's matches count</li>
+</ul>
+</td></tr>
+<tr id="mark-noMatch"><td><code>noMatch</code></td><td><em class="type">function</em></td><td> </td><td>A callback that is called when a term has no match at all 
+<br><b>noMatch : (term) => {}</b>
+<ul>
+<li><code>term</code> <em class="type">string <span class="or">or</span> string[]</em> - The not found term(s); the parameter is array when <code>combinePatterns</code> option is used</td></tr></li>
+</ul>
+</tbody></table>
+<h3 id="available-properties-of-the-filterinfo-object-depending-on-options">Available properties of the <code>filterInfo</code> object depending on options</h3>
+<table>
+<thead>
+<tr>
+<th>options</th>
+<th>match</th>
+<th>matchStart</th>
+<th>execution</th>
+<th>offset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>acrossElements: true</td>
+<td>+</td>
+<td>+</td>
+<td>+</td>
+<td>+</td>
+</tr>
+<tr>
+<td>acrossElements: false</td>
+<td>+</td>
+<td>-</td>
+<td>+</td>
+<td>+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="available-properties-of-the-eachinfo-object-depending-on-options">Available properties of the <code>eachInfo</code> object depending on options</h3>
+<table>
+<thead>
+<tr>
+<th>options</th>
+<th>match</th>
+<th>matchStart</th>
+<th>count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>acrossElements: true</td>
+<td>+</td>
+<td>+</td>
+<td>+</td>
+</tr>
+<tr>
+<td>acrossElements: false</td>
+<td>+</td>
+<td>-</td>
+<td>+</td>
+</tr>
+</tbody>
+</table>
+<details class="internal-code">
+<summary><b>Example with default options values</b></summary>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">const</span> options = {
+    element : <span class="str">'mark'</span>,
+    className : <span class="str">''</span>,
+    separateWordSearch : <span class="kwd">true</span>,
+    diacritics : <span class="kwd">true</span>,
+    exclude : [],
+    caseSensitive : <span class="kwd">false</span>,
+    accuracy : <span class="str">'partially'</span>,
+    synonyms : {},
+    ignoreJoiners : <span class="kwd">false</span>,
+    ignorePunctuation : [],
+    wildcards : <span class="str">'disabled'</span>,
+    
+    acrossElements : <span class="kwd">false</span>,
+    combinePatterns : <span class="kwd">false</span>,
+    cacheTextNodes : <span class="kwd">false</span>,
+    blockElementsBoundary : <span class="kwd">false</span>,
+    
+    shadowDOM : <span class="kwd">false</span>,
+    iframes : <span class="kwd">false</span>,
+    iframesTimeout : 5000,
+    
+    filter : (textNode, term, marksSoFar, termMarksSoFar, filterInfo) => {
+        <span class="kwd">return</span> <span class="kwd">true</span>; <span class="com">// must return either true or false</span>
+    },
+    each : (markElement, eachInfo) => {},
+    done : (totalMarks, totalMatches, termStats) => {},
+    noMatch : (term) => {},
+    debug : <span class="kwd">false</span>,
+    log : window.console
+};</code></pre>
+<p>JavaScript:</p>
+<pre><code class='lang-javascript'><span class="kwd">var</span> instance = <span class="kwd">new</span> Mark(document.querySelector(<span class="str">'selector'</span>));
+instance.mark(<span class="str">'test'</span>, options);</code></pre>
+<p>jQuery:</p>
+<pre><code class='lang-javascript'>$(<span class="str">'selector'</span>).mark(<span class="str">'test'</span>, options);</code></pre>
+</details>
+<ul>
+<li><em>AE</em> - only available when <code>acrossElements</code> option is set to <code>true</code></li>
+</ul>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> Version 1</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

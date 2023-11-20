@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>TypeScript types</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="typescript-types">TypeScript types</h2>
+<p>The following TypeScript declaration files are added to <code>dist</code> folder:</p>
+<ul>
+<li>mark.d.ts</li>
+<li>mark.es6.d.ts</li>
+<li>jquery.mark.d.ts</li>
+<li>jquery.mark.es6.d.ts</li>
+<li>node.jquery.mark.es6.d.ts</li>
+<li>regexpcreator.d.ts</li>
+<li>regexpcreator.es6.d.ts</li>
+</ul>
+<p><strong>Note:</strong> the default imported library is ES6 module -<code>mark.es6.js</code>, to import others you need to specify the full path,<br />
+e.g. <code>import 'advanced-mark.js/dist/jquery.mark.js';</code>.</p>
+<h4 id="javascript-example">JavaScript example</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="com">// imported 'mark.es6.js' library</span>
+<span class="kwd">import</span> Mark from <span class="str">'advanced-mark.js'</span>;
+
+<span class="kwd">new</span> Mark(document.querySelector(<span class="str">"article"</span>)).mark(<span class="str">'lorem ipsum'</span>, {});</code></pre>
+<h4 id="jquery-example">jQuery example</h4>
+<p><strong>Note:</strong> in <code>Node.js</code> environment with <code>jquery</code> you need to use <code>node.jquery.mark.es6.js</code> module, which contains necessary <code>import $ from 'jquery'</code> declaration.</p>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">import</span> $ from <span class="str">'jquery'</span>;
+<span class="kwd">import</span> <span class="str">'advanced-mark.js/dist/jquery.mark.js'</span>;
+
+$(<span class="str">"article"</span>).mark(<span class="str">'lorem ipsum'</span>, {});</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

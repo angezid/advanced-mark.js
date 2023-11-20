@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>unmark() method</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="unmark-method">unmark() method</h2>
+<h3 id="syntax">Syntax</h3>
+<pre><code class="language-js"><span class="copy-code"></span><span class="com">// javascript</span>
+<span class="kwd">const</span> instance = <span class="kwd">new</span> Mark(context);
+instance.unmark([options]);
+<span class="com">// jQuery</span>
+$(context).unmark([options]);</code></pre>
+<h4 id="parameters">Parameters:</h4>
+<ul>
+<li><code>options</code> <em class="type">object</em> - Optional options:</li>
+</ul>
+<table class="options">
+<thead>
+<tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr id="unmark-element"><td><code>element</code></td><td><em class="type">string</em></td><td> <code>mark</code></td><td>Specifies marked elements to remove. 
+<p><b>Important:</b> if other than default marked element is used, e.g. <code>span</code>, it must be also specified in the <code>unmark()</code> method. It is also possible to use <code>*</code> in case of using different marked elements to unmark in one run. A <code>mark.js</code> library uses a default selector <code>*[data-markjs]</code> but it is not safe to apply to all HTML elements.</td></tr></p>
+<tr id="unmark-className"><td><code>className</code></td><td><em class="type">string</em></td><td> <code>''</code></td><td>Remove only marked elements with specified class name. </td></tr>
+<tr id="unmark-exclude"><td><code>exclude</code></td><td><em class="type">string <span class="or">or</span> string[]</em></td><td> <code>[]</code></td><td>A string or an array of selectors. Specifies DOM elements that should be excluded from searching. </td></tr>
+<tr id="unmark-shadowDOM"><td><code>shadowDOM</code></td><td><em class="type">boolean</em></td><td> <code>undefined</code></td><td>Whether to remove marked elements inside shadow DOMs 
+<p><b>Note:</b> if the <code>shadowDOM</code> option is used with highlighting method, it must be also specified in the <code>unmark()</code> method.<br />
+See <a href="shadow-dom.html">Highlighting in shadow DOM</a> for more details.</td></tr></p>
+<tr id="unmark-iframes"><td><code>iframes</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to search inside iframes 
+<p><b>Note:</b> if the <code>iframes</code> option is used with highlighting method, it must be also specified in the <code>unmark()</code> method.</td></tr></p>
+<tr id="unmark-iframesTimeout"><td><code>iframesTimeout</code></td><td><em class="type">number</em></td><td> <code>5000</code> ms</td><td>The max time to wait for iframe(s) to load before skipping </td></tr>
+<tr id="unmark-debug"><td><code>debug</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to log messages </td></tr>
+<tr id="unmark-log"><td><code>log</code></td><td><em class="type">object</em></td><td> <code>console</code></td><td>Log messages to a specific object </td></tr>
+<tr id="unmark-done"><td><code>done</code></td><td><em class="type">function</em></td><td> </td><td>A callback after all specified marked elements were removed 
+<br><b>done : () => {}</b>
+<p>It has no parameters.</td></tr></p>
+</tbody></table>
+<details class="internal-code">
+<summary><b>Example with default options values</b></summary>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">const</span> options = {
+    element : <span class="str">'mark'</span>,
+    className : <span class="str">''</span>,
+    shadowDOM : <span class="kwd">false</span>,
+    iframes : <span class="kwd">false</span>,
+    iframesTimeout : 5000,
+    done : () => {},
+    debug : <span class="kwd">false</span>,
+    log : window.console
+};</code></pre>
+<p>JavaScript:</p>
+<pre><code class='lang-javascript'><span class="kwd">var</span> instance = <span class="kwd">new</span> Mark(document.querySelector(<span class="str">'selector'</span>));
+instance.unmark(options);</code></pre>
+<p>jQuery:</p>
+<pre><code class='lang-javascript'>$(<span class="str">'selector'</span>).unmark(options);</code></pre>
+</details>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

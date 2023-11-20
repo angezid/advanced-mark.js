@@ -1,0 +1,509 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>DOMIterator class</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h1 id="domiterator-class">DOMIterator class</h1>
+<pre><code class="language-js"><span class="copy-code"></span><span class="doc">/**
+ * A NodeIterator with iframes support and a method to check if an element is
+ * matching a specified selector
+ * @</span><span class="dtag">example</span><span class="doc">
+ * const iterator = new DOMIterator(
+ *     document.querySelector("#context"), true
+ * );
+ * iterator.forEachNode(NodeFilter.SHOW_TEXT, node =&gt; { // each
+ *     console.log(node);
+ * }, node =&gt; { // filter
+ *     return !DOMIterator.matches(node.parentNode, ".ignore");
+ * }, () =&gt; {
+ *     console.log("DONE");
+ * });
+ */</span>
+<span class="kwd">class</span> DOMIterator {
+
+  <span class="doc">/**
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement|HTMLElement[]|NodeList|string} ctx - The context DOM
+   * element, an array of DOM elements, a NodeList or a selector
+   * @</span><span class="dtag">param</span><span class="doc"> {object} opt - Options object
+   */</span>
+  constructor(ctx, opt) {
+    <span class="doc">/**
+     * The context of the instance. Either a DOM element, an array of DOM
+     * elements, a NodeList or a selector
+     * @</span><span class="dtag">type</span><span class="doc"> {HTMLElement|HTMLElement[]|NodeList|string}
+     * @</span><span class="dtag">access</span><span class="doc"> protected
+     */</span>
+    <span class="kwd">this</span>.ctx = ctx;
+    <span class="doc">/**
+     * The object containing Mark options
+     * @</span><span class="dtag">type</span><span class="doc"> {object}
+     * @</span><span class="dtag">access</span><span class="doc"> protected
+     */</span>
+    <span class="kwd">this</span>.opt = opt;
+    <span class="doc">/**
+     * The name of an attribute, which added to iframes, to indicate iframe state
+     * @</span><span class="dtag">type</span><span class="doc"> {string}
+     * @</span><span class="dtag">access</span><span class="doc"> protected
+     */</span>
+    <span class="kwd">this</span>.attrName = <span class="str">'data-markjsListener'</span>;
+  }
+
+  <span class="doc">/**
+   * Checks if the specified DOM element matches the selector
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} element - The DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {string|string[]} selector - The selector or an array with
+   * selectors
+   * @</span><span class="dtag">return</span><span class="doc"> {boolean}
+   * @</span><span class="dtag">access</span><span class="doc"> public
+   */</span>
+  <span class="kwd">static</span> matches(element, selector) {
+    <span class="kwd">if</span> ( !selector || !selector.length) {
+      <span class="kwd">return</span> <span class="kwd">false</span>;
+    }
+    <span class="kwd">const</span> selectors = <span class="kwd">typeof</span> selector === <span class="str">'string'</span> ? [selector] : selector;
+    <span class="kwd">const</span> fn = (
+      element.matches ||
+      element.matchesSelector ||
+      element.msMatchesSelector ||
+      element.mozMatchesSelector ||
+      element.oMatchesSelector ||
+      element.webkitMatchesSelector
+    );
+    <span class="kwd">return</span> fn &amp;&amp; selectors.some(sel =&gt; fn.call(element, sel));
+  }
+
+  <span class="doc">/**
+   * Returns all contexts filtered by duplicates or nested elements
+   * @</span><span class="dtag">return</span><span class="doc"> {HTMLElement[]} - An array containing DOM contexts
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  getContexts() {
+    <span class="kwd">let</span> ctx = <span class="kwd">this</span>.ctx,
+      sort = <span class="kwd">false</span>;
+
+    <span class="kwd">if</span> ( !ctx) <span class="kwd">return</span> [];
+
+    <span class="kwd">if</span> ( !<span class="kwd">this</span>.opt.window.NodeList.prototype.isPrototypeOf(ctx)) {
+      <span class="kwd">if</span> (Array.isArray(ctx)) {
+        sort = <span class="kwd">true</span>;
+      } <span class="kwd">else</span> <span class="kwd">if</span> (<span class="kwd">typeof</span> ctx === <span class="str">'string'</span>) {
+        ctx = <span class="kwd">this</span>.opt.window.document.querySelectorAll(ctx);
+      } <span class="kwd">else</span> { <span class="com">// e.g. HTMLElement or element inside iframe</span>
+        ctx = [ctx];
+      }
+    }
+    <span class="com">// filters out duplicate/nested elements</span>
+    <span class="kwd">const</span> array = [];
+    ctx.forEach(elem =&gt; {
+      <span class="kwd">if</span> (array.indexOf(elem) === -1 &amp;&amp; !array.some(node =&gt; node.contains(elem))) {
+        array.push(elem);
+      }
+    });
+    <span class="com">// elements in the custom array can be in any order
+    // sorts elements by the DOM order</span>
+    <span class="kwd">if</span> (sort) {
+      array.sort((a, b) =&gt; {
+        <span class="kwd">return</span> (a.compareDocumentPosition(b) &amp; <span class="kwd">this</span>.opt.window.Node.DOCUMENT_POSITION_FOLLOWING) &gt; 0 ? -1 : 1;
+      });
+    }
+    <span class="kwd">return</span> array;
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">callback</span><span class="doc"> DOMIterator~getIframeContentsSuccessCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLDocument} contents - The contentDocument of the iframe
+   */</span>
+  <span class="doc">/**
+   * Calls the success callback function with the iframe document. If it can't
+   * be accessed it calls the error callback function
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ifr - The iframe DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~getIframeContentsSuccessCallback} successFn
+   * @</span><span class="dtag">param</span><span class="doc"> {function} [errorFn]
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  getIframeContents(iframe, successFn, errorFn) {
+    <span class="kwd">try</span> {
+      <span class="kwd">const</span> doc = iframe.contentWindow.document;
+      <span class="kwd">if</span> (doc) {
+        iframe.setAttribute(<span class="kwd">this</span>.attrName, <span class="str">'completed'</span>);
+        successFn({ iframe : iframe, context : doc });
+      }
+    } <span class="kwd">catch</span> (e) {
+      iframe.setAttribute(<span class="kwd">this</span>.attrName, <span class="str">'error'</span>);
+      errorFn({ iframe : iframe, error : e });
+    }
+  }
+
+  <span class="doc">/**
+   * Checks if an iframe is empty (if about:blank is the shown page)
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ifr - The iframe DOM element
+   * @</span><span class="dtag">return</span><span class="doc"> {boolean}
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  isIframeBlank(ifr) {
+    <span class="kwd">const</span> bl = <span class="str">'about:blank'</span>,
+      src = ifr.getAttribute(<span class="str">'src'</span>).trim(),
+      href = ifr.contentWindow.location.href;
+    <span class="kwd">return</span> href === bl &amp;&amp; src !== bl &amp;&amp; src;
+  }
+
+  <span class="doc">/**
+   * Observes the onload event of an iframe and calls the success callback or
+   * the error callback if the iframe is inaccessible. If the event isn't
+   * fired within the specified {@link DOMIterator#iframesTimeout}, then it'll
+   * call the error callback too
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ifr - The iframe DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~getIframeContentsSuccessCallback} successFn
+   * @</span><span class="dtag">param</span><span class="doc"> {function} errorFn
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  observeIframeLoad(ifr, successFn, errorFn) {
+    <span class="com">// an event listener is already added to the iframe</span>
+    <span class="kwd">if</span> (ifr.hasAttribute(<span class="kwd">this</span>.attrName)) {
+      <span class="kwd">return</span>;
+    }
+    <span class="kwd">let</span> id = <span class="kwd">null</span>;
+
+    <span class="kwd">const</span> listener = () =&gt; {
+      clearTimeout(id);
+      ifr.removeEventListener(<span class="str">'load'</span>, listener);
+      <span class="kwd">this</span>.getIframeContents(ifr, successFn, errorFn);
+    };
+
+    ifr.addEventListener(<span class="str">'load'</span>, listener);
+    ifr.setAttribute(<span class="kwd">this</span>.attrName, <span class="kwd">true</span>);
+    id = setTimeout(listener, <span class="kwd">this</span>.opt.iframesTimeout);
+  }
+
+  <span class="doc">/**
+   * Callback when the iframe is ready
+   * @</span><span class="dtag">callback</span><span class="doc"> DOMIterator~onIframeReadySuccessCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLDocument} contents - The contentDocument of the iframe
+   */</span>
+  <span class="doc">/**
+   * Callback if the iframe can't be accessed
+   * @</span><span class="dtag">callback</span><span class="doc"> DOMIterator~onIframeReadyErrorCallback
+   */</span>
+  <span class="doc">/**
+   * Calls the callback if the specified iframe is ready for DOM access
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ifr - The iframe DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~onIframeReadySuccessCallback} successFn - Success
+   * callback
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~onIframeReadyErrorCallback} errorFn - Error callback
+   * @</span><span class="dtag">see</span><span class="doc"> {@link http://stackoverflow.com/a/36155560/3894981} for
+   * background information
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  onIframeReady(ifr, successFn, errorFn) {
+    <span class="kwd">try</span> {
+      <span class="kwd">if</span> (ifr.contentWindow.document.readyState === <span class="str">'complete'</span>) {
+        <span class="kwd">if</span> (<span class="kwd">this</span>.isIframeBlank(ifr)) {
+          <span class="kwd">this</span>.observeIframeLoad(ifr, successFn, errorFn);
+        } <span class="kwd">else</span> {
+          <span class="kwd">this</span>.getIframeContents(ifr, successFn, errorFn);
+        }
+      } <span class="kwd">else</span> {
+        <span class="kwd">this</span>.observeIframeLoad(ifr, successFn, errorFn);
+      }
+    } <span class="kwd">catch</span> (e) { <span class="com">// accessing document failed</span>
+      errorFn(e);
+    }
+  }
+
+  <span class="doc">/**
+   * Callback when all iframes are ready for DOM access
+   * @</span><span class="dtag">callback</span><span class="doc"> DOMIterator~waitForIframesDoneCallback
+   */</span>
+  <span class="doc">/**
+   * Iterates over all iframes and calls the done callback when all of them
+   * are ready for DOM access (including nested ones)
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ctx - The context DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~waitForIframesDoneCallback} done - Done callback
+   */</span>
+  waitForAllIframes(ctx, doneCb) {
+    <span class="kwd">let</span> count = 0,
+      iframes = [],
+      array = [],
+      fired = <span class="kwd">false</span>;
+    <span class="com">// not sure about this timeout; it should guarantee a single done callback, if something went wrong</span>
+    <span class="kwd">const</span> id = setTimeout(() =&gt; {
+      fired = <span class="kwd">true</span>;
+      doneCb();
+    }, <span class="kwd">this</span>.opt.iframesTimeout);
+
+    <span class="kwd">const</span> done = () =&gt; {
+      clearTimeout(id);
+
+      <span class="kwd">if</span> ( !fired) {
+        doneCb();
+      }
+    };
+
+    <span class="kwd">const</span> checkDone = () =&gt; {
+      <span class="kwd">if</span> (count === iframes.filter(ifr =&gt; !<span class="kwd">this</span>.hasAttributeValue(ifr, <span class="kwd">this</span>.attrName, <span class="str">'error'</span>)).length) {
+        done();
+      }
+    };
+
+    <span class="kwd">const</span> loop = (obj) =&gt; {
+      <span class="kwd">if</span> ( !obj.iframe || obj.context.location.href !== <span class="str">'about:blank'</span>) {
+        array = [];
+
+        obj.context.querySelectorAll(obj.iframe ? <span class="str">'body iframe'</span> : <span class="str">'iframe'</span>).forEach(iframe =&gt; {
+          <span class="kwd">if</span> ( !DOMIterator.matches(iframe, <span class="kwd">this</span>.opt.exclude)) {
+            iframes.push(iframe);
+
+            <span class="kwd">if</span> ( !iframe.hasAttribute(<span class="kwd">this</span>.attrName)) {
+              array.push(iframe);
+            }
+          }
+        });
+        <span class="com">// case when the main context has no iframes or iframes were already handled, e.g. by unmark() method</span>
+        <span class="kwd">if</span> ( !obj.iframe &amp;&amp; !array.length) {
+          done();
+          <span class="kwd">return</span>;
+        }
+      }
+
+      <span class="kwd">if</span> (array.length) {
+        array.forEach(iframe =&gt; {
+          <span class="kwd">this</span>.onIframeReady(iframe, obj =&gt; {
+            count++;
+            loop(obj);
+
+          }, obj =&gt; {
+            <span class="kwd">if</span> (<span class="kwd">this</span>.opt.debug) {
+              console.log(obj.error);
+            }
+            checkDone();
+          });
+        });
+
+      } <span class="kwd">else</span> {
+        checkDone();
+      }
+    };
+
+    loop({ context : ctx });
+  }
+
+  <span class="doc">/**
+   * Creates a NodeIterator on the specified context
+   * @</span><span class="dtag">see</span><span class="doc"> {@link https://developer.mozilla.org/en/docs/Web/API/NodeIterator}
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ctx - The context DOM element
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~whatToShow} whatToShow
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~filterCb} filter
+   * @</span><span class="dtag">return</span><span class="doc"> {NodeIterator}
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  createIterator(ctx, whatToShow, filter) {
+    <span class="kwd">return</span> <span class="kwd">this</span>.opt.window.document.createNodeIterator(ctx, whatToShow, filter, <span class="kwd">false</span>);
+  }
+
+  <span class="doc">/**
+   * Adds custom style to shadow root when marking, removes when unmark
+   * There is no possibility to check whether a shadow root has any matches though
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} node - The shadow root node
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} style - The custom style element
+   * @</span><span class="dtag">param</span><span class="doc"> {boolean} add - A boolean indicating add or remove a style element
+   */</span>
+  addRemoveStyle(root, style, add) {
+    <span class="kwd">if</span> (add) {
+      <span class="kwd">if</span> (style &amp;&amp; root.firstChild &amp;&amp; !root.querySelector(<span class="str">'style[data-markjs]'</span>)) {
+        <span class="kwd">const</span> elem = <span class="kwd">this</span>.opt.window.document.createElement(<span class="str">'style'</span>);
+        elem.setAttribute(<span class="str">'data-markjs'</span>, <span class="str">'true'</span>);
+        elem.textContent = style;
+        root.insertBefore(elem, root.firstChild);
+      }
+
+    } <span class="kwd">else</span> {
+      <span class="kwd">let</span> elem = root.querySelector(<span class="str">'style[data-markjs]'</span>);
+      <span class="kwd">if</span> (elem) {
+        root.removeChild(elem);
+      }
+    }
+  }
+
+  <span class="doc">/**
+   * Checks whether the node has attribute with the specified name and value
+   * @</span><span class="dtag">return</span><span class="doc"> {Boolean}
+   */</span>
+  hasAttributeValue(node, name, value) {
+    <span class="kwd">return</span> node.hasAttribute(name) &amp;&amp; node.getAttribute(name) === value;
+  }
+
+  <span class="doc">/**
+   * Iterates through all nodes, including shadow DOM nodes, in the specified context
+   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ctx - The context
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~whatToShow} whatToShow
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~filterCb} filterCb - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~forEachNodeCallback} eachCb - Each callback
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~forEachNodeEndCallback} doneCb - End callback
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
+    <span class="kwd">const</span> nodeFilter = <span class="kwd">this</span>.opt.window.NodeFilter,
+      shadow = <span class="kwd">this</span>.opt.shadowDOM,
+      iframe = <span class="kwd">this</span>.opt.iframes;
+
+    <span class="kwd">if</span> (iframe || shadow) {
+      <span class="kwd">const</span> showElement = (whatToShow &amp; nodeFilter.SHOW_ELEMENT) !== 0,
+        showText = (whatToShow &amp; nodeFilter.SHOW_TEXT) !== 0;
+
+      <span class="kwd">if</span> (showText) {
+        whatToShow |= nodeFilter.SHOW_ELEMENT;
+      }
+
+      <span class="kwd">const</span> traverse = node =&gt; {
+        <span class="kwd">const</span> iterator = <span class="kwd">this</span>.createIterator(node, whatToShow);
+
+        <span class="kwd">while</span> ((node = iterator.nextNode())) {
+          <span class="kwd">if</span> (node.nodeType === 1) { <span class="com">// element</span>
+            <span class="kwd">if</span> (showElement &amp;&amp; filterCb(node)) {
+              eachCb(node);
+            }
+
+            <span class="kwd">if</span> (iframe &amp;&amp; node.nodeName.toLowerCase() === <span class="str">'iframe'</span> &amp;&amp; !DOMIterator.matches(node, <span class="kwd">this</span>.opt.exclude)) {
+              <span class="kwd">if</span> (<span class="kwd">this</span>.hasAttributeValue(node, <span class="kwd">this</span>.attrName, <span class="str">'completed'</span>)) {
+                <span class="kwd">this</span>.getIframeContents(node, obj =&gt; {
+                  traverse(obj.context);
+                }, () =&gt; {});
+              }
+            }
+            <span class="com">// there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'
+            // is not working neither for 'shadowRoot' no for the element itself</span>
+            <span class="kwd">if</span> (shadow &amp;&amp; node.shadowRoot &amp;&amp; node.shadowRoot.mode === <span class="str">'open'</span>) {
+              <span class="kwd">this</span>.addRemoveStyle(node.shadowRoot, shadow.style, showText);
+              traverse(node.shadowRoot);
+            }
+
+          } <span class="kwd">else</span>  <span class="kwd">if</span> (showText &amp;&amp; node.nodeType === 3 &amp;&amp; filterCb(node)) { <span class="com">// text node</span>
+            eachCb(node);
+          }
+        }
+      };
+
+      traverse(ctx);
+
+    } <span class="kwd">else</span> {
+      <span class="kwd">const</span> iterator = <span class="kwd">this</span>.createIterator(ctx, whatToShow);
+      <span class="kwd">let</span> node;
+
+      <span class="kwd">while</span> ((node = iterator.nextNode())) {
+        <span class="kwd">if</span> (filterCb(node)) {
+          eachCb(node);
+        }
+      }
+    }
+
+    doneCb();
+  }
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> DOMIterator~whatToShow
+   * @</span><span class="dtag">see</span><span class="doc"> {@link http://tinyurl.com/zfqqkx2}
+   * @</span><span class="dtag">type</span><span class="doc"> {number}
+   */</span>
+  <span class="doc">/**
+   * Callback to filter nodes. Can return either true to accept node or false to reject node.
+   * @</span><span class="dtag">see</span><span class="doc"> {@link http://tinyurl.com/zdczmm2}
+   * @</span><span class="dtag">callback</span><span class="doc"> DOMIterator~filterCb
+   * @</span><span class="dtag">param</span><span class="doc"> {Text|HTMLElement} node - The node to filter
+   */</span>
+  <span class="doc">/**
+   * Callback for each node
+   * @</span><span class="dtag">callback</span><span class="doc"> DOMIterator~forEachNodeCallback
+   * @</span><span class="dtag">param</span><span class="doc"> {Text|HTMLElement} node - The node node to process
+   */</span>
+  <span class="doc">/**
+   * Callback if all contexts were handled
+   * @</span><span class="dtag">callback</span><span class="doc"> DOMIterator~forEachNodeEndCallback
+   */</span>
+  <span class="doc">/**
+   * Iterates over all contexts
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~whatToShow} whatToShow
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~forEachNodeCallback} each - Each callback
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~filterCb} filter - Filter callback
+   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~forEachNodeEndCallback} done - End callback
+   * @</span><span class="dtag">access</span><span class="doc"> public
+   */</span>
+  forEachNode(whatToShow, each, filter, done = () =&gt; {}) {
+    <span class="kwd">const</span> contexts = <span class="kwd">this</span>.getContexts();
+    <span class="kwd">let</span> open = contexts.length;
+    <span class="kwd">if</span> ( !open) {
+      done();
+    }
+
+    contexts.forEach(ctx =&gt; {
+      open--;
+
+      <span class="kwd">const</span> ready = () =&gt; {
+        <span class="kwd">this</span>.iterateThroughNodes(ctx, whatToShow, filter, each, () =&gt; {
+          <span class="kwd">if</span> (open &lt;= 0) { <span class="com">// calls end when all contexts were handled</span>
+            done();
+          }
+        });
+      };
+
+      <span class="kwd">if</span> (<span class="kwd">this</span>.opt.iframes) {
+        <span class="kwd">this</span>.waitForAllIframes(ctx, ready);
+      } <span class="kwd">else</span> {
+        ready();
+      }
+    });
+  }
+}
+
+<span class="kwd">export</span> <span class="kwd">default</span> DOMIterator;</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

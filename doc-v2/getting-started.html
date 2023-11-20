@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>Getting started</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="getting-started">Getting started</h2>
+<p>You can download the package using npm by running:</p>
+<pre class="bash"><code>$ npm install advanced-mark.js --save-dev</code></pre>
+<p>A <code>dist</code> directory contains files:</p>
+<details class="info">
+<summary>JavaScript</summary>
+<ul>
+<li><code>mark.js</code></li>
+<li><code>mark.min.js</code></li>
+<li><code>mark.es6.js</code></li>
+<li><code>mark.es6.min.js</code></li>
+</ul>
+</details>
+<details class="info">
+<summary>jQuery</summary>
+<ul>
+<li><code>jquery.mark.js</code></li>
+<li><code>jquery.mark.min.js</code></li>
+<li><code>jquery.mark.es6.js</code></li>
+<li><code>jquery.mark.es6.min.js</code></li>
+<li><code>node.jquery.mark.es6.js</code> for use in Virtual DOMs (contains necessary <code>import $ from 'jquery'</code> declaration)</li>
+</ul>
+</details>
+<details class="info">
+<summary>TypeScript declaration files</summary>
+<ul>
+<li><code>mark.d.js</code></li>
+<li><code>mark.es6.d.js</code></li>
+<li><code>jquery.mark.es6.d.js</code></li>
+<li><code>node.jquery.mark.es6.d.js</code></li>
+</ul>
+</details>
+<h3 id="html">HTML</h3>
+<p>To include library in web page just add:</p>
+<pre><code class="language-html">&lt;script src=&quot;path/to/mark.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p><strong>Note:</strong>the library requires UTF-8 encoding and may needs adding <code>charset</code> attribute:</p>
+<pre><code class="language-html">&lt;script src=&quot;path/to/mark.min.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+</code></pre>
+<h3 id="api">API</h3>
+<p>There are four API methods:</p>
+<ul>
+<li><a href="mark-method.html">mark()</a> - to highlight custom terms</li>
+<li><a href="markRegExp-method.html">markRegExp()</a> - to highlight custom regular expressions</li>
+<li><a href="markRanges-method.html">markRanges()</a> - to highlight ranges with a start and length properties (of text or lines with <code>markLines</code> option)</li>
+<li><a href="unmark-method.html">unmark()</a> - to remove highlights</li>
+</ul>
+<h4 id="javascript">JavaScript</h4>
+<p>API methods called on an instance object. To initialize a new instance, you have to use:</p>
+<pre><code class="language-js"><span class="kwd">var</span> instance = <span class="kwd">new</span> Mark(context);
+instance.mark(<span class="str">'lorem'</span>);</code></pre>
+<p>where <code>context</code> can be:</p>
+<ul>
+<li>a single element get by e.g. <code>document.getElementById()</code> or <code>document.querySelector()</code></li>
+<li>a NodeList get by e.g. <code>document.querySelectorAll()</code></li>
+<li>an array containing multiple single elements (<strong>Note</strong> that internally the array is sorted by the element position in the document)</li>
+<li>a string selector (internally calls <code>document.querySelectorAll()</code>)</li>
+</ul>
+<h4 id="jquery">jQuery</h4>
+<p>API methods called on every jQuery element:</p>
+<pre><code class="language-js">$(<span class="str">"div.test"</span>).mark(<span class="str">'lorem'</span>);</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

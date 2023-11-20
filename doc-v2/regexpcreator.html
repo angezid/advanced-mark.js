@@ -1,0 +1,473 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>RegExpCreator class</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/core.js"></script>
+<script src="../static/js/mark.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h1 id="regexpcreator-class">RegExpCreator class</h1>
+<pre><code class="language-js"><span class="copy-code"></span><span class="doc">/**
+ * Creates regular expressions based on specified settings
+ * @</span><span class="dtag">example</span><span class="doc">
+ * new RegExpCreator({caseSensitive: true, diacritics: false}).create('lorem');
+ * // =&gt; /()(lorem)/gm
+ */</span>
+<span class="kwd">class</span> RegExpCreator {
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> RegExpCreator~accuracyObj
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {string} value - An accuracy string value
+   * @</span><span class="dtag">property</span><span class="doc"> {string[]} limiters - A custom array of limiters. For example
+   * &lt;code&gt;["-", ","]&lt;/code&gt;
+   */</span>
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> RegExpCreator~accuracy
+   * @</span><span class="dtag">type</span><span class="doc"> {string}
+   * @</span><span class="dtag">property</span><span class="doc"> {"partially"|"complementary"|"exactly"|RegExpCreator~accuracyObj}
+   * [accuracy="partially"] - Either one of the following string values:
+   * &lt;ul&gt;
+   *   &lt;li&gt;&lt;i&gt;partially&lt;/i&gt;: When searching for "lor" only "lor" inside
+   *   "lorem" will be marked&lt;/li&gt;
+   *   &lt;li&gt;&lt;i&gt;complementary&lt;/i&gt;: When searching for "lor" the whole word
+   *   "lorem" will be marked&lt;/li&gt;
+   *   &lt;li&gt;&lt;i&gt;exactly&lt;/i&gt;: When searching for "lor" only those exact words
+   *   will be marked. In this example nothing inside "lorem".
+   * &lt;/ul&gt;
+   * Or an object containing two properties:
+   * &lt;ul&gt;
+   *   &lt;li&gt;&lt;i&gt;value&lt;/i&gt;: The value must be "exactly" or "complementary" or "startsWith"&lt;/li&gt;
+   *   &lt;li&gt;&lt;i&gt;limiters&lt;/i&gt;: A custom array of string limiters&lt;/li&gt;
+   * &lt;/ul&gt;
+   */</span>
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> RegExpCreator~wildcards
+   * @</span><span class="dtag">type</span><span class="doc"> {string}
+   * @</span><span class="dtag">property</span><span class="doc"> {"disabled"|"enabled"|"withSpaces"}
+   * [wildcards="disabled"] - Set to any of the following string values:
+   * &lt;ul&gt;
+   *   &lt;li&gt;&lt;i&gt;disabled&lt;/i&gt;: Disable wildcard usage&lt;/li&gt;
+   *   &lt;li&gt;&lt;i&gt;enabled&lt;/i&gt;: When searching for "lor?m", the "?" will match zero
+   *   or one non-space character (e.g. "lorm", "loram", "lor3m", etc). When
+   *   searching for "lor*m", the "*" will match zero or more non-space
+   *   characters (e.g. "lorm", "loram", "lor123m", etc).&lt;/li&gt;
+   *   &lt;li&gt;&lt;i&gt;withSpaces&lt;/i&gt;: When searching for "lor?m", the "?" will
+   *   match zero or one space or non-space character (e.g. "lor m", "loram",
+   *   etc). When searching for "lor*m", the "*" will match zero or more space
+   *   or non-space characters (e.g. "lorm", "lore et dolor ipsum", "lor: m",
+   *   etc).&lt;/li&gt;
+   * &lt;/ul&gt;
+   */</span>
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> RegExpCreator~ignorePunctuation
+   * @</span><span class="dtag">type</span><span class="doc"> {string[]}
+   * @</span><span class="dtag">property</span><span class="doc"> {string} The strings in this setting will contain punctuation
+   * marks that will be ignored:
+   * &lt;ul&gt;
+   *   &lt;li&gt;These punctuation marks can be between any characters, e.g. setting
+   *   this option to &lt;code&gt;["'"]&lt;/code&gt; would match "Worlds", "World's" and
+   *   "Wo'rlds"&lt;/li&gt;
+   *   &lt;li&gt;One or more apostrophes between the letters would still produce a
+   *   match (e.g. "W'o''r'l'd's").&lt;/li&gt;
+   *   &lt;li&gt;A typical setting for this option could be as follows:
+   *   &lt;pre&gt;ignorePunctuation: ":;.,-–—‒_(){}[]!'\"+=".split(""),&lt;/pre&gt; This
+   *   setting includes common punctuation as well as a minus, en-dash,
+   *   em-dash and figure-dash
+   *   ({@link https://en.wikipedia.org/wiki/Dash#Figure_dash ref}), as well
+   *   as an underscore.&lt;/li&gt;
+   * &lt;/ul&gt;
+   */</span>
+
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> RegExpCreator~options
+   * @</span><span class="dtag">type</span><span class="doc"> {object.&lt;string&gt;}
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [diacritics=true] - If diacritic characters should be
+   * matched. ({@link https://en.wikipedia.org/wiki/Diacritic Diacritics})
+   * @</span><span class="dtag">property</span><span class="doc"> {object.&lt;string|string[]&gt;} [synonyms] - An object with synonyms.
+   * The key will be a synonym for the value and the value for the key
+   * @</span><span class="dtag">property</span><span class="doc"> {RegExpCreator~accuracy} [accuracy]
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [caseSensitive=false] - Whether to search case sensitive
+   * @</span><span class="dtag">property</span><span class="doc"> {boolean} [ignoreJoiners=false] - Whether to ignore word
+   * joiners inside of key words. These include soft-hyphens, zero-width
+   * space, zero-width non-joiners and zero-width joiners.
+   * @</span><span class="dtag">property</span><span class="doc"> {RegExpCreator~ignorePunctuation} [ignorePunctuation]
+   * @</span><span class="dtag">property</span><span class="doc"> {RegExpCreator~wildcards} [wildcards]
+   */</span>
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> RegExpCreator~patternObj
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {string} lookbehind - A lookbehind capturing group
+   * @</span><span class="dtag">property</span><span class="doc"> {string} pattern - A string pattern
+   * @</span><span class="dtag">property</span><span class="doc"> {string} lookahead - A positive lookahead assertion
+   */</span>
+  <span class="doc">/**
+   * @</span><span class="dtag">param</span><span class="doc"> {RegExpCreator~options} [options] - Optional options object
+   */</span>
+  constructor(options) {
+    <span class="kwd">this</span>.opt = Object.assign({}, {
+      <span class="str">'diacritics'</span>: <span class="kwd">true</span>,
+      <span class="str">'synonyms'</span>: {},
+      <span class="str">'accuracy'</span>: <span class="str">'partially'</span>,
+      <span class="str">'caseSensitive'</span>: <span class="kwd">false</span>,
+      <span class="str">'ignoreJoiners'</span>: <span class="kwd">false</span>,
+      <span class="str">'ignorePunctuation'</span>: [],
+      <span class="str">'wildcards'</span>: <span class="str">'disabled'</span>
+    }, options);
+  }
+
+  <span class="doc">/**
+   * The array with lower and upper cases diacritics characters
+   * @</span><span class="dtag">type</span><span class="doc"> {string[]}
+   * @</span><span class="dtag">access</span><span class="doc"> protected
+   */</span>
+  get chars() {
+    <span class="kwd">if</span> ( !<span class="kwd">this</span>._chars) {
+      <span class="kwd">this</span>._chars = [];
+      <span class="com">// initialises an array with lower and upper cases diacritics characters</span>
+      [<span class="str">'aàáảãạăằắẳẵặâầấẩẫậäåāą'</span>, <span class="str">'cçćč'</span>, <span class="str">'dđď'</span>, <span class="str">'eèéẻẽẹêềếểễệëěēę'</span>,
+        <span class="str">'iìíỉĩịîïī'</span>,  <span class="str">'lł'</span>, <span class="str">'nñňń'</span>, <span class="str">'oòóỏõọôồốổỗộơởỡớờợöøōő'</span>,  <span class="str">'rř'</span>,
+        <span class="str">'sšśșş'</span>, <span class="str">'tťțţ'</span>, <span class="str">'uùúủũụưừứửữựûüůūű'</span>, <span class="str">'yýỳỷỹỵÿ'</span>, <span class="str">'zžżź'</span>].forEach(str =&gt; {
+        <span class="kwd">this</span>._chars.push(str, str.toUpperCase());
+      });
+    }
+    <span class="kwd">return</span> <span class="kwd">this</span>._chars;
+  }
+
+  <span class="doc">/**
+   * Creates a regular expression to match the specified search term considering
+   * the available option settings
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term to be used
+   * @</span><span class="dtag">param</span><span class="doc"> {boolean} patterns - Whether to return an object with pattern parts or RegExp object
+   * @</span><span class="dtag">return</span><span class="doc"> {RegExpCreator~patternObj|RegExp}
+   */</span>
+  create(str, patterns) {
+    <span class="kwd">const</span> flags = <span class="str">'g'</span> + (<span class="kwd">this</span>.opt.caseSensitive ? <span class="str">''</span> : <span class="str">'i'</span>);
+
+    str = <span class="kwd">this</span>.checkWildcardsEscape(str);
+    str = <span class="kwd">this</span>.createSynonyms(str, flags);
+
+    <span class="kwd">const</span> joiners = <span class="kwd">this</span>.getJoinersPunctuation();
+
+    <span class="kwd">if</span> (joiners) {
+      str = <span class="kwd">this</span>.setupIgnoreJoiners(str);
+    }
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.diacritics) {
+      str = <span class="kwd">this</span>.createDiacritics(str);
+    }
+    str = str.replace(<span class="jreg">/\s+/g</span>, <span class="str">'[\\s]+'</span>);
+
+    <span class="kwd">if</span> (joiners) {
+      str = <span class="kwd">this</span>.createJoiners(str, joiners);
+    }
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.wildcards !== <span class="str">'disabled'</span>) {
+      str = <span class="kwd">this</span>.createWildcards(str);
+    }
+
+    <span class="kwd">const</span> obj = <span class="kwd">this</span>.createAccuracy(str);
+
+    <span class="kwd">return</span> (patterns
+      ? obj
+      : <span class="kwd">new</span> RegExp(<span class="str">`$</span>{obj.lookbehind}<span class="str">($</span>{obj.pattern}<span class="str">)$</span>{obj.lookahead}<span class="str">`</span>, flags));
+  }
+
+  <span class="doc">/**
+    * Creates a single combine pattern from an array of string considering the available option settings
+    * @</span><span class="dtag">param</span><span class="doc"> {Array} array - The array of string
+    * @</span><span class="dtag">param</span><span class="doc"> {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
+    * @</span><span class="dtag">return</span><span class="doc"> {RegExpCreator~patternObj|null}
+    */</span>
+  createCombinePattern(array, capture) {
+    <span class="kwd">if</span> ( !Array.isArray(array) || !array.length) {
+      <span class="kwd">return</span> <span class="kwd">null</span>;
+    }
+    <span class="kwd">const</span> group = capture ? <span class="str">'('</span> : <span class="str">'(?:'</span>,
+      obj = <span class="kwd">this</span>.create(array[0], <span class="kwd">true</span>);
+    obj.pattern = <span class="kwd">this</span>.distinct(array.map(str =&gt; <span class="str">`$</span>{group}<span class="str">$</span>{<span class="kwd">this</span>.create(str, <span class="kwd">true</span>).pattern}<span class="str">)`</span>)).join(<span class="str">'|'</span>);
+
+    <span class="kwd">return</span> obj;
+  }
+
+  <span class="doc">/**
+   * Sort array from longest entry to shortest
+   * @</span><span class="dtag">param</span><span class="doc"> {array} arry - The array to sort
+   * @</span><span class="dtag">return</span><span class="doc"> {array}
+   */</span>
+  sortByLength(arry) {
+    <span class="kwd">return</span> arry.sort((a, b) =&gt; a.length === b.length ?
+      <span class="com">// sort a-z for same length elements</span>
+      (a &gt; b ? 1 : -1) :
+      b.length - a.length
+    );
+  }
+
+  <span class="doc">/**
+   * Escapes RegExp special characters
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The string to escape
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  escape(str) {
+    <span class="kwd">return</span> str.replace(<span class="jreg">/[[\]/{}()*+?.\\^$|]/g</span>, <span class="str">'\\$&amp;'</span>);
+  }
+
+  <span class="doc">/**
+   * Splits string if val is string, removes duplicates, escape '-^]\\' which are special in RegExp characters set
+   * @</span><span class="dtag">param</span><span class="doc"> {array|string} val - The parameter to process
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  preprocess(val) {
+    <span class="kwd">if</span> (val &amp;&amp; val.length) {
+      <span class="kwd">return</span> <span class="kwd">this</span>.distinct(<span class="kwd">typeof</span> val === <span class="str">'string'</span> ? val.split(<span class="str">''</span>) : val).join(<span class="str">''</span>).replace(<span class="jreg">/[-^\]\\]/g</span>, <span class="str">'\\$&amp;'</span>);
+    }
+    <span class="kwd">return</span> <span class="str">''</span>;
+  }
+
+  <span class="doc">/**
+   * Removes duplicate or empty entries
+   * @</span><span class="dtag">param</span><span class="doc"> {array} array - The array to process
+   * @</span><span class="dtag">return</span><span class="doc"> {array}
+   */</span>
+  distinct(array) {
+    <span class="kwd">const</span> result = [];
+    array.forEach(item =&gt; {
+      <span class="kwd">if</span> (item.trim() &amp;&amp; result.indexOf(item) === -1) {
+        result.push(item);
+      }
+    });
+    <span class="kwd">return</span> result;
+  }
+
+  <span class="doc">/**
+   * Creates a regular expression string to match the defined synonyms
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term to be used
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  createSynonyms(str, flags) {
+    <span class="kwd">const</span> syn = <span class="kwd">this</span>.opt.synonyms;
+
+    <span class="kwd">if</span> ( !Object.keys(syn).length) {
+      <span class="kwd">return</span> str;
+    }
+
+    <span class="kwd">for</span> (<span class="kwd">const</span> key <span class="kwd">in</span> syn) {
+      <span class="kwd">if</span> (syn.hasOwnProperty(key)) {
+        <span class="kwd">let</span> array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
+        array.unshift(key);
+        array = <span class="kwd">this</span>.sortByLength(<span class="kwd">this</span>.distinct(array)).map(term =&gt; <span class="kwd">this</span>.checkWildcardsEscape(term));
+
+        <span class="kwd">if</span> (array.length &gt; 1) {
+          <span class="kwd">const</span> pattern = array.map(k =&gt; <span class="kwd">this</span>.escape(k)).join(<span class="str">'|'</span>);
+          str = str.replace(<span class="kwd">new</span> RegExp(pattern, flags), <span class="str">`(?:$</span>{array.join(<span class="str">'|'</span>)}<span class="str">)`</span>);
+        }
+      }
+    }
+    <span class="kwd">return</span> str;
+  }
+
+  <span class="doc">/**
+   * Check wildcards option creates placeholders in the regular expression string to allow later
+   * insertion of wildcard patterns and escapes RegExp special characters
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  checkWildcardsEscape(str) {
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.wildcards !== <span class="str">'disabled'</span>) {
+      <span class="com">// replaces single character wildcard with \x01, multiple character wildcard with \x02</span>
+      str = str.replace(<span class="jreg">/(\\.)+|[?*]/g</span>, (m, gr) =&gt; gr ? m : m === <span class="str">'?'</span> ? <span class="str">'\x01'</span> : <span class="str">'\x02'</span>)
+        <span class="com">// removes one backslash character before '?', '*', '\x01', and '\x02'</span>
+        .replace(<span class="jreg">/\\+(?=[?*\x01\x02])/g</span>, m =&gt; m.slice(1));
+    }
+    <span class="kwd">return</span> <span class="kwd">this</span>.escape(str);
+  }
+
+  <span class="doc">/**
+   * Replaces the wildcard placeholders in a regular expression string
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term to be used
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  createWildcards(str) {
+    <span class="com">// default to "enable" (i.e. to not include spaces)
+    // "withSpaces" uses `[^]` instead of `.` because the latter does not match new line characters
+    // or `[^\x01]` if blockElementsBoundary option is enabled</span>
+    <span class="kwd">const</span> spaces = <span class="kwd">this</span>.opt.wildcards === <span class="str">'withSpaces'</span>,
+      boundary = <span class="kwd">this</span>.opt.blockElementsBoundary,
+      anyChar = <span class="str">`[^$</span>{spaces &amp;&amp; boundary ? <span class="str">'\x01'</span> : <span class="str">''</span>}<span class="str">]*?`</span>;
+
+    <span class="kwd">return</span> str
+    <span class="com">// replace \x01 with a RegExp class to match any single
+    // character, or any single non-whitespace character depending
+    // on the setting</span>
+      .replace(<span class="jreg">/\x01/g</span>, spaces ? <span class="str">'[^]?'</span> : <span class="str">'\\S?'</span>)
+      <span class="com">// replace \x02 with a RegExp class to match zero or
+      // more characters, or zero or more non-whitespace characters
+      // depending on the setting</span>
+      .replace(<span class="jreg">/\x02/g</span>, spaces ? anyChar : <span class="str">'\\S*'</span>);
+  }
+
+  <span class="doc">/**
+   * Creates placeholders in the regular expression string to allow later insertion of
+   * designated characters (soft hyphens, zero width characters, and punctuation)
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term to be used
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  setupIgnoreJoiners(str) {
+    <span class="com">// it's not added '\0' after `(?:` grouping construct, around `|` char and wildcard `\x02` placeholder,
+    // before `)` char, and at the end of a string,
+    // not breaks the grouping construct `(?:`, continues pairs of backslashes, and UTF-16 surrogate pairs</span>
+    <span class="kwd">const</span> reg = <span class="jreg">/((?:\\\\)+|\x02|\(\?:|\|)|\\?(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)(?=([|)\x02]|$)|.)/g</span>;
+    <span class="kwd">return</span> str.replace(reg, (m, gr1, gr2) =&gt; {
+      <span class="kwd">return</span> gr1 || <span class="kwd">typeof</span> gr2 !== <span class="str">'undefined'</span> ? m : m + <span class="str">'\x00'</span>;
+    });
+  }
+
+  <span class="doc">/**
+   * Replaces '\x00' placeholders in a regular expression string by designated
+   * characters (soft hyphens, zero width characters, and punctuation) based on the
+   * specified option values of &lt;code&gt;ignorePunctuation&lt;/code&gt; and
+   * &lt;code&gt;ignoreJoiners&lt;/code&gt;
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term to be used
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  createJoiners(str, joiners) {
+    <span class="kwd">return</span> str.split(<span class="jreg">/\x00+/</span>).join(<span class="str">`[$</span>{joiners}<span class="str">]*`</span>);
+  }
+
+  <span class="doc">/**
+   * Creates a punctuation and/or joiners pattern
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  getJoinersPunctuation() {
+    <span class="kwd">let</span> punct = <span class="kwd">this</span>.preprocess(<span class="kwd">this</span>.opt.ignorePunctuation),
+      str = punct ? punct : <span class="str">''</span>;
+
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.ignoreJoiners) {
+      <span class="com">// u+00ad = soft hyphen
+      // u+200b = zero-width space
+      // u+200c = zero-width non-joiner
+      // u+200d = zero-width joiner</span>
+      str += <span class="str">'\\u00ad\\u200b\\u200c\\u200d'</span>;
+    }
+    <span class="kwd">return</span> str;
+  }
+
+  <span class="doc">/**
+   * Creates a regular expression string to match diacritics
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term to be used
+   * @</span><span class="dtag">return</span><span class="doc"> {string}
+   */</span>
+  createDiacritics(str) {
+    <span class="kwd">const</span> array = <span class="kwd">this</span>.chars;
+
+    <span class="kwd">return</span> str.split(<span class="str">''</span>).map(ch =&gt; {
+      <span class="kwd">for</span> (<span class="kwd">let</span> i = 0; i &lt; array.length; i += 2) {
+        <span class="kwd">const</span> lowerCase = array[i].indexOf(ch) !== -1;
+
+        <span class="kwd">if</span> (<span class="kwd">this</span>.opt.caseSensitive) {
+          <span class="kwd">if</span> (lowerCase) {
+            <span class="kwd">return</span> <span class="str">'['</span> + array[i] + <span class="str">']'</span>;
+
+          } <span class="kwd">else</span> <span class="kwd">if</span> (array[i+1].indexOf(ch) !== -1) {
+            <span class="kwd">return</span> <span class="str">'['</span> + array[i+1] + <span class="str">']'</span>;
+          }
+        } <span class="kwd">else</span> <span class="kwd">if</span> (lowerCase || array[i+1].indexOf(ch) !== -1) {
+          <span class="kwd">return</span> <span class="str">'['</span> + array[i] + array[i+1] + <span class="str">']'</span>;
+        }
+      }
+      <span class="kwd">return</span> ch;
+    }).join(<span class="str">''</span>);
+  }
+
+  <span class="doc">/**
+   * Creates a regular expression string to match the specified string with the
+   * defined accuracy. All regular expressions created with two capturing groups.
+   * The first group is ignored (serves as lookbehind with values 'exactly' and 'startsWith'),
+   * the second is contained the actual match
+   * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term to be used
+   * @</span><span class="dtag">return</span><span class="doc"> {RegExpCreator~patternObj}
+   */</span>
+  createAccuracy(str) {
+    <span class="kwd">const</span> chars = <span class="str">'!"#$%&amp;\'()*+,\\-./:;&lt;=&gt;?@[\\]\\\\^_`{|}~¡¿'</span>;
+    <span class="kwd">let</span> accuracy = <span class="kwd">this</span>.opt.accuracy,
+      lookbehind = <span class="str">'()'</span>,
+      pattern = str,
+      lookahead = <span class="str">''</span>,
+      limiters;
+
+    <span class="kwd">if</span> (<span class="kwd">typeof</span> accuracy !== <span class="str">'string'</span>) {
+      limiters = <span class="kwd">this</span>.preprocess(accuracy.limiters);
+      accuracy = accuracy.value;
+    }
+
+    <span class="kwd">if</span> (accuracy === <span class="str">'exactly'</span>) {
+      <span class="kwd">const</span> charSet = limiters ? <span class="str">'[\\s'</span> + limiters + <span class="str">']'</span> : <span class="str">'\\s'</span>;
+      lookbehind = <span class="str">`(^|$</span>{charSet}<span class="str">)`</span>;
+      lookahead = <span class="str">`(?=$|$</span>{charSet}<span class="str">)`</span>;
+
+    } <span class="kwd">else</span> {
+      <span class="kwd">const</span> chs = limiters ? limiters : chars,
+        charSet = <span class="str">`[^\\s$</span>{chs}<span class="str">]*`</span>;
+
+      <span class="kwd">if</span> (accuracy === <span class="str">'complementary'</span>) {
+        pattern = charSet + str + charSet;
+
+      } <span class="kwd">else</span> <span class="kwd">if</span> (accuracy === <span class="str">'startsWith'</span>) {
+        lookbehind = <span class="str">`(^|[\\s$</span>{chs}<span class="str">])`</span>;
+        pattern = str.replace(<span class="jreg">/\[\\s\]\+/g</span>, charSet + <span class="str">'$&amp;'</span>) + charSet;
+      }
+    }
+    <span class="kwd">return</span> { lookbehind, pattern, lookahead };
+  }
+}
+
+<span class="kwd">export</span> <span class="kwd">default</span> RegExpCreator;</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>
