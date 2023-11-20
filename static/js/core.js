@@ -1046,7 +1046,7 @@
 		return new RegExp(regString, 'gi');
 	}
 
-	function PerformSearch() {
+	function performSearch() {
 		let t0 = performance.now();
 
 		const p = getQueryParameters(),
@@ -1312,6 +1312,10 @@
 		getSettingValue : function() {
 			return this.getValue(this.storageName);
 		}
+	};
+	
+	$.fn.performSearch = function() {
+		new performSearch();
 	};
 
 })(jQuery);
