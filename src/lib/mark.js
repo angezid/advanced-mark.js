@@ -88,22 +88,14 @@ class Mark {
     if ( !this._opt.element) {
       this._opt.element = 'mark';
     }
+    // shortens a lengthy name
+    this.filter = win.NodeFilter;
+    // this empty text node used to simplify code
+    this.empty = win.document.createTextNode('');
   }
 
   get opt() {
     return this._opt;
-  }
-
-  /**
-   * The empty text node used to simplify code
-   * @type {Text}
-   * @access protected
-   */
-  get empty() {
-    if (!this._empty) {
-      this._empty = this.opt.window.document.createTextNode('');
-    }
-    return this._empty;
   }
 
   /**
@@ -385,36 +377,35 @@ class Mark {
       boundary : boundary, startOffset : 0, str : '', ch : ch
     };
 
-    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT,
-      node => { // each
-        if (prevNode) {
-          nodes.push(this.getNodeInfo(prevNode, node, type, obj));
+    this.iterator.forEachNode(this.filter.SHOW_ELEMENT | this.filter.SHOW_TEXT, node => { // each
+      if (prevNode) {
+        nodes.push(this.getNodeInfo(prevNode, node, type, obj));
+      }
+      type = null;
+      prevNode = node;
+
+    }, node => { // filter
+      if (node.nodeType === 1) { // element
+        tempType = tags[node.nodeName.toLowerCase()];
+
+        if (tempType === 3) { // br element
+          obj.str += '\n';
         }
-        type = null;
-        prevNode = node;
 
-      }, node => { // filter
-        if (node.nodeType === 1) { // element
-          tempType = tags[node.nodeName.toLowerCase()];
-
-          if (tempType === 3) { // br element
-            obj.str += '\n';
-          }
-
-          if ( !type || tempType === priorityType) {
-            type = tempType;
-          }
-          return false;
+        if ( !type || tempType === priorityType) {
+          type = tempType;
         }
-        return !this.excluded(node.parentNode);
+        return false;
+      }
+      return !this.excluded(node.parentNode);
 
-      }, () => { // done
-        // processes the last node
-        if (prevNode) {
-          nodes.push(this.getNodeInfo(prevNode, null, type, obj));
-        }
-        cb(this.createDict(obj.text, nodes, true));
-      });
+    }, () => { // done
+      // processes the last node
+      if (prevNode) {
+        nodes.push(this.getNodeInfo(prevNode, null, type, obj));
+      }
+      cb(this.createDict(obj.text, nodes, true));
+    });
   }
 
   /**
@@ -515,13 +506,11 @@ class Mark {
     const nodes = [],
       regex = /\n/g,
       newLines = [0],
-      lines = this.opt.markLines;
+      lines = this.opt.markLines,
+      show = this.filter.SHOW_TEXT | (lines ? this.filter.SHOW_ELEMENT : 0);
     let text = '',
       len = 0,
-      show = this.opt.window.NodeFilter.SHOW_TEXT,
       rm;
-
-    show = lines ? this.opt.window.NodeFilter.SHOW_ELEMENT | show : show;
 
     this.iterator.forEachNode(show, node => { // each
       if (lines) {
@@ -747,6 +736,7 @@ class Mark {
       }
 
     } else if (start < dict.lastTextIndex) {
+      // case of overlapping match; can occurs with separateGroups option and capturing group inside assertion
       return;
     }
 
@@ -760,7 +750,7 @@ class Mark {
         const s = start - n.start,
           e = (end > n.end ? n.end : end) - n.start;
 
-        // prevents creating an empty mark node, prevents exception if something went wrong, useful for debug
+        // prevents exception if something went wrong, useful for debugging purpose
         if (s >= 0 && e > s) {
           if (wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
@@ -822,14 +812,12 @@ class Mark {
    */
   wrapGroups(node, match, params, filterCb, eachCb) {
     let startIndex = match.index,
-      i = -1,
       isWrapped = false,
-      index, group, start;
+      group, start;
 
     // the only way to avoid nested group being searched by the indexOf method
     // is to parse the RegExp pattern and collect main groups indexes
-    while (++i < params.groups.length) {
-      index = params.groups[i];
+    params.groups.forEach(index => {
       group = match[index];
 
       if (group) {
@@ -850,7 +838,7 @@ class Mark {
           }
         }
       }
-    }
+    });
     // resets the lastIndex only when any of group is wrapped (to avoid infinite loop)
     if (isWrapped) {
       params.regex.lastIndex = 0;
@@ -883,29 +871,27 @@ class Mark {
    */
   wrapGroupsAcross(dict, match, params, filterCb, eachCb) {
     let startIndex = 0,
-      index = 0,
       group, start, end;
 
     const s = match.index,
-      text = match[0];
-    const wrap = (start, end) => {
-      this.wrapRangeAcross(dict, start, end, obj => {
-        return filterCb(obj, text, index);
+      text = match[0],
+      wrap = (start, end, index) => {
+        this.wrapRangeAcross(dict, s + start, s + end, obj => {
+          return filterCb(obj, text, index);
 
-      }, (node, groupStart) => {
-        eachCb(node, groupStart, index);
-      });
-    };
+        }, (node, groupStart) => {
+          eachCb(node, groupStart, index);
+        });
+      };
 
     //a way to mark nesting groups, it first wraps the whole match as a group 0
     if (this.opt.wrapAllRanges) {
-      wrap(s, s + text.length);
+      wrap(0, text.length, 0);
     }
 
     // the only way to avoid nested group being searched by the indexOf method
     // is to parse the RegExp pattern and collect main groups indexes
-    for (let i = 0; i < params.groups.length; i++) {
-      index = params.groups[i];
+    params.groups.forEach(index => {
       group = match[index];
 
       if (group) {
@@ -914,11 +900,11 @@ class Mark {
 
         if (start !== -1) {
           end = start + group.length;
-          wrap(s + start, s + end);
+          wrap(start, end, index);
           startIndex = end;
         }
       }
-    }
+    });
   }
 
   /**
@@ -1055,8 +1041,8 @@ class Mark {
    */
   setLastIndex(regex, end) {
     const index = regex.lastIndex;
-    // end > index - case when the capturing group is inside positive lookahead assertion
-    // end > 0 - case when the match is filtered out or the capturing group is inside positive lookbehind assertion
+    // end > index - case when a capturing group is inside positive lookahead assertion
+    // end > 0 - case when a match is filtered out or a capturing group is inside positive lookbehind assertion
     regex.lastIndex = end > index ? end : end > 0 ? index + 1 : Infinity;
   }
 
@@ -1069,21 +1055,21 @@ class Mark {
     let groups = [], stack = [],
       index = 0, brackets = 0,
       str = regex.source, rm,
-      // any escaped char | charSet | start of capturing groups '(?<, (' | rest open parentheses | close parenthesis
+      // any escaped char | charSet | start of a capturing groups '(?<, (' | rest open parentheses | close parenthesis
       reg = /(?:\\.)+|\[(?:[^\\\]]|(?:\\.))+\]|(\(\?<(?![=!])|\((?!\?))|(\()|(\))/g;
 
     while ((rm = reg.exec(str)) !== null) {
-      if (rm[1]) {
+      if (rm[1]) { // the start of a capturing group
         stack.push(1);
         index++;
 
         if (brackets++ === 0) {
           groups.push(index);
         }
-      } else if (rm[2]) {
+      } else if (rm[2]) { // an open parenthesis
         stack.push(0);
 
-      } else if (rm[3] && stack.pop()) {
+      } else if (rm[3] && stack.pop()) { // a close parenthesis
         brackets--;
       }
     }
@@ -1397,8 +1383,7 @@ class Mark {
         matchStart = true;
 
         // calculates the start index inside dict.text
-        let i = 0,
-          start = match.index;
+        let i = 0, start = match.index;
         while (++i < index) {
           if (match[i]) { // allows any ignore group to be undefined
             start += match[i].length;
@@ -1624,7 +1609,7 @@ class Mark {
       if ( !regexp.global && !regexp.sticky) {
         let splits = regexp.toString().split('/');
         regexp = new RegExp(regexp.source, 'g' + splits[splits.length-1]);
-        this.log('RegExp is recompiled because it must have g flag');
+        this.log('RegExp is recompiled - it must have a `g` flag');
       }
     }
     this.log(`RegExp "${regexp}"`);
@@ -1912,7 +1897,7 @@ class Mark {
   markRanges(ranges, opt) {
     this.checkOption(opt, true);
 
-    if (Array.isArray(ranges) && ranges.some(item => String(item) === '[object Object]')) {
+    if (Array.isArray(ranges) && ranges.some(obj => obj.start && obj.length)) {
       let totalMarks = 0;
 
       this.wrapRanges(ranges, (node, range, match, index) => { // filter
@@ -1949,7 +1934,7 @@ class Mark {
     }
     this.log(`Removal selector "${selector}"`);
 
-    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT, node => { // each
+    this.iterator.forEachNode(this.filter.SHOW_ELEMENT, node => { // each
       this.unwrapMatches(node);
     }, node => { // filter
       return DOMIterator.matches(node, selector) && !this.excluded(node);

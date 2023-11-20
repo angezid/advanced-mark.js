@@ -26,7 +26,6 @@
     "no-prototype-builtins": "off",
     "no-template-curly-in-string": "error",
     "array-callback-return": "error",
-    "block-scoped-var": "error",
     "default-case": "error",
     "no-fallthrough": "error",
     "no-global-assign": "error",

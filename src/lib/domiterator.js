@@ -345,7 +345,7 @@ class DOMIterator {
         showText = (whatToShow & nodeFilter.SHOW_TEXT) !== 0;
 
       if (showText) {
-        whatToShow = nodeFilter.SHOW_ELEMENT | nodeFilter.SHOW_TEXT;
+        whatToShow |= nodeFilter.SHOW_ELEMENT;
       }
 
       const traverse = node => {
@@ -380,13 +380,13 @@ class DOMIterator {
       traverse(ctx);
 
     } else {
-      const iterator = this.createIterator(ctx, whatToShow, node => {
-        return filterCb(node) ? nodeFilter.FILTER_ACCEPT : nodeFilter.FILTER_REJECT;
-      });
+      const iterator = this.createIterator(ctx, whatToShow);
       let node;
 
       while ((node = iterator.nextNode())) {
-        eachCb(node);
+        if (filterCb(node)) {
+          eachCb(node);
+        }
       }
     }
 

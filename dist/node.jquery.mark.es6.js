@@ -184,7 +184,7 @@ class DOMIterator {
       const showElement = (whatToShow & nodeFilter.SHOW_ELEMENT) !== 0,
         showText = (whatToShow & nodeFilter.SHOW_TEXT) !== 0;
       if (showText) {
-        whatToShow = nodeFilter.SHOW_ELEMENT | nodeFilter.SHOW_TEXT;
+        whatToShow |= nodeFilter.SHOW_ELEMENT;
       }
       const traverse = node => {
         const iterator = this.createIterator(node, whatToShow);
@@ -211,12 +211,12 @@ class DOMIterator {
       };
       traverse(ctx);
     } else {
-      const iterator = this.createIterator(ctx, whatToShow, node => {
-        return filterCb(node) ? nodeFilter.FILTER_ACCEPT : nodeFilter.FILTER_REJECT;
-      });
+      const iterator = this.createIterator(ctx, whatToShow);
       let node;
       while ((node = iterator.nextNode())) {
-        eachCb(node);
+        if (filterCb(node)) {
+          eachCb(node);
+        }
       }
     }
     doneCb();
@@ -451,15 +451,11 @@ class Mark {
     if ( !this._opt.element) {
       this._opt.element = 'mark';
     }
+    this.filter = win.NodeFilter;
+    this.empty = win.document.createTextNode('');
   }
   get opt() {
     return this._opt;
-  }
-  get empty() {
-    if (!this._empty) {
-      this._empty = this.opt.window.document.createTextNode('');
-    }
-    return this._empty;
   }
   get iterator() {
     return new DOMIterator(this.ctx, this.opt);
@@ -603,31 +599,30 @@ class Mark {
       text : '', regex : /\s/, tags : tags,
       boundary : boundary, startOffset : 0, str : '', ch : ch
     };
-    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT | this.opt.window.NodeFilter.SHOW_TEXT,
-      node => {
-        if (prevNode) {
-          nodes.push(this.getNodeInfo(prevNode, node, type, obj));
+    this.iterator.forEachNode(this.filter.SHOW_ELEMENT | this.filter.SHOW_TEXT, node => {
+      if (prevNode) {
+        nodes.push(this.getNodeInfo(prevNode, node, type, obj));
+      }
+      type = null;
+      prevNode = node;
+    }, node => {
+      if (node.nodeType === 1) {
+        tempType = tags[node.nodeName.toLowerCase()];
+        if (tempType === 3) {
+          obj.str += '\n';
         }
-        type = null;
-        prevNode = node;
-      }, node => {
-        if (node.nodeType === 1) {
-          tempType = tags[node.nodeName.toLowerCase()];
-          if (tempType === 3) {
-            obj.str += '\n';
-          }
-          if ( !type || tempType === priorityType) {
-            type = tempType;
-          }
-          return false;
+        if ( !type || tempType === priorityType) {
+          type = tempType;
         }
-        return !this.excluded(node.parentNode);
-      }, () => {
-        if (prevNode) {
-          nodes.push(this.getNodeInfo(prevNode, null, type, obj));
-        }
-        cb(this.createDict(obj.text, nodes, true));
-      });
+        return false;
+      }
+      return !this.excluded(node.parentNode);
+    }, () => {
+      if (prevNode) {
+        nodes.push(this.getNodeInfo(prevNode, null, type, obj));
+      }
+      cb(this.createDict(obj.text, nodes, true));
+    });
   }
   getNodeInfo(prevNode, node, type, obj) {
     const start = obj.text.length,
@@ -678,12 +673,11 @@ class Mark {
     const nodes = [],
       regex = /\n/g,
       newLines = [0],
-      lines = this.opt.markLines;
+      lines = this.opt.markLines,
+      show = this.filter.SHOW_TEXT | (lines ? this.filter.SHOW_ELEMENT : 0);
     let text = '',
       len = 0,
-      show = this.opt.window.NodeFilter.SHOW_TEXT,
       rm;
-    show = lines ? this.opt.window.NodeFilter.SHOW_ELEMENT | show : show;
     this.iterator.forEachNode(show, node => {
       if (lines) {
         while ((rm = regex.exec(node.textContent)) !== null) {
@@ -832,11 +826,9 @@ class Mark {
   }
   wrapGroups(node, match, params, filterCb, eachCb) {
     let startIndex = match.index,
-      i = -1,
       isWrapped = false,
-      index, group, start;
-    while (++i < params.groups.length) {
-      index = params.groups[i];
+      group, start;
+    params.groups.forEach(index => {
       group = match[index];
       if (group) {
         start = node.textContent.indexOf(group, startIndex);
@@ -852,7 +844,7 @@ class Mark {
           }
         }
       }
-    }
+    });
     if (isWrapped) {
       params.regex.lastIndex = 0;
     }
@@ -860,32 +852,30 @@ class Mark {
   }
   wrapGroupsAcross(dict, match, params, filterCb, eachCb) {
     let startIndex = 0,
-      index = 0,
       group, start, end;
     const s = match.index,
-      text = match[0];
-    const wrap = (start, end) => {
-      this.wrapRangeAcross(dict, start, end, obj => {
-        return filterCb(obj, text, index);
-      }, (node, groupStart) => {
-        eachCb(node, groupStart, index);
-      });
-    };
+      text = match[0],
+      wrap = (start, end, index) => {
+        this.wrapRangeAcross(dict, s + start, s + end, obj => {
+          return filterCb(obj, text, index);
+        }, (node, groupStart) => {
+          eachCb(node, groupStart, index);
+        });
+      };
     if (this.opt.wrapAllRanges) {
-      wrap(s, s + text.length);
+      wrap(0, text.length, 0);
     }
-    for (let i = 0; i < params.groups.length; i++) {
-      index = params.groups[i];
+    params.groups.forEach(index => {
       group = match[index];
       if (group) {
         start = text.indexOf(group, startIndex);
         if (start !== -1) {
           end = start + group.length;
-          wrap(s + start, s + end);
+          wrap(start, end, index);
           startIndex = end;
         }
       }
-    }
+    });
   }
   wrapGroupsDFlag(node, match, params, filterCb, eachCb) {
     let lastIndex = 0,
@@ -1107,8 +1097,7 @@ class Mark {
       while ((match = regex.exec(dict.text)) !== null && (str = match[index]) !== '') {
         filterInfo.match = match;
         matchStart = true;
-        let i = 0,
-          start = match.index;
+        let i = 0, start = match.index;
         while (++i < index) {
           if (match[i]) {
             start += match[i].length;
@@ -1226,7 +1215,7 @@ class Mark {
       if ( !regexp.global && !regexp.sticky) {
         let splits = regexp.toString().split('/');
         regexp = new RegExp(regexp.source, 'g' + splits[splits.length-1]);
-        this.log('RegExp is recompiled because it must have g flag');
+        this.log('RegExp is recompiled - it must have a `g` flag');
       }
     }
     this.log(`RegExp "${regexp}"`);
@@ -1358,7 +1347,7 @@ class Mark {
   }
   markRanges(ranges, opt) {
     this.checkOption(opt, true);
-    if (Array.isArray(ranges) && ranges.some(item => String(item) === '[object Object]')) {
+    if (Array.isArray(ranges) && ranges.some(obj => obj.start && obj.length)) {
       let totalMarks = 0;
       this.wrapRanges(ranges, (node, range, match, index) => {
         return this.opt.filter(node, range, match, index);
@@ -1381,7 +1370,7 @@ class Mark {
       selector += `.${this.opt.className}`;
     }
     this.log(`Removal selector "${selector}"`);
-    this.iterator.forEachNode(this.opt.window.NodeFilter.SHOW_ELEMENT, node => {
+    this.iterator.forEachNode(this.filter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
       return DOMIterator.matches(node, selector) && !this.excluded(node);
