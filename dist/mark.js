@@ -2,7 +2,7 @@
 * advanced-mark.js v2.4.1
 * https://github.com/angezid/advanced-mark.js#readme
 * MIT licensed
-* Copyright (c) 2022–2023, angezid
+* Copyright (c) 2022–2024, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
 
@@ -535,7 +535,7 @@
     }, {
       key: "createAccuracy",
       value: function createAccuracy(str) {
-        var chars = '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+        var chars = '!-/:-@[-`{-~¡¿';
         var accuracy = this.opt.accuracy,
           lookbehind = '()',
           pattern = str,
@@ -556,7 +556,7 @@
             pattern = _charSet + str + _charSet;
           } else if (accuracy === 'startsWith') {
             lookbehind = "(^|[\\s".concat(chs, "])");
-            pattern = str.replace(/\[\\s\]\+/g, _charSet + '$&') + _charSet;
+            pattern = str.split(/\[\\s\]\+/g).join(_charSet + '[\\s]+') + _charSet;
           }
         }
         return {
@@ -1725,14 +1725,12 @@
         } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
           num = value;
         }
-        var count = Math.ceil(terms.length / num);
-        for (var i = 0; i < count; i++) {
-          var start = i * num,
-            slice = terms.slice(start, Math.min(start + num, terms.length)),
-            obj = creator.createCombinePattern(slice, true);
+        for (var i = 0; i < terms.length; i += num) {
+          var chunk = terms.slice(i, Math.min(i + num, terms.length)),
+            obj = creator.createCombinePattern(chunk, true);
           array.push({
             pattern: "".concat(obj.lookbehind, "(").concat(obj.pattern, ")").concat(obj.lookahead),
-            regTerms: slice
+            regTerms: chunk
           });
         }
         return array;

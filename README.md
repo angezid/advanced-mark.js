@@ -7,6 +7,8 @@
 [Playground](https://angezid.github.io/advanced-mark.js/playground) and
 [Documentation](https://angezid.github.io/advanced-mark.js/doc-v2) for `advanced-mark.js` v2.
 
+Happy highlighting!
+
 ### License
 
 [MIT](LICENSE)

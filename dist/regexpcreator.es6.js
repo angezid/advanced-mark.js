@@ -1,6 +1,6 @@
 /*!***************************************************
 * advanced-mark.js v2.4.1
-* Copyright (c) 2014–2023, Julian Kühnel
+* Copyright (c) 2014–2024, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
 *****************************************************/
@@ -153,7 +153,7 @@ class RegExpCreator$1 {
     }).join('');
   }
   createAccuracy(str) {
-    const chars = '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+    const chars = '!-/:-@[-`{-~¡¿';
     let accuracy = this.opt.accuracy,
       lookbehind = '()',
       pattern = str,
@@ -174,7 +174,7 @@ class RegExpCreator$1 {
         pattern = charSet + str + charSet;
       } else if (accuracy === 'startsWith') {
         lookbehind = `(^|[\\s${chs}])`;
-        pattern = str.replace(/\[\\s\]\+/g, charSet + '$&') + charSet;
+        pattern = str.split(/\[\\s\]\+/g).join(charSet + '[\\s]+') + charSet;
       }
     }
     return { lookbehind, pattern, lookahead };

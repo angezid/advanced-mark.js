@@ -379,7 +379,7 @@ class RegExpCreator {
    * @return {RegExpCreator~patternObj}
    */
   createAccuracy(str) {
-    const chars = '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+    const chars = '!-/:-@[-`{-~¡¿'; // '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
     let accuracy = this.opt.accuracy,
       lookbehind = '()',
       pattern = str,
@@ -405,7 +405,7 @@ class RegExpCreator {
 
       } else if (accuracy === 'startsWith') {
         lookbehind = `(^|[\\s${chs}])`;
-        pattern = str.replace(/\[\\s\]\+/g, charSet + '$&') + charSet;
+        pattern = str.split(/\[\\s\]\+/g).join(charSet + '[\\s]+') + charSet;
       }
     }
     return { lookbehind, pattern, lookahead };

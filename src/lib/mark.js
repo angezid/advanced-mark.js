@@ -1825,16 +1825,12 @@ class Mark {
     } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
       num = value;
     }
-    // the number of chunks to be created
-    const count = Math.ceil(terms.length / num);
 
-    for (let i = 0; i < count; i++) {
-      const start = i * num,
-        // get a chunk of terms to create combine pattern
-        slice = terms.slice(start, Math.min(start + num, terms.length)),
-        obj = creator.createCombinePattern(slice, true);
-
-      array.push({ pattern : `${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, regTerms : slice });
+    for (let i = 0; i < terms.length; i += num) {
+      // get a chunk of terms to create combine pattern
+      const chunk = terms.slice(i, Math.min(i + num, terms.length)),
+        obj = creator.createCombinePattern(chunk, true);
+      array.push({ pattern : `${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, regTerms : chunk });
     }
     return array;
   }

@@ -1,6 +1,6 @@
 /*!***************************************************
 * advanced-mark.js v2.4.1
-* Copyright (c) 2014–2023, Julian Kühnel
+* Copyright (c) 2014–2024, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
 *****************************************************/
@@ -247,7 +247,7 @@
     }, {
       key: "createAccuracy",
       value: function createAccuracy(str) {
-        var chars = '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+        var chars = '!-/:-@[-`{-~¡¿';
         var accuracy = this.opt.accuracy,
           lookbehind = '()',
           pattern = str,
@@ -268,7 +268,7 @@
             pattern = _charSet + str + _charSet;
           } else if (accuracy === 'startsWith') {
             lookbehind = "(^|[\\s".concat(chs, "])");
-            pattern = str.replace(/\[\\s\]\+/g, _charSet + '$&') + _charSet;
+            pattern = str.split(/\[\\s\]\+/g).join(_charSet + '[\\s]+') + _charSet;
           }
         }
         return {

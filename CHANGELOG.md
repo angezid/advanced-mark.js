@@ -1,7 +1,7 @@
 
 ### 2.4.1
 * Fixed infinite loop that can occur with `ignoreGroups` option in markRegExp() API with the conditional main group.
-* Fixed missing window object of Node interface (causes exception in virtual DOM environments when context is an array of elements).
+* Fixed missing window object of the Node interface (causes an exception in virtual DOM environments when context is an array of elements).
 
 ### 2.4.0
 * Fixed handling escaped wildcards characters (backslashes were stripped from searching string, e.g. 'C:\\\\\\\\&#42;' resulted in 'C:\\\\&#42;' and is treated as escape '*', not a wildcard)

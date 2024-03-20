@@ -2,7 +2,7 @@
 * advanced-mark.js v2.4.1
 * https://github.com/angezid/advanced-mark.js#readme
 * MIT licensed
-* Copyright (c) 2022–2023, angezid
+* Copyright (c) 2022–2024, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
 
@@ -393,7 +393,7 @@ class RegExpCreator {
     }).join('');
   }
   createAccuracy(str) {
-    const chars = '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+    const chars = '!-/:-@[-`{-~¡¿';
     let accuracy = this.opt.accuracy,
       lookbehind = '()',
       pattern = str,
@@ -414,7 +414,7 @@ class RegExpCreator {
         pattern = charSet + str + charSet;
       } else if (accuracy === 'startsWith') {
         lookbehind = `(^|[\\s${chs}])`;
-        pattern = str.replace(/\[\\s\]\+/g, charSet + '$&') + charSet;
+        pattern = str.split(/\[\\s\]\+/g).join(charSet + '[\\s]+') + charSet;
       }
     }
     return { lookbehind, pattern, lookahead };
@@ -1336,12 +1336,10 @@ class Mark {
     } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
       num = value;
     }
-    const count = Math.ceil(terms.length / num);
-    for (let i = 0; i < count; i++) {
-      const start = i * num,
-        slice = terms.slice(start, Math.min(start + num, terms.length)),
-        obj = creator.createCombinePattern(slice, true);
-      array.push({ pattern : `${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, regTerms : slice });
+    for (let i = 0; i < terms.length; i += num) {
+      const chunk = terms.slice(i, Math.min(i + num, terms.length)),
+        obj = creator.createCombinePattern(chunk, true);
+      array.push({ pattern : `${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, regTerms : chunk });
     }
     return array;
   }
