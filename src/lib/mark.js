@@ -1893,7 +1893,7 @@ class Mark {
   markRanges(ranges, opt) {
     this.checkOption(opt, true);
 
-    if (Array.isArray(ranges) && ranges.some(obj => obj.start && obj.length)) {
+    if (Array.isArray(ranges)) {
       let totalMarks = 0;
 
       this.wrapRanges(ranges, (node, range, match, index) => { // filter

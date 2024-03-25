@@ -550,7 +550,7 @@
           lookbehind = "(^|".concat(charSet, ")");
           lookahead = "(?=$|".concat(charSet, ")");
         } else {
-          var chs = limiters ? limiters : chars,
+          var chs = limiters || chars,
             _charSet = "[^\\s".concat(chs, "]*");
           if (accuracy === 'complementary') {
             pattern = _charSet + str + _charSet;
@@ -1740,9 +1740,7 @@
       value: function markRanges(ranges, opt) {
         var _this15 = this;
         this.checkOption(opt, true);
-        if (Array.isArray(ranges) && ranges.some(function (obj) {
-          return obj.start && obj.length;
-        })) {
+        if (Array.isArray(ranges)) {
           var totalMarks = 0;
           this.wrapRanges(ranges, function (node, range, match, index) {
             return _this15.opt.filter(node, range, match, index);

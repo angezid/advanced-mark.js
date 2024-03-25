@@ -262,7 +262,7 @@
           lookbehind = "(^|".concat(charSet, ")");
           lookahead = "(?=$|".concat(charSet, ")");
         } else {
-          var chs = limiters ? limiters : chars,
+          var chs = limiters || chars,
             _charSet = "[^\\s".concat(chs, "]*");
           if (accuracy === 'complementary') {
             pattern = _charSet + str + _charSet;
