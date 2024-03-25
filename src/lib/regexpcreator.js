@@ -397,7 +397,7 @@ class RegExpCreator {
       lookahead = `(?=$|${charSet})`;
 
     } else {
-      const chs = limiters ? limiters : chars,
+      const chs = limiters || chars,
         charSet = `[^\\s${chs}]*`;
 
       if (accuracy === 'complementary') {

@@ -407,7 +407,7 @@ class RegExpCreator {
       lookbehind = `(^|${charSet})`;
       lookahead = `(?=$|${charSet})`;
     } else {
-      const chs = limiters ? limiters : chars,
+      const chs = limiters || chars,
         charSet = `[^\\s${chs}]*`;
       if (accuracy === 'complementary') {
         pattern = charSet + str + charSet;
@@ -1344,7 +1344,7 @@ class Mark {
   }
   markRanges(ranges, opt) {
     this.checkOption(opt, true);
-    if (Array.isArray(ranges) && ranges.some(obj => obj.start && obj.length)) {
+    if (Array.isArray(ranges)) {
       let totalMarks = 0;
       this.wrapRanges(ranges, (node, range, match, index) => {
         return this.opt.filter(node, range, match, index);

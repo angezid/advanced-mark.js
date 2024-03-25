@@ -1,4 +1,7 @@
 
+### 2.4.2
+* Fixed bug that occurs in `markRanges()` API then an array of ranges have a single item and a range `start` property is zero.
+
 ### 2.4.1
 * Fixed infinite loop that can occur with `ignoreGroups` option in markRegExp() API with the conditional main group.
 * Fixed missing window object of the Node interface (causes an exception in virtual DOM environments when context is an array of elements).
