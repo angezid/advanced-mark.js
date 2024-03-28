@@ -1,7 +1,7 @@
 
 'use strict';
 
-const version = '2.3.0';
+const version = '2.4.0';
 let currentTabId = '',
 	time = 0,
 	matchCount = 0,
@@ -21,8 +21,6 @@ let currentTabId = '',
 	startElements = $(),
 	previousButton = $(`.previous`),
 	nextButton = $(`.next`);
-
-const currentLibrary = { jquery : false };
 
 const types = {
 	string_ : {
@@ -95,8 +93,6 @@ const defaultOptions = {
 $(document).ready(function() {
 	let t0 = performance.now();
 
-	detectLibrary();
-
 	try { new RegExp('\\w', 'd'); } catch (e) { dFlagSupport = false; }
 
 	registerEvents();
@@ -115,7 +111,7 @@ const code = {
 	setText : function(text) {
 		tab.setTextMode(text);
 	},
-
+	
 	// code.setHtml(iframes);
 	setHtml : function(html) {
 		tab.setHtmlMode(html, false);
@@ -1321,14 +1317,9 @@ const codeBuilder = {
 
 		} else {
 			const time = `\n    time = performance.now();`;
-			code = `let options;\n`;
+			code += this.buildContextCode(code);
 
-			if (currentLibrary.jquery) {
-				code += `const instance = $(tab.getTestElement());\ninstance.unmark({\n  ${unmarkOpt}done : () => {${time}\n    instance`;
-
-			} else {
-				code += `const instance = new Mark(tab.getTestElement());\ninstance.unmark({\n  ${unmarkOpt}done : () => {${time}\n    instance`;
-			}
+			code += `\ninstance.unmark({\n  ${unmarkOpt}done : () => {${time}\n    instance`;
 		}
 
 		if (text = info.editor.toString().trim()) {
@@ -1373,6 +1364,22 @@ const codeBuilder = {
 		return code;
 	},
 
+	buildContextCode : function(code) {
+		code = `let options, elems;
+const elem = tab.getTestElement(),
+	info = tab.getSelectorsEditorInfo(),
+	selectors = info.editor.toString().trim();
+
+if (selectors) {
+	elems = $(info.all).prop('checked') ? elem.querySelectorAll(selectors) : elem.querySelector(selectors);
+} else {
+	elems = elem;
+}
+
+const instance = new Mark(elems);`;
+		return code; 
+	},
+	
 	buildCustomCode : function(code, kind) {
 		let text;
 		const reg = /\s+/g,
@@ -1838,7 +1845,7 @@ function registerEvents() {
 	$(".generated-code details").on('toggle', function(e) {
 		const attr = $(this).attr('open');
 		settings.saveValue('generated_code', attr ? 'opened' : 'closed');
-
+		
 		if (attr && !$(this).find('pre').text()) {
 			runCode();
 		}
@@ -2348,18 +2355,6 @@ function scrollIntoView(elem) {
 		window.scrollBy(0, -1000);
 		setTimeout(function() { isScrolled = false; }, 150);
 	}
-}
-
-function detectLibrary() {
-	let jq = true;
-
-	try { $().mark('a'); } catch (e) { jq = false; }
-
-	currentLibrary.jquery = jq;
-}
-
-function getContext(selector, jquery) {
-	return jquery ? $(selector) : new Mark(document.querySelector(selector));
 }
 
 

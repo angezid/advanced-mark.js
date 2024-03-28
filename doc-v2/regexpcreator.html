@@ -427,7 +427,7 @@
    * @</span><span class="dtag">return</span><span class="doc"> {RegExpCreator~patternObj}
    */</span>
   createAccuracy(str) {
-    <span class="kwd">const</span> chars = <span class="str">'!"#$%&amp;\'()*+,\\-./:;&lt;=&gt;?@[\\]\\\\^_`{|}~¡¿'</span>;
+    <span class="kwd">const</span> chars = <span class="str">'!-/:-@[-`{-~¡¿'</span>; <span class="com">// '!"#$%&amp;\'()*+,\\-./:;&lt;=&gt;?@[\\]\\\\^_`{|}~¡¿';</span>
     <span class="kwd">let</span> accuracy = <span class="kwd">this</span>.opt.accuracy,
       lookbehind = <span class="str">'()'</span>,
       pattern = str,
@@ -445,7 +445,7 @@
       lookahead = <span class="str">`(?=$|$</span>{charSet}<span class="str">)`</span>;
 
     } <span class="kwd">else</span> {
-      <span class="kwd">const</span> chs = limiters ? limiters : chars,
+      <span class="kwd">const</span> chs = limiters || chars,
         charSet = <span class="str">`[^\\s$</span>{chs}<span class="str">]*`</span>;
 
       <span class="kwd">if</span> (accuracy === <span class="str">'complementary'</span>) {
@@ -453,7 +453,7 @@
 
       } <span class="kwd">else</span> <span class="kwd">if</span> (accuracy === <span class="str">'startsWith'</span>) {
         lookbehind = <span class="str">`(^|[\\s$</span>{chs}<span class="str">])`</span>;
-        pattern = str.replace(<span class="jreg">/\[\\s\]\+/g</span>, charSet + <span class="str">'$&amp;'</span>) + charSet;
+        pattern = str.split(<span class="jreg">/\[\\s\]\+/g</span>).join(charSet + <span class="str">'[\\s]+'</span>) + charSet;
       }
     }
     <span class="kwd">return</span> { lookbehind, pattern, lookahead };

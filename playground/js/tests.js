@@ -53,6 +53,7 @@ const test = {
 	},
 
 	run : function() {
+		$('input#unmark').val('false');
 		console.clear();
 		test.importExportTest();
 		test.optionsTest(true);
@@ -103,7 +104,7 @@ const test = {
 					tab.updateCustomCode(codeBuilder.snippet);
 
 					const options = internal ? runCode() : highlighter.getCurrentSettings();
-					this.checkSetOptions(options, obj, internal);
+					this.checkSetOptions(options, obj, internal, 'optionsTest');
 				}
 			});
 		}
@@ -157,7 +158,7 @@ const test = {
 		this.logResults(`The 'set options to default value' test for ${currentType} is ${this.result(success)}${internal ? ', internal test' : ''}`, success);
 	},
 
-	checkSetOptions : function(options, obj, internal) {
+	checkSetOptions : function(options, obj, internal, method) {
 		if ( !options) {
 			console.error(`Failed to get current options for ${currentType}, ${internal ? 'internal test' : ''}`);
 			return;
@@ -173,7 +174,7 @@ const test = {
 			setValue = options[name];
 
 			if (isNullOrUndefined(setValue)) {
-				console.log(`The option ${name} value is ${value}. ${currentType}, ${internal ? 'internal test' : ''}`);
+				console.log(`'isNullOrUndefined' ${setValue} The option ${name} value is ${value}. ${currentType}, ${internal ? 'internal test' : ''}`);
 				success = false;
 				continue;
 			}
@@ -203,7 +204,7 @@ const test = {
 			}
 		}
 
-		this.logResults(`The 'set options' test for ${currentType} is ${this.result(success)}`, success);
+		this.logResults(`The 'set options' test for ${currentType}${internal ? ' internal test' : ''} ${method} is ${this.result(success)}`, success);
 	},
 
 	// enable new options, which are dependable on other option(s), can cause some penalty
@@ -264,7 +265,7 @@ const test = {
 
 					if ( !options) return true;
 
-					this.checkSetOptions(options, obj, false);
+					this.checkSetOptions(options, obj, false, 'codeBuilderTest');
 				}
 				return true;
 			});
@@ -314,9 +315,9 @@ const test = {
 		}
 	},
 
-	generateAndRunCode : function(obj) {
+	generateAndRunCode : function() {
 		let options,
-			code = codeBuilder.build(currentLibrary.jquery ? 'jq' : 'js');
+			code = codeBuilder.build('js');
 		code = code.replace(/'selector'/, `'article'`);
 		// the generated code don't have 'options' object
 		code = 'let options; ' + code.replace(/\{\n/, 'options = {\n') + '\nreturn options;';

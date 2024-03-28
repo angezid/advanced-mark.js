@@ -1873,16 +1873,12 @@
     } <span class="kwd">else</span> <span class="kwd">if</span> (Number.isInteger(option) &amp;&amp; (value = parseInt(option)) &gt; 0) {
       num = value;
     }
-    <span class="com">// the number of chunks to be created</span>
-    <span class="kwd">const</span> count = Math.ceil(terms.length / num);
 
-    <span class="kwd">for</span> (<span class="kwd">let</span> i = 0; i &lt; count; i++) {
-      <span class="kwd">const</span> start = i * num,
-        <span class="com">// get a chunk of terms to create combine pattern</span>
-        slice = terms.slice(start, Math.min(start + num, terms.length)),
-        obj = creator.createCombinePattern(slice, <span class="kwd">true</span>);
-
-      array.push({ pattern : <span class="str">`$</span>{obj.lookbehind}<span class="str">($</span>{obj.pattern}<span class="str">)$</span>{obj.lookahead}<span class="str">`</span>, regTerms : slice });
+    <span class="kwd">for</span> (<span class="kwd">let</span> i = 0; i &lt; terms.length; i += num) {
+      <span class="com">// get a chunk of terms to create combine pattern</span>
+      <span class="kwd">const</span> chunk = terms.slice(i, Math.min(i + num, terms.length)),
+        obj = creator.createCombinePattern(chunk, <span class="kwd">true</span>);
+      array.push({ pattern : <span class="str">`$</span>{obj.lookbehind}<span class="str">($</span>{obj.pattern}<span class="str">)$</span>{obj.lookahead}<span class="str">`</span>, regTerms : chunk });
     }
     <span class="kwd">return</span> array;
   }
@@ -1945,7 +1941,7 @@
   markRanges(ranges, opt) {
     <span class="kwd">this</span>.checkOption(opt, <span class="kwd">true</span>);
 
-    <span class="kwd">if</span> (Array.isArray(ranges) &amp;&amp; ranges.some(obj =&gt; obj.start &amp;&amp; obj.length)) {
+    <span class="kwd">if</span> (Array.isArray(ranges)) {
       <span class="kwd">let</span> totalMarks = 0;
 
       <span class="kwd">this</span>.wrapRanges(ranges, (node, range, match, index) =&gt; { <span class="com">// filter</span>

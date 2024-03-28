@@ -386,13 +386,13 @@ const highlighter = {
 			elems = $(info.all).prop('checked') ? elem.querySelectorAll(selectors) : elem.querySelector(selectors);
 		}
 
-		return currentLibrary.jquery ? $(elems) : new Mark(elems);
+		return new Mark(elems);
 	},
 
 	getTestContainer : function() {
 		const elem = tab.getTestElement();
 
-		return currentLibrary.jquery ? $(elem) : new Mark(elem);
+		return new Mark(elem);
 	},
 
 	getMarkElements : function() {
