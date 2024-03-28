@@ -1365,18 +1365,16 @@ const codeBuilder = {
 	},
 
 	buildContextCode : function(code) {
-		code = `let options, elems;
-const elem = tab.getTestElement(),
-	info = tab.getSelectorsEditorInfo(),
+		code = `let options, context= tab.getTestElement(); 
+const info = tab.getSelectorsEditorInfo(),
 	selectors = info.editor.toString().trim();
 
 if (selectors) {
-	elems = $(info.all).prop('checked') ? elem.querySelectorAll(selectors) : elem.querySelector(selectors);
-} else {
-	elems = elem;
+	context = $(info.all).prop('checked') ? context.querySelectorAll(selectors) : context.querySelector(selectors);
 }
 
-const instance = new Mark(elems);`;
+const instance = new Mark(context);`;
+
 		return code; 
 	},
 	
