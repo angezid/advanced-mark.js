@@ -239,19 +239,32 @@ class DOMIterator {
       }
     };
 
+    const add = (iframe) => {
+      if ( !DOMIterator.matches(iframe, this.opt.exclude)) {
+        iframes.push(iframe);
+        if ( !iframe.hasAttribute(this.attrName)) {
+          array.push(iframe);
+        }
+      }
+    };
+
     const loop = (obj) => {
       if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
         array = [];
-
-        obj.context.querySelectorAll(obj.iframe ? 'body iframe' : 'iframe').forEach(iframe => {
-          if ( !DOMIterator.matches(iframe, this.opt.exclude)) {
-            iframes.push(iframe);
-
-            if ( !iframe.hasAttribute(this.attrName)) {
-              array.push(iframe);
-            }
+        
+        // special case to handle iframe element because querySelectorAll unable to do this
+        if (obj.isIframe) {
+          const node = this.createIterator(obj.context, this.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
+          if (node !== null) {
+            add(node);
           }
-        });
+         
+        } else {
+          obj.context.querySelectorAll('iframe').forEach(iframe => {
+            add(iframe);
+          });
+        }
+
         // case when the main context has no iframes or iframes were already handled, e.g. by unmark() method
         if ( !obj.iframe && !array.length) {
           done();
@@ -278,7 +291,7 @@ class DOMIterator {
       }
     };
 
-    loop({ context : ctx });
+    loop({ context : ctx, isIframe : ctx.nodeName.toLowerCase() === 'iframe' });
   }
 
   /**

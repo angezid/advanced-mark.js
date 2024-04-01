@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.4.1
+* advanced-mark.js v2.4.2
 * https://github.com/angezid/advanced-mark.js#readme
 * MIT licensed
 * Copyright (c) 2022–2024, angezid
@@ -121,17 +121,27 @@ class DOMIterator {
         done();
       }
     };
+    const add = (iframe) => {
+      if ( !DOMIterator.matches(iframe, this.opt.exclude)) {
+        iframes.push(iframe);
+        if ( !iframe.hasAttribute(this.attrName)) {
+          array.push(iframe);
+        }
+      }
+    };
     const loop = (obj) => {
       if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
         array = [];
-        obj.context.querySelectorAll(obj.iframe ? 'body iframe' : 'iframe').forEach(iframe => {
-          if ( !DOMIterator.matches(iframe, this.opt.exclude)) {
-            iframes.push(iframe);
-            if ( !iframe.hasAttribute(this.attrName)) {
-              array.push(iframe);
-            }
+        if (obj.isIframe) {
+          const node = this.createIterator(obj.context, this.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
+          if (node !== null) {
+            add(node);
           }
-        });
+        } else {
+          obj.context.querySelectorAll('iframe').forEach(iframe => {
+            add(iframe);
+          });
+        }
         if ( !obj.iframe && !array.length) {
           done();
           return;
@@ -153,7 +163,7 @@ class DOMIterator {
         checkDone();
       }
     };
-    loop({ context : ctx });
+    loop({ context : ctx, isIframe : ctx.nodeName.toLowerCase() === 'iframe' });
   }
   createIterator(ctx, whatToShow, filter) {
     return this.opt.window.document.createNodeIterator(ctx, whatToShow, filter, false);
@@ -1393,7 +1403,7 @@ $.fn.unmark = function(opt) {
   return this;
 };
 $.fn.getVersion = function() {
-  return '2.4.1';
+  return '2.4.2';
 };
 var $$1 = $;
 

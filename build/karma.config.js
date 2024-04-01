@@ -19,6 +19,7 @@ module.exports = config => {
     exclude: [
       //'test/specs/!(across-elements)/**/*.js',
       //'test/specs/!(basic)/*.js',
+      //'test/specs/basic/*.js',
       //'test/specs/across-elements/**/*.js'
     ],
     reporters: ['spec', 'coverage'],
