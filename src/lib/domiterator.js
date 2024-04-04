@@ -73,19 +73,21 @@ class DOMIterator {
    */
   getContexts() {
     let ctx = this.ctx,
+      win = this.opt.window,
       sort = false;
 
     if ( !ctx) return [];
 
-    if ( !this.opt.window.NodeList.prototype.isPrototypeOf(ctx)) {
-      if (Array.isArray(ctx)) {
-        sort = true;
-      } else if (typeof ctx === 'string') {
-        ctx = this.opt.window.document.querySelectorAll(ctx);
-      } else { // e.g. HTMLElement or element inside iframe
-        ctx = [ctx];
-      }
+    if (win.NodeList.prototype.isPrototypeOf(ctx)) {
+      ctx = this.toArray(ctx);
+    } else if (Array.isArray(ctx)) {
+      sort = true;
+    } else if (typeof ctx === 'string') {
+      ctx = this.toArray(win.document.querySelectorAll(ctx));
+    } else { // e.g. HTMLElement or element inside iframe
+      ctx = [ctx];
     }
+
     // filters out duplicate/nested elements
     const array = [];
     ctx.forEach(elem => {
@@ -97,10 +99,14 @@ class DOMIterator {
     // sorts elements by the DOM order
     if (sort) {
       array.sort((a, b) => {
-        return (a.compareDocumentPosition(b) & this.opt.window.Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
+        return (a.compareDocumentPosition(b) & win.Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
       });
     }
     return array;
+  }
+
+  toArray(n) {
+    return Array.prototype.slice.call(n);
   }
 
   /**
@@ -126,19 +132,6 @@ class DOMIterator {
       iframe.setAttribute(this.attrName, 'error');
       errorFn({ iframe : iframe, error : e });
     }
-  }
-
-  /**
-   * Checks if an iframe is empty (if about:blank is the shown page)
-   * @param {HTMLElement} ifr - The iframe DOM element
-   * @return {boolean}
-   * @access protected
-   */
-  isIframeBlank(ifr) {
-    const bl = 'about:blank',
-      src = ifr.getAttribute('src').trim(),
-      href = ifr.contentWindow.location.href;
-    return href === bl && src !== bl && src;
   }
 
   /**
@@ -190,8 +183,12 @@ class DOMIterator {
    */
   onIframeReady(ifr, successFn, errorFn) {
     try {
-      if (ifr.contentWindow.document.readyState === 'complete') {
-        if (this.isIframeBlank(ifr)) {
+      const bl = 'about:blank',
+        src = ifr.getAttribute('src').trim(),
+        win = ifr.contentWindow;
+        
+      if (win.document.readyState === 'complete') {
+        if (win.location.href === bl && src !== bl && src) {
           this.observeIframeLoad(ifr, successFn, errorFn);
         } else {
           this.getIframeContents(ifr, successFn, errorFn);
@@ -217,25 +214,11 @@ class DOMIterator {
   waitForAllIframes(ctx, doneCb) {
     let count = 0,
       iframes = [],
-      array = [],
-      fired = false;
-    // not sure about this timeout; it should guarantee a single done callback, if something went wrong
-    const id = setTimeout(() => {
-      fired = true;
-      doneCb();
-    }, this.opt.iframesTimeout);
-
-    const done = () => {
-      clearTimeout(id);
-
-      if ( !fired) {
-        doneCb();
-      }
-    };
-
+      array = [];
+    
     const checkDone = () => {
       if (count === iframes.filter(ifr => !this.hasAttributeValue(ifr, this.attrName, 'error')).length) {
-        done();
+        doneCb();
       }
     };
 
@@ -251,23 +234,23 @@ class DOMIterator {
     const loop = (obj) => {
       if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
         array = [];
-        
+
         // special case to handle iframe element because querySelectorAll unable to do this
         if (obj.isIframe) {
           const node = this.createIterator(obj.context, this.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
           if (node !== null) {
             add(node);
           }
-         
+
         } else {
-          obj.context.querySelectorAll('iframe').forEach(iframe => {
+          this.toArray(obj.context.querySelectorAll('iframe')).forEach(iframe => {
             add(iframe);
           });
         }
 
         // case when the main context has no iframes or iframes were already handled, e.g. by unmark() method
         if ( !obj.iframe && !array.length) {
-          done();
+          doneCb();
           return;
         }
       }
@@ -291,7 +274,7 @@ class DOMIterator {
       }
     };
 
-    loop({ context : ctx, isIframe : ctx.nodeName.toLowerCase() === 'iframe' });
+    loop({ context : ctx, isIframe : ctx.tagName === 'IFRAME' });
   }
 
   /**
@@ -370,7 +353,7 @@ class DOMIterator {
               eachCb(node);
             }
 
-            if (iframe && node.nodeName.toLowerCase() === 'iframe' && !DOMIterator.matches(node, this.opt.exclude)) {
+            if (iframe && node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
               if (this.hasAttributeValue(node, this.attrName, 'completed')) {
                 this.getIframeContents(node, obj => {
                   traverse(obj.context);
@@ -437,27 +420,40 @@ class DOMIterator {
   forEachNode(whatToShow, each, filter, done = () => {}) {
     const contexts = this.getContexts();
     let open = contexts.length;
-    if ( !open) {
-      done();
-    }
-
-    contexts.forEach(ctx => {
-      open--;
-
-      const ready = () => {
+    
+    if ( !open) done();
+    
+    const ready = () => {
+      contexts.forEach(ctx => {
         this.iterateThroughNodes(ctx, whatToShow, filter, each, () => {
-          if (open <= 0) { // calls end when all contexts were handled
-            done();
-          }
+          if (--open <= 0) done(); // calls end when all contexts were handled
         });
-      };
-
-      if (this.opt.iframes) {
-        this.waitForAllIframes(ctx, ready);
-      } else {
+      });
+    };
+    
+    if (this.opt.iframes) {
+      let count = open,
+        fired = false;
+      // it should guarantee a single done callback, if something went wrong
+      const id = setTimeout(() => {
+        fired = true;
         ready();
-      }
-    });
+      }, this.opt.iframesTimeout);
+      
+      const done = () => {
+        clearTimeout(id);
+        if ( !fired) ready();
+      };
+      
+      contexts.forEach(ctx => {
+        this.waitForAllIframes(ctx, () => {
+          if (--count <= 0) done();
+        });
+      });
+      
+    } else {
+      ready();
+    }
   }
 }
 

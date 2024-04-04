@@ -1,0 +1,16 @@
+<div class="iframes" id="target">
+    <h1>Lorem ipsum dolor.</h1>
+
+    <p>Lorem ipsum dolor. Lorem ipsum dolor. Lorem ipsum dolor.</p>
+    <p>Lorem ipsum dolor. Lorem ipsum dolor. Lorem ipsum dolor.</p>
+    <script>
+        var target = document.getElementById("target");
+        var iframe = document.createElement("iframe");
+        iframe.src = jasmine.getFixtures().fixturesPath + "/iframes/inc.html";
+        target.appendChild(iframe);
+
+        var iframe2 = document.createElement("iframe");
+        iframe2.src = jasmine.getFixtures().fixturesPath + "/iframes/iframe.html";
+        target.appendChild(iframe2);
+    </script>
+</div>
