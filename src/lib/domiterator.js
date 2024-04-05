@@ -184,11 +184,11 @@ class DOMIterator {
   onIframeReady(ifr, successFn, errorFn) {
     try {
       const bl = 'about:blank',
-        src = ifr.getAttribute('src').trim(),
+        src = ifr.getAttribute('src'),
         win = ifr.contentWindow;
         
       if (win.document.readyState === 'complete') {
-        if (win.location.href === bl && src !== bl && src) {
+        if (src && src.trim() !== bl && win.location.href === bl) {
           this.observeIframeLoad(ifr, successFn, errorFn);
         } else {
           this.getIframeContents(ifr, successFn, errorFn);
@@ -232,9 +232,9 @@ class DOMIterator {
     };
 
     const loop = (obj) => {
-      if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
-        array = [];
+      array = [];
 
+      if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
         // special case to handle iframe element because querySelectorAll unable to do this
         if (obj.isIframe) {
           const node = this.createIterator(obj.context, this.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
@@ -286,8 +286,8 @@ class DOMIterator {
    * @return {NodeIterator}
    * @access protected
    */
-  createIterator(ctx, whatToShow, filter) {
-    return this.opt.window.document.createNodeIterator(ctx, whatToShow, filter, false);
+  createIterator(ctx, whatToShow) {
+    return this.opt.window.document.createNodeIterator(ctx, whatToShow, () => true, false);
   }
 
   /**

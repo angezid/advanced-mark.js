@@ -157,10 +157,10 @@
       value: function onIframeReady(ifr, successFn, errorFn) {
         try {
           var bl = 'about:blank',
-            src = ifr.getAttribute('src').trim(),
+            src = ifr.getAttribute('src'),
             win = ifr.contentWindow;
           if (win.document.readyState === 'complete') {
-            if (win.location.href === bl && src !== bl && src) {
+            if (src && src.trim() !== bl && win.location.href === bl) {
               this.observeIframeLoad(ifr, successFn, errorFn);
             } else {
               this.getIframeContents(ifr, successFn, errorFn);
@@ -195,8 +195,8 @@
           }
         };
         var loop = function loop(obj) {
+          array = [];
           if (!obj.iframe || obj.context.location.href !== 'about:blank') {
-            array = [];
             if (obj.isIframe) {
               var node = _this2.createIterator(obj.context, _this2.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
               if (node !== null) {
@@ -235,8 +235,10 @@
       }
     }, {
       key: "createIterator",
-      value: function createIterator(ctx, whatToShow, filter) {
-        return this.opt.window.document.createNodeIterator(ctx, whatToShow, filter, false);
+      value: function createIterator(ctx, whatToShow) {
+        return this.opt.window.document.createNodeIterator(ctx, whatToShow, function () {
+          return true;
+        }, false);
       }
     }, {
       key: "addRemoveStyle",
