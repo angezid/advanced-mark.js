@@ -1,6 +1,6 @@
 /*!***************************************************
 * advanced-mark.js v2.5.0
-* https://github.com/angezid/advanced-mark.js#readme
+* https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2024, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
@@ -177,8 +177,8 @@
         }
       }
     }, {
-      key: "waitForAllIframes",
-      value: function waitForAllIframes(ctx, doneCb) {
+      key: "waitForIframes",
+      value: function waitForIframes(ctx, doneCb) {
         var _this2 = this;
         var count = 0,
           iframes = [],
@@ -223,7 +223,7 @@
                 loop(obj);
               }, function (obj) {
                 if (_this2.opt.debug) {
-                  console.log(obj.error);
+                  console.log(obj.error || obj);
                 }
                 checkDone();
               });
@@ -240,8 +240,9 @@
     }, {
       key: "createIterator",
       value: function createIterator(ctx, whatToShow) {
-        return this.opt.window.document.createNodeIterator(ctx, whatToShow, function () {
-          return true;
+        var win = this.opt.window;
+        return win.document.createNodeIterator(ctx, whatToShow, function () {
+          return win.NodeFilter.FILTER_ACCEPT;
         }, false);
       }
     }, {
@@ -341,7 +342,7 @@
             if (!fired) ready();
           };
           contexts.forEach(function (ctx) {
-            _this4.waitForAllIframes(ctx, function () {
+            _this4.waitForIframes(ctx, function () {
               if (--count <= 0) _done();
             });
           });
@@ -966,7 +967,7 @@
           });
         }, function (node) {
           if (lines && node.nodeType === 1) {
-            if (node.tagName.toLowerCase() === 'br') {
+            if (node.tagName === 'BR') {
               newLines.push(len);
             }
             return false;

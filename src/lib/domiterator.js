@@ -186,7 +186,7 @@ class DOMIterator {
       const bl = 'about:blank',
         src = ifr.getAttribute('src'),
         win = ifr.contentWindow;
-        
+
       if (win.document.readyState === 'complete') {
         if (src && src.trim() !== bl && win.location.href === bl) {
           this.observeIframeLoad(ifr, successFn, errorFn);
@@ -211,11 +211,11 @@ class DOMIterator {
    * @param {HTMLElement} ctx - The context DOM element
    * @param {DOMIterator~waitForIframesDoneCallback} done - Done callback
    */
-  waitForAllIframes(ctx, doneCb) {
+  waitForIframes(ctx, doneCb) {
     let count = 0,
       iframes = [],
       array = [];
-    
+
     const checkDone = () => {
       if (count === iframes.filter(ifr => !this.hasAttributeValue(ifr, this.attrName, 'error')).length) {
         doneCb();
@@ -235,7 +235,7 @@ class DOMIterator {
       array = [];
 
       if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
-        // special case to handle iframe element because querySelectorAll unable to do this
+        // special case to handle dynamically created iframe element because querySelectorAll unable to do this
         if (obj.isIframe) {
           const node = this.createIterator(obj.context, this.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
           if (node !== null) {
@@ -248,7 +248,7 @@ class DOMIterator {
           });
         }
 
-        // case when the main context has no iframes or iframes were already handled, e.g. by unmark() method
+        // case when the context has no iframes or iframes were already handled, e.g. by unmark() method
         if ( !obj.iframe && !array.length) {
           doneCb();
           return;
@@ -263,7 +263,7 @@ class DOMIterator {
 
           }, obj => {
             if (this.opt.debug) {
-              console.log(obj.error);
+              console.log(obj.error || obj);
             }
             checkDone();
           });
@@ -282,12 +282,12 @@ class DOMIterator {
    * @see {@link https://developer.mozilla.org/en/docs/Web/API/NodeIterator}
    * @param {HTMLElement} ctx - The context DOM element
    * @param {DOMIterator~whatToShow} whatToShow
-   * @param {DOMIterator~filterCb} filter
    * @return {NodeIterator}
    * @access protected
    */
   createIterator(ctx, whatToShow) {
-    return this.opt.window.document.createNodeIterator(ctx, whatToShow, () => true, false);
+    const win = this.opt.window;
+    return win.document.createNodeIterator(ctx, whatToShow, () => win.NodeFilter.FILTER_ACCEPT, false);
   }
 
   /**
@@ -420,9 +420,9 @@ class DOMIterator {
   forEachNode(whatToShow, each, filter, done = () => {}) {
     const contexts = this.getContexts();
     let open = contexts.length;
-    
+
     if ( !open) done();
-    
+
     const ready = () => {
       contexts.forEach(ctx => {
         this.iterateThroughNodes(ctx, whatToShow, filter, each, () => {
@@ -430,7 +430,7 @@ class DOMIterator {
         });
       });
     };
-    
+    // wait for all iframes; not handle iframes inside Shadow DOM
     if (this.opt.iframes) {
       let count = open,
         fired = false;
@@ -439,18 +439,18 @@ class DOMIterator {
         fired = true;
         ready();
       }, this.opt.iframesTimeout);
-      
+
       const done = () => {
         clearTimeout(id);
         if ( !fired) ready();
       };
-      
+
       contexts.forEach(ctx => {
-        this.waitForAllIframes(ctx, () => {
+        this.waitForIframes(ctx, () => {
           if (--count <= 0) done();
         });
       });
-      
+
     } else {
       ready();
     }

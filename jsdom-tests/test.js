@@ -30,13 +30,7 @@ function test(html, message, selector, search, marks, matches, opt) {
     return false;
   }
 
-  const { window } = new JSDOM(html),
-    context = window.document.querySelector(selector);
-
-  if ( !context) {
-    console.log('Context is ', context);
-    return false;
-  }
+  const { window } = new JSDOM(html);
 
   const options = Object.assign({}, {
     diacritics : false,
@@ -47,7 +41,7 @@ function test(html, message, selector, search, marks, matches, opt) {
     }
   }, opt);
 
-  const instance = new Mark(context);
+  const instance = new Mark(selector);
   instance.mark(search, options);
 }
 

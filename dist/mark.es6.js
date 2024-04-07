@@ -1,6 +1,6 @@
 /*!***************************************************
 * advanced-mark.js v2.5.0
-* https://github.com/angezid/advanced-mark.js#readme
+* https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2024, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
@@ -101,7 +101,7 @@ class DOMIterator {
       errorFn(e);
     }
   }
-  waitForAllIframes(ctx, doneCb) {
+  waitForIframes(ctx, doneCb) {
     let count = 0,
       iframes = [],
       array = [];
@@ -143,7 +143,7 @@ class DOMIterator {
             loop(obj);
           }, obj => {
             if (this.opt.debug) {
-              console.log(obj.error);
+              console.log(obj.error || obj);
             }
             checkDone();
           });
@@ -155,7 +155,8 @@ class DOMIterator {
     loop({ context : ctx, isIframe : ctx.tagName === 'IFRAME' });
   }
   createIterator(ctx, whatToShow) {
-    return this.opt.window.document.createNodeIterator(ctx, whatToShow, () => true, false);
+    const win = this.opt.window;
+    return win.document.createNodeIterator(ctx, whatToShow, () => win.NodeFilter.FILTER_ACCEPT, false);
   }
   addRemoveStyle(root, style, add) {
     if (add) {
@@ -243,7 +244,7 @@ class DOMIterator {
         if ( !fired) ready();
       };
       contexts.forEach(ctx => {
-        this.waitForAllIframes(ctx, () => {
+        this.waitForIframes(ctx, () => {
           if (--count <= 0) done();
         });
       });
@@ -701,7 +702,7 @@ class Mark$1 {
       });
     }, node => {
       if (lines && node.nodeType === 1) {
-        if (node.tagName.toLowerCase() === 'br') {
+        if (node.tagName === 'BR') {
           newLines.push(len);
         }
         return false;

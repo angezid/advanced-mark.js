@@ -1,4 +1,9 @@
 
+### 2.5.0
+* Added ability to select iframe elements when using non-jQuery libraries and iframe elements are dynamically created by javascript.
+* Fixed multiple wrapping of highlighted text in mark elements that can occur on some conditions with `iframes` option (page contains several iframes and selecting several contexts). Previous 2.x.x versions correctly handle only one context.
+* Fixed bug that is related to old browsers in DOMIterator class, e.g. IE11. (introduced in v2.4.1)
+
 ### 2.4.2
 * Fixed bug that occurs in `markRanges()` API then an array of ranges have a single item and a range `start` property is zero.
 

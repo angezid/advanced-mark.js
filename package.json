@@ -5,7 +5,9 @@
     "highlight",
     "highlight-text",
     "highlight-words",
+    "highlight-lines",
     "search",
+    "jsdom",
     "jquery",
     "javascript",
     "advanced-mark.js",
@@ -23,7 +25,7 @@
   "bugs": {
     "url": "https://github.com/angezid/advanced-mark.js/issues"
   },
-  "homepage": "https://github.com/angezid/advanced-mark.js#readme",
+  "homepage": "https://github.com/angezid/advanced-mark.js",
   "scripts": {
     "eslint": "eslint src/ test/",
     "karma": "karma start build/karma.config.js",

@@ -1,8 +1,8 @@
 'use strict';
-describe('mark with selected iframes', () => {
+describe('mark with selected iframes across-elements', () => {
 
   beforeEach(() => {
-    loadFixtures('iframes/select-iframes.html');
+    loadFixtures('across-elements/iframes/select-iframes.html');
   }, 30000);
 
   it('should wrap matches only inside iframes', done => {
@@ -11,6 +11,7 @@ describe('mark with selected iframes', () => {
       'diacritics': false,
       'separateWordSearch': false,
       'iframes': true,
+      'acrossElements' : true,
       'each' : elem => {
         array.push(elem);
       },
@@ -28,6 +29,7 @@ describe('mark with selected iframes', () => {
       'diacritics': false,
       'separateWordSearch': false,
       'iframes': true,
+      'acrossElements' : true,
       'each' : elem => {
         array.push(elem);
       },

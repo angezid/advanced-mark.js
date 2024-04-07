@@ -529,7 +529,7 @@ class Mark {
 
     }, node => { // filter
       if (lines && node.nodeType === 1) {
-        if (node.tagName.toLowerCase() === 'br') {
+        if (node.tagName === 'BR') {
           newLines.push(len);
         }
         return false;
