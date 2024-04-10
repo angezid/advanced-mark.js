@@ -498,7 +498,7 @@
 				if (prevAr.length) expandCollapse(prevAr);
 
 				//highlightSection(attrHref);
-				displayMenuButton();
+				handleWidth();
 			});
 
 			$(".search-info .button").on('click', function() {
@@ -682,7 +682,7 @@
 
 		function toggleSidebar(on) {
 			const marginLeft = getMargin();
-
+			
 			$('div.nav-wrap').css('display', on ? 'block' : 'none');
 			$('header #menu, main').css('display', on ? 'none' : 'block');
 			$('main').css('margin-left', on ? marginLeft + 'px' : '0px').css('margin-top', on ? '0px' : '50px');

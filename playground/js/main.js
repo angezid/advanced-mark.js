@@ -111,7 +111,7 @@ const code = {
 	setText : function(text) {
 		tab.setTextMode(text);
 	},
-	
+
 	// code.setHtml(iframes);
 	setHtml : function(html) {
 		tab.setHtmlMode(html, false);
@@ -790,7 +790,7 @@ function selectExample(elem) {
 				return;
 			}
 		}
-		if (title === 'iframes' && !/^https?:\/+/.test(location.href)) {
+		if (title === 'iframes' && location.protocol === 'file:') {
 			str = str.replace(/"customCode": *"/, '$&// Note that iframes example can only be run on a sever.\\n');
 		}
 		importer.loadJson(str);
@@ -1090,7 +1090,7 @@ const importer = {
 
 					} else {
 						if (/^defaultHtmls\[(['"])\w+\1\]$/.test(content)) {
-							const match = /^defaultHtmls\[['"](\w+)['"]\]([^]*)/.exec(content);
+							const match = /^defaultHtmls\[['"](\w+)['"]\]([^]*)/.exec(content); // defaultHtmls['lorem']
 							tab.setHtmlMode(defaultHtmls[match[1]] + (match[2] || ''), false);
 
 						} else {
@@ -1247,6 +1247,7 @@ function runCode(reset) {
 			$('.internal-code').removeClass('hide');
 			$('.internal-code code').text(code);
 
+			hljs.configure({ ignoreUnescapedHTML: true });
 			hljs.highlightElement($(`${optionPad} .customCode .editor`)[0]);
 			hljs.highlightElement($('.internal-code code')[0]);
 
@@ -1269,7 +1270,7 @@ function runCode(reset) {
 }
 
 const codeBuilder = {
-	comment : '// your code before',
+	comment : '\n// your code before',
 	defaultSnippet : `\n<<markjsCode>> // don't remove this line\n\nfunction filter() {\n  return true;\n}\n\nfunction each() {}\n\nfunction done() {}`,
 	snippet : '',
 
@@ -1307,19 +1308,30 @@ const codeBuilder = {
 			unmarkOpt += `className :  '${klass}',\n  `;
 		}
 
-		unmarkOpt += (tab.isChecked('iframes') ? 'iframes : true,\n  ' : '') + (tab.isChecked('shadowDOM') ? 'shadowDOM : true,\n  ' : '');
+		if(tab.isChecked('iframes')) {
+			unmarkOpt += `iframes : true,\n  `;
+			const timeout = tab.getNumericalValue('iframesTimeout', 5000);
+			if(timeout !== 5000) {
+				unmarkOpt += `iframesTimeout : ${timeout},\n  `;
+			}
+		}
+
+		unmarkOpt += tab.isChecked('shadowDOM') ? 'shadowDOM : true,\n  ' : '';
 
 		if (kind === 'jq') {
 			code = `$('selector')` + (unmark ? `.unmark({\n  ${unmarkOpt}done : () => {\n    $('selector')` : '');
 
 		} else if (kind === 'js') {
-			code = `const instance = new Mark(document.querySelector('selector'));\ninstance` + (unmark ? `.unmark({\n  ${unmarkOpt}done : () => {\n    instance` : '');
+			code = `const instance = new Mark('selector');\ninstance` + (unmark ? `.unmark({\n  ${unmarkOpt}done : () => {\n    instance` : '');
 
-		} else {
+		} else { // internal
 			const time = `\n    time = performance.now();`;
 			code += this.buildContextCode(code);
 
-			code += `\ninstance.unmark({\n  ${unmarkOpt}done : () => {${time}\n    instance`;
+			unmarkOpt = `element :  '*',\n  iframes : true,\n  shadowDOM : true,\n  `;
+
+			code += `\n// unmarks whole editor regardless of selectors or other options`;
+			code += `\nnew Mark(editor).unmark({\n  ${unmarkOpt}done : () => {${time}\n    instance`;
 		}
 
 		if (text = info.editor.toString().trim()) {
@@ -1351,21 +1363,23 @@ const codeBuilder = {
 		}
 
 		code += str + (unmark ? '\n  }\n});' : '');
-		code = this.buildCustomCode(code, kind);
 
 		if (kind !== 'internal') {
 			code = (kind === 'jq' ? '//jQuery\n' : kind === 'js' ? '//javascript\n' : '') + code;
 
 		} else {
+			code = this.buildCustomCode(code, kind);
 			// returning an object 'options' is only necessary for testing purposes
-			code += '\n\nreturn options;'
+			code += '\n\n// needs only for tests\nreturn options;'
 		}
 
 		return code;
 	},
 
 	buildContextCode : function(code) {
-		code = `let options, context= tab.getTestElement(); 
+		code = `const editor = tab.getTestElement();
+let options, context = editor;
+// checks selector editor
 const info = tab.getSelectorsEditorInfo(),
 	selectors = info.editor.toString().trim();
 
@@ -1375,9 +1389,9 @@ if (selectors) {
 
 const instance = new Mark(context);`;
 
-		return code; 
+		return code;
 	},
-	
+
 	buildCustomCode : function(code, kind) {
 		let text;
 		const reg = /\s+/g,
@@ -1547,34 +1561,34 @@ const instance = new Mark(context);`;
 			indent = ' '.repeat(unmark ? 6 : 2),
 			end = unmark ? ' '.repeat(4) : '';
 
-		const editor = types[currentType].customCodeEditor;
+		if (kind === 'internal') {
+			const editor = types[currentType].customCodeEditor;
 
-		if (editor && (text = editor.toString())) {
-			if (/\bfunction\s+filter\s*\(/.test(text)) {
-				code += `${indent}filter : filter,\n`;
-			}
+			if (editor && (text = editor.toString())) {
+				if (/\bfunction\s+filter\s*\(/.test(text)) {
+					code += `${indent}filter : filter,\n`;
+				}
 
-			if (/\bfunction\s+each\s*\(/.test(text)) {
-				code += `${indent}each : each,\n`;
-			}
+				if (/\bfunction\s+each\s*\(/.test(text)) {
+					code += `${indent}each : each,\n`;
+				}
 
-			if (/\bfunction\s+done\s*\(/.test(text)) {
-				code += `${indent}done : done,\n`;
-			}
+				if (/\bfunction\s+done\s*\(/.test(text)) {
+					code += `${indent}done : done,\n`;
+				}
 
-			if (kind === 'internal') {
-				code += `${indent}noMatch : (t) => { noMatchTerms.push(t); }\n`;
-			}
+				if (kind === 'internal') {
+					code += `${indent}noMatch : (t) => { noMatchTerms.push(t); }\n`;
+				}
 
-		} else {
-			if (kind === 'internal') {
+			} else {
 				code = `${code}${indent}done : highlighter.finish\n`;
-
-			} else if ($('#callbacks').prop('checked')) {
-				code = `${indent}filter : ${this.getFilterParameters()} => {},\n`;
-				code += `${indent}each : ${this.getEachParameters()} => {},\n`;
-				code = `${code}${indent}done : ${this.getDoneParameters()} => {}\n`;
 			}
+
+		} else if ($('#callbacks').prop('checked')) {
+			code = `${indent}filter : ${this.getFilterParameters()} => {},\n`;
+			code += `${indent}each : ${this.getEachParameters()} => {},\n`;
+			code = `${code}${indent}done : ${this.getDoneParameters()} => {}\n`;
 		}
 
 		return code + end;
@@ -1843,7 +1857,7 @@ function registerEvents() {
 	$(".generated-code details").on('toggle', function(e) {
 		const attr = $(this).attr('open');
 		settings.saveValue('generated_code', attr ? 'opened' : 'closed');
-		
+
 		if (attr && !$(this).find('pre').text()) {
 			runCode();
 		}

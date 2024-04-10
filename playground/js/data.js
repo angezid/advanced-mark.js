@@ -15,7 +15,7 @@ const wordArrays = {
     words_150 : ['consider','either','library','likely','nature','fact','line','product','care','group','idea','risk','several','someone','temperature','united','word','fat','force','key','light','simply','today','training','until','major','name','personal','school','top','current','generally','historical','investment','left','national','amount','level','order','practice','research','sense','service','area','cut','hot','instead','least','natural','physical','piece','show','society','try','check','choose','develop','second','useful','web','activity','boss','short','story','call','industry','last','media','mental','move','pay','sport','thing','actually','against','far','fun','house','let','page','remember','term','test','within','along','answer','increase','oven','quite','scared','single','sound','again','community','definition','focus','individual','matter','safety','turn','everything','kind','quality','soil','ask','board','buy','development','guard','hold','language','later','main','offer','oil','picture','potential','professional','rather','access','additional','almost','especially','garden','international','lower','management','open','player','range','rate','reason','travel','variety','video','week','above','according','cook','determine','future','site','alternative','demand','ever','exercise','following','image','quickly','special'],
 };
 
-const iframes = '<h1>Iframe Iframe</h1><iframe width="500" height="120" src="html/iframe.html"></iframe><h2>Iframe 2</h2><iframe width="400" height="100" src="html/iframe2.html"></iframe><iframe width="500" height="300" src="html/iframe.html"></iframe>';
+//const iframes = '<h1>Iframe 1</h1><iframe width="500" height="120" src="html/iframe.html"></iframe><h2>Iframe 2</h2><iframe width="400" height="100" src="html/iframe2.html"></iframe><iframe width="500" height="300" src="html/iframe.html"></iframe>';
 
 const shadowStyle = `<style>.editor {
     font-family: Arial, sans-serif;
@@ -131,7 +131,7 @@ const examples = {
             "type": "array",
             "diacritics": false,
             "shadowDOM": "{ 'style' : \\"mark[data-markjs] { color:red; }\\" }",
-            "customCode": "// your code before\\nconst container = tab.getTestElement();\\nlet elem = container.querySelector('#shadow-dom');\\nif ( !elem) {\\n  const div = document.createElement(\\"div\\");\\n  div.id = 's2';\\n  div.innerHTML = '<h2>Shadow DOM test</h2><div id=\\"shadow-dom\\"></div>';\\n  container.appendChild(div);\\n  elem = container.querySelector('#shadow-dom');\\n}\\n\\nif (elem && !elem.shadowRoot) {\\n  const root2 = elem.attachShadow({ mode : 'open' });\\n  root2.innerHTML = defaultHtmls['lorem'];\\n}\\n\\n<<markjsCode>> // don't remove this line\\n\\nfunction filter(node, term, marks, count, info) {\\n  return true;\\n}\\n\\nfunction each(element, info) {}\\n\\nfunction done(totalMarks, totalMatches, termStats) {}",
+            "customCode": "// your code before\\nconst container = tab.getTestElement();\\nlet elem = container.querySelector('#shadow-dom');\\nif ( !elem) {\\n  const div = document.createElement(\\"div\\");\\n  div.id = 's2';\\n  div.innerHTML = '<h2>Shadow DOM test</h2><div id=\\"shadow-dom\\"></div>';\\n  container.appendChild(div);\\n  elem = container.querySelector('#shadow-dom');\\n}\\n\\nif (elem && !elem.shadowRoot) {\\n  const root2 = elem.attachShadow({ mode : 'open' });\\n  root2.innerHTML = defaultHtmls['loremIframe'];\\n}\\n\\n<<markjsCode>> // don't remove this line\\n\\nfunction filter(node, term, marks, count, info) {\\n  return true;\\n}\\n\\nfunction each(element, info) {}\\n\\nfunction done(totalMarks, totalMatches, termStats) {}",
             "queryArray": "['lorem', 'ipsum', 'dolor']",
             "testString": {
                 "mode": "html",
@@ -150,7 +150,7 @@ const examples = {
             "iframes": true,
             "combinePatterns": 10,
             "customCode": "// dynamically loads the HTML on run\\ncode.setHtml('<h1>Iframe</h1><iframe src=\\"html/iframe.html\\" width=\\"500\\" height=\\"120\\"></iframe><h2>Iframe 2</h2><iframe src=\\"html/iframe2.html\\" width=\\"400\\" height=\\"100\\" id=\\"ifr2\\"></iframe><h3>Iframe 3</h3><iframe src=\\"html/nested-iframe.html\\" width=\\"500\\" height=\\"450\\"></iframe>');\\n\\n<<markjsCode>> // don't remove this line\\n\\nfunction each(element, info) {}\\n\\nfunction done(totalMarks, totalMatches, termStats) {}",
-            "queryString": "iframe test wikipedia encyclopedia",
+            "queryString": "iframe test lorem ipsum",
             "testString": {
                 "mode": "html",
                 "content": "Iframes test"
@@ -158,6 +158,20 @@ const examples = {
         }
     }`,
 
+	srcdocIframe : `{
+        "version": "2.0.0",
+        "section": {
+            "type": "string_",
+            "accuracy": "startsWith",
+            "diacritics": false,
+            "iframes": true,
+            "customCode": "code.setHtml('<iframe srcdoc=\\"Hello world!\\"></iframe>');\\n// adds event listener to the search editor\\ncode.setListener('keyup', runCode);\\n\\n<<markjsCode>> // don't remove this line\\n\\nfunction each(element, info) {}\\n\\nfunction done(totalMarks, totalMatches, termStats) {}",
+            "queryString": "h",
+            "selectors": "iframe",
+            "selectorAll": true
+        }
+    }`,
+    
 	markWhileTyping : `{
         "version": "2.0.0",
         "section": {
@@ -264,10 +278,32 @@ const examples = {
             }
         }
     }`,
+    
+	performance : `{
+        "version": "2.4.0",
+        "library": "advanced",
+        "section": {
+            "type": "array",
+            "accuracy": "exactly",
+            "diacritics": false,
+            "combinePatterns": 200,
+            "customCode": "let count = 0;\\n// your code before\\n<<markjsCode>> // don't remove this line\\n\\nfunction filter(textNode, term, matchesSoFar, termMatchesSoFar, info) {\\n   // if (++count > 100) { info.execution.abort = true; return false; }\\n  return true;\\n}\\n\\nfunction each(element, info) {}\\n\\nfunction done(totalMarks, totalMatches, termStats) {}",
+            "queryArray": "wordArrays.words_50",
+            "testString": {
+                "mode": "html",
+                "content": "defaultHtmls['text_100KB']"
+            }
+        }
+    }`,
 };
 
 const defaultHtmls = {
     name : 'HTMLs',
+    
+    iframes : '<h1>Iframe 1</h1><iframe width="500" height="120" src="html/iframe.html"></iframe><h2>Iframe 2</h2><iframe width="500" height="100" src="html/nested-iframe.html"></iframe>',
+    
+    loremIframe : `<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit.</p>
+    <iframe width="500" height="120" src="html/iframe.html"></iframe>`,
     
     lorem : `<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit.</p>
 <p>Lorem <em>ipsum</em> <a href="#">dolor</a> sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor 'sit' amet.</p>`,

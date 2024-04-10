@@ -21,8 +21,10 @@ const highlighter = {
 	markContext : function(parameter, options, settings, fn) {
 		settings.testContainer.unmark({
 			'element' : '*',
-			'iframes' : options.iframes,
-			'shadowDOM' : options.shadowDOM,
+			//'iframes' : options.iframes,
+			//'shadowDOM' : options.shadowDOM,
+			'iframes' : true,
+			'shadowDOM' : true,
 			'done' : () => {
 				time = performance.now();
 				settings.context[fn](parameter, options);
@@ -390,9 +392,9 @@ const highlighter = {
 	},
 
 	getTestContainer : function() {
-		const elem = tab.getTestElement();
+		const editor = tab.getTestElement();
 
-		return new Mark(elem);
+		return new Mark(editor);
 	},
 
 	getMarkElements : function() {

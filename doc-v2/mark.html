@@ -577,7 +577,7 @@
 
     }, node =&gt; { <span class="com">// filter</span>
       <span class="kwd">if</span> (lines &amp;&amp; node.nodeType === 1) {
-        <span class="kwd">if</span> (node.tagName.toLowerCase() === <span class="str">'br'</span>) {
+        <span class="kwd">if</span> (node.tagName === <span class="str">'BR'</span>) {
           newLines.push(len);
         }
         <span class="kwd">return</span> <span class="kwd">false</span>;
@@ -1990,7 +1990,7 @@
 
 </article>
 <footer><div class="info">
-<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> <span class="version">version 2<span></p>
 </div></footer>
 </main>
 </div>

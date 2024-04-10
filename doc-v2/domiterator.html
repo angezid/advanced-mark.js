@@ -83,11 +83,12 @@
      */</span>
     <span class="kwd">this</span>.opt = opt;
     <span class="doc">/**
-     * The name of an attribute, which added to iframes, to indicate iframe state
+     * The object to truck iframes state
      * @</span><span class="dtag">type</span><span class="doc"> {string}
      * @</span><span class="dtag">access</span><span class="doc"> protected
      */</span>
-    <span class="kwd">this</span>.attrName = <span class="str">'data-markjsListener'</span>;
+    <span class="com">//this.map = new Map();</span>
+    <span class="kwd">this</span>.map = [];
   }
 
   <span class="doc">/**
@@ -121,19 +122,21 @@
    */</span>
   getContexts() {
     <span class="kwd">let</span> ctx = <span class="kwd">this</span>.ctx,
+      win = <span class="kwd">this</span>.opt.window,
       sort = <span class="kwd">false</span>;
 
     <span class="kwd">if</span> ( !ctx) <span class="kwd">return</span> [];
 
-    <span class="kwd">if</span> ( !<span class="kwd">this</span>.opt.window.NodeList.prototype.isPrototypeOf(ctx)) {
-      <span class="kwd">if</span> (Array.isArray(ctx)) {
-        sort = <span class="kwd">true</span>;
-      } <span class="kwd">else</span> <span class="kwd">if</span> (<span class="kwd">typeof</span> ctx === <span class="str">'string'</span>) {
-        ctx = <span class="kwd">this</span>.opt.window.document.querySelectorAll(ctx);
-      } <span class="kwd">else</span> { <span class="com">// e.g. HTMLElement or element inside iframe</span>
-        ctx = [ctx];
-      }
+    <span class="kwd">if</span> (win.NodeList.prototype.isPrototypeOf(ctx)) {
+      ctx = <span class="kwd">this</span>.toArray(ctx);
+    } <span class="kwd">else</span> <span class="kwd">if</span> (Array.isArray(ctx)) {
+      sort = <span class="kwd">true</span>;
+    } <span class="kwd">else</span> <span class="kwd">if</span> (<span class="kwd">typeof</span> ctx === <span class="str">'string'</span>) {
+      ctx = <span class="kwd">this</span>.toArray(win.document.querySelectorAll(ctx));
+    } <span class="kwd">else</span> { <span class="com">// e.g. HTMLElement or element inside iframe</span>
+      ctx = [ctx];
     }
+
     <span class="com">// filters out duplicate/nested elements</span>
     <span class="kwd">const</span> array = [];
     ctx.forEach(elem =&gt; {
@@ -145,10 +148,14 @@
     // sorts elements by the DOM order</span>
     <span class="kwd">if</span> (sort) {
       array.sort((a, b) =&gt; {
-        <span class="kwd">return</span> (a.compareDocumentPosition(b) &amp; <span class="kwd">this</span>.opt.window.Node.DOCUMENT_POSITION_FOLLOWING) &gt; 0 ? -1 : 1;
+        <span class="kwd">return</span> (a.compareDocumentPosition(b) &amp; win.Node.DOCUMENT_POSITION_FOLLOWING) &gt; 0 ? -1 : 1;
       });
     }
     <span class="kwd">return</span> array;
+  }
+
+  toArray(n) {
+    <span class="kwd">return</span> Array.prototype.slice.call(n);
   }
 
   <span class="doc">/**
@@ -167,26 +174,15 @@
     <span class="kwd">try</span> {
       <span class="kwd">const</span> doc = iframe.contentWindow.document;
       <span class="kwd">if</span> (doc) {
-        iframe.setAttribute(<span class="kwd">this</span>.attrName, <span class="str">'completed'</span>);
+        <span class="com">//this.map.set(iframe, 'completed');</span>
+        <span class="kwd">this</span>.map.push([iframe, <span class="str">'completed'</span>]);
         successFn({ iframe : iframe, context : doc });
       }
     } <span class="kwd">catch</span> (e) {
-      iframe.setAttribute(<span class="kwd">this</span>.attrName, <span class="str">'error'</span>);
+      <span class="com">//this.map.set(iframe, 'error');</span>
+      <span class="kwd">this</span>.map.push([iframe, <span class="str">'error'</span>]);
       errorFn({ iframe : iframe, error : e });
     }
-  }
-
-  <span class="doc">/**
-   * Checks if an iframe is empty (if about:blank is the shown page)
-   * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ifr - The iframe DOM element
-   * @</span><span class="dtag">return</span><span class="doc"> {boolean}
-   * @</span><span class="dtag">access</span><span class="doc"> protected
-   */</span>
-  isIframeBlank(ifr) {
-    <span class="kwd">const</span> bl = <span class="str">'about:blank'</span>,
-      src = ifr.getAttribute(<span class="str">'src'</span>).trim(),
-      href = ifr.contentWindow.location.href;
-    <span class="kwd">return</span> href === bl &amp;&amp; src !== bl &amp;&amp; src;
   }
 
   <span class="doc">/**
@@ -200,8 +196,9 @@
    * @</span><span class="dtag">access</span><span class="doc"> protected
    */</span>
   observeIframeLoad(ifr, successFn, errorFn) {
-    <span class="com">// an event listener is already added to the iframe</span>
-    <span class="kwd">if</span> (ifr.hasAttribute(<span class="kwd">this</span>.attrName)) {
+    <span class="com">// an event listener is already added to the iframe
+    //if (this.map.has(ifr)) {</span>
+    <span class="kwd">if</span> (<span class="kwd">this</span>.map.some(arr =&gt; arr[0] === ifr)) {
       <span class="kwd">return</span>;
     }
     <span class="kwd">let</span> id = <span class="kwd">null</span>;
@@ -213,7 +210,8 @@
     };
 
     ifr.addEventListener(<span class="str">'load'</span>, listener);
-    ifr.setAttribute(<span class="kwd">this</span>.attrName, <span class="kwd">true</span>);
+    <span class="com">//this.map.set(ifr, true);</span>
+    <span class="kwd">this</span>.map.push([ifr, <span class="kwd">true</span>]);
     id = setTimeout(listener, <span class="kwd">this</span>.opt.iframesTimeout);
   }
 
@@ -238,8 +236,12 @@
    */</span>
   onIframeReady(ifr, successFn, errorFn) {
     <span class="kwd">try</span> {
-      <span class="kwd">if</span> (ifr.contentWindow.document.readyState === <span class="str">'complete'</span>) {
-        <span class="kwd">if</span> (<span class="kwd">this</span>.isIframeBlank(ifr)) {
+      <span class="kwd">const</span> bl = <span class="str">'about:blank'</span>,
+        src = ifr.getAttribute(<span class="str">'src'</span>),
+        win = ifr.contentWindow;
+
+      <span class="kwd">if</span> (win.document.readyState === <span class="str">'complete'</span>) {
+        <span class="kwd">if</span> (src &amp;&amp; src.trim() !== bl &amp;&amp; win.location.href === bl) {
           <span class="kwd">this</span>.observeIframeLoad(ifr, successFn, errorFn);
         } <span class="kwd">else</span> {
           <span class="kwd">this</span>.getIframeContents(ifr, successFn, errorFn);
@@ -253,56 +255,55 @@
   }
 
   <span class="doc">/**
-   * Callback when all iframes are ready for DOM access
+   * Callback when all context iframes are ready for DOM access
    * @</span><span class="dtag">callback</span><span class="doc"> DOMIterator~waitForIframesDoneCallback
    */</span>
   <span class="doc">/**
-   * Iterates over all iframes and calls the done callback when all of them
+   * Iterates over all context iframes and calls the done callback when all of them
    * are ready for DOM access (including nested ones)
    * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ctx - The context DOM element
    * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~waitForIframesDoneCallback} done - Done callback
    */</span>
-  waitForAllIframes(ctx, doneCb) {
+  waitForIframes(ctx, doneCb) {
+    <span class="kwd">const</span> shadow = <span class="kwd">this</span>.opt.shadowDOM;
     <span class="kwd">let</span> count = 0,
-      iframes = [],
       array = [],
-      fired = <span class="kwd">false</span>;
-    <span class="com">// not sure about this timeout; it should guarantee a single done callback, if something went wrong</span>
-    <span class="kwd">const</span> id = setTimeout(() =&gt; {
-      fired = <span class="kwd">true</span>;
-      doneCb();
-    }, <span class="kwd">this</span>.opt.iframesTimeout);
+      iframes = [],
+      node;
 
-    <span class="kwd">const</span> done = () =&gt; {
-      clearTimeout(id);
-
-      <span class="kwd">if</span> ( !fired) {
+    <span class="kwd">const</span> checkDone = () =&gt; {
+      <span class="com">//if (count === iframes.filter(ifr =&gt; this.map.get(ifr) !== 'error').length) {</span>
+      <span class="kwd">if</span> (count === iframes.filter(ifr =&gt; !<span class="kwd">this</span>.has(ifr, <span class="str">'error'</span>)).length) {
         doneCb();
       }
     };
 
-    <span class="kwd">const</span> checkDone = () =&gt; {
-      <span class="kwd">if</span> (count === iframes.filter(ifr =&gt; !<span class="kwd">this</span>.hasAttributeValue(ifr, <span class="kwd">this</span>.attrName, <span class="str">'error'</span>)).length) {
-        done();
+    <span class="kwd">const</span> collect = context =&gt; {
+      <span class="kwd">const</span> iterator = <span class="kwd">this</span>.createIterator(context, <span class="kwd">this</span>.opt.window.NodeFilter.SHOW_ELEMENT);
+
+      <span class="kwd">while</span> ((node = iterator.nextNode())) {
+        <span class="kwd">if</span> (node.tagName === <span class="str">'IFRAME'</span> &amp;&amp; !DOMIterator.matches(node, <span class="kwd">this</span>.opt.exclude)) {
+          iframes.push(node);
+          <span class="com">//if ( !this.map.has(node)) {</span>
+          <span class="kwd">if</span> ( !<span class="kwd">this</span>.map.some(arr =&gt; arr[0] === node)) {
+            array.push(node);
+          }
+        }
+
+        <span class="kwd">if</span> (shadow &amp;&amp; node.shadowRoot &amp;&amp; node.shadowRoot.mode === <span class="str">'open'</span>) {
+          collect(node.shadowRoot);
+        }
       }
     };
 
     <span class="kwd">const</span> loop = (obj) =&gt; {
+      array = [];
+
       <span class="kwd">if</span> ( !obj.iframe || obj.context.location.href !== <span class="str">'about:blank'</span>) {
-        array = [];
+        collect(obj.context);
 
-        obj.context.querySelectorAll(obj.iframe ? <span class="str">'body iframe'</span> : <span class="str">'iframe'</span>).forEach(iframe =&gt; {
-          <span class="kwd">if</span> ( !DOMIterator.matches(iframe, <span class="kwd">this</span>.opt.exclude)) {
-            iframes.push(iframe);
-
-            <span class="kwd">if</span> ( !iframe.hasAttribute(<span class="kwd">this</span>.attrName)) {
-              array.push(iframe);
-            }
-          }
-        });
-        <span class="com">// case when the main context has no iframes or iframes were already handled, e.g. by unmark() method</span>
         <span class="kwd">if</span> ( !obj.iframe &amp;&amp; !array.length) {
-          done();
+          doneCb();
           <span class="kwd">return</span>;
         }
       }
@@ -312,15 +313,13 @@
           <span class="kwd">this</span>.onIframeReady(iframe, obj =&gt; {
             count++;
             loop(obj);
-
           }, obj =&gt; {
             <span class="kwd">if</span> (<span class="kwd">this</span>.opt.debug) {
-              console.log(obj.error);
+              console.log(obj.error || obj);
             }
             checkDone();
           });
         });
-
       } <span class="kwd">else</span> {
         checkDone();
       }
@@ -334,12 +333,12 @@
    * @</span><span class="dtag">see</span><span class="doc"> {@link https://developer.mozilla.org/en/docs/Web/API/NodeIterator}
    * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} ctx - The context DOM element
    * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~whatToShow} whatToShow
-   * @</span><span class="dtag">param</span><span class="doc"> {DOMIterator~filterCb} filter
    * @</span><span class="dtag">return</span><span class="doc"> {NodeIterator}
    * @</span><span class="dtag">access</span><span class="doc"> protected
    */</span>
-  createIterator(ctx, whatToShow, filter) {
-    <span class="kwd">return</span> <span class="kwd">this</span>.opt.window.document.createNodeIterator(ctx, whatToShow, filter, <span class="kwd">false</span>);
+  createIterator(ctx, whatToShow) {
+    <span class="kwd">const</span> win = <span class="kwd">this</span>.opt.window;
+    <span class="kwd">return</span> win.document.createNodeIterator(ctx, whatToShow, () =&gt; win.NodeFilter.FILTER_ACCEPT, <span class="kwd">false</span>);
   }
 
   <span class="doc">/**
@@ -349,29 +348,41 @@
    * @</span><span class="dtag">param</span><span class="doc"> {HTMLElement} style - The custom style element
    * @</span><span class="dtag">param</span><span class="doc"> {boolean} add - A boolean indicating add or remove a style element
    */</span>
-  addRemoveStyle(root, style, add) {
+  addRemoveStyle(root, text, add) {
+    <span class="kwd">let</span> style = root.querySelector(<span class="str">'style[data-markjs]'</span>);
+    
     <span class="kwd">if</span> (add) {
-      <span class="kwd">if</span> (style &amp;&amp; root.firstChild &amp;&amp; !root.querySelector(<span class="str">'style[data-markjs]'</span>)) {
+      <span class="kwd">if</span> ( !style) {
         <span class="kwd">const</span> elem = <span class="kwd">this</span>.opt.window.document.createElement(<span class="str">'style'</span>);
         elem.setAttribute(<span class="str">'data-markjs'</span>, <span class="str">'true'</span>);
-        elem.textContent = style;
-        root.insertBefore(elem, root.firstChild);
+        elem.textContent = text;
+        root.appendChild(elem);
       }
 
-    } <span class="kwd">else</span> {
-      <span class="kwd">let</span> elem = root.querySelector(<span class="str">'style[data-markjs]'</span>);
-      <span class="kwd">if</span> (elem) {
+    } <span class="kwd">else</span> <span class="kwd">if</span> (style) {
+      root.removeChild(style);
+    }
+  }
+  
+  <span class="com">/*addRemoveStyle(root, style, add) {
+    if (add) {
+      if (style &amp;&amp; !root.querySelector('style[data-markjs]')) {
+        const elem = this.opt.window.document.createElement('style');
+        elem.setAttribute('data-markjs', 'true');
+        elem.textContent = style;
+        root.appendChild(elem);
+      }
+
+    } else {
+      let elem = root.querySelector('style[data-markjs]');
+      if (elem) {
         root.removeChild(elem);
       }
     }
-  }
+  }*/</span>
 
-  <span class="doc">/**
-   * Checks whether the node has attribute with the specified name and value
-   * @</span><span class="dtag">return</span><span class="doc"> {Boolean}
-   */</span>
-  hasAttributeValue(node, name, value) {
-    <span class="kwd">return</span> node.hasAttribute(name) &amp;&amp; node.getAttribute(name) === value;
+  has(node, state) {
+    <span class="kwd">return</span> <span class="kwd">this</span>.map.some(arr =&gt; arr[0] === node &amp;&amp; arr[1] === state);
   }
 
   <span class="doc">/**
@@ -405,17 +416,18 @@
               eachCb(node);
             }
 
-            <span class="kwd">if</span> (iframe &amp;&amp; node.nodeName.toLowerCase() === <span class="str">'iframe'</span> &amp;&amp; !DOMIterator.matches(node, <span class="kwd">this</span>.opt.exclude)) {
-              <span class="kwd">if</span> (<span class="kwd">this</span>.hasAttributeValue(node, <span class="kwd">this</span>.attrName, <span class="str">'completed'</span>)) {
-                <span class="kwd">this</span>.getIframeContents(node, obj =&gt; {
-                  traverse(obj.context);
-                }, () =&gt; {});
+            <span class="kwd">if</span> (iframe &amp;&amp; node.tagName === <span class="str">'IFRAME'</span> &amp;&amp; !DOMIterator.matches(node, <span class="kwd">this</span>.opt.exclude)) {
+              <span class="com">//if (this.map.get(node) === 'completed') {</span>
+              <span class="kwd">if</span> (<span class="kwd">this</span>.has(node, <span class="str">'completed'</span>)) {
+                <span class="kwd">const</span> doc = node.contentWindow.document;
+                <span class="kwd">if</span> (doc) traverse(doc);
               }
             }
             <span class="com">// there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'
             // is not working neither for 'shadowRoot' no for the element itself</span>
             <span class="kwd">if</span> (shadow &amp;&amp; node.shadowRoot &amp;&amp; node.shadowRoot.mode === <span class="str">'open'</span>) {
-              <span class="kwd">this</span>.addRemoveStyle(node.shadowRoot, shadow.style, showText);
+              <span class="com">//this.addRemoveStyle(node.shadowRoot, shadow.style, showText);</span>
+              <span class="kwd">if</span> (shadow.style) <span class="kwd">this</span>.addRemoveStyle(node.shadowRoot, shadow.style, showText);
               traverse(node.shadowRoot);
             }
 
@@ -472,27 +484,41 @@
   forEachNode(whatToShow, each, filter, done = () =&gt; {}) {
     <span class="kwd">const</span> contexts = <span class="kwd">this</span>.getContexts();
     <span class="kwd">let</span> open = contexts.length;
-    <span class="kwd">if</span> ( !open) {
-      done();
-    }
 
-    contexts.forEach(ctx =&gt; {
-      open--;
+    <span class="kwd">if</span> ( !open) done();
 
-      <span class="kwd">const</span> ready = () =&gt; {
+    <span class="kwd">const</span> ready = () =&gt; {
+      contexts.forEach(ctx =&gt; {
         <span class="kwd">this</span>.iterateThroughNodes(ctx, whatToShow, filter, each, () =&gt; {
-          <span class="kwd">if</span> (open &lt;= 0) { <span class="com">// calls end when all contexts were handled</span>
-            done();
-          }
+          <span class="kwd">if</span> (--open &lt;= 0) done(); <span class="com">// calls end when all contexts were handled</span>
         });
+      });
+    };
+
+    <span class="com">// wait for all iframes to be ready for DOM access or timeout</span>
+    <span class="kwd">if</span> (<span class="kwd">this</span>.opt.iframes) {
+      <span class="kwd">let</span> count = open,
+        fired = <span class="kwd">false</span>;
+      <span class="com">// it should guarantee a single done callback, if something went wrong</span>
+      <span class="kwd">const</span> id = setTimeout(() =&gt; {
+        fired = <span class="kwd">true</span>;
+        ready();
+      }, <span class="kwd">this</span>.opt.iframesTimeout);
+
+      <span class="kwd">const</span> finish = () =&gt; {
+        clearTimeout(id);
+        <span class="kwd">if</span> ( !fired) ready();
       };
 
-      <span class="kwd">if</span> (<span class="kwd">this</span>.opt.iframes) {
-        <span class="kwd">this</span>.waitForAllIframes(ctx, ready);
-      } <span class="kwd">else</span> {
-        ready();
-      }
-    });
+      contexts.forEach(ctx =&gt; {
+        <span class="kwd">this</span>.waitForIframes(ctx, () =&gt; {
+          <span class="kwd">if</span> (--count &lt;= 0) finish();
+        });
+      });
+
+    } <span class="kwd">else</span> {
+      ready();
+    }
   }
 }
 
@@ -500,7 +526,7 @@
 
 </article>
 <footer><div class="info">
-<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> version 2</p>
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> <span class="version">version 2<span></p>
 </div></footer>
 </main>
 </div>
