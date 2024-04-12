@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.5.0
+* advanced-mark.js v2.5.1
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2024, angezid
@@ -102,35 +102,34 @@ class DOMIterator {
     }
   }
   waitForIframes(ctx, doneCb) {
+    const shadow = this.opt.shadowDOM;
     let count = 0,
+      array = [],
       iframes = [],
-      array = [];
+      node;
     const checkDone = () => {
       if (count === iframes.filter(ifr => !this.hasAttributeValue(ifr, this.attrName, 'error')).length) {
         doneCb();
       }
     };
-    const add = (iframe) => {
-      if ( !DOMIterator.matches(iframe, this.opt.exclude)) {
-        iframes.push(iframe);
-        if ( !iframe.hasAttribute(this.attrName)) {
-          array.push(iframe);
+    const collect = context => {
+      const iterator = this.createIterator(context, this.opt.window.NodeFilter.SHOW_ELEMENT);
+      while ((node = iterator.nextNode())) {
+        if (node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
+          iframes.push(node);
+          if ( !node.hasAttribute(this.attrName)) {
+            array.push(node);
+          }
+        }
+        if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
+          collect(node.shadowRoot);
         }
       }
     };
     const loop = (obj) => {
       array = [];
       if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
-        if (obj.isIframe) {
-          const node = this.createIterator(obj.context, this.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
-          if (node !== null) {
-            add(node);
-          }
-        } else {
-          this.toArray(obj.context.querySelectorAll('iframe')).forEach(iframe => {
-            add(iframe);
-          });
-        }
+        collect(obj.context);
         if ( !obj.iframe && !array.length) {
           doneCb();
           return;
@@ -152,7 +151,7 @@ class DOMIterator {
         checkDone();
       }
     };
-    loop({ context : ctx, isIframe : ctx.tagName === 'IFRAME' });
+    loop({ context : ctx });
   }
   createIterator(ctx, whatToShow) {
     const win = this.opt.window;
@@ -160,11 +159,11 @@ class DOMIterator {
   }
   addRemoveStyle(root, style, add) {
     if (add) {
-      if (style && root.firstChild && !root.querySelector('style[data-markjs]')) {
+      if (style && !root.querySelector('style[data-markjs]')) {
         const elem = this.opt.window.document.createElement('style');
         elem.setAttribute('data-markjs', 'true');
         elem.textContent = style;
-        root.insertBefore(elem, root.firstChild);
+        root.appendChild(elem);
       }
     } else {
       let elem = root.querySelector('style[data-markjs]');
@@ -239,13 +238,13 @@ class DOMIterator {
         fired = true;
         ready();
       }, this.opt.iframesTimeout);
-      const done = () => {
+      const finish = () => {
         clearTimeout(id);
         if ( !fired) ready();
       };
       contexts.forEach(ctx => {
         this.waitForIframes(ctx, () => {
-          if (--count <= 0) done();
+          if (--count <= 0) finish();
         });
       });
     } else {
@@ -423,7 +422,7 @@ class RegExpCreator {
         pattern = charSet + str + charSet;
       } else if (accuracy === 'startsWith') {
         lookbehind = `(^|[\\s${chs}])`;
-        pattern = str.split(/\[\\s\]\+/g).join(charSet + '[\\s]+') + charSet;
+        pattern = str.split(/\[\\s\]\+/).join(charSet + '[\\s]+') + charSet;
       }
     }
     return { lookbehind, pattern, lookahead };
@@ -1402,7 +1401,7 @@ $.fn.unmark = function(opt) {
   return this;
 };
 $.fn.getVersion = function() {
-  return '2.5.0';
+  return '2.5.1';
 };
 var $$1 = $;
 

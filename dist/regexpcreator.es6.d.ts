@@ -1,5 +1,5 @@
 
-// Type definitions for advanced-mark.js v2.5.0
+// Type definitions for advanced-mark.js v2.5.1
 
 declare namespace RegExpCreator {
 

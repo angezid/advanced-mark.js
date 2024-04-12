@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.5.0
+* advanced-mark.js v2.5.1
 * Copyright (c) 2014–2024, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -268,7 +268,7 @@
             pattern = _charSet + str + _charSet;
           } else if (accuracy === 'startsWith') {
             lookbehind = "(^|[\\s".concat(chs, "])");
-            pattern = str.split(/\[\\s\]\+/g).join(_charSet + '[\\s]+') + _charSet;
+            pattern = str.split(/\[\\s\]\+/).join(_charSet + '[\\s]+') + _charSet;
           }
         }
         return {

@@ -405,7 +405,7 @@ class RegExpCreator {
 
       } else if (accuracy === 'startsWith') {
         lookbehind = `(^|[\\s${chs}])`;
-        pattern = str.split(/\[\\s\]\+/g).join(charSet + '[\\s]+') + charSet;
+        pattern = str.split(/\[\\s\]\+/).join(charSet + '[\\s]+') + charSet;
       }
     }
     return { lookbehind, pattern, lookahead };

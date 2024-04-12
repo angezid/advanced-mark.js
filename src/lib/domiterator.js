@@ -202,19 +202,21 @@ class DOMIterator {
   }
 
   /**
-   * Callback when all iframes are ready for DOM access
+   * Callback when all context iframes are ready for DOM access
    * @callback DOMIterator~waitForIframesDoneCallback
    */
   /**
-   * Iterates over all iframes and calls the done callback when all of them
+   * Iterates over all context iframes and calls the done callback when all of them
    * are ready for DOM access (including nested ones)
    * @param {HTMLElement} ctx - The context DOM element
    * @param {DOMIterator~waitForIframesDoneCallback} done - Done callback
    */
   waitForIframes(ctx, doneCb) {
+    const shadow = this.opt.shadowDOM;
     let count = 0,
+      array = [],
       iframes = [],
-      array = [];
+      node;
 
     const checkDone = () => {
       if (count === iframes.filter(ifr => !this.hasAttributeValue(ifr, this.attrName, 'error')).length) {
@@ -222,11 +224,19 @@ class DOMIterator {
       }
     };
 
-    const add = (iframe) => {
-      if ( !DOMIterator.matches(iframe, this.opt.exclude)) {
-        iframes.push(iframe);
-        if ( !iframe.hasAttribute(this.attrName)) {
-          array.push(iframe);
+    const collect = context => {
+      const iterator = this.createIterator(context, this.opt.window.NodeFilter.SHOW_ELEMENT);
+
+      while ((node = iterator.nextNode())) {
+        if (node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
+          iframes.push(node);
+          if ( !node.hasAttribute(this.attrName)) {
+            array.push(node);
+          }
+        }
+
+        if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
+          collect(node.shadowRoot);
         }
       }
     };
@@ -235,20 +245,8 @@ class DOMIterator {
       array = [];
 
       if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
-        // special case to handle dynamically created iframe element because querySelectorAll unable to do this
-        if (obj.isIframe) {
-          const node = this.createIterator(obj.context, this.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
-          if (node !== null) {
-            add(node);
-          }
+        collect(obj.context);
 
-        } else {
-          this.toArray(obj.context.querySelectorAll('iframe')).forEach(iframe => {
-            add(iframe);
-          });
-        }
-
-        // case when the context has no iframes or iframes were already handled, e.g. by unmark() method
         if ( !obj.iframe && !array.length) {
           doneCb();
           return;
@@ -260,7 +258,6 @@ class DOMIterator {
           this.onIframeReady(iframe, obj => {
             count++;
             loop(obj);
-
           }, obj => {
             if (this.opt.debug) {
               console.log(obj.error || obj);
@@ -268,13 +265,12 @@ class DOMIterator {
             checkDone();
           });
         });
-
       } else {
         checkDone();
       }
     };
 
-    loop({ context : ctx, isIframe : ctx.tagName === 'IFRAME' });
+    loop({ context : ctx });
   }
 
   /**
@@ -299,11 +295,11 @@ class DOMIterator {
    */
   addRemoveStyle(root, style, add) {
     if (add) {
-      if (style && root.firstChild && !root.querySelector('style[data-markjs]')) {
+      if (style && !root.querySelector('style[data-markjs]')) {
         const elem = this.opt.window.document.createElement('style');
         elem.setAttribute('data-markjs', 'true');
         elem.textContent = style;
-        root.insertBefore(elem, root.firstChild);
+        root.appendChild(elem);
       }
 
     } else {
@@ -430,7 +426,8 @@ class DOMIterator {
         });
       });
     };
-    // wait for all iframes; not handle iframes inside Shadow DOM
+
+    // wait for all iframes to be ready for DOM access or timeout
     if (this.opt.iframes) {
       let count = open,
         fired = false;
@@ -440,14 +437,14 @@ class DOMIterator {
         ready();
       }, this.opt.iframesTimeout);
 
-      const done = () => {
+      const finish = () => {
         clearTimeout(id);
         if ( !fired) ready();
       };
 
       contexts.forEach(ctx => {
         this.waitForIframes(ctx, () => {
-          if (--count <= 0) done();
+          if (--count <= 0) finish();
         });
       });
 

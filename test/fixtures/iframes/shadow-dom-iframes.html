@@ -1,0 +1,34 @@
+<div class="iframes" id="target">
+    <h1>Lorem ipsum dolor.</h1>
+
+    <p>Lorem ipsum dolor. Lorem ipsum dolor. Lorem ipsum dolor.</p>
+    <p>Lorem ipsum dolor. Lorem ipsum dolor. Lorem ipsum dolor.</p>
+
+    <div class="shadow-dom">
+        <div id="shadow">
+        </div>
+        <div id="shadow2">
+        </div>
+    </div>
+
+    <script>
+        var src = jasmine.getFixtures().fixturesPath + "/iframes/inc.html";
+        var shadow = document.getElementById('shadow'),
+			root = shadow.attachShadow({ mode : 'open' });
+			root.innerHTML = '<h2>Shadow DOM iframe test</h2><p>Lorem ipsum dolor</p><iframe src="' +src + '"></iframe>';
+
+        var src2 = jasmine.getFixtures().fixturesPath + "/iframes/iframe.html";
+        const shadow2 = document.getElementById('shadow2'),
+			root2 = shadow2.attachShadow({ mode : 'open' });
+			root2.innerHTML = '<h2>Shadow DOM iframe 2 test</h2><p>Lorem ipsum dolor</p><iframe src="' +src2 + '"></iframe>';
+
+        /*var target = document.getElementById("target");
+        var iframe = document.createElement("iframe");
+        iframe.src = jasmine.getFixtures().fixturesPath + "/iframes/inc.html";
+        target.appendChild(iframe);
+
+        var iframe2 = document.createElement("iframe");
+        iframe2.src = src;
+        target.appendChild(iframe2);*/
+    </script>
+</div>

@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.5.0
+* advanced-mark.js v2.5.1
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2024, angezid
@@ -180,9 +180,11 @@
       key: "waitForIframes",
       value: function waitForIframes(ctx, doneCb) {
         var _this2 = this;
+        var shadow = this.opt.shadowDOM;
         var count = 0,
+          array = [],
           iframes = [],
-          array = [];
+          node;
         var checkDone = function checkDone() {
           if (count === iframes.filter(function (ifr) {
             return !_this2.hasAttributeValue(ifr, _this2.attrName, 'error');
@@ -190,27 +192,24 @@
             doneCb();
           }
         };
-        var add = function add(iframe) {
-          if (!DOMIterator.matches(iframe, _this2.opt.exclude)) {
-            iframes.push(iframe);
-            if (!iframe.hasAttribute(_this2.attrName)) {
-              array.push(iframe);
+        var collect = function collect(context) {
+          var iterator = _this2.createIterator(context, _this2.opt.window.NodeFilter.SHOW_ELEMENT);
+          while (node = iterator.nextNode()) {
+            if (node.tagName === 'IFRAME' && !DOMIterator.matches(node, _this2.opt.exclude)) {
+              iframes.push(node);
+              if (!node.hasAttribute(_this2.attrName)) {
+                array.push(node);
+              }
+            }
+            if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
+              collect(node.shadowRoot);
             }
           }
         };
         var loop = function loop(obj) {
           array = [];
           if (!obj.iframe || obj.context.location.href !== 'about:blank') {
-            if (obj.isIframe) {
-              var node = _this2.createIterator(obj.context, _this2.opt.window.NodeFilter.SHOW_ELEMENT).nextNode();
-              if (node !== null) {
-                add(node);
-              }
-            } else {
-              _this2.toArray(obj.context.querySelectorAll('iframe')).forEach(function (iframe) {
-                add(iframe);
-              });
-            }
+            collect(obj.context);
             if (!obj.iframe && !array.length) {
               doneCb();
               return;
@@ -233,8 +232,7 @@
           }
         };
         loop({
-          context: ctx,
-          isIframe: ctx.tagName === 'IFRAME'
+          context: ctx
         });
       }
     }, {
@@ -249,11 +247,11 @@
       key: "addRemoveStyle",
       value: function addRemoveStyle(root, style, add) {
         if (add) {
-          if (style && root.firstChild && !root.querySelector('style[data-markjs]')) {
+          if (style && !root.querySelector('style[data-markjs]')) {
             var elem = this.opt.window.document.createElement('style');
             elem.setAttribute('data-markjs', 'true');
             elem.textContent = style;
-            root.insertBefore(elem, root.firstChild);
+            root.appendChild(elem);
           }
         } else {
           var _elem = root.querySelector('style[data-markjs]');
@@ -337,13 +335,13 @@
             fired = true;
             ready();
           }, this.opt.iframesTimeout);
-          var _done = function _done() {
+          var finish = function finish() {
             clearTimeout(id);
             if (!fired) ready();
           };
           contexts.forEach(function (ctx) {
             _this4.waitForIframes(ctx, function () {
-              if (--count <= 0) _done();
+              if (--count <= 0) finish();
             });
           });
         } else {
@@ -572,7 +570,7 @@
             pattern = _charSet + str + _charSet;
           } else if (accuracy === 'startsWith') {
             lookbehind = "(^|[\\s".concat(chs, "])");
-            pattern = str.split(/\[\\s\]\+/g).join(_charSet + '[\\s]+') + _charSet;
+            pattern = str.split(/\[\\s\]\+/).join(_charSet + '[\\s]+') + _charSet;
           }
         }
         return {
@@ -1813,7 +1811,7 @@
     return this;
   };
   $__default["default"].fn.getVersion = function () {
-    return '2.5.0';
+    return '2.5.1';
   };
 
   return $__default["default"];

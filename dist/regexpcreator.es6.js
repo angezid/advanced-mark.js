@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.5.0
+* advanced-mark.js v2.5.1
 * Copyright (c) 2014–2024, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
@@ -174,7 +174,7 @@ class RegExpCreator$1 {
         pattern = charSet + str + charSet;
       } else if (accuracy === 'startsWith') {
         lookbehind = `(^|[\\s${chs}])`;
-        pattern = str.split(/\[\\s\]\+/g).join(charSet + '[\\s]+') + charSet;
+        pattern = str.split(/\[\\s\]\+/).join(charSet + '[\\s]+') + charSet;
       }
     }
     return { lookbehind, pattern, lookahead };

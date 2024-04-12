@@ -6,16 +6,16 @@ describe('mark with selected iframes', () => {
   }, 30000);
 
   it('should wrap matches only inside iframes', done => {
-    const array = [];
+    let count = 0;
     new Mark('iframe').mark('lorem', {
       'diacritics': false,
       'separateWordSearch': false,
       'iframes': true,
-      'each' : elem => {
-        array.push(elem);
+      'each' : () => {
+        count++;
       },
       'done': () => {
-        expect(array.length).toBe(8);
+        expect(count).toBe(8);
         expect($('mark').length).toBe(0);
         done();
       }
@@ -23,16 +23,16 @@ describe('mark with selected iframes', () => {
   }, 30000);
 
   it('should wrap matches inside iframes and "p" elements', done => {
-    const array = [];
+    let count = 0;
     new Mark('p, iframe').mark('lorem', {
       'diacritics': false,
       'separateWordSearch': false,
       'iframes': true,
-      'each' : elem => {
-        array.push(elem);
+      'each' : () => {
+        count++;
       },
       'done': () => {
-        expect(array.length).toBe(14); // 8 inside iframes plus 6 in both 'p'
+        expect(count).toBe(14); // 8 inside iframes plus 6 in both 'p'
         expect($('h1 mark').length).toBe(0);
         done();
       }
