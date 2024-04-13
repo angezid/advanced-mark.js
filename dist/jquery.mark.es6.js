@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.5.1
+* advanced-mark.js v2.6.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2024, angezid
@@ -10,7 +10,7 @@ class DOMIterator {
   constructor(ctx, opt) {
     this.ctx = ctx;
     this.opt = opt;
-    this.attrName = 'data-markjsListener';
+    this.map = [];
   }
   static matches(element, selector) {
     if ( !selector || !selector.length) {
@@ -61,16 +61,16 @@ class DOMIterator {
     try {
       const doc = iframe.contentWindow.document;
       if (doc) {
-        iframe.setAttribute(this.attrName, 'completed');
+        this.map.push([iframe, 'ready']);
         successFn({ iframe : iframe, context : doc });
       }
     } catch (e) {
-      iframe.setAttribute(this.attrName, 'error');
+      this.map.push([iframe, 'error']);
       errorFn({ iframe : iframe, error : e });
     }
   }
   observeIframeLoad(ifr, successFn, errorFn) {
-    if (ifr.hasAttribute(this.attrName)) {
+    if (this.map.some(arr => arr[0] === ifr)) {
       return;
     }
     let id = null;
@@ -80,7 +80,7 @@ class DOMIterator {
       this.getIframeContents(ifr, successFn, errorFn);
     };
     ifr.addEventListener('load', listener);
-    ifr.setAttribute(this.attrName, true);
+    this.map.push([ifr, true]);
     id = setTimeout(listener, this.opt.iframesTimeout);
   }
   onIframeReady(ifr, successFn, errorFn) {
@@ -108,7 +108,7 @@ class DOMIterator {
       iframes = [],
       node;
     const checkDone = () => {
-      if (count === iframes.filter(ifr => !this.hasAttributeValue(ifr, this.attrName, 'error')).length) {
+      if (count === iframes.filter(ifr => !this.has(ifr, 'error')).length) {
         doneCb();
       }
     };
@@ -117,7 +117,7 @@ class DOMIterator {
       while ((node = iterator.nextNode())) {
         if (node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
           iframes.push(node);
-          if ( !node.hasAttribute(this.attrName)) {
+          if ( !this.map.some(arr => arr[0] === node)) {
             array.push(node);
           }
         }
@@ -172,8 +172,8 @@ class DOMIterator {
       }
     }
   }
-  hasAttributeValue(node, name, value) {
-    return node.hasAttribute(name) && node.getAttribute(name) === value;
+  has(node, state) {
+    return this.map.some(arr => arr[0] === node && arr[1] === state);
   }
   iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
     const nodeFilter = this.opt.window.NodeFilter,
@@ -193,10 +193,9 @@ class DOMIterator {
               eachCb(node);
             }
             if (iframe && node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
-              if (this.hasAttributeValue(node, this.attrName, 'completed')) {
-                this.getIframeContents(node, obj => {
-                  traverse(obj.context);
-                }, () => {});
+              if (this.has(node, 'ready')) {
+                const doc = node.contentWindow.document;
+                if (doc) traverse(doc);
               }
             }
             if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
@@ -1401,7 +1400,7 @@ $.fn.unmark = function(opt) {
   return this;
 };
 $.fn.getVersion = function() {
-  return '2.5.1';
+  return '2.6.0';
 };
 var $$1 = $;
 

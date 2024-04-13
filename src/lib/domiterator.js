@@ -35,11 +35,12 @@ class DOMIterator {
      */
     this.opt = opt;
     /**
-     * The name of an attribute, which added to iframes, to indicate iframe state
+     * The object to truck iframes state
      * @type {string}
      * @access protected
      */
-    this.attrName = 'data-markjsListener';
+    //this.map = new Map();
+    this.map = [];
   }
 
   /**
@@ -125,11 +126,13 @@ class DOMIterator {
     try {
       const doc = iframe.contentWindow.document;
       if (doc) {
-        iframe.setAttribute(this.attrName, 'completed');
+        //this.map.set(iframe, 'ready');
+        this.map.push([iframe, 'ready']);
         successFn({ iframe : iframe, context : doc });
       }
     } catch (e) {
-      iframe.setAttribute(this.attrName, 'error');
+      //this.map.set(iframe, 'error');
+      this.map.push([iframe, 'error']);
       errorFn({ iframe : iframe, error : e });
     }
   }
@@ -146,7 +149,8 @@ class DOMIterator {
    */
   observeIframeLoad(ifr, successFn, errorFn) {
     // an event listener is already added to the iframe
-    if (ifr.hasAttribute(this.attrName)) {
+    //if (this.map.has(ifr)) {
+    if (this.map.some(arr => arr[0] === ifr)) {
       return;
     }
     let id = null;
@@ -158,7 +162,8 @@ class DOMIterator {
     };
 
     ifr.addEventListener('load', listener);
-    ifr.setAttribute(this.attrName, true);
+    //this.map.set(ifr, true);
+    this.map.push([ifr, true]);
     id = setTimeout(listener, this.opt.iframesTimeout);
   }
 
@@ -219,7 +224,8 @@ class DOMIterator {
       node;
 
     const checkDone = () => {
-      if (count === iframes.filter(ifr => !this.hasAttributeValue(ifr, this.attrName, 'error')).length) {
+      //if (count === iframes.filter(ifr => this.map.get(ifr) !== 'error').length) {
+      if (count === iframes.filter(ifr => !this.has(ifr, 'error')).length) {
         doneCb();
       }
     };
@@ -230,7 +236,8 @@ class DOMIterator {
       while ((node = iterator.nextNode())) {
         if (node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
           iframes.push(node);
-          if ( !node.hasAttribute(this.attrName)) {
+          //if ( !this.map.has(node)) {
+          if ( !this.map.some(arr => arr[0] === node)) {
             array.push(node);
           }
         }
@@ -310,12 +317,8 @@ class DOMIterator {
     }
   }
 
-  /**
-   * Checks whether the node has attribute with the specified name and value
-   * @return {Boolean}
-   */
-  hasAttributeValue(node, name, value) {
-    return node.hasAttribute(name) && node.getAttribute(name) === value;
+  has(node, state) {
+    return this.map.some(arr => arr[0] === node && arr[1] === state);
   }
 
   /**
@@ -350,10 +353,10 @@ class DOMIterator {
             }
 
             if (iframe && node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
-              if (this.hasAttributeValue(node, this.attrName, 'completed')) {
-                this.getIframeContents(node, obj => {
-                  traverse(obj.context);
-                }, () => {});
+              //if (this.map.get(node) === 'ready') {
+              if (this.has(node, 'ready')) {
+                const doc = node.contentWindow.document;
+                if (doc) traverse(doc);
               }
             }
             // there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'

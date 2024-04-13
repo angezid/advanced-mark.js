@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.5.1
+* advanced-mark.js v2.6.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2024, angezid
@@ -81,7 +81,7 @@
       _classCallCheck(this, DOMIterator);
       this.ctx = ctx;
       this.opt = opt;
-      this.attrName = 'data-markjsListener';
+      this.map = [];
     }
     _createClass(DOMIterator, [{
       key: "getContexts",
@@ -125,14 +125,14 @@
         try {
           var doc = iframe.contentWindow.document;
           if (doc) {
-            iframe.setAttribute(this.attrName, 'completed');
+            this.map.push([iframe, 'ready']);
             successFn({
               iframe: iframe,
               context: doc
             });
           }
         } catch (e) {
-          iframe.setAttribute(this.attrName, 'error');
+          this.map.push([iframe, 'error']);
           errorFn({
             iframe: iframe,
             error: e
@@ -143,7 +143,9 @@
       key: "observeIframeLoad",
       value: function observeIframeLoad(ifr, successFn, errorFn) {
         var _this = this;
-        if (ifr.hasAttribute(this.attrName)) {
+        if (this.map.some(function (arr) {
+          return arr[0] === ifr;
+        })) {
           return;
         }
         var id = null;
@@ -153,7 +155,7 @@
           _this.getIframeContents(ifr, successFn, errorFn);
         };
         ifr.addEventListener('load', listener);
-        ifr.setAttribute(this.attrName, true);
+        this.map.push([ifr, true]);
         id = setTimeout(listener, this.opt.iframesTimeout);
       }
     }, {
@@ -187,7 +189,7 @@
           node;
         var checkDone = function checkDone() {
           if (count === iframes.filter(function (ifr) {
-            return !_this2.hasAttributeValue(ifr, _this2.attrName, 'error');
+            return !_this2.has(ifr, 'error');
           }).length) {
             doneCb();
           }
@@ -197,7 +199,9 @@
           while (node = iterator.nextNode()) {
             if (node.tagName === 'IFRAME' && !DOMIterator.matches(node, _this2.opt.exclude)) {
               iframes.push(node);
-              if (!node.hasAttribute(_this2.attrName)) {
+              if (!_this2.map.some(function (arr) {
+                return arr[0] === node;
+              })) {
                 array.push(node);
               }
             }
@@ -261,9 +265,11 @@
         }
       }
     }, {
-      key: "hasAttributeValue",
-      value: function hasAttributeValue(node, name, value) {
-        return node.hasAttribute(name) && node.getAttribute(name) === value;
+      key: "has",
+      value: function has(node, state) {
+        return this.map.some(function (arr) {
+          return arr[0] === node && arr[1] === state;
+        });
       }
     }, {
       key: "iterateThroughNodes",
@@ -286,10 +292,9 @@
                   eachCb(node);
                 }
                 if (iframe && node.tagName === 'IFRAME' && !DOMIterator.matches(node, _this3.opt.exclude)) {
-                  if (_this3.hasAttributeValue(node, _this3.attrName, 'completed')) {
-                    _this3.getIframeContents(node, function (obj) {
-                      traverse(obj.context);
-                    }, function () {});
+                  if (_this3.has(node, 'ready')) {
+                    var doc = node.contentWindow.document;
+                    if (doc) traverse(doc);
                   }
                 }
                 if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
@@ -1811,7 +1816,7 @@
     return this;
   };
   $__default["default"].fn.getVersion = function () {
-    return '2.5.1';
+    return '2.6.0';
   };
 
   return $__default["default"];
