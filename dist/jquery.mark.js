@@ -132,7 +132,6 @@
             });
           }
         } catch (e) {
-          this.map.push([iframe, 'error']);
           errorFn({
             iframe: iframe,
             error: e
@@ -184,26 +183,17 @@
         var _this2 = this;
         var shadow = this.opt.shadowDOM;
         var count = 0,
-          array = [],
-          iframes = [],
+          iframes = 0,
+          array,
           node;
-        var checkDone = function checkDone() {
-          if (count === iframes.filter(function (ifr) {
-            return !_this2.has(ifr, 'error');
-          }).length) {
-            doneCb();
-          }
-        };
         var collect = function collect(context) {
           var iterator = _this2.createIterator(context, _this2.opt.window.NodeFilter.SHOW_ELEMENT);
           while (node = iterator.nextNode()) {
-            if (node.tagName === 'IFRAME' && !DOMIterator.matches(node, _this2.opt.exclude)) {
-              iframes.push(node);
-              if (!_this2.map.some(function (arr) {
-                return arr[0] === node;
-              })) {
-                array.push(node);
-              }
+            if (_this2.isIframe(node) && !_this2.map.some(function (arr) {
+              return arr[0] === node;
+            })) {
+              array.push(node);
+              iframes++;
             }
             if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
               collect(node.shadowRoot);
@@ -228,11 +218,11 @@
                 if (_this2.opt.debug) {
                   console.log(obj.error || obj);
                 }
-                checkDone();
+                if (++count === iframes) doneCb();
               });
             });
-          } else {
-            checkDone();
+          } else if (count === iframes) {
+            doneCb();
           }
         };
         loop({
@@ -250,56 +240,51 @@
     }, {
       key: "addRemoveStyle",
       value: function addRemoveStyle(root, style, add) {
+        if (add && !style) return;
+        var elem = root.querySelector('style[data-markjs]');
         if (add) {
-          if (style && !root.querySelector('style[data-markjs]')) {
-            var elem = this.opt.window.document.createElement('style');
+          if (!elem) {
+            elem = this.opt.window.document.createElement('style');
             elem.setAttribute('data-markjs', 'true');
-            elem.textContent = style;
             root.appendChild(elem);
           }
-        } else {
-          var _elem = root.querySelector('style[data-markjs]');
-          if (_elem) {
-            root.removeChild(_elem);
-          }
+          elem.textContent = style;
+        } else if (elem) {
+          root.removeChild(elem);
         }
       }
     }, {
-      key: "has",
-      value: function has(node, state) {
-        return this.map.some(function (arr) {
-          return arr[0] === node && arr[1] === state;
-        });
+      key: "isIframe",
+      value: function isIframe(node) {
+        return node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude);
       }
     }, {
       key: "iterateThroughNodes",
       value: function iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
         var _this3 = this;
-        var nodeFilter = this.opt.window.NodeFilter,
+        var filter = this.opt.window.NodeFilter,
           shadow = this.opt.shadowDOM,
           iframe = this.opt.iframes;
         if (iframe || shadow) {
-          var showElement = (whatToShow & nodeFilter.SHOW_ELEMENT) !== 0,
-            showText = (whatToShow & nodeFilter.SHOW_TEXT) !== 0;
-          if (showText) {
-            whatToShow |= nodeFilter.SHOW_ELEMENT;
-          }
+          var showElement = (whatToShow & filter.SHOW_ELEMENT) > 0,
+            showText = (whatToShow & filter.SHOW_TEXT) > 0;
           var traverse = function traverse(node) {
-            var iterator = _this3.createIterator(node, whatToShow);
+            var iterator = _this3.createIterator(node, whatToShow | filter.SHOW_ELEMENT),
+              root;
             while (node = iterator.nextNode()) {
               if (node.nodeType === 1) {
                 if (showElement && filterCb(node)) {
                   eachCb(node);
                 }
-                if (iframe && node.tagName === 'IFRAME' && !DOMIterator.matches(node, _this3.opt.exclude)) {
-                  if (_this3.has(node, 'ready')) {
-                    var doc = node.contentWindow.document;
-                    if (doc) traverse(doc);
-                  }
+                if (iframe && _this3.isIframe(node) && _this3.map.some(function (arr) {
+                  return arr[0] === node && arr[1] === 'ready';
+                })) {
+                  var doc = node.contentWindow.document;
+                  if (doc) traverse(doc);
                 }
-                if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
-                  _this3.addRemoveStyle(node.shadowRoot, shadow.style, showText);
-                  traverse(node.shadowRoot);
+                if (shadow && (root = node.shadowRoot) && root.mode === 'open') {
+                  _this3.addRemoveStyle(root, shadow.style, showText);
+                  traverse(root);
                 }
               } else if (showText && node.nodeType === 3 && filterCb(node)) {
                 eachCb(node);

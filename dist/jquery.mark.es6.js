@@ -65,7 +65,6 @@ class DOMIterator {
         successFn({ iframe : iframe, context : doc });
       }
     } catch (e) {
-      this.map.push([iframe, 'error']);
       errorFn({ iframe : iframe, error : e });
     }
   }
@@ -104,22 +103,15 @@ class DOMIterator {
   waitForIframes(ctx, doneCb) {
     const shadow = this.opt.shadowDOM;
     let count = 0,
-      array = [],
-      iframes = [],
+      iframes = 0,
+      array,
       node;
-    const checkDone = () => {
-      if (count === iframes.filter(ifr => !this.has(ifr, 'error')).length) {
-        doneCb();
-      }
-    };
     const collect = context => {
       const iterator = this.createIterator(context, this.opt.window.NodeFilter.SHOW_ELEMENT);
       while ((node = iterator.nextNode())) {
-        if (node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
-          iframes.push(node);
-          if ( !this.map.some(arr => arr[0] === node)) {
-            array.push(node);
-          }
+        if (this.isIframe(node) && !this.map.some(arr => arr[0] === node)) {
+          array.push(node);
+          iframes++;
         }
         if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
           collect(node.shadowRoot);
@@ -144,11 +136,11 @@ class DOMIterator {
             if (this.opt.debug) {
               console.log(obj.error || obj);
             }
-            checkDone();
+            if (++count === iframes) doneCb();
           });
         });
-      } else {
-        checkDone();
+      } else if (count === iframes) {
+        doneCb();
       }
     };
     loop({ context : ctx });
@@ -158,49 +150,44 @@ class DOMIterator {
     return win.document.createNodeIterator(ctx, whatToShow, () => win.NodeFilter.FILTER_ACCEPT, false);
   }
   addRemoveStyle(root, style, add) {
+    if (add && !style) return;
+    let elem = root.querySelector('style[data-markjs]');
     if (add) {
-      if (style && !root.querySelector('style[data-markjs]')) {
-        const elem = this.opt.window.document.createElement('style');
+      if ( !elem) {
+        elem = this.opt.window.document.createElement('style');
         elem.setAttribute('data-markjs', 'true');
-        elem.textContent = style;
         root.appendChild(elem);
       }
-    } else {
-      let elem = root.querySelector('style[data-markjs]');
-      if (elem) {
-        root.removeChild(elem);
-      }
+      elem.textContent = style;
+    } else if (elem) {
+      root.removeChild(elem);
     }
   }
-  has(node, state) {
-    return this.map.some(arr => arr[0] === node && arr[1] === state);
+  isIframe(node) {
+    return node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude);
   }
   iterateThroughNodes(ctx, whatToShow, filterCb, eachCb, doneCb) {
-    const nodeFilter = this.opt.window.NodeFilter,
+    const filter = this.opt.window.NodeFilter,
       shadow = this.opt.shadowDOM,
       iframe = this.opt.iframes;
     if (iframe || shadow) {
-      const showElement = (whatToShow & nodeFilter.SHOW_ELEMENT) !== 0,
-        showText = (whatToShow & nodeFilter.SHOW_TEXT) !== 0;
-      if (showText) {
-        whatToShow |= nodeFilter.SHOW_ELEMENT;
-      }
+      const showElement = (whatToShow & filter.SHOW_ELEMENT) > 0,
+        showText = (whatToShow & filter.SHOW_TEXT) > 0;
       const traverse = node => {
-        const iterator = this.createIterator(node, whatToShow);
+        let iterator = this.createIterator(node, whatToShow | filter.SHOW_ELEMENT),
+          root;
         while ((node = iterator.nextNode())) {
           if (node.nodeType === 1) {
             if (showElement && filterCb(node)) {
               eachCb(node);
             }
-            if (iframe && node.tagName === 'IFRAME' && !DOMIterator.matches(node, this.opt.exclude)) {
-              if (this.has(node, 'ready')) {
-                const doc = node.contentWindow.document;
-                if (doc) traverse(doc);
-              }
+            if (iframe && this.isIframe(node) && this.map.some(arr => arr[0] === node && arr[1] === 'ready')) {
+              const doc = node.contentWindow.document;
+              if (doc) traverse(doc);
             }
-            if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
-              this.addRemoveStyle(node.shadowRoot, shadow.style, showText);
-              traverse(node.shadowRoot);
+            if (shadow && (root = node.shadowRoot) && root.mode === 'open') {
+              this.addRemoveStyle(root, shadow.style, showText);
+              traverse(root);
             }
           } else  if (showText && node.nodeType === 3 && filterCb(node)) {
             eachCb(node);
