@@ -77,13 +77,13 @@ class DOMIterator {
 
     if ( !ctx) return [];
 
-    if (win.NodeList.prototype.isPrototypeOf(ctx)) {
-      ctx = this.toArray(ctx);
-    } else if (Array.isArray(ctx)) {
+    if (Array.isArray(ctx)) {
       sort = true;
     } else if (typeof ctx === 'string') {
       ctx = this.toArray(win.document.querySelectorAll(ctx));
-    } else { // e.g. HTMLElement or element inside iframe
+    } else if (ctx.length >= 0) { // NodeList or HTMLCollection
+      ctx = this.toArray(ctx);
+    } else { // e.g. HTMLElement
       ctx = [ctx];
     }
 
@@ -104,8 +104,12 @@ class DOMIterator {
     return array;
   }
 
-  toArray(n) {
-    return Array.prototype.slice.call(n);
+  toArray(collection) {
+    const array = [];
+    for (let i = 0; i < collection.length; i++) {
+      array.push(collection[i]);
+    }
+    return array;
   }
 
   /**

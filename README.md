@@ -4,8 +4,8 @@
 
 ### A fast JavaScript library to highlight any text on a browser page. It also supports virtual DOMs.
 
-[Playground](https://angezid.github.io/advanced-mark.js/playground) and
-[Documentation](https://angezid.github.io/advanced-mark.js/doc-v2) for `advanced-mark.js` v2.
+See [Playground](https://angezid.github.io/advanced-mark.js/playground) which can speak better than any words.  
+[Documentation](https://angezid.github.io/advanced-mark.js/doc-v2).
 
 Happy highlighting!
 

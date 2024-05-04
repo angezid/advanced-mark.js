@@ -33,12 +33,12 @@ class DOMIterator {
       win = this.opt.window,
       sort = false;
     if ( !ctx) return [];
-    if (win.NodeList.prototype.isPrototypeOf(ctx)) {
-      ctx = this.toArray(ctx);
-    } else if (Array.isArray(ctx)) {
+    if (Array.isArray(ctx)) {
       sort = true;
     } else if (typeof ctx === 'string') {
       ctx = this.toArray(win.document.querySelectorAll(ctx));
+    } else if (ctx.length >= 0) {
+      ctx = this.toArray(ctx);
     } else {
       ctx = [ctx];
     }
@@ -55,8 +55,12 @@ class DOMIterator {
     }
     return array;
   }
-  toArray(n) {
-    return Array.prototype.slice.call(n);
+  toArray(collection) {
+    const array = [];
+    for (let i = 0; i < collection.length; i++) {
+      array.push(collection[i]);
+    }
+    return array;
   }
   getIframeContents(iframe, successFn, errorFn) {
     try {

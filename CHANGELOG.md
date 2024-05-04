@@ -1,4 +1,9 @@
 
+### 2.6.0
+* Added ability to mark inside iframes in shadow DOM.
+* Changed the way to truck iframes states (dropped using attribute).
+* Added ability to use HTMLCollection (returned by 'getElementsByClassName()' and 'getElementsByTagName()').
+
 ### 2.5.0
 * Added ability to select iframe elements when using non-jQuery libraries and iframe elements are dynamically created by javascript.
 * Fixed multiple wrapping of highlighted text in mark elements that can occur on some conditions with `iframes` option (page contains several iframes and selecting several contexts). Previous 2.x.x versions correctly handle only one context.

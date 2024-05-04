@@ -86,12 +86,12 @@
           win = this.opt.window,
           sort = false;
         if (!ctx) return [];
-        if (win.NodeList.prototype.isPrototypeOf(ctx)) {
-          ctx = this.toArray(ctx);
-        } else if (Array.isArray(ctx)) {
+        if (Array.isArray(ctx)) {
           sort = true;
         } else if (typeof ctx === 'string') {
           ctx = this.toArray(win.document.querySelectorAll(ctx));
+        } else if (ctx.length >= 0) {
+          ctx = this.toArray(ctx);
         } else {
           ctx = [ctx];
         }
@@ -112,8 +112,12 @@
       }
     }, {
       key: "toArray",
-      value: function toArray(n) {
-        return Array.prototype.slice.call(n);
+      value: function toArray(collection) {
+        var array = [];
+        for (var i = 0; i < collection.length; i++) {
+          array.push(collection[i]);
+        }
+        return array;
       }
     }, {
       key: "getIframeContents",
