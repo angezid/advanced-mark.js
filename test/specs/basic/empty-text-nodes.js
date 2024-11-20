@@ -71,7 +71,7 @@ describe('empty text nodes', () => {
   }
 
   function countTextNodes(ctx) {
-    let iterator = document.createNodeIterator(ctx, NodeFilter.SHOW_TEXT, () => {
+    let iterator = document.createNodeIterator(ctx, NodeFilter.SHOW_TEXT, function filter() {
       return NodeFilter.FILTER_ACCEPT;
     }, false);
 

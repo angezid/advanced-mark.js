@@ -5,12 +5,11 @@ describe('basic mark with an array of keywords', () => {
     loadFixtures('basic/array-keyword.html');
 
     $ctx = $('.basic-array-keyword');
-    notFound = [];
     new Mark($ctx[0]).mark(['lorem', 'ipsum', 'test', 'hey'], {
       'diacritics': false,
       'separateWordSearch': false,
-      'noMatch': term => {
-        notFound.push(term);
+      'noMatch': array => {
+        notFound = array;
       },
       'done': () => {
         done();

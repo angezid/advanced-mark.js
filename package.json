@@ -29,7 +29,7 @@
   "scripts": {
     "eslint": "eslint src/ test/",
     "karma": "karma start build/karma.config.js",
-    "copy-files": "node scripts/copy-types-files.js && node scripts/add-import.js",
+    "copy-files": "node scripts/copy-types-files.js",
     "test-jsdom": "node jsdom-tests/test.js && node jsdom-tests/jquery-test.js",
     "jsdoc": "jsdoc src/lib/ -d build/doc -R README.md -P package.json -r",
     "compile": "rollup -c build/rollup.config.js",

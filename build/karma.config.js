@@ -7,7 +7,7 @@ module.exports = config => {
     frameworks: ['jasmine-jquery', 'jasmine'],
     files: [
       'node_modules/jquery/dist/jquery.min.js',
-      'dist/!(*.es6|*.umd|*.min|regexpcreator).js',
+      'dist/!(*.es6|*.umd|*.min).js',
       'test/specs/configuration.js',
       'test/specs/**/*.js',
       {

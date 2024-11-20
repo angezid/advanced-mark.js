@@ -6,12 +6,11 @@ describe('basic mark with separateWordsearch', () => {
 
     $ctx1 = $('.basic-separate > div:first-child');
     $ctx2 = $('.basic-separate > div:last-child');
-    notFound = [];
     new Mark($ctx1[0]).mark('lorem ipsum test', {
       'diacritics': false,
       'separateWordSearch': true,
-      'noMatch': term => {
-        notFound.push(term);
+      'noMatch': array => {
+        notFound = array;
       },
       'done': () => {
         new Mark($ctx2[0]).mark(['lorem ipsum'], {

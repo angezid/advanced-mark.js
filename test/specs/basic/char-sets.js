@@ -1,5 +1,5 @@
 'use strict';
-xdescribe('charSets option', () => {
+describe('charSets option', () => {
   let $ctx, $ctx2;
   let quantifiers = ['se[a]?t', '[b]*eat', 'su[c]+ess', '[d]{3,}', 'g[e]*?t'],
     quantifiersObj = {

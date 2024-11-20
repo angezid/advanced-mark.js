@@ -33,12 +33,11 @@ class DOMIterator {
      */
     this.opt = opt;
     /**
-     * The array to truck iframes states
-     * @type {array}
+     * The map to truck iframes states
+     * @type {Map}
      * @access protected
      */
-    //this.map = new Map();
-    this.map = [];
+    this.map = new Map();
   }
 
   /**
@@ -80,9 +79,11 @@ class DOMIterator {
     if (Array.isArray(ctx)) {
       sort = true;
     } else if (typeof ctx === 'string') {
-      ctx = this.toArray(win.document.querySelectorAll(ctx));
+      //ctx = this.toArray(win.document.querySelectorAll(ctx));
+      ctx = Array.from(win.document.querySelectorAll(ctx));
     } else if (ctx.length >= 0) { // NodeList or HTMLCollection
-      ctx = this.toArray(ctx);
+      //ctx = this.toArray(ctx);
+      ctx = Array.from(ctx);
     } else { // e.g. HTMLElement
       ctx = [ctx];
     }
@@ -104,14 +105,6 @@ class DOMIterator {
     return array;
   }
 
-  toArray(collection) {
-    const array = [];
-    for (let i = 0; i < collection.length; i++) {
-      array.push(collection[i]);
-    }
-    return array;
-  }
-
   /**
    * @callback DOMIterator~getIframeContentsSuccessCallback
    * @param {HTMLDocument} contents - The contentDocument of the iframe
@@ -128,8 +121,7 @@ class DOMIterator {
     try {
       const doc = iframe.contentWindow.document;
       if (doc) {
-        //this.map.set(iframe, 'ready');
-        this.map.push([iframe, 'ready']);
+        this.map.set(iframe, 'ready');
         successFn({ iframe : iframe, context : doc });
       }
     } catch (e) {
@@ -149,8 +141,7 @@ class DOMIterator {
    */
   observeIframeLoad(ifr, successFn, errorFn) {
     // an event listener is already added to the iframe
-    //if (this.map.has(ifr)) {
-    if (this.map.some(arr => arr[0] === ifr)) {
+    if (this.map.has(ifr)) {
       return;
     }
     let id = null;
@@ -162,8 +153,7 @@ class DOMIterator {
     };
 
     ifr.addEventListener('load', listener);
-    //this.map.set(ifr, true);
-    this.map.push([ifr, true]);
+    this.map.set(ifr, true);
     id = setTimeout(listener, this.opt.iframesTimeout);
   }
 
@@ -227,8 +217,7 @@ class DOMIterator {
       const iterator = this.createIterator(context, this.opt.window.NodeFilter.SHOW_ELEMENT);
 
       while ((node = iterator.nextNode())) {
-        //if (this.isIframe(node) && !this.map.has(node)) {
-        if (this.isIframe(node) && !this.map.some(arr => arr[0] === node)) {
+        if (this.isIframe(node) && !this.map.has(node)) {
           array.push(node);
           iframes++;
         }
@@ -346,8 +335,7 @@ class DOMIterator {
               eachCb(node);
             }
 
-            //if (iframe && this.isIframe(node) && this.map.get(node) === 'ready') {
-            if (iframe && this.isIframe(node) && this.map.some(arr => arr[0] === node && arr[1] === 'ready')) {
+            if (iframe && this.isIframe(node) && this.map.get(node) === 'ready') {
               const doc = node.contentWindow.document;
               if (doc) traverse(doc);
             }

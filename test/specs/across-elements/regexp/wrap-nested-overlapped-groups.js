@@ -18,27 +18,6 @@ describe('markRegExp with separateGroups & wrapAllRanges option', () => {
     $ctx.unmark();
   });
   
-  it('should mark separateGroups without d flag', done => {
-    let groupCount = 0,
-      regex =/\w(\d+).+?(\d+).+?(\d+).+?(\d+([a-z]+)\d+)\w+/gi;
-    
-    new Mark($('.nesting-groups')[0]).markRegExp(regex, {
-      'acrossElements' : true,
-      'separateGroups' : true,
-      'wrapAllRanges' : true,
-      'each' : (nd, info) => {
-        if (info.groupStart) {
-          groupCount++;
-        }
-      },
-      'done' : () => {
-        // match[0] + gr1 + gr2 + gr3 + gr4
-        expect(groupCount).toBe(5);
-        done();
-      }
-    });
-  });
-  
   it(message + 'lookbehind assertion', done => {
     let groupCount = 0;
     new Mark($ctx[0]).markRegExp(new RegExp(lookbehind, flags), {
@@ -86,69 +65,5 @@ describe('markRegExp with separateGroups & wrapAllRanges option', () => {
       }
     });
   });
-  
-  // a hack to mark groups inside positive lookaround.
-  it(message + 'lookaround without acrossElements option', done => {
-    let rangeCount = 0,
-      ranges = buildRanges($ctx[0], new RegExp(lookaround, flags));
-
-    new Mark($ctx[0]).markRanges(ranges, {
-      'wrapAllRanges' : true,
-      each : () => {
-        rangeCount++;
-      },
-      'done' : () => {
-        expect(rangeCount).toBe(10);
-        done();
-      }
-    });
-  });
-  
-  // a hack to mark nesting groups.
-  it('should mark nested groups without acrossElements opt', done => {
-    let rangeCount = 0,
-      context = $('.nesting-groups')[0],
-      pattern = '(.+?(\\d+)\\w)(.+?(\\d+).+?(\\d+)\\w)(.+?(\\d+(.+?)\\d+).+)',
-      ranges = buildRanges(context, new RegExp(pattern, flags));
-
-    new Mark(context).markRanges(ranges, {
-      'wrapAllRanges' : true,
-      each : () => {
-        rangeCount++;
-      },
-      'done' : () => {
-        expect(rangeCount).toBe(8);
-        done();
-      }
-    });
-  });
-
-  function buildRanges(context, regex) {
-    let ranges = [];
-    // it should only build ranges - an attempt to mark any group can break
-    // the regex normal workflow
-    new Mark(context).markRegExp(regex, {
-      'separateGroups' : true,
-      'filter' : (node, group, totalMatch, info) => {
-        if (info.matchStart) {
-          // 'i = 1' - skips match[0] group
-          for (let i = 1; i < info.match.length; i++)  {
-            if (info.match[i]) {
-              let indices = info.match.indices[i];
-              // info.offset is added to translate the local group index
-              // to the absolute one
-              let range = {
-                start : info.offset + indices[0],
-                length : indices[1] - indices[0]
-              };
-              ranges.push(range);
-            }
-          }
-        }
-        return false;
-      }
-    });
-    return  ranges;
-  }
 });
 

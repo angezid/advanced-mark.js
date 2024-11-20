@@ -30,10 +30,10 @@ describe('basic mark with escaped wildcards', () => {
       }
     });
   });
-  
+
   it('should find \'?\' matches', done => {
     let $ctx2 = $('.wildcards-escaped > div:nth-child(2)');
-    
+
     new Mark($ctx2[0]).mark(['lor\\\\?m', 'ips\\\\\\?um' /*escaped*/, 'dol\\\\\\\\?m'], {
       'separateWordSearch': false,
       'diacritics': false,
@@ -44,10 +44,10 @@ describe('basic mark with escaped wildcards', () => {
       }
     });
   });
-  
+
   it('should find \'*\' matches', done => {
     let $ctx3 = $('.wildcards-escaped > div:nth-child(3)');
-    
+
     new Mark($ctx3[0]).mark(['lo\\\\*m', 'ips\\\\\\*m' /*escaped*/, 'do\\\\\\\\*r'], {
       'separateWordSearch': false,
       'diacritics': false,

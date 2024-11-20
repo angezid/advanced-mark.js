@@ -6,9 +6,9 @@ describe('mark with regular expression and ignoreGroups', () => {
 
     $ctx1 = $('.regexp-ignore-groups > div:first-child');
     $ctx2 = $('.regexp-ignore-groups > div:last-child');
-    new Mark($ctx1[0]).markRegExp(/(Lor)([^]?m[\s]*)(ipsum)/gmi, {
+    new Mark($ctx1[0]).markRegExp(/(Lor)([^]?m[\s]*)(ipsum)/gi, {
       'done': () => {
-        new Mark($ctx2[0]).markRegExp(/(Lor)([^]?m[\s]*)(ipsum)/gmi, {
+        new Mark($ctx2[0]).markRegExp(/(Lor)([^]?m[\s]*)(ipsum)/gi, {
           'ignoreGroups': 2,
           'done': () => {
             done();
