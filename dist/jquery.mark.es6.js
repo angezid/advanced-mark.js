@@ -2,7 +2,7 @@
 * advanced-mark.js v2.6.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
-* Copyright (c) 2022–2024, angezid
+* Copyright (c) 2022–2025, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
 
@@ -16,15 +16,8 @@ class DOMIterator {
     if ( !selector || !selector.length) {
       return false;
     }
-    const selectors = typeof selector === 'string' ? [selector] : selector;
-    const fn = (
-      element.matches ||
-      element.matchesSelector ||
-      element.msMatchesSelector ||
-      element.mozMatchesSelector ||
-      element.oMatchesSelector ||
-      element.webkitMatchesSelector
-    );
+    const selectors = typeof selector === 'string' ? [selector] : selector,
+      fn = element.matches;
     return fn && selectors.some(sel => fn.call(element, sel));
   }
   getContexts() {
@@ -35,18 +28,16 @@ class DOMIterator {
     if (Array.isArray(ctx)) {
       sort = true;
     } else if (typeof ctx === 'string') {
-      ctx = Array.from(win.document.querySelectorAll(ctx));
-    } else if (ctx.length >= 0) {
-      ctx = Array.from(ctx);
-    } else {
+      ctx = win.document.querySelectorAll(ctx);
+    } else if (typeof ctx.length === 'undefined') {
       ctx = [ctx];
     }
     const array = [];
-    ctx.forEach(elem => {
-      if (array.indexOf(elem) === -1 && !array.some(node => node.contains(elem))) {
-        array.push(elem);
+    for (let i = 0; i < ctx.length; i++) {
+      if ( !array.includes(ctx[i]) && !array.some(node => node.contains(ctx[i]))) {
+        array.push(ctx[i]);
       }
-    });
+    }
     if (sort) {
       array.sort((a, b) => {
         return (a.compareDocumentPosition(b) & win.Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
@@ -59,16 +50,14 @@ class DOMIterator {
       const doc = iframe.contentWindow.document;
       if (doc) {
         this.map.set(iframe, 'ready');
-        successFn({ iframe : iframe, context : doc });
+        successFn();
       }
     } catch (e) {
-      errorFn({ iframe : iframe, error : e });
+      errorFn(e);
     }
   }
   observeIframeLoad(ifr, successFn, errorFn) {
-    if (this.map.has(ifr)) {
-      return;
-    }
+    if (this.map.has(ifr)) return;
     let id = null;
     const listener = () => {
       clearTimeout(id);
@@ -80,18 +69,14 @@ class DOMIterator {
     id = setTimeout(listener, this.opt.iframesTimeout);
   }
   onIframeReady(ifr, successFn, errorFn) {
+    const bl = 'about:blank',
+      src = ifr.getAttribute('src'),
+      win = ifr.contentWindow;
     try {
-      const bl = 'about:blank',
-        src = ifr.getAttribute('src'),
-        win = ifr.contentWindow;
-      if (win.document.readyState === 'complete') {
-        if (src && src.trim() !== bl && win.location.href === bl) {
-          this.observeIframeLoad(ifr, successFn, errorFn);
-        } else {
-          this.getIframeContents(ifr, successFn, errorFn);
-        }
-      } else {
+      if (win.readyState !== 'complete' || src && src.trim() !== bl && win.location.href === bl) {
         this.observeIframeLoad(ifr, successFn, errorFn);
+      } else {
+        this.getIframeContents(ifr, successFn, errorFn);
       }
     } catch (e) {
       errorFn(e);
@@ -99,48 +84,33 @@ class DOMIterator {
   }
   waitForIframes(ctx, doneCb) {
     const shadow = this.opt.shadowDOM;
-    let count = 0,
-      iframes = 0,
-      array,
+    let array = [],
       node;
     const collect = context => {
       const iterator = this.createIterator(context, this.opt.window.NodeFilter.SHOW_ELEMENT);
       while ((node = iterator.nextNode())) {
-        if (this.isIframe(node) && !this.map.has(node)) {
-          array.push(node);
-          iframes++;
+        if (this.isIframe(node)) {
+          const promise = new Promise(resolve => {
+            this.onIframeReady(node, () => {
+              resolve();
+            }, error => {
+              resolve();
+              if (this.opt.debug) console.log(error);
+            });
+          });
+          array.push(promise);
         }
         if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
           collect(node.shadowRoot);
         }
       }
     };
-    const loop = (obj) => {
-      array = [];
-      if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
-        collect(obj.context);
-        if ( !obj.iframe && !array.length) {
-          doneCb();
-          return;
-        }
-      }
-      if (array.length) {
-        array.forEach(iframe => {
-          this.onIframeReady(iframe, obj => {
-            count++;
-            loop(obj);
-          }, obj => {
-            if (this.opt.debug) {
-              console.log(obj.error || obj);
-            }
-            if (++count === iframes) doneCb();
-          });
-        });
-      } else if (count === iframes) {
-        doneCb();
-      }
-    };
-    loop({ context : ctx });
+    collect(ctx);
+    if (array.length) {
+      Promise.all(array).then(() => doneCb());
+    } else {
+      doneCb();
+    }
   }
   createIterator(ctx, whatToShow) {
     const win = this.opt.window;
@@ -215,19 +185,10 @@ class DOMIterator {
       });
     };
     if (this.opt.iframes) {
-      let count = open,
-        fired = false;
-      const id = setTimeout(() => {
-        fired = true;
-        ready();
-      }, this.opt.iframesTimeout);
-      const finish = () => {
-        clearTimeout(id);
-        if ( !fired) ready();
-      };
+      let count = open;
       contexts.forEach(ctx => {
         this.waitForIframes(ctx, () => {
-          if (--count <= 0) finish();
+          if (--count <= 0) ready();
         });
       });
     } else {
@@ -267,7 +228,7 @@ class RegExpCreator {
           if (gr) return m;
           array.push(m);
           return '\x03' + index++ + '\x03';
-        }).replace(/\\+(?=\[|\x03)/g, m => m.slice(1));
+        }).replace(/\\(?=\[|\x03)/g, '');
       }
       return '(' + this.createPattern(str) + ')';
     });
@@ -403,7 +364,6 @@ class Mark {
       'exclude': [],
       'iframes': false,
       'iframesTimeout': 5000,
-      'combinePatterns': Infinity,
       'separateWordSearch': true,
       'acrossElements': false,
       'ignoreGroups': 0,
@@ -847,10 +807,8 @@ class Mark {
             matchStart : eachStart,
             count : count,
             groupIndex : grIndex,
+            groupStart : groupStart
           };
-          if (typeof groupStart !== 'undefined') {
-            eachInfo.groupStart = groupStart;
-          }
           eachCb(node, eachInfo);
           eachStart = false;
         });
@@ -1115,7 +1073,7 @@ class Mark {
       value;
     if (option === Infinity) {
       num = Math.pow(2, 31);
-    } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
+    } else if ( !isNaN(+option) && (value = parseInt(option)) > 0) {
       num = value;
     }
     for (let i = 0; i < terms.length; i += num) {

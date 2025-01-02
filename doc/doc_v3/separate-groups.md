@@ -1,10 +1,6 @@
 
 ## Highlighting separate groups
 
-**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
-
-
-
 **Important:** in this implementation two branches of code process separate groups, which one, depending on the existence of `d` flag.
 1. Primitive, base on `indexOf()`, only reliable with contiguous groups - unwanted group(s) can be easily filtered out.
 2. Exact, but not all browsers currently supported group `indices`.  
@@ -40,7 +36,7 @@ How to highlight nesting groups see [Nesting groups](nesting-overlapping.md).
 instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
     // 'acrossElements' : true,
     'separateGroups' : true,
-    'filter' : (textNode, matchString, marksSoFar, info) => {
+    'filter' : (textNode, matchString, matchesSoFar, info) => {
         // To filter any group use info.groupIndex - a current group index
         // Note: if a group lays across several elements, the index be the same while a group is wrapping
         if (info.groupIndex === 2 || info.groupIndex === 4) return false;

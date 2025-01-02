@@ -1,9 +1,5 @@
 
 ## mark() method
-
-**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
-
-
 ### Syntax
 ``` js
 // javascript
@@ -16,21 +12,30 @@ $(context).mark(search[, options]);
 * `search` {string|string[]} - string or array of strings
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
-  * `className` {string} -  A class to be added to mark elements. (default is `''`)
+  * `className` {string} - A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
-  * `separateWordSearch` {boolean} - Whether to break term into separate words and search for each individual word (default is `true`)
+    See [exclude](options.html#exclude-option) option for more details.
+  * `separateWordSearch` {boolean|string} - A **boolean** value `true` specifies to break term(s) into separate words and search for each individual word. (default is `true`)
+    A **string** value `'preserveTerms'` preserved term(s) surrounding by double quotes from breaking into separate words.
+    See [separateWordSearch](options.html#separatewordsearch-option) option for more details.
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
   * `accuracy` {string|object} -   (default is `'partially'`):
-    * Either one of the following string value:
+    * Either one of the following <b>string</b> value:
       * `'partially'` e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.
-      * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white-space characters and start/end of a text node (with `acrossElements` option - start/end of a context).
-      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'. The default word boundaries are: whitespaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
-    * Or an bject with two properties:
-      * `value`: 'exactly' or 'complementary'
-      * `limiters`: an array of custom word boundary characters, e.g. `{ value : "exactly", limiters : ",.;:?!'\"".split() }`
+      * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white spaces and start/end of a text node content (with `acrossElements` option - start/end of a context).
+      * `'startsWith'` e.g. searching 'pre' mark the whole words 'prefix', 'predict', and 'prefab'.  
+      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.  
+  
+  The **built-in** boundaries for values `startsWith` and `complementary` are:  
+  white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
 
-  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless thay are escaped (default is `disabled`):
+    * Or an <b>object</b> with two properties:
+      * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
+      * `limiters`: a string or an array of custom word boundary characters,  
+        e.g. `{ value : "exactly", limiters : ",.;:?!'\\"()" }`
+
+  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
     * `enabled`:
       * The character `?` match any non-white-space character zero or one time.
@@ -38,16 +43,18 @@ $(context).mark(search[, options]);
     * `withSpaces`:
       * The character `?` match any character zero or one time.
       * The character `*` match any character zero or more times, but as few times as possible.
-
+        
+   * `charSets` {boolean} - Whether to use in search strings RegExp character sets (default is `false`)
+      See [character sets](options.html#charsets-option) option for more details.
   * `ignoreJoiners` {boolean} - Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner (default is `false`)
-  * `ignorePunctuation` {string[]} - An array of punctuation characters (default is `[]`)
-  * `synonyms` {object} - An object with synonyms  (default is `{}`):
-    e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa. Value can be an array `{ 'be': ['am', 'is', 'are'] }`.
-
+  * `ignorePunctuation` {string|string[]} - A string or an array of punctuation characters (default is `[]`)
+  * `synonyms` {object} - An object with synonyms  (default is `{}`)
+    e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa.  
+    The value can be an array, e.g. `{ 'be': ['am', 'is', 'are'] }`.
+ 
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
-  * `combinePatterns` {number|boolean} - Combine a specified number of individual term patterns into one (default is `10`)
-    See [Performance](performance.md#ways-to-boost-performance) for more details.
-  * `cacheTextNodes` {boolean} - Caching information to improve performance (default is `undefined`)
+    See [acrossElements](options.html#acrosselements-option) option for more details.
+  * `combineBy` or `combinePatterns` {number} - Combine a specified number of individual term patterns into one (default is `10`)
     See [Performance](performance.md#ways-to-boost-performance) for more details.
   * `blockElementsBoundary` {boolean|object} - Whether to limit matches within default HTML block elements and/or custom elements (default is `undefined`)  AE
     See [Elements boundaries](elements-boundaries.md) for more details.
@@ -63,25 +70,28 @@ $(context).mark(search[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter : (textNode, term, marksSoFar, termMarksSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
+  * `filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `term` {string} - The current term
-    * `marksSoFar` {number} - The number of all wrapped matches so far
-    * `termMarksSoFar` {number} - The number of wrapped matches for the current term so far
+    * `matchesSoFar` {number} - The number of all wrapped matches so far
+    * `termMatchesSoFar` {number} - The number of wrapped matches for the current term so far
     * `filterInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - indicate the start of a match  AE
       * `execution` {object} - The helper object for early abort:
         * `abort` {boolean} - Setting it to `true` breaks method execution
-      * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.  
-        When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
+  
+The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).  
+See [Filtering matches](filtering-matches.md) for more details.
 
   * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
-      * `count` {number} - The number of matches so far
+      * `count` {number} - The number of wrapped matches so far
+  
+See [Code examples](some-examples.md).
 
   * `done : (totalMarks, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
     * `totalMarks` {number} - The total number of marked elements
@@ -89,14 +99,14 @@ $(context).mark(search[, options]);
     * `termStats` {object} - An object containing an individual term's matches count
 
   * `noMatch : (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
-    * `term` {string|string[]} - The not found term(s); the parameter is array when `combinePatterns` option is used
+    * `term` {string[]} - An array containing not found term(s)
 
 ### Available properties of the `filterInfo` object depending on options
 
-|            options               |    match   |   matchStart   |  execution  | offset |
-|----------------------------------|------------|----------------|-------------|--------|
-|  acrossElements: true            |     +      |      +         |     +       |   +    |
-|  acrossElements: false           |     +      |      -         |     +       |   +    |
+|            options               |    match   |   matchStart   |  execution  |
+|----------------------------------|------------|----------------|-------------|
+|  acrossElements: true            |     +      |      +         |     +       |
+|  acrossElements: false           |     +      |      -         |     +       |
 
 
 ### Available properties of the `eachInfo` object depending on options
@@ -123,7 +133,7 @@ $(context).mark(search[, options]);
     wildcards : 'disabled',
     
     acrossElements : false,
-    combinePatterns : false,
+    combineBy : 10,
     cacheTextNodes : false,
     blockElementsBoundary : false,
     

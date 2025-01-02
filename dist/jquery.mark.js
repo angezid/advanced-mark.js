@@ -2,7 +2,7 @@
 * advanced-mark.js v2.6.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
-* Copyright (c) 2022–2024, angezid
+* Copyright (c) 2022–2025, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
 
@@ -93,20 +93,21 @@
         if (Array.isArray(ctx)) {
           sort = true;
         } else if (typeof ctx === 'string') {
-          ctx = Array.from(win.document.querySelectorAll(ctx));
-        } else if (ctx.length >= 0) {
-          ctx = Array.from(ctx);
-        } else {
+          ctx = win.document.querySelectorAll(ctx);
+        } else if (typeof ctx.length === 'undefined') {
           ctx = [ctx];
         }
         var array = [];
-        ctx.forEach(function (elem) {
-          if (array.indexOf(elem) === -1 && !array.some(function (node) {
-            return node.contains(elem);
+        var _loop = function _loop(i) {
+          if (!array.includes(ctx[i]) && !array.some(function (node) {
+            return node.contains(ctx[i]);
           })) {
-            array.push(elem);
+            array.push(ctx[i]);
           }
-        });
+        };
+        for (var i = 0; i < ctx.length; i++) {
+          _loop(i);
+        }
         if (sort) {
           array.sort(function (a, b) {
             return (a.compareDocumentPosition(b) & win.Node.DOCUMENT_POSITION_FOLLOWING) > 0 ? -1 : 1;
@@ -121,25 +122,17 @@
           var doc = iframe.contentWindow.document;
           if (doc) {
             this.map.set(iframe, 'ready');
-            successFn({
-              iframe: iframe,
-              context: doc
-            });
+            successFn();
           }
         } catch (e) {
-          errorFn({
-            iframe: iframe,
-            error: e
-          });
+          errorFn(e);
         }
       }
     }, {
       key: "observeIframeLoad",
       value: function observeIframeLoad(ifr, successFn, errorFn) {
         var _this = this;
-        if (this.map.has(ifr)) {
-          return;
-        }
+        if (this.map.has(ifr)) return;
         var id = null;
         var listener = function listener() {
           clearTimeout(id);
@@ -153,18 +146,14 @@
     }, {
       key: "onIframeReady",
       value: function onIframeReady(ifr, successFn, errorFn) {
+        var bl = 'about:blank',
+          src = ifr.getAttribute('src'),
+          win = ifr.contentWindow;
         try {
-          var bl = 'about:blank',
-            src = ifr.getAttribute('src'),
-            win = ifr.contentWindow;
-          if (win.document.readyState === 'complete') {
-            if (src && src.trim() !== bl && win.location.href === bl) {
-              this.observeIframeLoad(ifr, successFn, errorFn);
-            } else {
-              this.getIframeContents(ifr, successFn, errorFn);
-            }
-          } else {
+          if (win.readyState !== 'complete' || src && src.trim() !== bl && win.location.href === bl) {
             this.observeIframeLoad(ifr, successFn, errorFn);
+          } else {
+            this.getIframeContents(ifr, successFn, errorFn);
           }
         } catch (e) {
           errorFn(e);
@@ -175,50 +164,35 @@
       value: function waitForIframes(ctx, doneCb) {
         var _this2 = this;
         var shadow = this.opt.shadowDOM;
-        var count = 0,
-          iframes = 0,
-          array,
+        var array = [],
           node;
         var collect = function collect(context) {
           var iterator = _this2.createIterator(context, _this2.opt.window.NodeFilter.SHOW_ELEMENT);
           while (node = iterator.nextNode()) {
-            if (_this2.isIframe(node) && !_this2.map.has(node)) {
-              array.push(node);
-              iframes++;
+            if (_this2.isIframe(node)) {
+              var promise = new Promise(function (resolve) {
+                _this2.onIframeReady(node, function () {
+                  resolve();
+                }, function (error) {
+                  resolve();
+                  if (_this2.opt.debug) console.log(error);
+                });
+              });
+              array.push(promise);
             }
             if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
               collect(node.shadowRoot);
             }
           }
         };
-        var loop = function loop(obj) {
-          array = [];
-          if (!obj.iframe || obj.context.location.href !== 'about:blank') {
-            collect(obj.context);
-            if (!obj.iframe && !array.length) {
-              doneCb();
-              return;
-            }
-          }
-          if (array.length) {
-            array.forEach(function (iframe) {
-              _this2.onIframeReady(iframe, function (obj) {
-                count++;
-                loop(obj);
-              }, function (obj) {
-                if (_this2.opt.debug) {
-                  console.log(obj.error || obj);
-                }
-                if (++count === iframes) doneCb();
-              });
-            });
-          } else if (count === iframes) {
-            doneCb();
-          }
-        };
-        loop({
-          context: ctx
-        });
+        collect(ctx);
+        if (array.length) {
+          Promise.all(array).then(function () {
+            return doneCb();
+          });
+        } else {
+          doneCb();
+        }
       }
     }, {
       key: "createIterator",
@@ -308,19 +282,10 @@
           });
         };
         if (this.opt.iframes) {
-          var count = open,
-            fired = false;
-          var id = setTimeout(function () {
-            fired = true;
-            ready();
-          }, this.opt.iframesTimeout);
-          var finish = function finish() {
-            clearTimeout(id);
-            if (!fired) ready();
-          };
+          var count = open;
           contexts.forEach(function (ctx) {
             _this4.waitForIframes(ctx, function () {
-              if (--count <= 0) finish();
+              if (--count <= 0) ready();
             });
           });
         } else {
@@ -333,8 +298,8 @@
         if (!selector || !selector.length) {
           return false;
         }
-        var selectors = typeof selector === 'string' ? [selector] : selector;
-        var fn = element.matches || element.matchesSelector || element.msMatchesSelector || element.mozMatchesSelector || element.oMatchesSelector || element.webkitMatchesSelector;
+        var selectors = typeof selector === 'string' ? [selector] : selector,
+          fn = element.matches;
         return fn && selectors.some(function (sel) {
           return fn.call(element, sel);
         });
@@ -379,9 +344,7 @@
               if (gr) return m;
               array.push(m);
               return '\x03' + index++ + '\x03';
-            }).replace(/\\+(?=\[|\x03)/g, function (m) {
-              return m.slice(1);
-            });
+            }).replace(/\\(?=\[|\x03)/g, '');
           }
           return '(' + _this2.createPattern(str) + ')';
         });
@@ -553,7 +516,6 @@
           'exclude': [],
           'iframes': false,
           'iframesTimeout': 5000,
-          'combinePatterns': Infinity,
           'separateWordSearch': true,
           'acrossElements': false,
           'ignoreGroups': 0,
@@ -1153,11 +1115,9 @@
                 match: match,
                 matchStart: eachStart,
                 count: count,
-                groupIndex: grIndex
+                groupIndex: grIndex,
+                groupStart: groupStart
               };
-              if (typeof groupStart !== 'undefined') {
-                eachInfo.groupStart = groupStart;
-              }
               eachCb(node, eachInfo);
               eachStart = false;
             });
@@ -1475,7 +1435,7 @@
           value;
         if (option === Infinity) {
           num = Math.pow(2, 31);
-        } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
+        } else if (!isNaN(+option) && (value = parseInt(option)) > 0) {
           num = value;
         }
         for (var i = 0; i < terms.length; i += num) {

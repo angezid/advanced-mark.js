@@ -1,9 +1,5 @@
 
 ## markRanges() method
-
-**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
-
-
 ### Syntax
 ``` js
 // javascript
@@ -16,13 +12,16 @@ $(context).markRanges(ranges[, options]);
 * `ranges` {object[]} - An array of objects with `start` and `length` properties with integer type values.
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
-  * `className` {string} -  A class to be added to mark elements. (default is `''`)
+  * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
-  * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups  (default is `undefined`)
+    See [exclude](options.html#exclude-option) option for more details.
+  * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
+  * `markLines` {boolean} - Whether to mark ranges of lines instead of ranges of texts (default is `undefined`)
+    See [Highlighting line ranges](mark-lines.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
@@ -32,7 +31,9 @@ $(context).markRanges(ranges[, options]);
     * `textNode` {Text} - The text node which includes the range or is the part of the range
     * `range` {object} - The current range object
     * `matchString` {string} - The current range matching string
-    * `index` {number} - The current range index ???
+    * `index` {number} - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)
+  
+The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
   * `each : (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
@@ -56,9 +57,9 @@ $(context).markRanges(ranges[, options]);
     className : '',
     exclude : [],
     
-	wrapAllRanges : false,
-	
-	shadowDOM : false,
+    wrapAllRanges : false,
+    markLines : false,
+    shadowDOM : false,
     iframes : false,
     iframesTimeout : 5000,
     

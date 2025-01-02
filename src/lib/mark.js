@@ -74,7 +74,6 @@ class Mark {
       'exclude': [],
       'iframes': false,
       'iframesTimeout': 5000,
-      'combinePatterns': Infinity,
       'separateWordSearch': true,
       'acrossElements': false,
       'ignoreGroups': 0,
@@ -961,10 +960,8 @@ class Mark {
             matchStart : eachStart,
             count : count,
             groupIndex : grIndex,
+            groupStart : groupStart
           };
-          if (typeof groupStart !== 'undefined') {
-            eachInfo.groupStart = groupStart;
-          }
           eachCb(node, eachInfo);
           eachStart = false;
         });
@@ -1487,7 +1484,7 @@ class Mark {
 
     if (option === Infinity) {
       num = Math.pow(2, 31);
-    } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
+    } else if ( !isNaN(+option) && (value = parseInt(option)) > 0) {
       num = value;
     }
 

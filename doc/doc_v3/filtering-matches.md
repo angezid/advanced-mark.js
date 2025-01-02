@@ -1,10 +1,5 @@
 
 ## Filtering matches
-
-**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
-
-
-
 See [mark() filter callback](mark-method.md#mark-filter) and [markRegExp() filter callback](markRegExp-method.md#markRegExp-filter) about `filter` callback `info` object properties.  
 
 To filter RegExp capturing groups see: [Filtering capturing groups](separate-groups.md#filtering-capturing-groups).
@@ -15,7 +10,7 @@ let count = 0;
 
 instance.mark('AB', {
     'acrossElements' : true,
-    'filter' : (textNode, term, marksSoFar, termMarksSoFar, info) => {
+    'filter' : (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
          // to mark only the first match
         info.execution.abort = true; return  true;
 
@@ -42,7 +37,7 @@ instance.mark('AB', {
 let count = 0;
 
 instance.mark('AB', {
-    'filter' : (textNode, term, marksSoFar, termMarksSoFar, info) => {
+    'filter' : (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
         // the only difference is counter implementation
         count++;
     }
@@ -55,7 +50,7 @@ let count = 0, reg = /.../gi;
 // if you have access to the RegExp object with 'acrossElements' option, you can
 // also used `reg.lastIndex = Infinity;` instead of `info.execution.abort = true;`
 instance.markRegExp(reg, {
-    'filter' : (textNode, matchString, marksSoFar, info) => {
+    'filter' : (textNode, matchString, matchesSoFar, info) => {
         // to mark only the first match
         info.execution.abort = true; return  true;
 

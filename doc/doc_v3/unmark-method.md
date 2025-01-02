@@ -1,9 +1,5 @@
 
 ## unmark() method
-
-**See [Documentation](https://angezid.github.io/advanced-mark.js/doc-v1) for advanced-mark.js v1 on GitHub Pages.**
-
-
 ### Syntax
 ``` js
 // javascript

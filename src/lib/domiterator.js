@@ -52,15 +52,8 @@ class DOMIterator {
     if ( !selector || !selector.length) {
       return false;
     }
-    const selectors = typeof selector === 'string' ? [selector] : selector;
-    const fn = (
-      element.matches ||
-      element.matchesSelector ||
-      element.msMatchesSelector ||
-      element.mozMatchesSelector ||
-      element.oMatchesSelector ||
-      element.webkitMatchesSelector
-    );
+    const selectors = typeof selector === 'string' ? [selector] : selector,
+      fn = element.matches;
     return fn && selectors.some(sel => fn.call(element, sel));
   }
 
@@ -79,22 +72,18 @@ class DOMIterator {
     if (Array.isArray(ctx)) {
       sort = true;
     } else if (typeof ctx === 'string') {
-      //ctx = this.toArray(win.document.querySelectorAll(ctx));
-      ctx = Array.from(win.document.querySelectorAll(ctx));
-    } else if (ctx.length >= 0) { // NodeList or HTMLCollection
-      //ctx = this.toArray(ctx);
-      ctx = Array.from(ctx);
-    } else { // e.g. HTMLElement
+      ctx = win.document.querySelectorAll(ctx);
+    } else if (typeof ctx.length === 'undefined') {
       ctx = [ctx];
     }
 
     // filters out duplicate/nested elements
     const array = [];
-    ctx.forEach(elem => {
-      if (array.indexOf(elem) === -1 && !array.some(node => node.contains(elem))) {
-        array.push(elem);
+    for (let i = 0; i < ctx.length; i++) {
+      if ( !array.includes(ctx[i]) && !array.some(node => node.contains(ctx[i]))) {
+        array.push(ctx[i]);
       }
-    });
+    }
     // elements in the custom array can be in any order
     // sorts elements by the DOM order
     if (sort) {
@@ -122,10 +111,10 @@ class DOMIterator {
       const doc = iframe.contentWindow.document;
       if (doc) {
         this.map.set(iframe, 'ready');
-        successFn({ iframe : iframe, context : doc });
+        successFn();
       }
     } catch (e) {
-      errorFn({ iframe : iframe, error : e });
+      errorFn(e);
     }
   }
 
@@ -141,9 +130,8 @@ class DOMIterator {
    */
   observeIframeLoad(ifr, successFn, errorFn) {
     // an event listener is already added to the iframe
-    if (this.map.has(ifr)) {
-      return;
-    }
+    if (this.map.has(ifr)) return;
+
     let id = null;
 
     const listener = () => {
@@ -177,19 +165,15 @@ class DOMIterator {
    * @access protected
    */
   onIframeReady(ifr, successFn, errorFn) {
-    try {
-      const bl = 'about:blank',
-        src = ifr.getAttribute('src'),
-        win = ifr.contentWindow;
+    const bl = 'about:blank',
+      src = ifr.getAttribute('src'),
+      win = ifr.contentWindow;
 
-      if (win.document.readyState === 'complete') {
-        if (src && src.trim() !== bl && win.location.href === bl) {
-          this.observeIframeLoad(ifr, successFn, errorFn);
-        } else {
-          this.getIframeContents(ifr, successFn, errorFn);
-        }
-      } else {
+    try {
+      if (win.readyState !== 'complete' || src && src.trim() !== bl && win.location.href === bl) {
         this.observeIframeLoad(ifr, successFn, errorFn);
+      } else {
+        this.getIframeContents(ifr, successFn, errorFn);
       }
     } catch (e) { // accessing document failed
       errorFn(e);
@@ -208,18 +192,23 @@ class DOMIterator {
    */
   waitForIframes(ctx, doneCb) {
     const shadow = this.opt.shadowDOM;
-    let count = 0,
-      iframes = 0,
-      array,
+    let array = [],
       node;
 
     const collect = context => {
       const iterator = this.createIterator(context, this.opt.window.NodeFilter.SHOW_ELEMENT);
 
       while ((node = iterator.nextNode())) {
-        if (this.isIframe(node) && !this.map.has(node)) {
-          array.push(node);
-          iframes++;
+        if (this.isIframe(node)) {
+          const promise = new Promise(resolve => {
+            this.onIframeReady(node, () => { // success
+              resolve();
+            }, error => { // error
+              resolve();
+              if (this.opt.debug) console.log(error);
+            });
+          });
+          array.push(promise);
         }
 
         if (shadow && node.shadowRoot && node.shadowRoot.mode === 'open') {
@@ -228,36 +217,13 @@ class DOMIterator {
       }
     };
 
-    const loop = (obj) => {
-      array = [];
+    collect(ctx);
 
-      if ( !obj.iframe || obj.context.location.href !== 'about:blank') {
-        collect(obj.context);
-
-        if ( !obj.iframe && !array.length) {
-          doneCb();
-          return;
-        }
-      }
-
-      if (array.length) {
-        array.forEach(iframe => {
-          this.onIframeReady(iframe, obj => { // success
-            count++;
-            loop(obj);
-          }, obj => { // error
-            if (this.opt.debug) {
-              console.log(obj.error || obj);
-            }
-            if (++count === iframes) doneCb();
-          });
-        });
-      } else if (count === iframes) {
-        doneCb();
-      }
-    };
-
-    loop({ context : ctx });
+    if (array.length) {
+      Promise.all(array).then(() => doneCb());
+    } else {
+      doneCb();
+    }
   }
 
   /**
@@ -410,24 +376,13 @@ class DOMIterator {
       });
     };
 
-    // wait for all iframes to be ready for DOM access or timeout
     if (this.opt.iframes) {
-      let count = open,
-        fired = false;
-      // it should guarantee a single done callback, if something went wrong
-      const id = setTimeout(() => {
-        fired = true;
-        ready();
-      }, this.opt.iframesTimeout);
+      let count = open;
 
-      const finish = () => {
-        clearTimeout(id);
-        if ( !fired) ready();
-      };
-
+      // waits for all iframes to be ready for DOM access or timeout
       contexts.forEach(ctx => {
         this.waitForIframes(ctx, () => {
-          if (--count <= 0) finish();
+          if (--count <= 0) ready();
         });
       });
 

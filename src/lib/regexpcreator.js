@@ -95,7 +95,7 @@ class RegExpCreator {
 
           array.push(m);
           return '\x03' + index++ + '\x03';
-        }).replace(/\\+(?=\[|\x03)/g, m => m.slice(1)); // removes one backslash character before '[' and '\x03'
+        }).replace(/\\(?=\[|\x03)/g, ''); // removes one backslash character before '[' and '\x03'
       }
       // wraps an individual term pattern in a capturing group; that allows to determine
       // in filter callback which term is currently matched
