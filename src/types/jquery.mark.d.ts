@@ -42,8 +42,7 @@ declare namespace Mark {
     iframes?: boolean;
     iframesTimeout?: number;
 
-    combinePatterns?: boolean;
-    cacheTextNodes?: boolean;
+    combineby?: number;
     blockElementsBoundary?: boolean | BoundaryObject;
     shadowDOM?: boolean | ShadowObject;
 
@@ -53,7 +52,7 @@ declare namespace Mark {
     each?(element: Element, eachInfo: MarkEachInfo) : void;
     done?(totalMarks: number, totalMatches: number, termStats: TermStats) : void;
 
-    noMatch?(term: string | string[]) : void;
+    noMatch?(term: string[]) : void;
     debug?: boolean;
     log?: object;
   }
@@ -62,7 +61,6 @@ declare namespace Mark {
     match: RegExpExecArray;
     matchStart: boolean;
     execution: ExecutionObject;
-    offset: number;
   }
 
   interface MarkEachInfo {
@@ -103,7 +101,6 @@ declare namespace Mark {
     matchStart: boolean;
     execution: ExecutionObject;
     groupIndex?: number;
-    offset?: number;
   }
 
   interface RegExpEachInfo {

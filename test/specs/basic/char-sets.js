@@ -28,7 +28,7 @@ describe('charSets option', () => {
   it('should mark charSets with quantifiers', done => {
     let curTerm = '';
     new Mark($ctx2[0]).mark(quantifiers, {
-      'charSets' : true,
+      characterSets : true,
       filter: (nd, term) => {
         curTerm = term;
         return true;
@@ -47,7 +47,7 @@ describe('charSets option', () => {
   it('should correctly handle escaped characters', done => {
     let curTerm = '';
     new Mark($ctx[0]).mark(escapes, {
-      'charSets' : true,
+      characterSets : true,
       filter: (nd, term) => {
         curTerm = term;
         return true;

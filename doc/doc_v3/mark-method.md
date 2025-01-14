@@ -44,8 +44,11 @@ $(context).mark(search[, options]);
       * The character `?` match any character zero or one time.
       * The character `*` match any character zero or more times, but as few times as possible.
         
-   * `charSets` {boolean} - Whether to use in search strings RegExp character sets (default is `false`)
-      See [character sets](options.html#charsets-option) option for more details.
+  * `characterSets` {boolean} - Whether to use in search strings RegExp character sets (default is `false`)
+    See [character sets](options.html#charsets-option) option for more details.
+  * `unicode` {boolean} - Whether to use RegExp `u` flag which allows using unicode class `\p{..}`, `\P{..}`, etc. (default is `false`)
+    It can be used with `characterSets`, `ignorePunctuation` options, and custom `accuracy` object to determine words boundaries. 
+  
   * `ignoreJoiners` {boolean} - Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner (default is `false`)
   * `ignorePunctuation` {string|string[]} - A string or an array of punctuation characters (default is `[]`)
   * `synonyms` {object} - An object with synonyms  (default is `{}`)

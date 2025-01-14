@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.6.0
+* advanced-mark.js v3.0.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2025, angezid
@@ -115,8 +115,7 @@
       key: "getIframeContents",
       value: function getIframeContents(iframe, successFn, errorFn) {
         try {
-          var doc = iframe.contentWindow.document;
-          if (doc) {
+          if (iframe.contentWindow.document) {
             this.map.set(iframe, 'ready');
             successFn();
           }
@@ -312,6 +311,8 @@
         'accuracy': 'partially',
         'caseSensitive': false,
         'ignoreJoiners': false,
+        'characterSets': false,
+        'unicode': false,
         'ignorePunctuation': [],
         'wildcards': 'disabled'
       }, options);
@@ -332,17 +333,19 @@
       key: "create",
       value: function create(terms) {
         var _this2 = this;
-        var array = [];
-        var index = 0;
+        var array = [],
+          charSets = this.opt.characterSets;
+        var index = 0,
+          flags = "g".concat(this.opt.caseSensitive ? '' : 'i').concat(this.opt.unicode ? 'u' : '');
         terms = terms.map(function (str) {
-          if (_this2.opt.charSets) {
+          if (charSets) {
             str = str.replace(/(\\.)+|\[(?:[^\\\]]|(?:\\.))+\](?:[+*?]\??|\{[\d,]+\}\??)?/g, function (m, gr) {
               if (gr) return m;
               array.push(m);
               return '\x03' + index++ + '\x03';
             }).replace(/\\(?=\[|\x03)/g, '');
           }
-          return '(' + _this2.createPattern(str) + ')';
+          return '(' + _this2.createPattern(str, flags) + ')';
         });
         var obj = this.createAccuracy(terms.join('|'));
         if (array.length) {
@@ -350,17 +353,16 @@
             return array[gr];
           });
         }
-        return new RegExp("".concat(obj.lookbehind, "(").concat(obj.pattern, ")").concat(obj.lookahead), "g".concat(this.opt.caseSensitive ? '' : 'i'));
+        return new RegExp("".concat(obj.lookbehind, "(").concat(obj.pattern, ")").concat(obj.lookahead), flags);
       }
     }, {
       key: "createPattern",
-      value: function createPattern(str) {
+      value: function createPattern(str, flags) {
         var wildcards = this.opt.wildcards !== 'disabled';
-        str = str.replace(/\s+/g, ' ');
-        if (wildcards) {
-          str = this.createPlaceholders(str);
+        str = this.checkWildcardsEscape(str);
+        if (this.opt.synonyms) {
+          str = this.createSynonyms(str, flags);
         }
-        str = str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
         var joiners = this.getJoinersPunctuation();
         if (joiners) {
           str = this.setupIgnoreJoiners(str);
@@ -368,7 +370,7 @@
         if (this.opt.diacritics) {
           str = this.createDiacritics(str);
         }
-        str = str.replace(/ /g, '\\s+');
+        str = str.replace(/\s+/g, '[\\s]+');
         if (joiners) {
           str = str.split(/\x00+/).join("[".concat(joiners, "]*"));
         }
@@ -378,10 +380,20 @@
         return str;
       }
     }, {
+      key: "escape",
+      value: function escape(str) {
+        return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
+      }
+    }, {
       key: "preprocess",
       value: function preprocess(val) {
         if (val && val.length) {
-          return this.distinct(typeof val === 'string' ? val.split('') : val).join('').replace(/[-^\]\\]/g, '\\$&');
+          if (typeof val === 'string') {
+            val = this.opt.unicode ? val.split(/(\\[pPu]\{[^}]+\}|.)/) : val.split('');
+          }
+          return this.distinct(val).map(function (ch) {
+            return ch.length > 4 ? ch : ch.replace(/[-^\]\\]/g, '\\$&');
+          }).join('');
         }
         return '';
       }
@@ -390,7 +402,7 @@
       value: function distinct(array) {
         var result = [];
         array.forEach(function (item) {
-          if (item.trim() && result.indexOf(item) === -1) {
+          if (item.trim() && !result.includes(item)) {
             result.push(item);
           }
         });
@@ -414,30 +426,59 @@
         });
       }
     }, {
-      key: "createPlaceholders",
-      value: function createPlaceholders(str) {
-        return str.replace(/(\\.)+|[?*]/g, function (m, gr) {
-          return gr ? m : m === '?' ? '\x01' : '\x02';
-        }).replace(/\\+(?=[?*\x01\x02])/g, function (m) {
-          return m.slice(1);
-        });
+      key: "createSynonyms",
+      value: function createSynonyms(str, flags) {
+        var _this3 = this;
+        var syn = this.opt.synonyms;
+        for (var key in syn) {
+          if (syn.hasOwnProperty(key)) {
+            var array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
+            array.unshift(key);
+            array = this.distinct(array);
+            if (array.length > 1) {
+              array.sort(function (a, b) {
+                return a.length === b.length ? a > b ? 1 : -1 : b.length - a.length;
+              });
+              array = array.map(function (term) {
+                return _this3.checkWildcardsEscape(term);
+              });
+              var pattern = array.map(function (term) {
+                return _this3.escape(term);
+              }).join('|');
+              str = str.replace(new RegExp(pattern, flags), array.join('|'));
+            }
+          }
+        }
+        return str;
+      }
+    }, {
+      key: "checkWildcardsEscape",
+      value: function checkWildcardsEscape(str) {
+        if (this.opt.wildcards !== 'disabled') {
+          str = str.replace(/(\\.)+|[?*]/g, function (m, gr) {
+            return gr ? m : m === '?' ? '\x01' : '\x02';
+          }).replace(/\\+(?=[?*\x01\x02])/g, function (m) {
+            return m.slice(1);
+          });
+        }
+        return this.escape(str);
       }
     }, {
       key: "createWildcards",
       value: function createWildcards(str) {
         var spaces = this.opt.wildcards === 'withSpaces',
-          anyChar = spaces && this.opt.boundary ? '[^\x01]*?' : '[^]*?';
+          anyChar = spaces && this.opt.blockElementsBoundary ? '[^\x01]*?' : '[^]*?';
         return str.replace(/\x01/g, spaces ? '[^]?' : '\\S?').replace(/\x02/g, spaces ? anyChar : '\\S*');
       }
     }, {
       key: "createDiacritics",
       value: function createDiacritics(str) {
-        var _this3 = this;
+        var _this4 = this;
         var array = this.chars;
         return str.split('').map(function (ch) {
           for (var i = 0; i < array.length; i += 2) {
             var lowerCase = array[i].includes(ch);
-            if (_this3.opt.caseSensitive) {
+            if (_this4.opt.caseSensitive) {
               if (lowerCase) {
                 return '[' + array[i] + ']';
               }
@@ -454,9 +495,10 @@
     }, {
       key: "createAccuracy",
       value: function createAccuracy(str) {
+        var chars = '!-/:-@[-`{-~¡¿';
         var accuracy = this.opt.accuracy,
           lookbehind = '()',
-          pattern = str,
+          pattern = "(?:".concat(str, ")"),
           lookahead = '',
           limiters;
         if (accuracy !== 'partially') {
@@ -464,18 +506,18 @@
             limiters = this.preprocess(accuracy.limiters);
             accuracy = accuracy.value;
           }
-          limiters = '\\s' + (limiters || '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿');
-          var group = "(^|[".concat(limiters, "])");
           if (accuracy === 'exactly') {
-            lookbehind = group;
-            lookahead = "(?=$|[".concat(limiters, "])");
+            var charSet = limiters ? '[\\s' + limiters + ']' : '\\s';
+            lookbehind = "(^|".concat(charSet, ")");
+            lookahead = "(?=$|".concat(charSet, ")");
           } else {
-            var charSet = "[^".concat(limiters, "]*");
+            var chs = limiters || chars,
+              _charSet = "[^\\s".concat(chs, "]*");
             if (accuracy === 'complementary') {
-              pattern = "".concat(charSet, "(?:").concat(str, ")").concat(charSet);
+              pattern = _charSet + pattern + _charSet;
             } else if (accuracy === 'startsWith') {
-              lookbehind = group;
-              pattern = "(?:".concat(str.replace(/\\s\+/g, charSet + '$&'), ")").concat(charSet);
+              lookbehind = "(^|[\\s".concat(chs, "])");
+              pattern = pattern.split(/\[\\s\]\+/).join(_charSet + '[\\s]+') + _charSet;
             }
           }
         }
@@ -1508,7 +1550,7 @@
       return _this;
     };
     this.getVersion = function () {
-      return '2.6.0';
+      return '3.0.0';
     };
     return this;
   }

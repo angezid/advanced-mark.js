@@ -108,8 +108,7 @@ class DOMIterator {
    */
   getIframeContents(iframe, successFn, errorFn) {
     try {
-      const doc = iframe.contentWindow.document;
-      if (doc) {
+      if (iframe.contentWindow.document) {
         this.map.set(iframe, 'ready');
         successFn();
       }

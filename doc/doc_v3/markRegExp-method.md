@@ -53,8 +53,6 @@ $(context).markRegExp(regex[, options]);
       * `groupIndex` {number} - The current group index  SG
       * `execution` {object} - The helper object for early abort:
         * `abort` {boolean} - Setting it to `true` breaks method execution
-      * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
-        When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
   
 The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
@@ -76,12 +74,12 @@ The function **must** return either `true` (to wrap) or `false` (to skip wrappin
 
 ### Available properties of the `filterInfo` object depending on options
 
-|            options               |    match   |   matchStart   | groupIndex  |  execution  | offset |
-|----------------------------------|------------|----------------|-------------|-------------|--------|
-|  acrossElements                  |     +      |      +         |     -       |     +       |   +    |
-|  acrossElements, separateGroups  |     +      |      +         |     +       |     +       |   +    |
-|  separateGroups                  |     +      |      +         |     +       |     +       |   +    |
-|  above options are false         |     +      |      -         |     -       |     +       |   +    |
+|            options               |    match   |   matchStart   | groupIndex  |  execution  |
+|----------------------------------|------------|----------------|-------------|-------------|
+|  acrossElements                  |     +      |      +         |     -       |     +       |
+|  acrossElements, separateGroups  |     +      |      +         |     +       |     +       |
+|  separateGroups                  |     +      |      +         |     +       |     +       |
+|  above options are false         |     +      |      -         |     -       |     +       |
 
 
 ### Available properties of the `eachInfo` object depending on options

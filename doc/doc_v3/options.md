@@ -5,7 +5,7 @@
 
 ### `acrossElements` option
 With this option the library aggregate all context(s) text node contents into a single string taking into account HTML elements.  
-If a block element 'divides' two text nodes, and `node.textContent`s doesn't separated by white space, the space is added to the string to separate them,  
+If a block element 'divides' two text nodes, and `node.textContent`s doesn't separated by white spaces, the space is added to the string to separate them,  
 e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Header Paragraph' (in *mark.js* - 'HeaderParagraph').
 
 Due to searching in single string, it can highlight matches across HTML block elements, which in most cases are undesirable.
@@ -64,6 +64,58 @@ An accuracy object can be used if the default boundaries are not satisfactory:
   e.g. `{ value : 'exactly', limiters : ",.;:?!'\\"()" }`
 
 **AE** - with option `acrossElements: true` or `acrossElements: inline`.
+
+
+### `characterSets` option
+This option allows to use in search strings RegExp character sets with quantifiers.  
+Everything started from the non-escaped open `[` to the non-escaped close `]` brackets is considered as a character set, the `*`, `+`, `?`, `*?`, `+?`, `??`, `{..}`, and `{..}?`  following close bracket `]` are considered as quantifiers.  
+To match the open square bracket itself just escape it.
+
+<details class="info">
+<summary>More details</summary>
+
+There are two types of sets:
+* positive - `[a-z]` matches any of included character or character class number of times specified by quantifier
+* negative - `[^a-z]` matches any not included character or character class number of times specified by quantifier
+
+To match itself, the characters `-^]\` must be escaped: `]\` - always, `^` - at the beginning, `-` - between characters.  
+For the characters `^-` it's better change position to avoid escaping, e.g. `[-^\]]`.
+
+What character classes can be used in the set see: [Character classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Character_classes), 
+[Unicode character class escape: \p\{...}, \P\{...}](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Unicode_character_class_escape), 
+[Character escape: \u\{...}](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Character_escape)
+
+Quantifiers short description:
+* `?` match zero or one time
+* `*` match zero or more times
+* `+` match one or more times
+* `{n}` exactly n times
+* `{n,}` at least n times
+* `{n,m}` from n to m times
+
+The quantifiers `??`, `*?`, `+?`, `{n}?`, `{n,}?`, `{n,m}?` are lazy versions of above quantifiers (adding 'but as few times as possible').  
+See [Quantifier](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Quantifier).
+
+**Note:** if it's used with `wildcards` option, the characters `*` and `?` that following `]` are parsed as quantifiers.  
+It sets some limitations on using these options together:
+* in `[]**`,`[]+*`, `[]?*`, and `[]{n,m}*` - the last `*` is the wildcard
+* in `[]*?`, `[]+?`, and `[]{n,m}?` -  the last `?` is the part of quantifier
+
+Equivalent character set constructions of the built-in wildcards:
+
+|          option           |    `*`    |    `?`    |
+|---------------------------|-----------|-----------|
+| wildcard: 'enabled'     |  `[^\s]*` |  `[^\s]?` |
+| wildcard: 'withSpaces'  |  `[^]*?`  |  `[^]?`   |
+
+With `wildcard: 'withSpaces'` and `blockElementsBoundary` options the wildcard `*` equivalent is `[^\x01]*?` (`\x01` is element boundary character; See [Elements boundaries](elements-boundaries.md)).
+</details>
+
+It can be used to highlight numbers, dates, unicode staff, instead of wildcards, etc.  
+e.g. highlights all prices  `[\p{Sc}][\d.,]+` in '$9.99, €8.99, ¥100'.
+
+### `unicode` option
+This option allows using unicode character class escape `\p{..}, \P{..}`and character escape `\u{..}` with `characterSets`, `ignorePunctuation` options, and custom `accuracy` object to determine words boundaries. 
 
 
 ``` js

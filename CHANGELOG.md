@@ -1,4 +1,17 @@
 
+### 3.0.0
+* Combine pattern become default 
+* Added `characterSets` option that allows in search strings using RegExp character sets with quantifiers (`mark()` API).
+* Added `unicode` option that allows using unicode character class escape `\p{..}, \P{..}`and character escape `\u{..}` with `characterSets` option (`mark()` API).
+* Added requirement for `g` flag in `markRegExp()` API when not using `acrossElements` option.
+* Removed ability to highlight RegExp groups without `d` flag.
+* Removed ability to highlight in nested iframes.
+* Removed `cacheTextNodes` option.
+* Removed `offset` property from filter callback.
+* Dropped support of very old browsers.
+* Removed RegExpCreator module from the npm package.
+*  
+
 ### 2.6.0
 * Added ability to mark inside iframes in shadow DOM.
 * Changed the way to truck iframes states (dropped using attribute).

@@ -14,9 +14,9 @@ describe('basic mark with accuracy exactly', () => {
       'accuracy': 'exactly',
       'separateWordSearch': false,
       'done': () => {
-        expect($ctx1.find('mark').length).toBe(2);
+        expect($ctx1.find('mark').length).toBe(1);
         expect($ctx1.find('mark').first().text()).toBe('ipsu');
-        //expect($ctx1.find('.not mark').length).toBe(0);
+        expect($ctx1.find('.not mark').length).toBe(0);
         
         done();
       }
