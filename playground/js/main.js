@@ -1,7 +1,7 @@
 
 'use strict';
 
-const version = '2.4.0';
+const version = '2.6.0';
 let currentTabId = '',
 	time = 0,
 	matchCount = 0,
@@ -337,8 +337,7 @@ const tab = {
 				highlighter.highlightRawHtml(div, html);
 
 			} else {
-				// .innerText removes/normalizes white spaces
-				div.innerHTML = util.entitize(html);
+				div.textContent = html;
 			}
 			this.initializeEditors();
 
@@ -387,7 +386,7 @@ const tab = {
 		for (const key in obj.editors) {
 			if (obj.editors[key] === null) {
 				if (key === 'testString') {
-					obj.editors[key] = this.initTestEditor(obj.editors[key]);
+					obj.editors[key] = this.initTestEditor();
 
 				} else {
 					let selector = `${currentSection} .${key} .editor`;
@@ -407,7 +406,7 @@ const tab = {
 		});
 	},
 
-	initTestEditor : function(editor) {
+	initTestEditor : function() {
 		if ( !document.querySelector('shadow-dom-' + currentType).shadowRoot) {
 			this.defineCustomElements();
 		}
@@ -415,7 +414,7 @@ const tab = {
 		const elem = this.getTestElement();
 		elem.addEventListener('scroll', testContainerScrolled);
 
-		editor = CodeJar(elem, null, { tab : '  ' });
+		const editor = CodeJar(elem, null, { tab : '  ' });
 		editor.onUpdate((code, event) => this.updateTestEditor(code, event));
 		return editor;
 	},
@@ -425,9 +424,9 @@ const tab = {
 		return root.querySelector('.editor');
 	},
 
-	initEditor : function(editor, selector) {
-		editor = CodeJar(document.querySelector(selector), null, { tab : '  ' });
-		//editor = CodeJar(document.querySelector(selector), null, { tab : '\t' });
+	initEditor : function(editor, selector, highlighter) {
+		editor = CodeJar(document.querySelector(selector), highlighter, { tab : '  ' });
+		//editor = CodeJar(document.querySelector(selector), highlighter, { tab : '\t' });
 		editor.onUpdate(code => this.onUpdateEditor(code, selector));
 		return editor;
 	},
@@ -508,9 +507,14 @@ const tab = {
 			editor = obj.customCodeEditor;
 
 		if ( !editor) {
-			types[currentType].customCodeEditor = tab.initEditor(editor, selector);
+			types[currentType].customCodeEditor = tab.initEditor(editor, selector, highlight);
 		}
 		return { selector, editor : types[currentType].customCodeEditor };
+
+		function highlight() {
+			hljs.configure({ ignoreUnescapedHTML: true });
+			hljs.highlightElement($(selector)[0]);
+		}
 	},
 
 	getTestEditor : function() {
@@ -900,11 +904,21 @@ function clearEditor(elem) {
 		editor = obj.editors[className];
 
 	if (editor) {
+		let editorElem;
+
 		if (className === 'testString') {
 			tab.destroyTestEditor();
 			tab.initializeEditors();
 
+			if (editorElem = tab.getTestElement()) {
+				editorElem.focus();
+			}
+
 		} else {
+			if (editorElem = parent.querySelector('.editor')) {
+				editorElem.focus();
+				editor.recordHistory();
+			}
 			editor.updateCode('');
 		}
 
@@ -1328,7 +1342,9 @@ const codeBuilder = {
 			const time = `\n    time = performance.now();`;
 			code += this.buildContextCode(code);
 
-			unmarkOpt = `element :  '*',\n  iframes : true,\n  shadowDOM : true,\n  `;
+			const iframes = location.protocol === 'file:' ? '' : 'iframes : true,\n  ';
+
+			unmarkOpt = `element :  '*',\n  ${iframes}shadowDOM : true,\n  `;
 
 			code += `\n// unmarks whole editor regardless of selectors or other options`;
 			code += `\nnew Mark(editor).unmark({\n  ${unmarkOpt}done : () => {${time}\n    instance`;
@@ -1586,7 +1602,8 @@ const instance = new Mark(context);`;
 			}
 
 		} else if ($('#callbacks').prop('checked')) {
-			code = `${indent}filter : ${this.getFilterParameters()} => {},\n`;
+			code = `${indent}// the filter must return true to accept or false to reject the match\n`;
+			code += `${indent}filter : ${this.getFilterParameters()} => { return true; },\n`;
 			code += `${indent}each : ${this.getEachParameters()} => {},\n`;
 			code = `${code}${indent}done : ${this.getDoneParameters()} => {}\n`;
 		}
@@ -2206,7 +2223,7 @@ function isVisible(klass) {
 }
 
 function isNullOrUndefined(prop) {
-	return typeof prop === 'undefined' || prop === null;
+	return prop == null;
 }
 
 function isDirty() {
