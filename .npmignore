@@ -13,7 +13,6 @@ npm-debug.log*
 # Directories
 node_modules/
 build/
-src/
 scripts/
 doc/
 doc_v2/

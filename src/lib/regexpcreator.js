@@ -268,7 +268,7 @@ class RegExpCreator {
       // replaces single character wildcard with \x01, multiple character wildcard with \x02
       str = str.replace(/(\\.)+|[?*]/g, (m, gr) => gr ? m : m === '?' ? '\x01' : '\x02')
         // removes one backslash character before '?', '*', '\x01', and '\x02'
-        .replace(/\\+(?=[?*\x01\x02])/g, m => m.slice(1));
+        .replace(/\\(?=[?*\x01\x02])/g, '');
     }
     return this.escape(str);
   }

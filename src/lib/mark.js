@@ -1816,19 +1816,20 @@ class Mark {
   getPatterns(terms) {
     const creator = new RegExpCreator(this.opt),
       option = this.opt.combinePatterns,
+      length = terms.length,
       array = [];
     let num = 10,
       value;
 
     if (option === Infinity) {
-      num = Math.pow(2, 31);
+      num = length;
     } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
       num = value;
     }
 
-    for (let i = 0; i < terms.length; i += num) {
+    for (let i = 0; i < length; i += num) {
       // get a chunk of terms to create combine pattern
-      const chunk = terms.slice(i, Math.min(i + num, terms.length)),
+      const chunk = terms.slice(i, Math.min(i + num, length)),
         obj = creator.createCombinePattern(chunk, true);
       array.push({ pattern : `${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, regTerms : chunk });
     }

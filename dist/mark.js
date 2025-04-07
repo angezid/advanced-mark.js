@@ -1,8 +1,8 @@
 /*!***************************************************
-* advanced-mark.js v2.6.0
+* advanced-mark.js v2.7.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
-* Copyright (c) 2022–2024, angezid
+* Copyright (c) 2022–2025, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
 
@@ -478,9 +478,7 @@
         if (this.opt.wildcards !== 'disabled') {
           str = str.replace(/(\\.)+|[?*]/g, function (m, gr) {
             return gr ? m : m === '?' ? '\x01' : '\x02';
-          }).replace(/\\+(?=[?*\x01\x02])/g, function (m) {
-            return m.slice(1);
-          });
+          }).replace(/\\(?=[?*\x01\x02])/g, '');
         }
         return this.escape(str);
       }
@@ -1721,16 +1719,17 @@
       value: function getPatterns(terms) {
         var creator = new RegExpCreator(this.opt),
           option = this.opt.combinePatterns,
+          length = terms.length,
           array = [];
         var num = 10,
           value;
         if (option === Infinity) {
-          num = Math.pow(2, 31);
+          num = length;
         } else if (Number.isInteger(option) && (value = parseInt(option)) > 0) {
           num = value;
         }
-        for (var i = 0; i < terms.length; i += num) {
-          var chunk = terms.slice(i, Math.min(i + num, terms.length)),
+        for (var i = 0; i < length; i += num) {
+          var chunk = terms.slice(i, Math.min(i + num, length)),
             obj = creator.createCombinePattern(chunk, true);
           array.push({
             pattern: "".concat(obj.lookbehind, "(").concat(obj.pattern, ")").concat(obj.lookahead),
@@ -1804,7 +1803,7 @@
       return _this;
     };
     this.getVersion = function () {
-      return '2.6.0';
+      return '2.7.0';
     };
     return this;
   }

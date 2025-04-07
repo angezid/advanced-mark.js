@@ -1,4 +1,7 @@
 
+### 2.6.1
+* Added source code to the npm package.
+
 ### 2.6.0
 * Added ability to mark inside iframes in shadow DOM.
 * Changed the way to truck iframes states (dropped using attribute).

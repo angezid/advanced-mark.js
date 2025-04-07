@@ -35,7 +35,14 @@ module.exports = config => {
       'karma-spec-reporter',
       'karma-coverage'
     ],
-    browsers: ['ChromeHeadless'],
+    //browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadlessNoSandbox'],
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
     captureTimeout: 30000,
     browserNoActivityTimeout: 60000, // 60 sec
     singleRun: true,
