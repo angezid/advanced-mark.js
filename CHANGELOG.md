@@ -1,5 +1,5 @@
 
-### 2.6.1
+### 2.7.0
 * Added source code to the npm package.
 
 ### 2.6.0
