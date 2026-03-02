@@ -30,31 +30,8 @@ const output = {
       })()
     })
   },
-  banner_reg = handlebars.compile(fs.readFileSync(path.join(
-    __dirname, 'templates/copyright.hbs'
-  ), 'utf8'))({
-    name: pkg.name.split('/').pop(),
-    version: `v${pkg.version}`,
-    author: "Julian Kühnel",
-    license: pkg.license,
-    year: (() => {
-      const startYear = 2014,
-        year = new Date().getFullYear();
-      return year > startYear ? `${startYear}–${year}` : year;
-    })()
-  }),
-  outputRegCreator = Object.assign({}, output, {
-    name: 'RegExpCreator',
-    file: 'dist/regexpcreator.js',
-    banner: banner_reg
-  }),
   output_es6 = Object.assign({}, output, {
     format : 'es'
-  }),
-  outputRegCreator_es6 = Object.assign({}, output_es6, {
-    name: 'RegExpCreator',
-    file: 'dist/regexpcreator.js',
-    banner: banner_reg
   }),
   outputJquery_es6 = Object.assign({}, output_es6, {
     file: (() => {
@@ -83,13 +60,7 @@ const output = {
     commonjs(),
     versionInjector({
       injectInComments: false,
-      logLevel: 'warn',
-      exclude: [
-        'regexpcreator.js',
-        'regexpcreator.min.js',
-        'regexpcreator.es6.js',
-        'regexpcreator.es6.min.js',
-      ]
+      logLevel: 'warn'
     }),
     // remove non-license comments
     cleanup({
@@ -151,16 +122,10 @@ export default [
 }, {
   input: 'src/jquery_es6.js',
   output: Object.assign({}, outputJquery_es6, {
-    file: outputJquery_es6.file.replace('.js', '.es6.js').replace('jquery.', 'node.jquery.')
+    file: outputJquery_es6.file.replace('.js', '.es6.js')
   }),
   plugins,
   external: externalJquery
-}, {
-  input: 'src/reg_creator.js',
-  output: Object.assign({}, outputRegCreator_es6, {
-    file: outputRegCreator_es6.file.replace('.js', '.es6.js')
-  }),
-  plugins
 },
 // ES5
 {
@@ -172,12 +137,7 @@ export default [
   output: outputJquery,
   plugins: pluginsES5,
   external: externalJquery
-}, {
-  input: 'src/reg_creator.js',
-  output: outputRegCreator,
-  plugins: pluginsES5
 },
-
 // minified es6
 {
   input: 'src/vanilla.js',
@@ -192,12 +152,6 @@ export default [
   }),
   plugins: minifyPlugins,
   external: externalJquery
-}, {
-  input: 'src/reg_creator.js',
-  output : Object.assign({}, outputRegCreator_es6, {
-    file: outputRegCreator_es6.file.replace('.js', '.es6.min.js')
-  }),
-  plugins: minifyPlugins,
 },
 // minified ES5
 {
@@ -213,10 +167,4 @@ export default [
   }),
   plugins: minifyPluginsES5,
   external: externalJquery
-}, {
-  input: 'src/reg_creator.js',
-  output: Object.assign({}, outputRegCreator, {
-    file: outputRegCreator.file.replace('.js', '.min.js')
-  }),
-  plugins: minifyPluginsES5
 }];

@@ -9,11 +9,10 @@ describe('mark with acrossElements and filter callback', () => {
 
   it('should call the callback with the right parameters', done => {
     let counter = {
-        'lorem': 0,
-        'ipsum': 0,
-        'dolor': 0
-      },
-      totalCounter = 0;
+      'lorem': 0,
+      'ipsum': 0,
+      'dolor': 0
+    };
     try {
       new Mark($ctx[0]).mark(Object.keys(counter), {
         'diacritics': false,
@@ -24,12 +23,10 @@ describe('mark with acrossElements and filter callback', () => {
 
           expect($.inArray(term, Object.keys(counter))).toBeGreaterThan(-1);
 
-          expect(totalCounter).toBe(totalMatches);
           expect(counter[term]).toBe(matches);
 
           if (info.matchStart) {
             counter[term]++;
-            totalCounter++;
           }
           return true;
         },

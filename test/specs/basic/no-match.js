@@ -9,8 +9,8 @@ describe('basic mark with noMatch callback', () => {
     new Mark($ctx[0]).mark('test', {
       'diacritics': false,
       'separateWordSearch': false,
-      'noMatch': term => {
-        notFound.push(term);
+      'noMatch': array => {
+        notFound = array;
       },
       'done': () => {
         done();
@@ -19,6 +19,7 @@ describe('basic mark with noMatch callback', () => {
   });
 
   it('should call the noMatch callback for not found terms', () => {
+    console.log( notFound );
     expect(notFound).toEqual(['test']);
   });
 });

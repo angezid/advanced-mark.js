@@ -9,8 +9,8 @@ describe('basic mark with an array of keywords', () => {
     new Mark($ctx[0]).mark(['lorem', 'ipsum', 'test', 'hey'], {
       'diacritics': false,
       'separateWordSearch': false,
-      'noMatch': term => {
-        notFound.push(term);
+      'noMatch': array => {
+        notFound = array;
       },
       'done': () => {
         done();
@@ -22,6 +22,7 @@ describe('basic mark with an array of keywords', () => {
     expect($ctx.find('mark').length).toBe(8);
   });
   it('should call noMatch for not found array items', () => {
+    console.log( notFound );
     expect(notFound).toEqual(['test', 'hey']);
   });
 });

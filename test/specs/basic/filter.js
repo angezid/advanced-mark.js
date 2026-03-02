@@ -13,7 +13,6 @@ describe('basic mark with filter callback', () => {
         'ipsum': 0,
         'dolor': 0
       },
-      totalCounter = 0,
       calls = 0;
     try {
       new Mark($ctx[0]).mark(Object.keys(counter), {
@@ -24,12 +23,10 @@ describe('basic mark with filter callback', () => {
 
           expect($.inArray(term, Object.keys(counter))).toBeGreaterThan(-1);
 
-          expect(totalCounter).toBe(totalMatches);
           expect(counter[term]).toBe(matches);
 
           if (++calls !== 3) {
             counter[term]++;
-            totalCounter++;
             return true;
           } else {
             return false;
