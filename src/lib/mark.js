@@ -79,6 +79,7 @@ class Mark {
       'iframes': false,
       'iframesTimeout': 5000,
       'separateWordSearch': true,
+      'rangeAcrossElements': true,
       'acrossElements': false,
       'ignoreGroups': 0,
       'each': () => {},
@@ -699,9 +700,11 @@ class Mark {
   wrapRangeAcross(dict, start, end, filterCb, eachCb) {
     // dict.lastIndex stores the last node index to avoid iteration from the beginning
     let i = dict.lastIndex,
-      rangeStart = true;
+      rangeStart = true,
+      range,
+      e;
     const wrapAllRanges = this.opt.wrapAllRanges,
-      splitTextNode = !this.opt.highlight; // when using Highlight interface, no text nodes are split
+      highlight = this.opt.highlight; // when using Highlight interface, no text nodes are split
 
     if (wrapAllRanges) {
       // finds the starting index in case of nesting/overlapping
@@ -718,22 +721,31 @@ class Mark {
           break;
         }
         // map range from dict.text to text node
-        const s = start - n.start,
-          e = (end > n.end ? n.end : end) - n.start;
+        const s = start - n.start;
+        e = (end > n.end ? n.end : end) - n.start;
 
         // prevents creating an empty mark node, prevents exception if something went wrong, useful for debug
         if (s >= 0 && e > s) {
-          if (wrapAllRanges && splitTextNode) {
+          // creates a single Range for matches that located across elements
+          if (highlight && this.opt.rangeAcrossElements) {
+            if (rangeStart) {
+              range = new Range();
+              range.setStart(n.node, s);
+              eachCb(range, rangeStart);
+            }
+
+          } else if ( !highlight && wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
             n = obj.nodeInfo;
             eachCb(obj.mark, rangeStart);
 
           } else {
+            // when highlight object is provided, it creates multiple ranges for matches that located across elements
             n.node = this.wrapRange(n.node, s, e, node => {
               eachCb(node, rangeStart);
             });
             // sets the new text node start index in the case of subsequent matches in the same text node
-            if (splitTextNode) n.start += e;
+            n.start += e;
           }
           rangeStart = false;
         }
@@ -741,7 +753,12 @@ class Mark {
         if (end > n.end) {
           // the range extends to the next text node
           start = n.end + n.offset;
+
         } else {
+          if (highlight && range) {
+            range.setEnd(n.node, e);
+            this.opt.highlight.add(range);
+          }
           break;
         }
       }

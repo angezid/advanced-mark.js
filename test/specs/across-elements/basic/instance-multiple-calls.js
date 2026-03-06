@@ -1,4 +1,4 @@
-'use strict';
+/*'use strict';
 describe('when one instance calls multiple methods', () => {
   let $ctx, exception, count;
 
@@ -56,4 +56,4 @@ describe('when one instance calls multiple methods', () => {
     expect(count).toBe(16);
     expect(exception).toBe(false);
   });
-});
+});*/

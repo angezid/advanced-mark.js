@@ -408,6 +408,7 @@ class Mark {
       'iframes': false,
       'iframesTimeout': 5000,
       'separateWordSearch': true,
+      'rangeAcrossElements': true,
       'acrossElements': false,
       'ignoreGroups': 0,
       'each': () => {},
@@ -676,7 +677,7 @@ class Mark {
       type = 0;
     }
     const retNode = ended ? this.empty : node.splitText(splitIndex),
-      mark = this.wrapTextNode(node),
+      mark = this.createElement(node),
       markChild = mark.childNodes[0],
       nodeInfo = this.createInfo(retNode, type === 0 || type === 2 ? end : n.start + e, end, n.offset);
     if (type === 0) {
@@ -717,11 +718,11 @@ class Mark {
         index = end - start;
       }
       retNode = ended ? this.empty : node.splitText(index);
-      eachCb(this.wrapTextNode(node));
+      eachCb(this.createElement(node));
     }
     return retNode;
   }
-  wrapTextNode(node) {
+  createElement(node) {
     let markNode = this.opt.window.document.createElement(this.opt.element);
     markNode.setAttribute('data-markjs', 'true');
     if (this.opt.className) {
@@ -733,9 +734,11 @@ class Mark {
   }
   wrapRangeAcross(dict, start, end, filterCb, eachCb) {
     let i = dict.lastIndex,
-      rangeStart = true;
+      rangeStart = true,
+      range,
+      e;
     const wrapAllRanges = this.opt.wrapAllRanges,
-      splitTextNode = !this.opt.highlight;
+      highlight = this.opt.highlight;
     if (wrapAllRanges) {
       while (i > 0 && dict.nodes[i].start > start) {
         i--;
@@ -747,10 +750,16 @@ class Mark {
         if ( !filterCb(n.node)) {
           break;
         }
-        const s = start - n.start,
-          e = (end > n.end ? n.end : end) - n.start;
+        const s = start - n.start;
+        e = (end > n.end ? n.end : end) - n.start;
         if (s >= 0 && e > s) {
-          if (wrapAllRanges && splitTextNode) {
+          if (highlight && this.opt.rangeAcrossElements) {
+            if (rangeStart) {
+              range = new Range();
+              range.setStart(n.node, s);
+              eachCb(range, rangeStart);
+            }
+          } else if ( !highlight && wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
             n = obj.nodeInfo;
             eachCb(obj.mark, rangeStart);
@@ -758,13 +767,17 @@ class Mark {
             n.node = this.wrapRange(n.node, s, e, node => {
               eachCb(node, rangeStart);
             });
-            if (splitTextNode) n.start += e;
+            n.start += e;
           }
           rangeStart = false;
         }
         if (end > n.end) {
           start = n.end + n.offset;
         } else {
+          if (highlight && range) {
+            range.setEnd(n.node, e);
+            this.opt.highlight.add(range);
+          }
           break;
         }
       }
@@ -835,7 +848,7 @@ class Mark {
     const index = regex.lastIndex;
     regex.lastIndex = end > index ? end : end > 0 ? index + 1 : Infinity;
   }
-  wrapSeparateGroups(regex, unused, filterCb, eachCb, endCb) {
+  processGroups(regex, unused, filterCb, eachCb, endCb) {
     const execution = { abort : false },
       info = { execution : execution };
     let node, match, filterStart, eachStart, count = 0;
@@ -867,7 +880,7 @@ class Mark {
       endCb(count);
     });
   }
-  wrapSeparateGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
+  processGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
     const execution = { abort : false },
       info = { execution : execution };
     let match, filterStart, eachStart, count = 0;
@@ -898,7 +911,7 @@ class Mark {
       endCb(count);
     });
   }
-  wrapMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
+  processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
       filterInfo = { execution: execution };
@@ -935,7 +948,7 @@ class Mark {
       endCb(count);
     });
   }
-  wrapMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
+  processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
       filterInfo = { execution: execution };
@@ -973,7 +986,7 @@ class Mark {
       endCb(count);
     });
   }
-  wrapRanges(ranges, filterCb, eachCb, endCb) {
+  processRanges(ranges, filterCb, eachCb, endCb) {
     const lines = this.opt.markLines,
       logs = [],
       skipped = [],
@@ -1060,14 +1073,14 @@ class Mark {
     let totalMarks = 0,
       matchesSoFar = 0,
       across = this.opt.acrossElements,
-      fn = 'wrapMatches';
+      fn = 'processMatches';
     if (this.opt.separateGroups) {
       if ( !regexp.hasIndices) {
         throw new Error('Mark.js: RegExp must have a `d` flag');
       }
-      fn = across ? 'wrapSeparateGroupsAcross' : 'wrapSeparateGroups';
+      fn = across ? 'processGroupsAcross' : 'processGroups';
     } else if (across) {
-      fn = 'wrapMatchesAcross';
+      fn = 'processMatchesAcross';
     }
     if ( !regexp.global && !regexp.sticky) {
       let splits = regexp.toString().split('/');
@@ -1102,7 +1115,7 @@ class Mark {
       term,
       termMatches;
     const across = this.opt.acrossElements,
-      fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
+      fn = across ? 'processMatchesAcross' : 'processMatches',
       array = this.getRegExps(terms);
     const loop = ({ regex, regTerms }) => {
       this.log(`RegExp ${regex}`);
@@ -1165,7 +1178,7 @@ class Mark {
     this.opt = opt;
     if (Array.isArray(ranges)) {
       let totalMarks = 0;
-      this.wrapRanges(ranges, (node, range, match, index) => {
+      this.processRanges(ranges, (node, range, match, index) => {
         return this.opt.filter(node, range, match, index);
       }, (elem, range, rangeInfo) => {
         totalMarks++;
