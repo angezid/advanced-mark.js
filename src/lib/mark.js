@@ -982,61 +982,6 @@ class Mark {
       endCb(count);
     });
   }
-  /*wrapSeparateGroups(regex, unused, filterCb, eachCb, endCb) {
-    const across = this.opt.acrossElements,
-      fn = across ? 'wrapGroupsAcross' : 'wrapGroups',
-      execution = { abort: false },
-      info = { execution: execution };
-
-    let node, match, filterStart, eachStart, count = 0;
-
-    const wrap = (obj) => {
-      while ((match = regex.exec(across ? obj.text : obj.textContent)) !== null) {
-        info.match = match;
-        filterStart = eachStart = true;
-
-        node = this[fn](obj, match, regex, (node, group, grIndex) => { // filter
-          info.matchStart = filterStart;
-          info.groupIndex = grIndex;
-          filterStart = false;
-          return filterCb(node, group, info);
-
-        }, (node, grIndex, groupStart) => { // each
-          if (eachStart) {
-            count++;
-          }
-          const eachInfo = {
-            match: match,
-            matchStart: eachStart,
-            count: count,
-            groupIndex: grIndex,
-            groupStart: groupStart
-          };
-          eachCb(node, eachInfo);
-          eachStart = false;
-        });
-        obj = node || obj;
-
-        if (execution.abort) break;
-      }
-    };
-
-    if (across) {
-      this.getTextNodesAcross(dict => {
-        wrap(dict);
-      });
-
-    } else {
-      this.getTextNodes(dict => {
-        dict.nodes.every(node => {
-          wrap(node);
-          // breaks loop on custom abort
-          return !execution.abort;
-        });
-      });
-    }
-    endCb(count);
-  }*/
 
   /**
    * Filter callback before each wrapping
@@ -1475,16 +1420,9 @@ class Mark {
       if (totalMatches === 0) {
         this.opt.noMatch(regexp);
       }
-      this.registerHighligh();
+      this.registerHighlight();
       this.opt.done(totalMarks, totalMatches);
     });
-  }
-
-  registerHighligh() {
-    if (this.opt.highlight) {
-      // eslint-disable-next-line
-      CSS.highlights.set(this.opt.highlightName || 'markjs', this.opt.highlight);
-    }
   }
 
   /**
@@ -1577,7 +1515,7 @@ class Mark {
         if (++index < array.length) {
           loop(array[index]);
         } else {
-          this.registerHighligh();
+          this.registerHighlight();
           this.opt.done(totalMarks, totalMatches, termStats);
         }
       });
@@ -1706,7 +1644,7 @@ class Mark {
 
       }, (totalRanges, logs) => { // end
         this.report(logs);
-        this.registerHighligh();
+        this.registerHighlight();
         this.opt.done(totalMarks, totalRanges);
       });
 
@@ -1717,7 +1655,8 @@ class Mark {
   }
 
   /**
-   * Removes all marked elements inside the context with their HTML and normalizes text nodes
+   * If Highlight object is specified, deletes ranges from the Highlight object according to options,
+   * otherwise removes all marked elements inside the context with their HTML and normalizes text nodes
    * @param {Mark~commonOptions} [opt] - Optional options object without each,
    * noMatch and acrossElements properties
    * @access public
@@ -1726,7 +1665,21 @@ class Mark {
     this.opt = opt;
 
     if (this.opt.highlight) {
-      this.opt.highlight.delete(this.opt.highlightName || 'markjs');
+      // unregister Highlight object before deleting ranges (Firefox bug/feature)
+      this.registerHighlight(true);
+
+      this.opt.highlight.forEach((range) => {
+        let node = range.startContainer;
+
+        if (node.nodeType === 3) {
+          node = node.parentNode;
+        }
+
+        if ( !this.excluded(node)) {
+          this.opt.highlight.delete(range);
+        }
+      });
+      this.registerHighlight();
 
     } else {
       let selector = this.opt.element + '[data-markjs]';
@@ -1741,6 +1694,22 @@ class Mark {
       }, node => { // filter
         return DOMIterator.matches(node, selector) && !this.excluded(node);
       }, this.opt.done);
+    }
+  }
+
+  /**
+   * Registers or unregisters Highlight object using HighlightRegistry interface
+   * @param {boolean} remove - Whether to registers or unregisters Highlight object
+   */
+  registerHighlight(remove) {
+    const highlight = this.opt.highlight;
+    if (highlight && highlight.size) {
+      const name = this.opt.highlightName || 'markjs',
+        // eslint-disable-next-line
+        registry = CSS.highlights;
+
+      if (remove) registry.delete(name);
+      else registry.set(name, highlight);
     }
   }
 }

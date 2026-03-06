@@ -19,7 +19,7 @@ $(context).markRanges(ranges[, options]);
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
     
   * `highlight` {Highlight} - Creates `Range` objects of matches, adds to the provided `Highlight` object, and register it using the `HighlightRegistry` instead of wrapping matches in `HTML` elements (default is `undefined`)
-  * `highlightName` {string} - A name of the provided `Highlight` object (default is `markjs`)
+  * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `markjs`)
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -30,7 +30,7 @@ $(context).markRanges(ranges[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter : (textNode, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
+  * `filter: (textNode, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
     * `textNode` {Text} - The text node which includes the range or is the part of the range
     * `range` {object} - The current range object
     * `matchString` {string} - The current range matching string
@@ -38,42 +38,42 @@ $(context).markRanges(ranges[, options]);
   
 The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
-  * `each : (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
+  * `each: (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
     * `range` {object} - The range object
     * `rangeInfo` {object}:
       * `matchStart` {boolean} - indicate the start of a range;
       * `count` {number} - The number of wrapped ranges so far
 
-  * `done : (totalMarks, totalRanges) => {}` {function} - A callback on finish (default is )
+  * `done: (totalMarks, totalRanges) => {}` {function} - A callback on finish (default is )
     * `totalMarks` {number} - The total number of marked elements
     * `totalRanges` {number} - The number of total ranges
 
-  * `noMatch : (range) => {}` {function} - A callback that is called on non-valid range (default is )
+  * `noMatch: (range) => {}` {function} - A callback that is called on non-valid range (default is )
     * `range` {string} - The stringify range
 
 <details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
-    element : 'mark',
-    className : '',
-    exclude : [],
+    element: 'mark',
+    className: '',
+    exclude: [],
     
-    wrapAllRanges : false,
-    markLines : false,
-    shadowDOM : false,
-    iframes : false,
-    iframesTimeout : 5000,
+    wrapAllRanges: false,
+    markLines: false,
+    shadowDOM: false,
+    iframes: false,
+    iframesTimeout: 5000,
     
-    filter : (textNode, range, matchingString, index) => {
+    filter: (textNode, range, matchingString, index) => {
         return true; // must return either true or false
     },
-    each : (markElement, range, rangeInfo) => {},
-    done : (totalMarks, totalMatches) => {},
-    noMatch : (range) => {},
-    debug : false,
-    log : window.console
+    each: (markElement, range, rangeInfo) => {},
+    done: (totalMarks, totalMatches) => {},
+    noMatch: (range) => {},
+    debug: false,
+    log: window.console
 };
 </code></pre>
 

@@ -1085,14 +1085,9 @@ class Mark {
       if (totalMatches === 0) {
         this.opt.noMatch(regexp);
       }
-      this.registerHighligh();
+      this.registerHighlight();
       this.opt.done(totalMarks, totalMatches);
     });
-  }
-  registerHighligh() {
-    if (this.opt.highlight) {
-      CSS.highlights.set(this.opt.highlightName || 'markjs', this.opt.highlight);
-    }
   }
   mark(sv, opt) {
     this.opt = opt;
@@ -1132,7 +1127,7 @@ class Mark {
         if (++index < array.length) {
           loop(array[index]);
         } else {
-          this.registerHighligh();
+          this.registerHighlight();
           this.opt.done(totalMarks, totalMatches, termStats);
         }
       });
@@ -1177,7 +1172,7 @@ class Mark {
         this.opt.each(elem, range, rangeInfo);
       }, (totalRanges, logs) => {
         this.report(logs);
-        this.registerHighligh();
+        this.registerHighlight();
         this.opt.done(totalMarks, totalRanges);
       });
     } else {
@@ -1188,7 +1183,17 @@ class Mark {
   unmark(opt) {
     this.opt = opt;
     if (this.opt.highlight) {
-      this.opt.highlight.delete(this.opt.highlightName || 'markjs');
+      this.registerHighlight(true);
+      this.opt.highlight.forEach((range) => {
+        let node = range.startContainer;
+        if (node.nodeType === 3) {
+          node = node.parentNode;
+        }
+        if ( !this.excluded(node)) {
+          this.opt.highlight.delete(range);
+        }
+      });
+      this.registerHighlight();
     } else {
       let selector = this.opt.element + '[data-markjs]';
       if (this.opt.className) {
@@ -1200,6 +1205,15 @@ class Mark {
       }, node => {
         return DOMIterator.matches(node, selector) && !this.excluded(node);
       }, this.opt.done);
+    }
+  }
+  registerHighlight(remove) {
+    const highlight = this.opt.highlight;
+    if (highlight && highlight.size) {
+      const name = this.opt.highlightName || 'markjs',
+        registry = CSS.highlights;
+      if (remove) registry.delete(name);
+      else registry.set(name, highlight);
     }
   }
 }

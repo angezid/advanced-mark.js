@@ -18,7 +18,7 @@ $(context).markRegExp(regex[, options]);
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
     See [exclude](options.html#exclude-option) option for more details.
   * `ignoreGroups` {number} - The number of adjacent capturing groups that should be ignored from the start of RegExp (default is `0`)  
-    e.g. `/(\w+)(\.)(\w+)(?!\2)/g`, `ignoreGroups : 2` - mark the group 3
+    e.g. `/(\w+)(\.)(\w+)(?!\2)/g`, `ignoreGroups: 2` - mark the group 3
   * `separateGroups` {boolean} - Whether to mark RegExp capturing groups instead of whole match (default is `false`)
     See [Highlighting separate groups](separate-groups.md) for more details.
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
@@ -33,7 +33,7 @@ $(context).markRegExp(regex[, options]);
     * `char` {string} - A custom boundary character. The default is `\x01`.
     
   * `highlight` {Highlight} - Creates `Range` objects of matches, adds to the provided `Highlight` object, and register it using the `HighlightRegistry` instead of wrapping matches in `HTML` elements (default is `undefined`)
-  * `highlightName` {string} - A name of the provided `Highlight` object (default is `markjs`)
+  * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `markjs`)
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -42,12 +42,12 @@ $(context).markRegExp(regex[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter : (textNode, matchString, matchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
+  * `filter: (textNode, matchString, matchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `matchString` {string} - The matching string:
       1. without `ignoreGroups` and `separateGroups` options - the whole match
       2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string,  
-        e.g. `/(-)(\w+)\s+/g`, `ignoreGroups : 1`, the matching string is content of the group 2
+        e.g. `/(-)(\w+)\s+/g`, `ignoreGroups: 1`, the matching string is content of the group 2
       3. with `separateGroups` option - the current group matching string
     * `matchesSoFar` {number} - The number of all wrapped matches so far
     * `filterInfo` {object}:
@@ -59,7 +59,7 @@ $(context).markRegExp(regex[, options]);
   
 The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
-  * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
+  * `each: (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
@@ -68,11 +68,11 @@ The function **must** return either `true` (to wrap) or `false` (to skip wrappin
       * `groupIndex` {number} - The current index of match group  SG
       * `groupStart` {boolean} - Indicate the start of group  AE SG
 
-  * `done : (totalMarks, totalMatches) => {}` {function} - A callback on finish. (default is )
+  * `done: (totalMarks, totalMatches) => {}` {function} - A callback on finish. (default is )
     * `totalMarks` {number} - The total number of marked elements
     * `totalMatches` {number} - The total number of matches
 
-  * `noMatch : (regex) => {}` {function} - A callback that is called when regex failed to match (default is )
+  * `noMatch: (regex) => {}` {function} - A callback that is called when regex failed to match (default is )
     * `regex` {string} - The stringify RegExp
 
 ### Available properties of the `filterInfo` object depending on options
@@ -99,24 +99,24 @@ The function **must** return either `true` (to wrap) or `false` (to skip wrappin
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
-    element : 'mark',
-    className : '',
-    exclude : [],
-    ignoreGroups : 0,
-    acrossElements : false,
-    wrapAllRanges : false,
-    blockElementsBoundary : false,
-    shadowDOM : false,
-    iframes : false,
-    iframesTimeout : 5000,
-    filter : (textNode, matchString, matchesSoFar, filterInfo) => {
+    element: 'mark',
+    className: '',
+    exclude: [],
+    ignoreGroups: 0,
+    acrossElements: false,
+    wrapAllRanges: false,
+    blockElementsBoundary: false,
+    shadowDOM: false,
+    iframes: false,
+    iframesTimeout: 5000,
+    filter: (textNode, matchString, matchesSoFar, filterInfo) => {
         return true; // must return either true or false
     },
-    each : (markElement, eachInfo) => {},
-    done : (totalMarks, totalMatches) => {},
-    noMatch : (regex) => {},
-    debug : false,
-    log : window.console
+    each: (markElement, eachInfo) => {},
+    done: (totalMarks, totalMatches) => {},
+    noMatch: (regex) => {},
+    debug: false,
+    log: window.console
 };
 </code></pre>
 

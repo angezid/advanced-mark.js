@@ -5,7 +5,7 @@
 * Removed ability to highlight RegExp groups without `d` flag.
 * Dropped support of very older browsers.
 * Removed RegExpCreator module from the npm package.
-*
+* Added support for Highlight interface.
 
 ### 2.7.0
 * Added source code to the npm package.

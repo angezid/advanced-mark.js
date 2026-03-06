@@ -19,7 +19,6 @@ describe('basic mark with noMatch callback', () => {
   });
 
   it('should call the noMatch callback for not found terms', () => {
-    console.log( notFound );
     expect(notFound).toEqual(['test']);
   });
 });

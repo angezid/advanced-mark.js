@@ -134,7 +134,7 @@ function highlightMatch(elem) {
         } else if ($(el).hasClass('start-1')) return  false;
         //} else if ($(el).data('markjs') === 'start-1') return  false;
 
-        if (found){
+        if (found) {
             $(el).addClass('current');
             $(el).find('*[data-markjs]').addClass('current');  // add class to all descendant too
         }
