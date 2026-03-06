@@ -577,7 +577,7 @@ class Mark {
     }
 
     const retNode = ended ? this.empty : node.splitText(splitIndex),
-      mark = this.wrapTextNode(node),
+      mark = this.createElement(node),
       markChild = mark.childNodes[0],
       nodeInfo = this.createInfo(retNode, type === 0 || type === 2 ? end : n.start + e, end, n.offset);
 
@@ -643,7 +643,7 @@ class Mark {
         index = end - start;
       }
       retNode = ended ? this.empty : node.splitText(index);
-      eachCb(this.wrapTextNode(node));
+      eachCb(this.createElement(node));
     }
 
     return retNode;
@@ -654,7 +654,7 @@ class Mark {
    * @param {Text} node - The DOM text node
    * @return {HTMLElement} Returns the created DOM node
    */
-  wrapTextNode(node) {
+  createElement(node) {
     let markNode = this.opt.window.document.createElement(this.opt.element);
     markNode.setAttribute('data-markjs', 'true');
 
@@ -942,7 +942,7 @@ class Mark {
    * @param {Mark~wrapSeparateGroupsEndCallback} endCb
    * @access protected
    */
-  wrapSeparateGroups(regex, unused, filterCb, eachCb, endCb) {
+  processGroups(regex, unused, filterCb, eachCb, endCb) {
     const execution = { abort : false },
       info = { execution : execution };
 
@@ -1010,7 +1010,7 @@ class Mark {
    * @param {Mark~wrapSeparateGroupsAcrossEndCallback} endCb
    * @access protected
    */
-  wrapSeparateGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
+  processGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
     const execution = { abort : false },
       info = { execution : execution };
 
@@ -1076,7 +1076,7 @@ class Mark {
    * @param {Mark~wrapMatchesEndCallback} endCb
    * @access protected
    */
-  wrapMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
+  processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
       filterInfo = { execution: execution };
@@ -1152,7 +1152,7 @@ class Mark {
    * @param {Mark~wrapMatchesAcrossEndCallback} endCb
    * @access protected
    */
-  wrapMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
+  processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
       filterInfo = { execution: execution };
@@ -1230,7 +1230,7 @@ class Mark {
    * @param {Mark~wrapRangesEndCallback} endCb
    * @access protected
    */
-  wrapRanges(ranges, filterCb, eachCb, endCb) {
+  processRanges(ranges, filterCb, eachCb, endCb) {
     const lines = this.opt.markLines,
       logs = [],
       skipped = [],
@@ -1388,16 +1388,16 @@ class Mark {
     let totalMarks = 0,
       matchesSoFar = 0,
       across = this.opt.acrossElements,
-      fn = 'wrapMatches';
+      fn = 'processMatches';
 
     if (this.opt.separateGroups) {
       if ( !regexp.hasIndices) {
         throw new Error('Mark.js: RegExp must have a `d` flag');
       }
-      fn = across ? 'wrapSeparateGroupsAcross' : 'wrapSeparateGroups';
+      fn = across ? 'processGroupsAcross' : 'processGroups';
 
     } else if (across) {
-      fn = 'wrapMatchesAcross';
+      fn = 'processMatchesAcross';
     }
 
     // solves backward-compatibility
@@ -1482,7 +1482,7 @@ class Mark {
       termMatches;
 
     const across = this.opt.acrossElements,
-      fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
+      fn = across ? 'processMatchesAcross' : 'processMatches',
       array = this.getRegExps(terms);
 
     const loop = ({ regex, regTerms }) => {
@@ -1635,7 +1635,7 @@ class Mark {
     if (Array.isArray(ranges)) {
       let totalMarks = 0;
 
-      this.wrapRanges(ranges, (node, range, match, index) => { // filter
+      this.processRanges(ranges, (node, range, match, index) => { // filter
         return this.opt.filter(node, range, match, index);
 
       }, (elem, range, rangeInfo) => { // each
