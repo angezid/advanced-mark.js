@@ -11,15 +11,16 @@ $(context).markRanges(ranges[, options]);
 #### Parameters:
 * `ranges` {object[]} - An array of objects with `start` and `length` properties with integer type values.
 * `options` {object} - Optional options:
-  * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
+  * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
     See [exclude](options.html#exclude-option) option for more details.
   * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
     
-  * `highlight` {Highlight} - Creates `Range` objects of matches, adds to the provided `Highlight` object, and register it using the `HighlightRegistry` instead of wrapping matches in `HTML` elements (default is `undefined`)
-  * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `markjs`)
+  * `highlight` {Highlight} - If `Highlight` object is provided, the library switch to use the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
+  * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
+  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (`Highlight` API) (default is `true`)
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -31,7 +32,7 @@ $(context).markRanges(ranges[, options]);
   * `log` {object} - Log messages to a specific object (default is `console`)
 
   * `filter: (textNode, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
-    * `textNode` {Text} - The text node which includes the range or is the part of the range
+    * `textNode` {Text|Text[]} - The text node which includes the range or is the part of the range; or an array text nodes if `Highlight` API is enabled with `rangeAcrossElements` option
     * `range` {object} - The current range object
     * `matchString` {string} - The current range matching string
     * `index` {number} - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)
@@ -39,7 +40,7 @@ $(context).markRanges(ranges[, options]);
 The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
   * `each: (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
-    * `markElement` {HTMLElement} - The marked DOM element
+    * `markElement` {HTMLElement|Range} - The marked DOM element or range if `Highlight` API is enabled
     * `range` {object} - The range object
     * `rangeInfo` {object}:
       * `matchStart` {boolean} - indicate the start of a range;

@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "2.7.0",
+  "version": "3.0.0",
   "keywords": [
     "highlight",
     "highlight-text",
@@ -18,7 +18,7 @@
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "A fast JavaScript library to highlight any text on a browser page. It has support for virtual DOMs like JSDOM.",
+  "description": "A fast JavaScript library to highlight any text on a browser page. It has support for CSS Custom Highlight API and virtual DOMs like JSDOM.",
   "main": "dist/mark.js",
   "types": "dist/mark.es6.d.ts",
   "repository": "angezid/advanced-mark.js",

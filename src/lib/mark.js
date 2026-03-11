@@ -72,7 +72,6 @@ class Mark {
 
     this._opt = Object.assign({}, {
       'window': win,
-      'highlight': highlight,
       'element': '',
       'className': '',
       'exclude': [],
@@ -97,6 +96,12 @@ class Mark {
     this.filter = win.NodeFilter;
     // this empty text node used to simplify code
     this.empty = win.document.createTextNode('');
+
+    if (highlight) {
+      this.rangeArray = [];
+    } else {
+      this._opt.highlight = null;
+    }
   }
 
   get opt() {
@@ -505,9 +510,15 @@ class Mark {
   }
 
   /**
+   * @typedef Mark~nodeInfo
+   * @property {Text} node - The DOM text node
+   * @property {number} start - The start index within the composite string
+   */
+
+  /**
    * @typedef Mark~getTextNodesDict
    * @type {object.<string>}
-   * @property {Text[]} nodes - The array of objects
+   * @property {Mark~nodeInfo[]} nodes - The array of objects
    * @property {number} lastIndex - The property used to store the nodes the last index
    */
 
@@ -523,9 +534,15 @@ class Mark {
    */
   getTextNodes(cb) {
     const nodes = [];
+    let start = 0;
 
     this.iterator.forEachNode(this.filter.SHOW_TEXT, node => { // each
-      nodes.push(node);
+      //nodes.push(node);
+      nodes.push({
+        node,
+        start
+      });
+      start += node.textContent.length;
 
     }, node => { // filter
       return !this.excluded(node.parentNode);
@@ -614,7 +631,12 @@ class Mark {
   createInfo(node, start, end, offset) {
     return { node, start, end, offset };
   }
-
+  
+  /**
+   * Each callback
+   * @callback Mark~wrapRangeEachCallback
+   * @param {HTMLElement|Range} node - The wrapped DOM element or range (Highlight)
+   */
   /**
    * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
    * It doesn't create empty sibling text nodes when `Text.splitText()` method splits a text node at the start/end
@@ -625,20 +647,18 @@ class Mark {
    * @return {Text}
    * @access protected
    */
-  wrapRange(node, start, end, eachCb) {
-    let ended = end === node.textContent.length,
-      index = end,
+  wrapRange(n, start, end, eachCb) {
+    let node = n.node,
       retNode;
 
-    if (this.opt.highlight) {
-      const range = new Range();
-      range.setStart(node, start);
-      range.setEnd(node, end);
-      this.opt.highlight.add(range);
-      eachCb(range);
+    if (this.rangeArray) {
+      this.createRange(node, start, node, end, n.start + start, eachCb);
       retNode = node;
 
     } else {
+      let ended = end === node.textContent.length,
+        index = end;
+
       if (start !== 0) {
         node = node.splitText(start);
         index = end - start;
@@ -646,8 +666,35 @@ class Mark {
       retNode = ended ? this.empty : node.splitText(index);
       eachCb(this.createElement(node));
     }
-
     return retNode;
+  }
+  
+  /**
+   * Each callback
+   * @callback Mark~createRangeEachCallback
+   * @param {Range} range - The created range
+   * @param {boolean} true - Required only for across elements code with rangeAcrossElements option
+   */
+  /**
+   * Creates new Range object with specified parameters
+   * @param {Mark~wrapRangeInsertDict} dict - The dictionary
+   * @param {Text} startNode - The text node where a match is started
+   * @param {number} startOffset - The start index of the match in startNode
+   * @param {number} endNode - The text node where a match is ended
+   * @param {number} endOffset - The end index of the match in endNode
+   * @param {number} absoluteOffset - The absolute start index from the beginning of first context.
+   * Used to sort ranges by ascending order.
+   * @param {Mark~createRangeEachCallback} eachCb - Each callback
+   */
+  createRange(startNode, startOffset, endNode, endOffset, absoluteOffset, eachCb) {
+    const range = new Range();
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+    range.absoluteOffset = absoluteOffset;
+
+    eachCb(range, true);
+    // the range can be destroyed on callback
+    if (range) this.rangeArray.push(range);
   }
 
   /**
@@ -678,14 +725,14 @@ class Mark {
   /**
    * Each callback
    * @callback Mark~wrapRangeAcrossEachCallback
-   * @param {HTMLElement} node - The wrapped DOM element
-   * @param {boolean} rangeStart - Indicate the start of the current range
+   * @param {HTMLElement|Range} node - The wrapped DOM element or range (Highlight)
+   * @param {boolean} rangeStart - Indicate the start of the current range or always true (Highlight)
    */
 
   /**
    * Filter callback
    * @callback Mark~wrapRangeAcrossFilterCallback
-   * @param {object} n - The current node info object of the dict.nodes
+   * @param {Text|Text[]} n - The current text node or an array of text nodes if rangeAcrossElements option is set
    */
   /**
    * Determines matches by start and end positions using the text node dictionary
@@ -701,13 +748,15 @@ class Mark {
     // dict.lastIndex stores the last node index to avoid iteration from the beginning
     let i = dict.lastIndex,
       rangeStart = true,
-      range,
+      startInfo,
+      filterNodes = [],
       e;
     const wrapAllRanges = this.opt.wrapAllRanges,
-      highlight = this.opt.highlight; // when using Highlight interface, no text nodes are split
+      highlight = this.opt.highlight, // when using Highlight interface, no text nodes are split
+      singleRange = highlight && this.opt.rangeAcrossElements;
 
     if (wrapAllRanges) {
-      // finds the starting index in case of nesting/overlapping
+      // finds the start index in case of nesting/overlapping
       while (i > 0 && dict.nodes[i].start > start) {
         i--;
       }
@@ -717,7 +766,10 @@ class Mark {
       if (i + 1 === dict.nodes.length || dict.nodes[i+1].start > start) {
         let n = dict.nodes[i];
 
-        if ( !filterCb(n.node)) {
+        if (singleRange) {
+          filterNodes.push(n.node);
+
+        } else if ( !filterCb(n.node)) {
           break;
         }
         // map range from dict.text to text node
@@ -726,12 +778,9 @@ class Mark {
 
         // prevents creating an empty mark node, prevents exception if something went wrong, useful for debug
         if (s >= 0 && e > s) {
-          // creates a single Range for matches that located across elements
-          if (highlight && this.opt.rangeAcrossElements) {
+          if (singleRange) {
             if (rangeStart) {
-              range = new Range();
-              range.setStart(n.node, s);
-              eachCb(range, rangeStart);
+              startInfo = [n.node, s, n.start + s];
             }
 
           } else if ( !highlight && wrapAllRanges) {
@@ -741,7 +790,7 @@ class Mark {
 
           } else {
             // when highlight object is provided, it creates multiple ranges for matches that located across elements
-            n.node = this.wrapRange(n.node, s, e, node => {
+            n.node = this.wrapRange(n, s, e, node => {
               eachCb(node, rangeStart);
             });
             // sets the new text node start index in the case of subsequent matches in the same text node
@@ -755,9 +804,9 @@ class Mark {
           start = n.end + n.offset;
 
         } else {
-          if (highlight && range) {
-            range.setEnd(n.node, e);
-            this.opt.highlight.add(range);
+          // creates a single Range for matches that located across elements
+          if (startInfo && filterCb(filterNodes)) {
+            this.createRange(startInfo[0], startInfo[1], n.node, e, startInfo[2], eachCb);
           }
           break;
         }
@@ -789,11 +838,12 @@ class Mark {
    * @param {Mark~wrapGroupsDFlagCallback} filterCb - Filter callback
    * @param {Mark~wrapGroupsDFlagEachCallback} eachCb - Each callback
    */
-  wrapGroups(node, match, regex, filterCb, eachCb) {
+  wrapGroups(n, match, regex, filterCb, eachCb) {
     let lastIndex = 0,
       offset = 0,
       i = 0,
       isWrapped = false,
+      node = n.node,
       group, start, end = 0;
 
     while (++i < match.length) {
@@ -805,11 +855,11 @@ class Mark {
         if (start >= lastIndex) {
           end = match.indices[i][1];
 
-          if (filterCb(node, group, i)) {
+          if (filterCb(n.node, group, i)) {
             // when a group is wrapping, a text node is split at the end index,
             // so to correct the start & end indexes of a new text node, subtract
             // the end index of the last wrapped group (offset)
-            node = this.wrapRange(node, start - offset, end - offset, node => { // each
+            node = this.wrapRange(n, start - offset, end - offset, node => { // each
               eachCb(node, i);
             });
 
@@ -824,7 +874,6 @@ class Mark {
     }
     // resets the lastIndex when at least one group is wrapped (prevents infinite loop)
     if (isWrapped) {
-      // when using Highlight interface, no text nodes are split
       if ( !this.opt.highlight) regex.lastIndex = 0;
 
     // when the match has zero length, we need to control the RegExp lastIndex
@@ -860,7 +909,9 @@ class Mark {
   wrapGroupsAcross(dict, match, regex, filterCb, eachCb) {
     let lastIndex = 0,
       i = 0,
-      group, start, end = 0,
+      end = 0,
+      start,
+      group,
       isWrapped;
 
     while (++i < match.length) {
@@ -963,17 +1014,15 @@ class Mark {
     const execution = { abort : false },
       info = { execution : execution };
 
-    let node, match, filterStart, eachStart, count = 0;
+    let match, filterStart, eachStart, count = 0;
 
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
-        node = n.node;
-
-        while ((match = regex.exec(node.textContent)) !== null) {
+        while ((match = regex.exec(n.node.textContent)) !== null) {
           info.match = match;
           filterStart = eachStart = true;
 
-          node = this.wrapGroups(n, match, regex, (node, group, grIndex) => { // filter
+          n.node = this.wrapGroups(n, match, regex, (node, group, grIndex) => { // filter
             info.matchStart = filterStart;
             info.groupIndex = grIndex;
             filterStart = false;
@@ -1101,9 +1150,8 @@ class Mark {
     let match, str, count = 0;
 
     this.getTextNodes(dict => {
-      dict.nodes.every(node => {
-
-        while ((match = regex.exec(node.textContent)) !== null) {
+      dict.nodes.every(n => {
+        while ((match = regex.exec(n.node.textContent)) !== null) {
           // prevents infinite loop
           if ((str = match[index]) === '') {
             regex.lastIndex++;
@@ -1111,7 +1159,7 @@ class Mark {
           }
           filterInfo.match = match;
 
-          if ( !filterCb(node, str, filterInfo)) {
+          if ( !filterCb(n.node, str, filterInfo)) {
             continue;
           }
           // calculates the start index inside node.textContent
@@ -1123,7 +1171,7 @@ class Mark {
           }
           const end = start + str.length;
 
-          node = this.wrapRange(node, start, end, node => {
+          n.node = this.wrapRange(n, start, end, node => {
             eachCb(node, {
               match: match,
               count: ++count
@@ -1680,12 +1728,13 @@ class Mark {
    */
   unmark(opt) {
     this.opt = opt;
+    const highlight = this.opt.highlight;
 
-    if (this.opt.highlight) {
+    if (highlight) {
       // unregister Highlight object before deleting ranges (Firefox bug/feature)
       this.registerHighlight(true);
 
-      this.opt.highlight.forEach((range) => {
+      highlight.forEach((range) => {
         let node = range.startContainer;
 
         if (node.nodeType === 3) {
@@ -1693,7 +1742,7 @@ class Mark {
         }
 
         if ( !this.excluded(node)) {
-          this.opt.highlight.delete(range);
+          highlight.delete(range);
         }
       });
       this.registerHighlight();
@@ -1716,17 +1765,39 @@ class Mark {
 
   /**
    * Registers or unregisters Highlight object using HighlightRegistry interface
-   * @param {boolean} remove - Whether to registers or unregisters Highlight object
+   * @param {boolean} remove - Specified to unregisters Highlight object
    */
   registerHighlight(remove) {
     const highlight = this.opt.highlight;
-    if (highlight && highlight.size) {
+
+    if (highlight) {
       const name = this.opt.highlightName || 'markjs',
         // eslint-disable-next-line
         registry = CSS.highlights;
 
-      if (remove) registry.delete(name);
-      else registry.set(name, highlight);
+      if (remove) {
+        registry.delete(name);
+        return;
+      }
+
+      if (this.rangeArray.length) {
+        if (registry.has(name)) {
+          registry.delete(name);
+
+          if (highlight.size) {
+            highlight.forEach(range => {
+              this.rangeArray.push(range);
+            });
+            highlight.clear();
+          }
+        }
+
+        this.rangeArray.sort((a, b) => a.absoluteOffset - b.absoluteOffset);
+        this.rangeArray.forEach(range => {
+          highlight.add(range);
+        });
+        registry.set(name, highlight);
+      }
     }
   }
 }

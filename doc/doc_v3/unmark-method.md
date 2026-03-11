@@ -12,13 +12,14 @@ $(context).unmark([options]);
 * `options` {object} - Optional options:
   * `highlight` {Highlight} - If `highlight` object is specified, the library delete necessary (if `exclude` option is specified) or all `Range` objects from the `highlight` object (default is `undefined`)
     **Note:** it not removed any mark elements; options `element` and `className` are ignored.
-  * `highlightName` {string} - A name of the `Highlight` object necessary to unregister it using the `HighlightRegistry` before  deleting ranges and register again if it contains some ranges (default is `markjs`)
+  * `highlightName` {string} - A name of the `Highlight` object necessary to unregister it using the `HighlightRegistry` before  deleting ranges and register again if it contains some ranges (default is `'markjs'`)
 
-  * `element` {string} - Specifies marked elements to remove. (default is `mark`)
+  * `element` {string} - Specifies marked elements to remove. (default is `'mark'`)
     **Important:** if other than default marked element is used, e.g. `span`, it must be also specified in the `unmark()` method. It is also possible to use `\*` in case of using different marked elements to unmark in one run. A `mark.js` library uses a default selector `\*[data-markjs]` but it is not safe to apply to all HTML elements.
   * `className` {string} - Remove only marked elements with specified class name. (default is `''`)
 
-  * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
+  * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from removing marked elements. (default is `[]`)
+    **Important:** if highlighting is done using `Highlight` API with `acrossElements` and `rangeAcrossElements` options and wish to exclude element is inside a range, there is no possibility to exclude this element (the whole range will be removed).
   * `shadowDOM` {boolean} - Whether to remove marked elements inside shadow DOMs (default is `undefined`)
     **Note:** if the `shadowDOM` option is used with highlighting method, it must be also specified in the `unmark()` method.  
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.

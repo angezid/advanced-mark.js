@@ -72,14 +72,9 @@ If `Highlight` object is provided, the library creates `Range` objects of matche
 
 If browser does not supported Highlight interface, the library wrap matches in `HTML` elements.
 
-**Warning:** in Firefox was discoverd such problem: when `combineBy` option is not set to `Infinity` (single run), there is a huge degradation of performance.
-
-
 **Warning:** for performance reason set `combineBy: Infinity` option, if browser RegExp size limit isn't exceeded.
-Experiments show: when highlighting large array of words e.g.   `combineBy: 10` resulted in a great degradation of performance.
-My guess is: `Highlight` object contains unordered `Range` objects (they goes in zigzag from the start to the end of content due to multiple run).
-When `combineBy: Infinity`, `Range` objects are ordered because of a single run.
 
+One serious problem was discoverd: when the library run using Highlight API, there is a huge degradation of performance if library is run wrapping matches in `HTML` elements.
 
 ``` js
 const array = [,,,,];
@@ -95,9 +90,6 @@ new Mark(ctx).mark(array, {
 
 ```
   
- to style arbitrary ranges in a page, instantiate a new `Highlight` object, add `Range` objects to it, and register it using the HighlightRegistry.
-
-Creates `Range` objects of matches, adds to the provided `Highlight` object, and register it using the `HighlightRegistry` 
 
 ``` js
 

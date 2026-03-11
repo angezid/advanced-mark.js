@@ -11,7 +11,7 @@ $(context).mark(search[, options]);
 #### Parameters:
 * `search` {string|string[]} - string or array of strings
 * `options` {object} - Optional options:
-  * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
+  * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} - A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
     See [exclude](options.html#exclude-option) option for more details.
@@ -36,14 +36,14 @@ $(context).mark(search[, options]);
     * Or an <b>object</b> with two properties:
       * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
       * `limiters`: a string or an array of custom word boundary characters,  
-        e.g. `{ value: "exactly", limiters: ",.;:?!'\\"()" }`
+        e.g. `{ value: 'exactly', limiters: ',.;:?!\\'"()' }`
 
-  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `disabled`):
-    * `disabled`: The characters `?` and `*` match itself
-    * `enabled`:
+  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `'disabled'`):
+    * `'disabled'`: The characters `?` and `*` match itself
+    * `'enabled'`:
       * The character `?` match any non-white-space character zero or one time.
       * The character `*` match any non-white-space character zero or more times.
-    * `withSpaces`:
+    * `'withSpaces'`:
       * The character `?` match any character zero or one time.
       * The character `*` match any character zero or more times, but as few times as possible.
 
@@ -62,8 +62,9 @@ $(context).mark(search[, options]);
       otherwise only the custom elements do have boundaries
     * `char` {string} - A custom boundary character. The default is `\x01`.
     
-  * `highlight` {Highlight} - Creates `Range` objects of matches, adds to the provided `Highlight` object, and register it using the `HighlightRegistry` instead of wrapping matches in `HTML` elements (default is `undefined`)
-  * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `markjs`)
+  * `highlight` {Highlight} - If `Highlight` object is provided, the library switch to use the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
+  * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
+  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (`Highlight` API) (default is `true`)
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -73,7 +74,7 @@ $(context).mark(search[, options]);
   * `log` {object} - Log messages to a specific object (default is `console`)
 
   * `filter: (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
-    * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
+    * `textNode` {Text|Text[]} - The text node which includes the match or with `acrossElements` option can be part of the match; or an array text nodes if `Highlight` API is enabled with `rangeAcrossElements` option
     * `term` {string} - The current term
     * `matchesSoFar` {number} - The number of all wrapped matches so far
     * `termMatchesSoFar` {number} - The number of wrapped matches for the current term so far
@@ -87,7 +88,7 @@ The function **must** return either `true` (to wrap) or `false` (to skip wrappin
 See [Filtering matches](filtering-matches.md) for more details.
 
   * `each: (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
-    * `markElement` {HTMLElement} - The marked DOM element
+    * `markElement` {HTMLElement|Range} - The marked DOM element or range if `Highlight` API is enabled 
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
