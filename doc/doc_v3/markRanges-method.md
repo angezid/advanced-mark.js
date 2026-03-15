@@ -4,6 +4,7 @@
 ``` js
 // javascript
 const instance = new Mark(context);
+const ranges = [{ start: 2, length: 5 }, { start: 10, length: 7 },,,];
 instance.markRanges(ranges[, options]);
 // jQuery
 $(context).markRanges(ranges[, options]);
@@ -32,22 +33,22 @@ $(context).markRanges(ranges[, options]);
   * `log` {object} - Log messages to a specific object (default is `console`)
 
   * `filter: (textNode, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
-    * `textNode` {Text|Text[]} - The text node which includes the range or is the part of the range; or an array text nodes if `Highlight` API is enabled with `rangeAcrossElements` option
+    * `textNode` {Text|Text[]} - The text node which includes the range or is the part of the range; or an array of text node(s) `Highlight` API is enabled with `rangeAcrossElements` option
     * `range` {object} - The current range object
     * `matchString` {string} - The current range matching string
     * `index` {number} - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)
-  
-The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
 
-  * `each: (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
-    * `markElement` {HTMLElement|Range} - The marked DOM element or range if `Highlight` API is enabled
-    * `range` {object} - The range object
+The function **must** return either `true` (highlight) or `false` (skip highlighting).
+
+  * `each: (obj, range, rangeInfo) => {}` {function} - A callback for each created marked element or `Range` object if `Highlight` API is enabled (default is )
+    * `obj` {HTMLElement|Range} - The marked DOM element or `Range` object if `Highlight` API is enabled
+    * `range` {object} - The range object with `start` and `length` properties
     * `rangeInfo` {object}:
       * `matchStart` {boolean} - indicate the start of a range;
       * `count` {number} - The number of wrapped ranges so far
 
-  * `done: (totalMarks, totalRanges) => {}` {function} - A callback on finish (default is )
-    * `totalMarks` {number} - The total number of marked elements
+  * `done: (total, totalRanges) => {}` {function} - A callback on finish (default is )
+    * `total` {number} - The total number of marked DOM elements or created `Range` objects if `Highlight` API is enabled
     * `totalRanges` {number} - The number of total ranges
 
   * `noMatch: (range) => {}` {function} - A callback that is called on non-valid range (default is )

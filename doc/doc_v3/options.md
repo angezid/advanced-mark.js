@@ -61,20 +61,25 @@ The **built-in** word boundary characters are: white spaces and `!"#$%&'()*+,-./
 An accuracy object can be used if the default boundaries are not satisfactory:
 * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
 * `limiters`: a string or an array of custom word boundary characters,  
-  e.g. `{ value : 'exactly', limiters : ",.;:?!'\\"()" }`
+  e.g. `{ value: 'exactly', limiters: ",.;:?!'\\"()" }`
 
 **AE** - with option `acrossElements: true` or `acrossElements: inline`.
 
 ### `highlight` option
-This option allows using `Highlight` interface of [CSS Custom Highlight API](https://developer.mozilla.org/developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API.html).
+This option allows using [CSS Custom Highlight API](https://developer.mozilla.org/developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API.html).
 
-If `Highlight` object is provided, the library creates `Range` objects of matches, adds to `Highlight` object, and register it using the `HighlightRegistry` when it finish.
+If `Highlight` object is provided, the library creates `Range` objects of matches, adds to `Highlight` object, and register it using the `HighlightRegistry` when it finish.  
+**Note** that `each` callback first parameter is `Range` object instead of `HTMLElement`.
 
-If browser does not supported Highlight interface, the library wrap matches in `HTML` elements.
+If a browser does not supported Highlight API, the library wrap matches in HTML elements.
 
-**Warning:** for performance reason set `combineBy: Infinity` option, if browser RegExp size limit isn't exceeded.
+**Warning:**  for performance reason set `combineBy: Infinity` option, if browser RegExp size limit isn't exceeded.
 
-One serious problem was discoverd: when the library run using Highlight API, there is a huge degradation of performance if library is run wrapping matches in `HTML` elements.
+One problem was discoverd: when the library fist run using Highlight API, there is a huge performance degradation (hundred times) if the library next run is switch to wrap matches in HTML elements, but not vice versa.  
+There is some explanation of the problem: [Custom Highlight API causing significant slowdowns with large amounts of nodes](https://stackoverflow.com/questions/78140011/custom-highlight-api-causing-significant-slowdowns-with-large-amounts-of-nodes).  
+This library splits text nodes before wrapping matches in HTML elements. Obviously, it has much more detrimental effect on performance than in above link.  
+
+This mean: use only Highlight API or if there is need to wrap some matches in HTML elements, wrap them first and then switch using Highlight API.
 
 ``` js
 const array = [,,,,];
@@ -87,8 +92,15 @@ if (typeof Highlight !== 'undefined') {
 new Mark(ctx).mark(array, {
     highlight: highlight,
 });
-
 ```
+
+### `rangeAcrossElements` option
+This option allows to create a single range for matches located across elements when using Highlight API with `acrossElements` option.  
+**Note** that `filter` callback first parameter is an array of text node(s) containing match instead of text node.
+
+When it set to `false` the number of `Range` objects is equal to the number of marked elements (the library creates `Range` object instead creating element).  
+It can be useful for compatibility
+
   
 
 ``` js

@@ -9,9 +9,8 @@ instance.markRegExp(regex[, options]);
 $(context).markRegExp(regex[, options]);
 ```
 #### Parameters:
-* `regex` {RegExp} - The regular expression. With `acrossElements` option it **must** have `g` flag - it works with indexes and only two `g` and `y` flags allow control RegExp `lastIndex`.  
+* `regex` {RegExp} - The regular expression. It **must** have `g` flag - it works with indexes and only two `g` and `y` flags allow to control RegExp `lastIndex`.  
   **Note** that for backward compatibility, RegExp without `g` flag is recompile internally with `g` flag.  
-  Although without `acrossElements` option it doesn't require `g` flag, it still recommended having this flag for future changes.
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
@@ -44,24 +43,24 @@ $(context).markRegExp(regex[, options]);
   * `log` {object} - Log messages to a specific object (default is `console`)
 
   * `filter: (textNode, matchString, matchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
-    * `textNode` {Text|Text[]} - The text node which includes the match or with `acrossElements` option can be part of the match; or an array text nodes if `Highlight` API is enabled with `rangeAcrossElements` option
+    * `textNode` {Text|Text[]} - The text node which includes the match (with `acrossElements` option can be part of the match) or an array of text node(s) `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
     * `matchString` {string} - The matching string:
       1. without `ignoreGroups` and `separateGroups` options - the whole match
       2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string,  
         e.g. `/(-)(\w+)\s+/g`, `ignoreGroups: 1`, the matching string is content of the group 2
       3. with `separateGroups` option - the current group matching string
-    * `matchesSoFar` {number} - The number of all wrapped matches so far
+    * `matchesSoFar` {number} - The number of all matches so far
     * `filterInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - indicate the start of a match  AE
       * `groupIndex` {number} - The current group index  SG
       * `execution` {object} - The helper object for early abort:
         * `abort` {boolean} - Setting it to `true` breaks method execution
-  
-The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
+ 
+The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
-  * `each: (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
-    * `markElement` {HTMLElement|Range} - The marked DOM element or range if `Highlight` API is enabled
+  * `each: (obj, eachInfo) => {}` {function} - A callback for each created marked element or `Range` object if `Highlight` API is enabled (default is )
+    * `obj` {HTMLElement|Range} - The marked DOM element or `Range` object if `Highlight` API is enabled
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
@@ -69,8 +68,8 @@ The function **must** return either `true` (to wrap) or `false` (to skip wrappin
       * `groupIndex` {number} - The current index of match group  SG
       * `groupStart` {boolean} - Indicate the start of group  AE SG
 
-  * `done: (totalMarks, totalMatches) => {}` {function} - A callback on finish. (default is )
-    * `totalMarks` {number} - The total number of marked elements
+  * `done: (total, totalMatches) => {}` {function} - A callback on finish. (default is )
+    * `total` {number} - The total number of marked DOM elements or created `Range` objects if `Highlight` API is enabled
     * `totalMatches` {number} - The total number of matches
 
   * `noMatch: (regex) => {}` {function} - A callback that is called when regex failed to match (default is )

@@ -22,21 +22,21 @@ $(context).unmark([options]);
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
-  * `done : () => {}` {function} - A callback after all specified marked elements were removed (default is )
+  * `done: () => {}` {function} - A callback after all specified marked elements were removed (default is )
     It has no parameters.
   
 <details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
-    element : 'mark',
-    className : '',
-    shadowDOM : false,
-    iframes : false,
-    iframesTimeout : 5000,
-    done : () => {},
-    debug : false,
-    log : window.console
+    element: 'mark',
+    className: '',
+    shadowDOM: false,
+    iframes: false,
+    iframesTimeout: 5000,
+    done: () => {},
+    debug: false,
+    log: window.console
 };
 </code></pre>
 

@@ -63,8 +63,9 @@ $(context).mark(search[, options]);
     * `char` {string} - A custom boundary character. The default is `\x01`.
     
   * `highlight` {Highlight} - If `Highlight` object is provided, the library switch to use the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
+    See [highlight](options.html#highlight-option) option for more details.
   * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
-  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (`Highlight` API) (default is `true`)
+  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (`Highlight` API with `acrossElements` option) (default is `true`)
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -73,22 +74,22 @@ $(context).mark(search[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter: (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
-    * `textNode` {Text|Text[]} - The text node which includes the match or with `acrossElements` option can be part of the match; or an array text nodes if `Highlight` API is enabled with `rangeAcrossElements` option
+  * `filter: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
+    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with `acrossElements` option can be part of the match) or an array of text node(s) if `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
     * `term` {string} - The current term
-    * `matchesSoFar` {number} - The number of all wrapped matches so far
-    * `termMatchesSoFar` {number} - The number of wrapped matches for the current term so far
+    * `matchesSoFar` {number} - The number of all matches so far
+    * `termMatchesSoFar` {number} - The number of matches for the current term so far
     * `filterInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - indicate the start of a match  AE
       * `execution` {object} - The helper object for early abort:
         * `abort` {boolean} - Setting it to `true` breaks method execution
-  
-The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).  
+
+The function **must** return either `true` (highlight) or `false` (skip highlighting).  
 See [Filtering matches](filtering-matches.md) for more details.
 
-  * `each: (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
-    * `markElement` {HTMLElement|Range} - The marked DOM element or range if `Highlight` API is enabled 
+  * `each: (obj, eachInfo) => {}` {function} - A callback for each created marked element or `Range` object if `Highlight` API is enabled (default is )
+    * `obj` {HTMLElement|Range} - The marked DOM element or `Range` object if `Highlight` API is enabled 
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
@@ -96,8 +97,8 @@ See [Filtering matches](filtering-matches.md) for more details.
   
 See [Code examples](some-examples.md).
 
-  * `done: (totalMarks, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
-    * `totalMarks` {number} - The total number of marked elements
+  * `done: (total, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
+    * `total` {number} - The total number of marked DOM elements or created `Range` objects if `Highlight` API is enabled
     * `totalMatches` {number} - The total number of matches
     * `termStats` {object} - An object containing an individual term's matches count
 

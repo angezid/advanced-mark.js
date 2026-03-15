@@ -42,8 +42,8 @@ Without this option - if a group has been wrapped, all nested groups are ignored
 const ranges = [{ start: 0, length: 50 }, { start: 10, length: 20, nested: true }, ..];
 
 instance.markRanges(ranges, {
-  'wrapAllRanges' : true,
-  'each' : (markElement, range) => {
+  'wrapAllRanges': true,
+  'each': (markElement, range) => {
     // to distinguish ranges you can add some property to ranges
     if (range.nested) {
       markElement.className = 'nested';
@@ -55,10 +55,10 @@ instance.markRanges(ranges, {
 #### To mark nesting groups with `acrossElements` option and `d` flag.
 ``` js
 instance.markRegExp(/\w+\s((nested group)\s+\w+)/dg, {
-    'acrossElements' : true,
-    'separateGroups' : true,
-    'wrapAllRanges' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'separateGroups': true,
+    'wrapAllRanges': true,
+    'each': (markElement, info) => {
       if (info.groupIndex === 2) {
           markElement.className = 'nested';
       }
@@ -74,10 +74,10 @@ It's an only way to wrap nested groups without `d` flag:
 let regex = /\w+\s(group1).+?(group2).*/gi;
 
 instance.markRegExp(regex, {
-    'acrossElements' : true,
-    'separateGroups' : true,
-    'wrapAllRanges' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'separateGroups': true,
+    'wrapAllRanges': true,
+    'each': (markElement, info) => {
         if (info.groupIndex === 0) {
             markElement.className = 'main-group';
         }
@@ -101,14 +101,14 @@ let currentIndex = 0,
     regex = /(?=[^.]*?(word1))(?=[^.]*?(word2))(?=[^.]*?(word3))/dgi;
     
 instance.markRegExp(regex, {
-    'acrossElements' : true,
-    'separateGroups' : true,
-    'wrapAllRanges' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'separateGroups': true,
+    'wrapAllRanges': true,
+    'each': (markElement, info) => {
         // info.count as a match identifier
         markElement.setAttribute('data-markjs', info.count);
     },
-    'done' : (totalMarks, totalMatches) => {
+    'done': (totalMarks, totalMatches) => {
         marks = $('mark');
         matchCount = totalMatches;
     }

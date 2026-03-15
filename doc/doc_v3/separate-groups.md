@@ -2,13 +2,12 @@
 ## Highlighting separate groups
 
 **Important:** this version support only RegExp having `d` flag.
-Older browsers not supported group `indices`.  You can 
 
 The nested groups logic:
 * Case without `wrapAllRanges` option:
   * The logic for nested groups - if a parent group has been marked, there is no way to highlight nested groups.  
     This means you can use a nested group(s) as auxiliary and don't care about filtering them.
-* Case `wrapAllRanges : true`:
+* Case `wrapAllRanges: true`:
   * It is wrapped all nested groups - you need to filter out nested an auxiliary group(s).
 
 The parent groups logic:
@@ -21,9 +20,9 @@ How to highlight nesting groups see [Nesting groups](nesting-overlapping.md).
 #### Filtering capturing groups:
 ``` js
 instance.markRegExp(/(AB)\b.+\b(?<gr2>CD)?.+(EF)\b/dgi, {
-    // 'acrossElements' : true,
-    'separateGroups' : true,
-    'filter' : (textNode, matchString, matchesSoFar, info) => {
+    // 'acrossElements': true,
+    'separateGroups': true,
+    'filter': (textNode, matchString, matchesSoFar, info) => {
         // To filter any group use info.groupIndex - a current group index
         // Note: if a group lays across several elements, the index be the same while a group is wrapping
         if (info.groupIndex === 1) return false;
@@ -47,9 +46,9 @@ instance.markRegExp(/(AB)\b.+\b(?<gr2>CD)?.+(EF)\b/dgi, {
 let groupCount = 0, gr1Count = 0, gr2Count = 0;
 
 instance.markRegExp(/(AB)\b.+?\b(CD)/dgi, {
-    'acrossElements' : true,
-    'separateGroups' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'separateGroups': true,
+    'each': (markElement, info) => {
         // info.count - matches count so far
         
         // if start of match group
@@ -75,8 +74,8 @@ instance.markRegExp(/(AB)\b.+?\b(CD)/dgi, {
 let count = 0, gr1Count = 0;
 
 instance.markRegExp(/(AB).+?(CD)/dgi, {
-    'separateGroups' : true,
-    'each' : (markElement, info) => {
+    'separateGroups': true,
+    'each': (markElement, info) => {
         // all group count
         count++;
         

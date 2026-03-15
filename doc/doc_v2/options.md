@@ -61,7 +61,7 @@ The **built-in** word boundary characters are: white spaces and `!"#$%&'()*+,-./
 An accuracy object can be used if the default boundaries are not satisfactory:
 * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
 * `limiters`: a string or an array of custom word boundary characters,  
-  e.g. `{ value : 'exactly', limiters : ",.;:?!'\\"()" }`
+  e.g. `{ value: 'exactly', limiters: ",.;:?!'\\"()" }`
 
 **AE** - with option `acrossElements: true` or `acrossElements: inline`.
 

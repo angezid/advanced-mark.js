@@ -7,8 +7,8 @@ See [mark() each callback](mark-method.md#mark-each) about callback `info` objec
 let matchCount = 0;
 
 instance.mark(['AB CD', 'EF'], {
-    'acrossElements' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'each': (markElement, info) => {
         // sets external counter
         matchCount = info.count;
 
@@ -23,7 +23,7 @@ instance.mark(['AB CD', 'EF'], {
             // matchCount++; // to use the custom counter instead of info.count
         }
     },
-    'done' : (totalMarks, totalMatches, termStats) => {
+    'done': (totalMarks, totalMatches, termStats) => {
         for (const term in termStats) {
             console.log(term + ' = ' + termStats[term]);
         }
@@ -36,15 +36,15 @@ instance.mark(['AB CD', 'EF'], {
 let matchCount = 0;
 
 context.mark('AB CD EF', {
-    'separateWordSearch' : true,
-    'each' : (markElement, info) => {
+    'separateWordSearch': true,
+    'each': (markElement, info) => {
         // for external counter
         matchCount = info.count; // also possible matchCount++;
 
         // for internal use
         if(info.count ..) {}
     },
-    'done' : (totalMarks, totalMatches, termStats) => {
+    'done': (totalMarks, totalMatches, termStats) => {
         console.log('Total matches = ' + totalMatches);
 
         for(var term in termStats) {
@@ -60,15 +60,15 @@ See [markRegExp() each callback](markRegExp-method.md#markRegExp-each) about cal
 let matchCount = 0;
 
 instance.markRegExp(/.../gi, {
-    'acrossElements' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'each': (markElement, info) => {
         // usage of info.count and custom counter are the same
         // as in mark() method with `acrossElements` option
 
         // use of info.count as a unique match identifier
         markElement.setAttribute('data-markjs', info.count);
     },
-    'done' : (totalMarks, totalMatches) => {
+    'done': (totalMarks, totalMatches) => {
         console.log('Total matches = ' + totalMatches);
     }
 });
@@ -86,8 +86,8 @@ function highlightOpenTags(startIndexes) {
     const instance = new Mark(htmlBox);
 
     instance.unmark().markRegExp(tagReg, {
-        acrossElements : true,
-        each : () => {
+        acrossElements: true,
+        each: () => {
             // set RegExp index at which to start the next match
             if (++i < startIndexes.length) {
                 tagReg.lastIndex = startIndexes[i];

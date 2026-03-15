@@ -8,7 +8,7 @@
 * Case without `wrapAllRanges` option:
   * They both have identical logic for nested groups - if a parent group has been marked, there is no way to mark nested groups.  
     This means you can use a nested group(s) as auxiliary and don't care about filtering them.
-* Case `wrapAllRanges : true`:
+* Case `wrapAllRanges: true`:
   * With `acrossElements` option, the primitive one wrap a whole match as a group 0 and then all groups that are child of match[0] as a nested (see [Example](nesting-overlapping.md#mark-nesting-groups)).
   * The exact one wrap all nested groups - you need to filter nested an auxiliary group(s).
 
@@ -34,9 +34,9 @@ How to highlight nesting groups see [Nesting groups](nesting-overlapping.md).
 #### Filtering capturing groups:
 ``` js
 instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
-    // 'acrossElements' : true,
-    'separateGroups' : true,
-    'filter' : (textNode, matchString, matchesSoFar, info) => {
+    // 'acrossElements': true,
+    'separateGroups': true,
+    'filter': (textNode, matchString, matchesSoFar, info) => {
         // To filter any group use info.groupIndex - a current group index
         // Note: if a group lays across several elements, the index be the same while a group is wrapping
         if (info.groupIndex === 2 || info.groupIndex === 4) return false;
@@ -60,9 +60,9 @@ instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
 let groupCount = 0, gr1Count = 0, gr2Count = 0;
 
 instance.markRegExp(/(AB)\b.+?\b(CD)/gi, {
-    'acrossElements' : true,
-    'separateGroups' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'separateGroups': true,
+    'each': (markElement, info) => {
         // info.count - matches count so far
         
         // if start of match group
@@ -88,8 +88,8 @@ instance.markRegExp(/(AB)\b.+?\b(CD)/gi, {
 let count = 0, gr1Count = 0;
 
 instance.markRegExp(/(AB).+?(CD)/gi, {
-    'separateGroups' : true,
-    'each' : (markElement, info) => {
+    'separateGroups': true,
+    'each': (markElement, info) => {
         // all group count
         count++;
         

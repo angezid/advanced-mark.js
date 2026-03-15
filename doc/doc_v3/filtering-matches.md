@@ -9,8 +9,8 @@ To filter RegExp capturing groups see: [Filtering capturing groups](separate-gro
 let count = 0;
 
 instance.mark('AB', {
-    'acrossElements' : true,
-    'filter' : (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
+    'acrossElements': true,
+    'filter': (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
          // to mark only the first match
         info.execution.abort = true; return  true;
 
@@ -37,7 +37,7 @@ instance.mark('AB', {
 let count = 0;
 
 instance.mark('AB', {
-    'filter' : (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
+    'filter': (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
         // the only difference is counter implementation
         count++;
     }
@@ -50,7 +50,7 @@ let count = 0, reg = /.../gi;
 // if you have access to the RegExp object with 'acrossElements' option, you can
 // also used `reg.lastIndex = Infinity;` instead of `info.execution.abort = true;`
 instance.markRegExp(reg, {
-    'filter' : (textNode, matchString, matchesSoFar, info) => {
+    'filter': (textNode, matchString, matchesSoFar, info) => {
         // to mark only the first match
         info.execution.abort = true; return  true;
 
@@ -85,8 +85,8 @@ It's much more limited than the `filter` callback.
 let reg = /.../gi;
 
 instance.markRegExp(reg, {
-    'acrossElements' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'each': (markElement, info) => {
         // to mark only the first match
         reg.lastIndex = Infinity;
 

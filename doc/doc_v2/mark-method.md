@@ -33,7 +33,7 @@ $(context).mark(search[, options]);
     * Or an <b>object</b> with two properties:
       * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
       * `limiters`: a string or an array of custom word boundary characters,  
-        e.g. `{ value : "exactly", limiters : ",.;:?!'\\"()" }`
+        e.g. `{ value: "exactly", limiters: ",.;:?!'\\"()" }`
 
   * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `disabled`):
     * `disabled`: The characters `?` and `*` match itself
@@ -70,7 +70,7 @@ $(context).mark(search[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
+  * `filter: (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `term` {string} - The current term
     * `matchesSoFar` {number} - The number of all wrapped matches so far
@@ -86,7 +86,7 @@ $(context).mark(search[, options]);
 The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).  
 See [Filtering matches](filtering-matches.md) for more details.
 
-  * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
+  * `each: (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
@@ -95,12 +95,12 @@ See [Filtering matches](filtering-matches.md) for more details.
   
 See [Code examples](some-examples.md).
 
-  * `done : (totalMarks, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
+  * `done: (totalMarks, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
     * `totalMarks` {number} - The total number of marked elements
     * `totalMatches` {number} - The total number of matches
     * `termStats` {object} - An object containing an individual term's matches count
 
-  * `noMatch : (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
+  * `noMatch: (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
     * `term` {string|string[]} - The not found term(s); the parameter is an array when `combinePatterns` option is used
 
 ### Available properties of the `filterInfo` object depending on options
@@ -122,35 +122,35 @@ See [Code examples](some-examples.md).
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
-    element : 'mark',
-    className : '',
-    separateWordSearch : true,
-    diacritics : true,
-    exclude : [],
-    caseSensitive : false,
-    accuracy : 'partially',
-    synonyms : {},
-    ignoreJoiners : false,
-    ignorePunctuation : [],
-    wildcards : 'disabled',
+    element: 'mark',
+    className: '',
+    separateWordSearch: true,
+    diacritics: true,
+    exclude: [],
+    caseSensitive: false,
+    accuracy: 'partially',
+    synonyms: {},
+    ignoreJoiners: false,
+    ignorePunctuation: [],
+    wildcards: 'disabled',
     
-    acrossElements : false,
-    combinePatterns : false,
-    cacheTextNodes : false,
-    blockElementsBoundary : false,
+    acrossElements: false,
+    combinePatterns: false,
+    cacheTextNodes: false,
+    blockElementsBoundary: false,
     
-    shadowDOM : false,
-    iframes : false,
-    iframesTimeout : 5000,
+    shadowDOM: false,
+    iframes: false,
+    iframesTimeout: 5000,
     
-    filter : (textNode, term, marksSoFar, termMarksSoFar, filterInfo) => {
+    filter: (textNode, term, marksSoFar, termMarksSoFar, filterInfo) => {
         return true; // must return either true or false
     },
-    each : (markElement, eachInfo) => {},
-    done : (totalMarks, totalMatches, termStats) => {},
-    noMatch : (term) => {},
-    debug : false,
-    log : window.console
+    each: (markElement, eachInfo) => {},
+    done: (totalMarks, totalMatches, termStats) => {},
+    noMatch: (term) => {},
+    debug: false,
+    log: window.console
 };
 </code></pre>
 

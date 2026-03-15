@@ -14,12 +14,12 @@ You can play with Playground - Examples -> Mark line ranges.
 let elem;
 const instance = new Mark(document.querySelector('pre'));
 instance.markRanges([{ start: line, length: 1 }], {
-  'markLines' : true,
-  'each' : (markElement, range, info) => {
+  'markLines': true,
+  'each': (markElement, range, info) => {
     if (info.matchStart) elem = markElement;
     markElement.className = 'mark-line';
   },
-  'done' : () => {
+  'done': () => {
     if (elem) elem.scrollIntoView();
   }
 });

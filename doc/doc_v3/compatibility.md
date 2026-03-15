@@ -1,23 +1,23 @@
 
-## Compatibility
+## Compatibility with version 2
 
-#### The requirement for `g` flag in `markRegExp()` API:
+##### The requirement for `g` flag in `markRegExp()` API:
 <details>
 <summary>Details:</summary>
-Prior to version 3 the RegExp `/(?<=word\s+)(?:\w+)?/g` fail to match 'match2' in the string `'word match1 word $$$ word match2'` because of returning empty match on `word $$$`.  
-This causes breaking of execution loop, as a result there is no further matching.  
-Fixing this bug brought requirement of the `g` flag for normal workflow.
+Prior to version 3 the RegExp <code>/(?<=word\s+)(?:\w+)?/g</code> fail to match <i>'match2'</i> in the string <i>'word match1 word $$$ word match2'</i> because of returning an empty match on <i>'word $$$'</i>.<br>
+This causes breaking of execution loop, as a result there is no further matching.<br>
+Fixing this bug brought requirement of the <code>g</code> flag for normal workflow.
 </details>
-For backward compatibility a RegExp without `g` flag is recompiled internally.
+For backward compatibility a RegExp without <code>g</code> flag is recompiled internally.
 
-#### Removing ability to highlight RegExp groups without `d` flag:
+##### Dropping support to highlight RegExp groups without `d` flag:
 
 
-#### Removing ability to highlight in nested iframes:
-iframe inside another iframe is rare case.
+##### Removing `cacheTextNodes` option:
+Although in some cases this option increase performance, but not so radical as `combineBy` (old name `combinePatterns`) option.
 
-#### Removing `cacheTextNodes` option:
-although in some cases this option increase performance, but not so radical as `combineBy` (old name `combinePatterns`) option.
+##### Removing `offset` property from filter callback:
+I suspect it has very rare usage if any. If it's needed there is version 2.
 
-#### Removing `offset` property from filter callback:
-i suspect it has very rare usage if any. If it's needed there is version 2.
+##### Adding support for CSS Custom Highlight API:
+

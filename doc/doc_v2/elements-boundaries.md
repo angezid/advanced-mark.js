@@ -1,7 +1,7 @@
 
 ## Elements boundaries
 
-**Note** that using a `blockElementsBoundary` option only makes sense with `acrossElements` option when highlighting phrases, or RegExp capturing groups, or using a wildcards character `*` with <code><a href="mark-method.md#mark-wildcards">wildcards</a> : 'withSpaces'</code> option (can match multiple words).
+**Note** that using a `blockElementsBoundary` option only makes sense with `acrossElements` option when highlighting phrases, or RegExp capturing groups, or using a wildcards character `*` with <code><a href="mark-method.md#mark-wildcards">wildcards</a>: 'withSpaces'</code> option (can match multiple words).
 
 This, how library aggregates all context(s) text node contents into a single string with `blockElementsBoundary: true` option:
 if a block element 'divides' two text nodes, `\x01` character with spaces (it depends) is added between them,  
@@ -10,7 +10,7 @@ e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Head
 With different values the option allows matches across all HTML elements:
 * `blockElementsBoundary: true` except default block elements
 * `blockElementsBoundary: { tagNames: [..] }` except custom element(s)
-* `blockElementsBoundary: { tagNames: [..], extend : true }` except default block elements and custom element(s)
+* `blockElementsBoundary: { tagNames: [..], extend: true }` except default block elements and custom element(s)
 
 #### Boundary object:
 * `tagNames` \{string[]\} - An array of custom tag names. (default is `undefined`)
@@ -20,15 +20,15 @@ With different values the option allows matches across all HTML elements:
 ### Example:
 ``` js
 instance.mark('lorem ipsum dolor', {
-    'separateWordSearch' : false,
-    'acrossElements' : true,
-    'blockElementsBoundary' : true
+    'separateWordSearch': false,
+    'acrossElements': true,
+    'blockElementsBoundary': true
     // or
-    'blockElementsBoundary' : {
+    'blockElementsBoundary': {
         // only these custom elements have boundaries
-        'tagNames' : ['div', 'p', 'h1', 'h2'],  // optional
+        'tagNames': ['div', 'p', 'h1', 'h2'],  // optional
         // custom boundary char, default is '\x01'
-        'char' : '.'   // optional
+        'char': '.'   // optional
     }
 });
 ```
@@ -36,11 +36,11 @@ instance.mark('lorem ipsum dolor', {
 ### Extending default block elements with custom elements:
 ``` js
 instance.markRegExp(/.../gi, {
-    'acrossElements' : true,
-    'blockElementsBoundary' : {
+    'acrossElements': true,
+    'blockElementsBoundary': {
         // custom elements are added to the default block elements
-        'tagNames' : ['tab-container', 'custom-tag'],
-        'extend' : true
+        'tagNames': ['tab-container', 'custom-tag'],
+        'extend': true
     }
 });
 ```
