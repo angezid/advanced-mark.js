@@ -631,7 +631,7 @@ class Mark {
   createInfo(node, start, end, offset) {
     return { node, start, end, offset };
   }
-  
+
   /**
    * Each callback
    * @callback Mark~wrapRangeEachCallback
@@ -668,7 +668,7 @@ class Mark {
     }
     return retNode;
   }
-  
+
   /**
    * Each callback
    * @callback Mark~createRangeEachCallback
@@ -1731,21 +1731,24 @@ class Mark {
     const highlight = this.opt.highlight;
 
     if (highlight) {
-      // unregister Highlight object before deleting ranges (Firefox bug/feature)
-      this.registerHighlight(true);
+      if (highlight.size) {
+        // unregister Highlight object before deleting ranges (Firefox bug/feature)
+        this.registerHighlight(true);
 
-      highlight.forEach((range) => {
-        let node = range.startContainer;
+        highlight.forEach((range) => {
+          let node = range.startContainer;
 
-        if (node.nodeType === 3) {
-          node = node.parentNode;
-        }
+          if (node.nodeType === 3) {
+            node = node.parentNode;
+          }
 
-        if ( !this.excluded(node)) {
-          highlight.delete(range);
-        }
-      });
-      this.registerHighlight();
+          if ( !this.excluded(node)) {
+            highlight.delete(range);
+          }
+        });
+        this.registerHighlight();
+      }
+      this.opt.done();
 
     } else {
       let selector = this.opt.element + '[data-markjs]';
@@ -1781,23 +1784,21 @@ class Mark {
       }
 
       if (this.rangeArray.length) {
-        if (registry.has(name)) {
-          registry.delete(name);
+        registry.delete(name);
 
-          if (highlight.size) {
-            highlight.forEach(range => {
-              this.rangeArray.push(range);
-            });
-            highlight.clear();
-          }
+        if (highlight.size) {
+          highlight.forEach(range => {
+            this.rangeArray.push(range);
+          });
+          highlight.clear();
         }
 
         this.rangeArray.sort((a, b) => a.absoluteOffset - b.absoluteOffset);
         this.rangeArray.forEach(range => {
           highlight.add(range);
         });
-        registry.set(name, highlight);
       }
+      if (highlight.size) registry.set(name, highlight);
     }
   }
 }

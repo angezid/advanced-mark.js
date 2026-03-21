@@ -30,10 +30,12 @@ $(context).markRegExp(regex[, options]);
     * `extend` {boolean} - `true` extends default boundary elements by the custom elements
       otherwise only the custom elements do have boundaries
     * `char` {string} - A custom boundary character. The default is `\x01`.
-    
-  * `highlight` {Highlight} - If `Highlight` object is provided, the library switch to use the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
-  * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
-  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (`Highlight` API) (default is `true`)
+
+  * `highlight` {Highlight} - If a `Highlight` object is provided, the library switches to using the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
+    See [highlight](options.html#highlight-option) option for more details.
+  * `highlightName` {string} - The name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
+  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (when using the `Highlight` API with `acrossElements` option) (default is `true`)
+    See [rangeAcrossElements](options.html#rangeAcrossElements-option) option for more details.
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -42,8 +44,8 @@ $(context).markRegExp(regex[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter: (textNode, matchString, matchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
-    * `textNode` {Text|Text[]} - The text node which includes the match (with `acrossElements` option can be part of the match) or an array of text node(s) `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
+  * `filter: (nodeOrArray, matchString, matchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
+    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with the `acrossElements` option can be part of the match) or an array of text node(s) if the `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
     * `matchString` {string} - The matching string:
       1. without `ignoreGroups` and `separateGroups` options - the whole match
       2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string,  
@@ -59,8 +61,8 @@ $(context).markRegExp(regex[, options]);
  
 The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
-  * `each: (obj, eachInfo) => {}` {function} - A callback for each created marked element or `Range` object if `Highlight` API is enabled (default is )
-    * `obj` {HTMLElement|Range} - The marked DOM element or `Range` object if `Highlight` API is enabled
+  * `each: (elementOrRange, eachInfo) => {}` {function} - A callback for each created marked element or `Range` object if the `Highlight` API is enabled (default is )
+    * `elementOrRange` {HTMLElement|Range} - The marked DOM element or `Range` object if the `Highlight` API is enabled
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
@@ -69,7 +71,7 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
       * `groupStart` {boolean} - Indicate the start of group  AE SG
 
   * `done: (total, totalMatches) => {}` {function} - A callback on finish. (default is )
-    * `total` {number} - The total number of marked DOM elements or created `Range` objects if `Highlight` API is enabled
+    * `total` {number} - The total number of marked DOM elements or created `Range` objects if the `Highlight` API is enabled
     * `totalMatches` {number} - The total number of matches
 
   * `noMatch: (regex) => {}` {function} - A callback that is called when regex failed to match (default is )
@@ -106,6 +108,7 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
     acrossElements: false,
     wrapAllRanges: false,
     blockElementsBoundary: false,
+    rangeAcrossElements: true, // Highlight API
     shadowDOM: false,
     iframes: false,
     iframesTimeout: 5000,
@@ -133,6 +136,6 @@ jQuery:
 <pre><code class='lang-javascript'>$('selector').markRegExp(regex, options);</code></pre>
 </details>
 
-* AE - only available when `acrossElements` option is set to `true`
-* SG - only available when `separateGroups` option is set to `true`
-* AE SG - only available when both `acrossElements` and `separateGroups` options are set to `true`
+* AE - only available with option `acrossElements: true`
+* SG - only available with option `separateGroups: true`
+* AE SG - only available when with options `acrossElements: true` and `separateGroups: true`

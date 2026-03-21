@@ -18,9 +18,13 @@ $(context).markRanges(ranges[, options]);
     See [exclude](options.html#exclude-option) option for more details.
   * `wrapAllRanges` {boolean} - Mark nesting/overlapping capturing groups (default is `undefined`)
     See [Marking nesting and overlapping ranges and match groups](nesting-overlapping.md) for more details.
-    
-  * `highlight` {Highlight} - If `Highlight` object is provided, the library switch to use the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
-  * `highlightName` {string} - A name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
+
+  * `highlight` {Highlight} - If a `Highlight` object is provided, the library switches to using the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
+    See [highlight](options.html#highlight-option) option for more details.
+  * `highlightName` {string} - The name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
+  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (when using the `Highlight` API) (default is `true`)
+    See [rangeAcrossElements](options.html#rangeAcrossElements-option) option for more details.
+  
   * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (`Highlight` API) (default is `true`)
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
@@ -32,23 +36,23 @@ $(context).markRanges(ranges[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter: (textNode, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
-    * `textNode` {Text|Text[]} - The text node which includes the range or is the part of the range; or an array of text node(s) `Highlight` API is enabled with `rangeAcrossElements` option
+  * `filter: (nodeOrArray, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
+    * `nodeOrArray` {Text|Text[]} - The text node which includes the range or is the part of the range; or an array of text node(s) if the `Highlight` API is enabled with `rangeAcrossElements` option
     * `range` {object} - The current range object
     * `matchString` {string} - The current range matching string
     * `index` {number} - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)
 
 The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
-  * `each: (obj, range, rangeInfo) => {}` {function} - A callback for each created marked element or `Range` object if `Highlight` API is enabled (default is )
-    * `obj` {HTMLElement|Range} - The marked DOM element or `Range` object if `Highlight` API is enabled
+  * `each: (elementOrRange, range, rangeInfo) => {}` {function} - A callback for each created marked element or `Range` object if the `Highlight` API is enabled (default is )
+    * `elementOrRange` {HTMLElement|Range} - The marked DOM element or `Range` object if the `Highlight` API is enabled
     * `range` {object} - The range object with `start` and `length` properties
     * `rangeInfo` {object}:
       * `matchStart` {boolean} - indicate the start of a range;
       * `count` {number} - The number of wrapped ranges so far
 
   * `done: (total, totalRanges) => {}` {function} - A callback on finish (default is )
-    * `total` {number} - The total number of marked DOM elements or created `Range` objects if `Highlight` API is enabled
+    * `total` {number} - The total number of marked DOM elements or created `Range` objects if the `Highlight` API is enabled
     * `totalRanges` {number} - The number of total ranges
 
   * `noMatch: (range) => {}` {function} - A callback that is called on non-valid range (default is )
@@ -64,6 +68,7 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
     
     wrapAllRanges: false,
     markLines: false,
+    rangeAcrossElements: true, // Highlight API
     shadowDOM: false,
     iframes: false,
     iframesTimeout: 5000,

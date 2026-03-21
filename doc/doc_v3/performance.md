@@ -1,6 +1,7 @@
 ## Performance
 
-### The performance results in Firefox compare to mark.js v8.11.1:
+### The performance results in Firefox compare to mark.js v8.11.1:  
+**Warning:** this performance tests were run on slow processor and advanced-mark.js version 2 (important is ratio than actual time)  
 `markRegExp()` method, `acrossElements: true`; marked words 3000
 
 |    library     |  size 100KB  |   size 200KB  |   size 500KB  |   size 1MB    |
@@ -38,7 +39,7 @@ There are two options to boost performance:
   Note: with `diacritics` option, a single pattern can be monstrous and more slowly, it's better to create 5-7 patterns (it's probably related to a processor cache).  
   Also, this option prevents highlighting inside already highlighted elements, but it only true for single combined pattern.
   
-In Firefox marking an array of 500 words on a 1 MB page, 26500 text nodes, `diacritics: false` and ~7600 highlighted words:
+In Firefox highlighting an array of 500 words on a 1 MB page, 26500 text nodes, `diacritics: false` and ~7600 highlighted words:
 - with `combineBy: Infinity` ~0.2 second. (single pattern)
 - with `acrossElements` options ~21 sec.
 - without above options ~19 sec.

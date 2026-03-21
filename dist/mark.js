@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.7.0
+* advanced-mark.js v3.0.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2026, angezid
@@ -567,7 +567,6 @@
           highlight = val && val.highlight && val.highlight instanceof Highlight;
         this._opt = _extends({}, {
           'window': win,
-          'highlight': highlight,
           'element': '',
           'className': '',
           'exclude': [],
@@ -591,6 +590,11 @@
         }
         this.filter = win.NodeFilter;
         this.empty = win.document.createTextNode('');
+        if (highlight) {
+          this.rangeArray = [];
+        } else {
+          this._opt.highlight = null;
+        }
       }
     }, {
       key: "iterator",
@@ -926,8 +930,13 @@
       value: function getTextNodes(cb) {
         var _this5 = this;
         var nodes = [];
+        var start = 0;
         this.iterator.forEachNode(this.filter.SHOW_TEXT, function (node) {
-          nodes.push(node);
+          nodes.push({
+            node: node,
+            start: start
+          });
+          start += node.textContent.length;
         }, function (node) {
           return !_this5.excluded(node.parentNode);
         }, function () {
@@ -999,18 +1008,15 @@
       }
     }, {
       key: "wrapRange",
-      value: function wrapRange(node, start, end, eachCb) {
-        var ended = end === node.textContent.length,
-          index = end,
+      value: function wrapRange(n, start, end, eachCb) {
+        var node = n.node,
           retNode;
-        if (this.opt.highlight) {
-          var range = new Range();
-          range.setStart(node, start);
-          range.setEnd(node, end);
-          this.opt.highlight.add(range);
-          eachCb(range);
+        if (this.rangeArray) {
+          this.createRange(node, start, node, end, n.start + start, eachCb);
           retNode = node;
         } else {
+          var ended = end === node.textContent.length,
+            index = end;
           if (start !== 0) {
             node = node.splitText(start);
             index = end - start;
@@ -1019,6 +1025,16 @@
           eachCb(this.createElement(node));
         }
         return retNode;
+      }
+    }, {
+      key: "createRange",
+      value: function createRange(startNode, startOffset, endNode, endOffset, absoluteOffset, eachCb) {
+        var range = new Range();
+        range.setStart(startNode, startOffset);
+        range.setEnd(endNode, endOffset);
+        range.absoluteOffset = absoluteOffset;
+        eachCb(range, true);
+        if (range) this.rangeArray.push(range);
       }
     }, {
       key: "createElement",
@@ -1037,10 +1053,12 @@
       value: function wrapRangeAcross(dict, start, end, filterCb, eachCb) {
         var i = dict.lastIndex,
           rangeStart = true,
-          range,
+          startInfo,
+          filterNodes = [],
           e;
         var wrapAllRanges = this.opt.wrapAllRanges,
-          highlight = this.opt.highlight;
+          highlight = this.opt.highlight,
+          singleRange = highlight && this.opt.rangeAcrossElements;
         if (wrapAllRanges) {
           while (i > 0 && dict.nodes[i].start > start) {
             i--;
@@ -1049,24 +1067,24 @@
         for (i; i < dict.nodes.length; i++) {
           if (i + 1 === dict.nodes.length || dict.nodes[i + 1].start > start) {
             var n = dict.nodes[i];
-            if (!filterCb(n.node)) {
+            if (singleRange) {
+              filterNodes.push(n.node);
+            } else if (!filterCb(n.node)) {
               break;
             }
             var s = start - n.start;
             e = (end > n.end ? n.end : end) - n.start;
             if (s >= 0 && e > s) {
-              if (highlight && this.opt.rangeAcrossElements) {
+              if (singleRange) {
                 if (rangeStart) {
-                  range = new Range();
-                  range.setStart(n.node, s);
-                  eachCb(range, rangeStart);
+                  startInfo = [n.node, s, n.start + s];
                 }
               } else if (!highlight && wrapAllRanges) {
                 var obj = this.wrapRangeInsert(dict, n, s, e, start, i);
                 n = obj.nodeInfo;
                 eachCb(obj.mark, rangeStart);
               } else {
-                n.node = this.wrapRange(n.node, s, e, function (node) {
+                n.node = this.wrapRange(n, s, e, function (node) {
                   eachCb(node, rangeStart);
                 });
                 n.start += e;
@@ -1076,9 +1094,8 @@
             if (end > n.end) {
               start = n.end + n.offset;
             } else {
-              if (highlight && range) {
-                range.setEnd(n.node, e);
-                this.opt.highlight.add(range);
+              if (startInfo && filterCb(filterNodes)) {
+                this.createRange(startInfo[0], startInfo[1], n.node, e, startInfo[2], eachCb);
               }
               break;
             }
@@ -1088,11 +1105,12 @@
       }
     }, {
       key: "wrapGroups",
-      value: function wrapGroups(node, match, regex, filterCb, eachCb) {
+      value: function wrapGroups(n, match, regex, filterCb, eachCb) {
         var lastIndex = 0,
           offset = 0,
           i = 0,
           isWrapped = false,
+          node = n.node,
           group,
           start,
           end = 0;
@@ -1102,8 +1120,8 @@
             start = match.indices[i][0];
             if (start >= lastIndex) {
               end = match.indices[i][1];
-              if (filterCb(node, group, i)) {
-                node = this.wrapRange(node, start - offset, end - offset, function (node) {
+              if (filterCb(n.node, group, i)) {
+                node = this.wrapRange(n, start - offset, end - offset, function (node) {
                   eachCb(node, i);
                 });
                 if (end > lastIndex) {
@@ -1127,9 +1145,9 @@
       value: function wrapGroupsAcross(dict, match, regex, filterCb, eachCb) {
         var lastIndex = 0,
           i = 0,
-          group,
-          start,
           end = 0,
+          start,
+          group,
           isWrapped;
         while (++i < match.length) {
           group = match[i];
@@ -1170,18 +1188,16 @@
           info = {
             execution: execution
           };
-        var node,
-          match,
+        var match,
           filterStart,
           eachStart,
           count = 0;
         this.getTextNodes(function (dict) {
           dict.nodes.every(function (n) {
-            node = n.node;
-            while ((match = regex.exec(node.textContent)) !== null) {
+            while ((match = regex.exec(n.node.textContent)) !== null) {
               info.match = match;
               filterStart = eachStart = true;
-              node = _this6.wrapGroups(n, match, regex, function (node, group, grIndex) {
+              n.node = _this6.wrapGroups(n, match, regex, function (node, group, grIndex) {
                 info.matchStart = filterStart;
                 info.groupIndex = grIndex;
                 filterStart = false;
@@ -1259,14 +1275,14 @@
           str,
           count = 0;
         this.getTextNodes(function (dict) {
-          dict.nodes.every(function (node) {
-            while ((match = regex.exec(node.textContent)) !== null) {
+          dict.nodes.every(function (n) {
+            while ((match = regex.exec(n.node.textContent)) !== null) {
               if ((str = match[index]) === '') {
                 regex.lastIndex++;
                 continue;
               }
               filterInfo.match = match;
-              if (!filterCb(node, str, filterInfo)) {
+              if (!filterCb(n.node, str, filterInfo)) {
                 continue;
               }
               var i = 0,
@@ -1277,7 +1293,7 @@
                 }
               }
               var end = start + str.length;
-              node = _this8.wrapRange(node, start, end, function (node) {
+              n.node = _this8.wrapRange(n, start, end, function (node) {
                 eachCb(node, {
                   match: match,
                   count: ++count
@@ -1594,18 +1610,22 @@
       value: function unmark(opt) {
         var _this14 = this;
         this.opt = opt;
-        if (this.opt.highlight) {
-          this.registerHighlight(true);
-          this.opt.highlight.forEach(function (range) {
-            var node = range.startContainer;
-            if (node.nodeType === 3) {
-              node = node.parentNode;
-            }
-            if (!_this14.excluded(node)) {
-              _this14.opt.highlight["delete"](range);
-            }
-          });
-          this.registerHighlight();
+        var highlight = this.opt.highlight;
+        if (highlight) {
+          if (highlight.size) {
+            this.registerHighlight(true);
+            highlight.forEach(function (range) {
+              var node = range.startContainer;
+              if (node.nodeType === 3) {
+                node = node.parentNode;
+              }
+              if (!_this14.excluded(node)) {
+                highlight["delete"](range);
+              }
+            });
+            this.registerHighlight();
+          }
+          this.opt.done();
         } else {
           var selector = this.opt.element + '[data-markjs]';
           if (this.opt.className) {
@@ -1622,11 +1642,31 @@
     }, {
       key: "registerHighlight",
       value: function registerHighlight(remove) {
+        var _this15 = this;
         var highlight = this.opt.highlight;
-        if (highlight && highlight.size) {
+        if (highlight) {
           var name = this.opt.highlightName || 'markjs',
             registry = CSS.highlights;
-          if (remove) registry["delete"](name);else registry.set(name, highlight);
+          if (remove) {
+            registry["delete"](name);
+            return;
+          }
+          if (this.rangeArray.length) {
+            registry["delete"](name);
+            if (highlight.size) {
+              highlight.forEach(function (range) {
+                _this15.rangeArray.push(range);
+              });
+              highlight.clear();
+            }
+            this.rangeArray.sort(function (a, b) {
+              return a.absoluteOffset - b.absoluteOffset;
+            });
+            this.rangeArray.forEach(function (range) {
+              highlight.add(range);
+            });
+          }
+          if (highlight.size) registry.set(name, highlight);
         }
       }
     }]);
@@ -1653,7 +1693,7 @@
       return _this;
     };
     this.getVersion = function () {
-      return '2.7.0';
+      return '3.0.0';
     };
     return this;
   }

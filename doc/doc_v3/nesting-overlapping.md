@@ -3,7 +3,7 @@
 
 The `markRanges()` method with `wrapAllRanges` option, can mark nesting/overlapping ranges. With this option, all ranges that have indexes within 0 and context length be wrapped.  
 
-The `markRegExp()` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can mark:
+The `markRegExp()` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can mark:  
 nesting groups, capturing groups inside positive lookaround assertions. It practically removes all restrictions.  
 
 The lookaround examples demonstrate cases when `wrapAllRanges` option should be used, otherwise they won't be correctly highlighted:
@@ -17,10 +17,11 @@ The lookaround examples demonstrate cases when `wrapAllRanges` option should be 
 
 * Groups overlapping case: regex `/\w+(?=.*?(gr1 \w+))(?=.*?(\w+ gr2))/dg` , string 'word gr1 overlap gr2' - the gr1 is wrapped, the gr2 is ignored.
 
-Note: the `wrapAllRanges` option can cause performance degradation if the context contains a very large number of text nodes and mark elements. 
+**Note:** the `wrapAllRanges` option can cause performance degradation if the context contains a very large number of text nodes and mark elements. 
 This is because with each wrapping, two more objects are inserted into the array, which require a lot of copying, memory allocation ...
 
-The 8MB file containing 177000 text nodes:
+The 8MB file containing 177000 text nodes:  
+**Warning:** this performance tests were run on slow processor and advanced-mark.js version 2 (important is ratio than actual time)
 
 |         option         |  marked groups 2500  |  marked groups 29000  |
 |------------------------|----------------------|-----------------------|
@@ -34,8 +35,7 @@ The 1MB file containing 20800 text nodes:
 | wrapAllRanges: true    |       120 ms.        |      710 ms.          |
 | wrapAllRanges: false   |       70 ms.         |      310 ms.          |
 
-Note: `wrapAllRanges` option with `d` flag wraps all capturing groups regardless of nested level. You need to filter out unwanted groups.  
-Without this option - if a group has been wrapped, all nested groups are ignored.
+**Note** that `wrapAllRanges` option with `d` flag wraps all capturing groups regardless of nested level. You need to filter out unwanted groups.  
 
 #### To mark nesting/overlapping ranges.
 ``` js
@@ -62,28 +62,6 @@ instance.markRegExp(/\w+\s((nested group)\s+\w+)/dg, {
       if (info.groupIndex === 2) {
           markElement.className = 'nested';
       }
-    }
-});
-```
-
-<h4 id="mark-nesting-groups">To mark nesting groups with <code>acrossElements</code> option and RegExp without <code>d</code> flag</h4>
-It treats the whole match as a group 0, and all child groups, in this case 'group1, group2', as nested ones.  
-It's an only way to wrap nested groups without `d` flag:
-
-``` js
-let regex = /\w+\s(group1).+?(group2).*/gi;
-
-instance.markRegExp(regex, {
-    'acrossElements': true,
-    'separateGroups': true,
-    'wrapAllRanges': true,
-    'each': (markElement, info) => {
-        if (info.groupIndex === 0) {
-            markElement.className = 'main-group';
-        }
-        if (info.groupIndex > 0) {
-            markElement.className = 'nested-group';
-        }
     }
 });
 ```
