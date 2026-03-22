@@ -1,17 +1,14 @@
 
 ## Highlighting separate groups
 
-**Important:** this version support only RegExp having `d` flag.
+**Important:** this version supports only RegExp having `d` flag.
 
-The nested groups logic:
+The group's highlighting logic:
 * Case without `wrapAllRanges` option:
-  * The logic for nested groups - if a parent group has been marked, there is no way to highlight nested groups.  
-    This means you can use a nested group(s) as auxiliary and don't care about filtering them.
+  * If the parent group has been marked, all nested groups are ignored.  
+    If the parent group is used as an auxiliary, you need to filter it out in order to highlight a nested group(s).
 * Case `wrapAllRanges: true`:
-  * It is wrapped all nested groups - you need to filter out nested an auxiliary group(s).
-
-The parent groups logic:
-* It does allow using a parent group as an auxiliary - you need to filter out it in order to highlight a nested group(s).
+  * All groups (parent and nested group(s)) are highlighted - you need to filter out unwanted group(s).
 
 See [markRegExp() method](markRegExp-method.md#markRegExp-filter) about `info` object properties used in `filter` and `each` callbacks.    
 How to filter matches see [Filtering matches](filtering-matches.md).  

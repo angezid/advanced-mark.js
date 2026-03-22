@@ -11,7 +11,7 @@ $(context).mark(search[, options]);
 #### Parameters:
 * `search` {string|string[]} - string or array of strings
 * `options` {object} - Optional options:
-  * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
+  * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} - A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
     See [exclude](options.html#exclude-option) option for more details.
@@ -33,14 +33,14 @@ $(context).mark(search[, options]);
     * Or an <b>object</b> with two properties:
       * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
       * `limiters`: a string or an array of custom word boundary characters,  
-        e.g. `{ value: "exactly", limiters: ",.;:?!'\\"()" }`
+        e.g. `{ value: 'exactly', limiters: ',.;:?!\\'"()' }`
 
-  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `disabled`):
-    * `disabled`: The characters `?` and `*` match itself
-    * `enabled`:
+  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `'disabled'`):
+    * `'disabled'`: The characters `?` and `*` match itself
+    * `'enabled'`:
       * The character `?` match any non-white-space character zero or one time.
       * The character `*` match any non-white-space character zero or more times.
-    * `withSpaces`:
+    * `'withSpaces'`:
       * The character `?` match any character zero or one time.
       * The character `*` match any character zero or more times, but as few times as possible.
         
@@ -83,7 +83,7 @@ $(context).mark(search[, options]);
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.  
         When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
   
-The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).  
+The function **must** return either `true` (highlight) or `false` (skip highlighting).  
 See [Filtering matches](filtering-matches.md) for more details.
 
   * `each: (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
@@ -166,4 +166,4 @@ jQuery:
 <pre><code class='lang-javascript'>$('selector').mark('test', options);</code></pre>
 </details>
 
-* AE - only available when `acrossElements` option is set to `true`
+* AE - only available with option `acrossElements: true`

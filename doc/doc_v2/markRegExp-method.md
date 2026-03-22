@@ -9,11 +9,11 @@ instance.markRegExp(regex[, options]);
 $(context).markRegExp(regex[, options]);
 ```
 #### Parameters:
-* `regex` {RegExp} - The regular expression. With `acrossElements` option it **must** have `g` flag - it works with indexes and only two `g` and `y` flags allow control RegExp `lastIndex`.  
-  **Note** that for backward compatibility, RegExp without `g` flag is recompile internally with `g` flag.  
-  Although without `acrossElements` option it doesn't require `g` flag, it still recommended having this flag for future changes.
+* `regex` {RegExp} - The regular expression. With the `acrossElements` option, it **must** have the `g` flag - the library works with indexes, and only two `g` and `y` flags allow setting RegExp `lastIndex`.  
+  **Note** that for backward compatibility, RegExp without the `g` flag is recompiled internally with this flag.  
+  **Warning:** version 3 requires the `g` flag for any RegExp unless it has the `y` flag.
 * `options` {object} - Optional options:
-  * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
+  * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
     See [exclude](options.html#exclude-option) option for more details.

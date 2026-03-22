@@ -4,6 +4,7 @@
 ``` js
 // javascript
 const instance = new Mark(context);
+const ranges = [{ start: 2, length: 5 }, { start: 10, length: 7 },,,];
 instance.markRanges(ranges[, options]);
 // jQuery
 $(context).markRanges(ranges[, options]);
@@ -11,7 +12,7 @@ $(context).markRanges(ranges[, options]);
 #### Parameters:
 * `ranges` {object[]} - An array of objects with `start` and `length` properties with integer type values.
 * `options` {object} - Optional options:
-  * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
+  * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
     See [exclude](options.html#exclude-option) option for more details.

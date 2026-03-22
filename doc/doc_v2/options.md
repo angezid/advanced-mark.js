@@ -4,22 +4,22 @@
 **Note:** this is still under development.
 
 ### `acrossElements` option
-With this option the library aggregate all context(s) text node contents into a single string taking into account HTML elements.  
-If a block element 'divides' two text nodes, and `node.textContent`s doesn't separated by white space, the space is added to the string to separate them,  
+With this option, the library aggregates all context(s) text node contents into a single string taking into account HTML elements.  
+If two text nodes are divided by a block element, and `node.textContent`s doesn't separated by white spaces, a space is added to the string to separate them,  
 e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Header Paragraph' (in *mark.js* - 'HeaderParagraph').
 
 Due to searching in single string, it can highlight matches across HTML block elements, which in most cases are undesirable.
 A `blockElementsBoundary` option can be used to limit matches within HTML elements. See [Elements boundaries](elements-boundaries.md) for more details.
 
 ### `separateWordSearch` option
-When it set to `true`, if a searching string contains several words, it splits the string by spaces into separate words and highlights individual words instead of the whole string.  
-It also applies to every string in a searching array.
+When it is set to `true`, if a searching string contains several words, it splits the string by spaces into separate words and highlights individual words instead of the whole string.
+It also applies to every string in a search array.
 
-When it set to `'preserveTerms'`, it preserved term(s) surrounding by double quotes from breaking into separate words.  
-This allows highlight exact term(s) alone side with individual words.  
-It can be useful, when library is used to highlight searchings or in case of using a string instead of an array and there is need to keep some term(s) intact.
+When it is set to `'preserveTerms'`, it preserves the term(s) surrounded by double quotes from breaking into separate words.  
+This allows highlighting exact term(s) alongside with individual words.  
+It can be useful when the library is used to highlight searches or in the case of using a string instead of an array, and there is a need to keep some term(s) intact.
 
-It also allows highlight quoted terms no matter how many quotes it contains on each side (but not in the middle),  
+It also allows highlighting quoted terms no matter how many quotes it contains on each side (but not in the middle),
 e.g. `""term""` - marked `"term"`, `""""term"` - `"""term`.
 
 ### `exclude` option
@@ -63,8 +63,21 @@ An accuracy object can be used if the default boundaries are not satisfactory:
 * `limiters`: a string or an array of custom word boundary characters,  
   e.g. `{ value: 'exactly', limiters: ",.;:?!'\\"()" }`
 
-**AE** - with option `acrossElements: true` or `acrossElements: inline`.
+**AE** - with option `acrossElements: true`.
 
+### `combinePatterns` option
+Related to `mark()` method.  
+This option allows to control how many individual terms will be processed at run, e.g., an array of 50 strings, `combinePatterns: 10` - the library creates 5 combine patterns and perform 5 runs.  
+Any number bigger than the array length or `Infinity` creates a single combined pattern.  
+
+**Note:** when highlighting a (especially) large array of strings with the `diacritics` option (`ignorePunctuation` and `ignoreJoiners` options also affect size), a single pattern can be monstrous and slower (it can also exceed the browser RegExp size limit); it's better to create several patterns.   
+   Also, a single pattern prevents highlighting inside already highlighted elements.
+
+``` js
+instance.mark([ 'str1', 'str2', .. ], {
+  'combinePatterns': number  // default number is 10
+});
+```
 
 ``` js
 

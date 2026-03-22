@@ -1,20 +1,19 @@
 
 ## Highlighting separate groups
 
-**Important:** in this implementation two branches of code process separate groups, which one, depending on the existence of `d` flag.
-1. Primitive, base on `indexOf()`, only reliable with contiguous groups - unwanted group(s) can be easily filtered out.
-2. Exact, but not all browsers currently supported group `indices`.  
+**Important:** in this implementation, two branches of code process separate groups, which one, depending on the presence of a `d` flag.
+1. Primitive, based on `indexOf()`, is only reliable with contiguous groups - unwanted group(s) can be easily filtered out.
+2. Exact, but older browsers do not support group `indices`.
 
 * Case without `wrapAllRanges` option:
-  * They both have identical logic for nested groups - if a parent group has been marked, there is no way to mark nested groups.  
-    This means you can use a nested group(s) as auxiliary and don't care about filtering them.
+* They both have identical logic for nested groups - if a parent group has been marked, all nested groups are ignored.
 * Case `wrapAllRanges: true`:
-  * With `acrossElements` option, the primitive one wrap a whole match as a group 0 and then all groups that are child of match[0] as a nested (see [Example](nesting-overlapping.md#mark-nesting-groups)).
-  * The exact one wrap all nested groups - you need to filter nested an auxiliary group(s).
+* With `acrossElements` option, the primitive one wraps a whole match as a group 0 and then all groups that are children of match[0] as nested (see [Example](nesting-overlapping.md#mark-nesting-groups)).
+* The exact one wraps all (parent and nested group(s)) - you need to filter out unwanted group(s).
 
-They have different parent groups logic:
+They have different parent group logic:
 * The exact one does allow using a parent group as an auxiliary - you need to filter out it in order to mark a nested group(s).
-* The primitive one does not allow this - if a parent group has filtered out, a nested group(s) won't be marked.
+* The primitive one does not allow this - if the parent group has filtered out, all nested groups are ignored.
 
 To test the primitive branch compatibility, just add the `d` flag.
 
@@ -23,7 +22,7 @@ Compare: string - 'AAB xxx BCD xx BC', to mark groups AB and BC
   - in `/(AB)\b.+?\b(BC)/g` the indexOf('BC', start) find first 'BC', which is correct
   - in `/(AB)\b(.+?)\b(BC)(?!D)/g` the indexOf('BC', start) also find first 'BC', which is wrong, because of condition '(?!D)', so group 2 is required.
 
-Warning: related using RegExp without the `d` flag:
+**Warning** related to using RegExp without the `d` flag:
 * Do not add a capturing group(s) to lookbehind assertion `(?<=)`, there is no code which handles such cases.
 * With `acrossElements` option, it is not possible to highlight a capturing group(s) inside a lookahead assertion `(?=)`.
 

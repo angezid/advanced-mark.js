@@ -1627,10 +1627,6 @@ class Mark {
       num = value;
     }
 
-    /*if (this.opt.highlight && num < length) {
-      this.log('For performance, set \'combineBy\': Infinity', 'warn');
-    }*/
-
     for (let i = 0; i < length; i += num) {
       // get a chunk of terms to create combine pattern
       const chunk = terms.slice(i, Math.min(i + num, length));

@@ -9,8 +9,8 @@ instance.markRegExp(regex[, options]);
 $(context).markRegExp(regex[, options]);
 ```
 #### Parameters:
-* `regex` {RegExp} - The regular expression. It **must** have `g` flag - it works with indexes and only two `g` and `y` flags allow to control RegExp `lastIndex`.  
-  **Note** that for backward compatibility, RegExp without `g` flag is recompile internally with `g` flag.  
+* `regex` {RegExp} - The regular expression. It **must** have the `g` flag - the library works with indexes, and only two `g` and `y` flags allow setting RegExp `lastIndex`.  
+  **Note** that for backward compatibility, RegExp without the `g` flag is recompiled internally with this flag.
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
@@ -45,7 +45,8 @@ $(context).markRegExp(regex[, options]);
   * `log` {object} - Log messages to a specific object (default is `console`)
 
   * `filter: (nodeOrArray, matchString, matchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
-    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with the `acrossElements` option can be part of the match) or an array of text node(s) if the `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
+    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with the `acrossElements` option can be part of the match)  
+      OR an array of text node(s) if the `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
     * `matchString` {string} - The matching string:
       1. without `ignoreGroups` and `separateGroups` options - the whole match
       2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string,  
@@ -61,8 +62,8 @@ $(context).markRegExp(regex[, options]);
  
 The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
-  * `each: (elementOrRange, eachInfo) => {}` {function} - A callback for each created marked element or `Range` object if the `Highlight` API is enabled (default is )
-    * `elementOrRange` {HTMLElement|Range} - The marked DOM element or `Range` object if the `Highlight` API is enabled
+  * `each: (elementOrRange, eachInfo) => {}` {function} - A callback for each created marked element OR `Range` object if the `Highlight` API is enabled (default is )
+    * `elementOrRange` {HTMLElement|Range} - The marked DOM element OR `Range` object if the `Highlight` API is enabled
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
@@ -71,7 +72,7 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
       * `groupStart` {boolean} - Indicate the start of group  AE SG
 
   * `done: (total, totalMatches) => {}` {function} - A callback on finish. (default is )
-    * `total` {number} - The total number of marked DOM elements or created `Range` objects if the `Highlight` API is enabled
+    * `total` {number} - The total number of marked DOM elements OR created `Range` objects if the `Highlight` API is enabled
     * `totalMatches` {number} - The total number of matches
 
   * `noMatch: (regex) => {}` {function} - A callback that is called when regex failed to match (default is )

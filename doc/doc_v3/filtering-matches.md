@@ -82,10 +82,10 @@ instance.markRegExp(reg, {
 #### Mark the first desired number of matches on `each` callback using `acrossElements` option.
 It's much more limited than the `filter` callback.
 ``` js
-let reg = /.../gi;
+let reg = /.../gi; // Note that RegExp must have g flag
 
 instance.markRegExp(reg, {
-    'acrossElements': true,
+    // 'acrossElements': true,
     'each': (markElement, info) => {
         // to mark only the first match
         reg.lastIndex = Infinity;

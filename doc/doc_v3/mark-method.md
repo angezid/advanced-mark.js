@@ -21,7 +21,7 @@ $(context).mark(search[, options]);
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
   * `combineBy` {number} - Combine a specified number of individual term patterns into one (old name `combinePatterns`) (default is `10`)
-    See [Performance](performance.md#ways-to-boost-performance) for more details.
+    See [combineBy](options.html#combineBy-option) option for more details.
 
   * `accuracy` {string|object} -   (default is `'partially'`):
     * Either one of the following <b>string</b> value:
@@ -32,6 +32,7 @@ $(context).mark(search[, options]);
   
   The **built-in** boundaries for values `startsWith` and `complementary` are:  
   white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
+  See [accuracy](options.html#accuracy-option) option for more details.
 
     * Or an <b>object</b> with two properties:
       * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
@@ -76,7 +77,8 @@ $(context).mark(search[, options]);
   * `log` {object} - Log messages to a specific object (default is `console`)
 
   * `filter: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
-    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with the `acrossElements` option can be part of the match) or an array of text node(s) if the `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
+    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with the `acrossElements` option can be part of the match)  
+      OR an array of text node(s) if the `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
     * `term` {string} - The current term
     * `matchesSoFar` {number} - The number of all matches so far
     * `termMatchesSoFar` {number} - The number of matches for the current term so far
@@ -89,8 +91,8 @@ $(context).mark(search[, options]);
 The function **must** return either `true` (highlight) or `false` (skip highlighting).  
 See [Filtering matches](filtering-matches.md) for more details.
 
-  * `each: (elementOrRange, eachInfo) => {}` {function} - A callback for each created marked element or `Range` object if the `Highlight` API is enabled (default is )
-    * `elementOrRange` {HTMLElement|Range} - The marked DOM element or `Range` object if the `Highlight` API is enabled 
+  * `each: (elementOrRange, eachInfo) => {}` {function} - A callback for each created marked element OR `Range` object if the `Highlight` API is enabled (default is )
+    * `elementOrRange` {HTMLElement|Range} - The marked DOM element OR `Range` object if the `Highlight` API is enabled 
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
@@ -99,7 +101,7 @@ See [Filtering matches](filtering-matches.md) for more details.
 See [Code examples](some-examples.md).
 
   * `done: (total, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
-    * `total` {number} - The total number of marked DOM elements or created `Range` objects if the `Highlight` API is enabled
+    * `total` {number} - The total number of marked DOM elements OR created `Range` objects if the `Highlight` API is enabled
     * `totalMatches` {number} - The total number of matches
     * `termStats` {object} - An object containing an individual term's matches count
 

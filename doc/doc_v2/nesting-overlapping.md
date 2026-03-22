@@ -17,10 +17,11 @@ The lookaround examples demonstrate cases when `wrapAllRanges` option should be 
 
 * Groups overlapping case: regex `/\w+(?=.*?(gr1 \w+))(?=.*?(\w+ gr2))/dg` , string 'word gr1 overlap gr2' - the gr1 is wrapped, the gr2 is ignored.
 
-Note: the `wrapAllRanges` option can cause performance degradation if the context contains a very large number of text nodes and mark elements. 
+**Note:** the `wrapAllRanges` option can cause performance degradation when highlighting a very large number of overlapping matches.
 This is because with each wrapping, two more objects are inserted into the array, which require a lot of copying, memory allocation ...
 
-The 8MB file containing 177000 text nodes:
+The 8MB file containing 177000 text nodes:  
+**Warning:** this performance tests were run on slow processor (important is ratio than actual time)  
 
 |         option         |  marked groups 2500  |  marked groups 29000  |
 |------------------------|----------------------|-----------------------|
@@ -34,7 +35,7 @@ The 1MB file containing 20800 text nodes:
 | wrapAllRanges: true    |       120 ms.        |      710 ms.          |
 | wrapAllRanges: false   |       70 ms.         |      310 ms.          |
 
-Note: `wrapAllRanges` option with `d` flag wraps all capturing groups regardless of nested level. You need to filter out unwanted groups.  
+**Note** that `wrapAllRanges` option with `d` flag wraps all capturing groups regardless of nested level. You need to filter out unwanted groups.  
 Without this option - if a group has been wrapped, all nested groups are ignored.
 
 #### To mark nesting/overlapping ranges.
