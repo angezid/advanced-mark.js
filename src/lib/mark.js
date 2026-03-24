@@ -78,6 +78,7 @@ class Mark {
       'iframes': false,
       'iframesTimeout': 5000,
       'separateWordSearch': true,
+      'staticRanges': true,
       'rangeAcrossElements': true,
       'acrossElements': false,
       'ignoreGroups': 0,
@@ -683,13 +684,21 @@ class Mark {
    * @param {number} endNode - The text node where a match is ended
    * @param {number} endOffset - The end index of the match in endNode
    * @param {number} absoluteOffset - The absolute start index from the beginning of first context.
-   * Used to sort ranges by ascending order.
+   * Uses to sort ranges by ascending order.
    * @param {Mark~createRangeEachCallback} eachCb - Each callback
    */
   createRange(startNode, startOffset, endNode, endOffset, absoluteOffset, eachCb) {
-    const range = new Range();
-    range.setStart(startNode, startOffset);
-    range.setEnd(endNode, endOffset);
+    let range;
+
+    if (this.opt.staticRanges) {
+      range = new StaticRange({ startContainer: startNode, startOffset, endContainer: endNode, endOffset });
+
+    } else {
+      range = new Range();
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+    }
+
     range.absoluteOffset = absoluteOffset;
 
     eachCb(range, true);

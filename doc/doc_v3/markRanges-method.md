@@ -9,6 +9,7 @@ instance.markRanges(ranges[, options]);
 // jQuery
 $(context).markRanges(ranges[, options]);
 ```
+
 #### Parameters:
 * `ranges` {object[]} - An array of objects with `start` and `length` properties with integer type values.
 * `options` {object} - Optional options:
@@ -22,10 +23,10 @@ $(context).markRanges(ranges[, options]);
   * `highlight` {Highlight} - If a `Highlight` object is provided, the library switches to using the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
     See [highlight](options.html#highlight-option) option for more details.
   * `highlightName` {string} - The name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
-  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (when using the `Highlight` API) (default is `true`)
-    See [rangeAcrossElements](options.html#rangeAcrossElements-option) option for more details.
-  
-  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (`Highlight` API) (default is `true`)
+  * `staticRanges` {boolean} - Whether to use `StaticRange` objects instead of `Range` objects (`Highlight` API) (default is `true`)
+    See [staticRanges](options.html#staticranges-option) option for more details.
+  * `rangeAcrossElements` {boolean} - Whether to create a single `StaticRange/Range` object for matches located across elements (when using the `Highlight` API) (default is `true`)
+    See [rangeAcrossElements](options.html#rangeacrosselements-option) option for more details.
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -39,25 +40,25 @@ $(context).markRanges(ranges[, options]);
   * `filter: (nodeOrArray, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
     * `nodeOrArray` {Text|Text[]} - The text node which includes the range or is the part of the range  
       OR an array of text node(s) if the `Highlight` API is enabled with `rangeAcrossElements` option
-    * `range` {object} - The current range object
+    * `range` {object} - The current range object with `start` and `length` properties
     * `matchString` {string} - The current range matching string
     * `index` {number} - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)
 
 The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
-  * `each: (elementOrRange, range, rangeInfo) => {}` {function} - A callback for each created marked element OR `Range` object if the `Highlight` API is enabled (default is )
-    * `elementOrRange` {HTMLElement|Range} - The marked DOM element OR `Range` object if the `Highlight` API is enabled
+  * `each: (elementOrRange, range, rangeInfo) => {}` {function} - A callback for each created marked element OR `StaticRange/Range` object if the `Highlight` API is enabled (default is )
+    * `elementOrRange` {HTMLElement|StaticRange|Range} - The marked DOM element OR `StaticRange/Range` object if the `Highlight` API is enabled
     * `range` {object} - The range object with `start` and `length` properties
     * `rangeInfo` {object}:
       * `matchStart` {boolean} - indicate the start of a range;
       * `count` {number} - The number of wrapped ranges so far
 
   * `done: (total, totalRanges) => {}` {function} - A callback on finish (default is )
-    * `total` {number} - The total number of marked DOM elements OR created `Range` objects if the `Highlight` API is enabled
+    * `total` {number} - The total number of marked DOM elements OR created `StaticRange/Range` objects if the `Highlight` API is enabled
     * `totalRanges` {number} - The number of total ranges
 
   * `noMatch: (range) => {}` {function} - A callback that is called on non-valid range (default is )
-    * `range` {string} - The stringify range
+    * `range` {object} - The range object with `start` and `length` properties
 
 <details class="internal-code">
 <summary><b>Example with default options values</b></summary>
@@ -69,6 +70,8 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
     
     wrapAllRanges: false,
     markLines: false,
+    
+    staticRanges: true, // Highlight API
     rangeAcrossElements: true, // Highlight API
     shadowDOM: false,
     iframes: false,

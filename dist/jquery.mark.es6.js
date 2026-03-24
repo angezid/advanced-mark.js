@@ -407,6 +407,7 @@ class Mark {
       'iframes': false,
       'iframesTimeout': 5000,
       'separateWordSearch': true,
+      'staticRanges': true,
       'rangeAcrossElements': true,
       'acrossElements': false,
       'ignoreGroups': 0,
@@ -729,9 +730,14 @@ class Mark {
     return retNode;
   }
   createRange(startNode, startOffset, endNode, endOffset, absoluteOffset, eachCb) {
-    const range = new Range();
-    range.setStart(startNode, startOffset);
-    range.setEnd(endNode, endOffset);
+    let range;
+    if (this.opt.staticRanges) {
+      range = new StaticRange({ startContainer: startNode, startOffset, endContainer: endNode, endOffset });
+    } else {
+      range = new Range();
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+    }
     range.absoluteOffset = absoluteOffset;
     eachCb(range, true);
     if (range) this.rangeArray.push(range);

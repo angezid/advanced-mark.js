@@ -1,21 +1,20 @@
 
-## Nesting/overlapping ranges and match groups
+## Nesting/overlapping ranges and RegExp capturing groups
 
-The `markRanges()` method with `wrapAllRanges` option, can mark nesting/overlapping ranges. With this option, all ranges that have indexes within 0 and context length be wrapped.  
+The `markRanges()` method with `wrapAllRanges` option, can highlight nesting/overlapping ranges.  
+With this option, all ranges that have indexes within 0 and context length be wrapped.
 
-The `markRegExp()` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can mark:
-nesting groups, capturing groups inside positive lookaround assertions. It practically removes all restrictions.  
+The `markRegExp()` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can highlight:
+* capturing groups regardless of nested level. You need to filter out unwanted groups  
+  Without `wrapAllRanges` option - if a group has been wrapped, all nested groups are ignored.
+* capturing groups inside **positive** lookaround assertions
 
-The lookaround examples demonstrate cases when `wrapAllRanges` option should be used, otherwise they won't be correctly highlighted:
+It practically removes all restrictions.
 
-* RegExp with lookaround assertions can create overlapping matches.  
-  e.g. regex `/(?<=(gr1)\s+\w+\b).+?(gr2)/dg`,  string 'gr1 match1 gr1 gr2 match2 gr2'.  
-  The gr1 from the second match not wrapped because the gr2 from the first match is already wrapped.
-
-* Another case: regex `/(?=\d*(1))(?=\d*(2))(?=\d*(3))/dg`, matches '123, 132, 213, 231, 312, 321'.  
-  This is not an overlapping case, but groups are wrapped in any order. If group 1 is wrapped first, the 2 and 3 are ignored in '231, 321' ...  
-
-* Groups overlapping case: regex `/\w+(?=.*?(gr1 \w+))(?=.*?(\w+ gr2))/dg` , string 'word gr1 overlap gr2' - the gr1 is wrapped, the gr2 is ignored.
+See Playground examples that demonstrate cases of using `wrapAllRanges` option:
+* Playground - Examples -> Overlapped groups
+* Playground - Examples -> Overlapped matches
+* Playground - Examples -> Random groups
 
 **Note:** the `wrapAllRanges` option can cause performance degradation when highlighting a very large number of overlapping matches.
 This is because with each wrapping, two more objects are inserted into the array, which require a lot of copying, memory allocation ...
@@ -34,9 +33,6 @@ The 1MB file containing 20800 text nodes:
 |------------------------|----------------------|-----------------------|
 | wrapAllRanges: true    |       120 ms.        |      710 ms.          |
 | wrapAllRanges: false   |       70 ms.         |      310 ms.          |
-
-**Note** that `wrapAllRanges` option with `d` flag wraps all capturing groups regardless of nested level. You need to filter out unwanted groups.  
-Without this option - if a group has been wrapped, all nested groups are ignored.
 
 #### To mark nesting/overlapping ranges.
 ``` js

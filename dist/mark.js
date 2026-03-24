@@ -573,6 +573,7 @@
           'iframes': false,
           'iframesTimeout': 5000,
           'separateWordSearch': true,
+          'staticRanges': true,
           'rangeAcrossElements': true,
           'acrossElements': false,
           'ignoreGroups': 0,
@@ -1029,9 +1030,19 @@
     }, {
       key: "createRange",
       value: function createRange(startNode, startOffset, endNode, endOffset, absoluteOffset, eachCb) {
-        var range = new Range();
-        range.setStart(startNode, startOffset);
-        range.setEnd(endNode, endOffset);
+        var range;
+        if (this.opt.staticRanges) {
+          range = new StaticRange({
+            startContainer: startNode,
+            startOffset: startOffset,
+            endContainer: endNode,
+            endOffset: endOffset
+          });
+        } else {
+          range = new Range();
+          range.setStart(startNode, startOffset);
+          range.setEnd(endNode, endOffset);
+        }
         range.absoluteOffset = absoluteOffset;
         eachCb(range, true);
         if (range) this.rangeArray.push(range);

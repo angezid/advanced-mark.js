@@ -10,7 +10,7 @@ $(context).unmark([options]);
 ```
 #### Parameters:
 * `options` {object} - Optional options:
-  * `highlight` {Highlight} - If a `highlight` object is specified, the library deletes necessary (if <a href="#unmark-exclude">exclude</a> option is specified) or all `Range` objects from the `highlight` object (default is `undefined`)
+  * `highlight` {Highlight} - If a `highlight` object is specified, the library deletes necessary (if <a href="#unmark-exclude">exclude</a> option is specified) or all `StaticRange/Range` objects from the `highlight` object (default is `undefined`)
     **Note:** it's not removed any mark elements; `element` and `className` options are ignored.
   * `highlightName` {string} - A name of the `Highlight` object necessary to unregister it using the `HighlightRegistry` before  deleting ranges and register again if it contains some ranges (default is `'markjs'`)
 

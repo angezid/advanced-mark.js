@@ -48,7 +48,7 @@ The function **must** return either `true` (to wrap) or `false` (to skip wrappin
     * `totalRanges` {number} - The number of total ranges
 
   * `noMatch: (range) => {}` {function} - A callback that is called on non-valid range (default is )
-    * `range` {string} - The stringify range
+    * `range` {object} - The non-valid range object
 
 <details class="internal-code">
 <summary><b>Example with default options values</b></summary>

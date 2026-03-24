@@ -1,11 +1,12 @@
 
-## Nesting/overlapping ranges and match groups
+## Nesting/overlapping ranges and RegExp capturing groups
 
 The `markRanges()` method with `wrapAllRanges` option, can highlight nesting/overlapping ranges.  
-With this option, all ranges that have indexes within 0 and context length be wrapped.  
+With this option, all ranges that have indexes within 0 and context length be wrapped.
 
 The `markRegExp()` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can highlight:
-* nesting groups
+* capturing groups regardless of nested level. You need to filter out unwanted groups  
+  Without `wrapAllRanges` option - if a group has been wrapped, all nested groups are ignored.
 * capturing groups inside **positive** lookaround assertions
 
 It practically removes all restrictions.
@@ -14,9 +15,6 @@ See Playground examples that demonstrate cases of using `wrapAllRanges` option:
 * Playground - Examples -> Overlapped groups
 * Playground - Examples -> Overlapped matches
 * Playground - Examples -> Random groups
-
-**Note** that `wrapAllRanges` option with `d` flag wraps all capturing groups regardless of nested level. You need to filter out unwanted groups.  
-Without this option - if a group has been wrapped, all nested groups are ignored.
 
 **The below issue does not occur when using a `Highlight` API with `acrossElements` (`markRanges()` API does not require this) option.**  
 **Note:** the `wrapAllRanges` option can cause performance degradation when highlighting a very large number of overlapping matches.  

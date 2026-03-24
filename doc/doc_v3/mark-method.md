@@ -21,7 +21,7 @@ $(context).mark(search[, options]);
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
   * `combineBy` {number} - Combine a specified number of individual term patterns into one (old name `combinePatterns`) (default is `10`)
-    See [combineBy](options.html#combineBy-option) option for more details.
+    See [combineBy](options.html#combineby-option) option for more details.
 
   * `accuracy` {string|object} -   (default is `'partially'`):
     * Either one of the following <b>string</b> value:
@@ -66,8 +66,10 @@ $(context).mark(search[, options]);
   * `highlight` {Highlight} - If a `Highlight` object is provided, the library switches to using the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
     See [highlight](options.html#highlight-option) option for more details.
   * `highlightName` {string} - The name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
-  * `rangeAcrossElements` {boolean} - Whether to create a single `Range` object for matches located across elements (when using the `Highlight` API with `acrossElements` option) (default is `true`)
-    See [rangeAcrossElements](options.html#rangeAcrossElements-option) option for more details.
+  * `staticRanges` {boolean} - Whether to use `StaticRange` objects instead of `Range` objects (`Highlight` API) (default is `true`)
+    See [staticRanges](options.html#staticranges-option) option for more details.
+  * `rangeAcrossElements` {boolean} - Whether to create a single `StaticRange/Range` object for matches located across elements (when using the `Highlight` API with `acrossElements` option) (default is `true`)
+    See [rangeAcrossElements](options.html#rangeacrosselements-option) option for more details.
 
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
@@ -91,8 +93,8 @@ $(context).mark(search[, options]);
 The function **must** return either `true` (highlight) or `false` (skip highlighting).  
 See [Filtering matches](filtering-matches.md) for more details.
 
-  * `each: (elementOrRange, eachInfo) => {}` {function} - A callback for each created marked element OR `Range` object if the `Highlight` API is enabled (default is )
-    * `elementOrRange` {HTMLElement|Range} - The marked DOM element OR `Range` object if the `Highlight` API is enabled 
+  * `each: (elementOrRange, eachInfo) => {}` {function} - A callback for each created marked element OR `StaticRange/Range` object if the `Highlight` API is enabled (default is )
+    * `elementOrRange` {HTMLElement|StaticRange|Range} - The marked DOM element OR `StaticRange/Range` object if the `Highlight` API is enabled 
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
@@ -101,7 +103,7 @@ See [Filtering matches](filtering-matches.md) for more details.
 See [Code examples](some-examples.md).
 
   * `done: (total, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
-    * `total` {number} - The total number of marked DOM elements OR created `Range` objects if the `Highlight` API is enabled
+    * `total` {number} - The total number of marked DOM elements OR created `StaticRange/Range` objects if the `Highlight` API is enabled
     * `totalMatches` {number} - The total number of matches
     * `termStats` {object} - An object containing an individual term's matches count
 
@@ -143,6 +145,7 @@ See [Code examples](some-examples.md).
     combineBy: 10,
     blockElementsBoundary: false,
     
+    staticRanges: true, // Highlight API
     rangeAcrossElements: true, // Highlight API
     shadowDOM: false,
     iframes: false,

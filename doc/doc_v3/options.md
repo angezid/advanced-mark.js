@@ -83,17 +83,10 @@ instance.mark([ 'str1', 'str2', .. ], {
 ### `highlight` option
 This option allows using [CSS Custom Highlight API](https://developer.mozilla.org/developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API.html).
 
-If a `Highlight` object is provided, the library creates `Range` objects of matches, adds them to the `Highlight` object, and registers it using the `HighlightRegistry` when it finishes.  
-**Note** that `each` callback's first parameter is the `Range` object instead of an HTML element.
+If a `Highlight` object is provided, the library creates `StaticRange/Range` objects of matches, adds them to the `Highlight` object, and registers it using the `HighlightRegistry` when it finishes.  
+**Note** that `each` callback's first parameter is the `StaticRange/Range` object instead of an HTML element.
 
 If a browser does not support the Highlight API, the library wrap matches in HTML elements.
-
-One serious problem was discovered: after the library runs using Highlight API, there is a huge performance degradation (a hundred times) if the next run is wrapping matches in HTML elements, but not vice versa.  
-
-There is some explanation of the problem: [Custom Highlight API causing significant slowdowns with large amounts of nodes](https://stackoverflow.com/questions/78140011/custom-highlight-api-causing-significant-slowdowns-with-large-amounts-of-nodes).  
-This library splits text nodes before wrapping matches in HTML elements. No doubt it has a much more detrimental effect on performance than in the above link.
-
-So, use only the Highlight API, or if there is a need to wrap some matches in HTML elements, wrap them first and then switch to using the Highlight API.
 
 ``` js
 const array = [,,,,];
@@ -116,12 +109,25 @@ CSS
 }
 ```
 
+### `staticRanges` option
+When using a `Range` objects one serious problem was discovered: after the library runs using Highlight API, there is a huge performance degradation (a hundred times) if the next run is wrapping matches in HTML elements.  
+The library splits text nodes before wrapping matches in HTML elements and this is forced the browser to re-calculate layout and re-render highlights.  
+
+This performance problem is solved by using `StaticRange` objects, but it raise another problem:
+a `StaticRange` does not keep the same content on document changes.
+
+
+
+So, use only the Highlight API, or if there is a need to wrap some matches in HTML elements, wrap them first and then switch to using the Highlight API.
+
+
+
 ### `rangeAcrossElements` option
 This option allows creating a single range for matches located across elements when using the Highlight API with `acrossElements` (`markRanges()` API does not require this) option.  
 **Note** that `filter` callback's first parameter is an array of text node(s) containing a match instead of a text node.
 
-When it is set to `false`, the number of `Range` objects is equal to the number of marked elements (the library creates a `Range` object instead of creating an element).  
-It can be useful for compatibility: the only difference is `each` callback's first parameter - a `Range` object instead of an HTML element.
+When it is set to `false`, the number of `StaticRange/Range` objects is equal to the number of marked elements (the library creates a `StaticRange/Range` object instead of creating an element).  
+It can be useful for compatibility: the only difference is `each` callback's first parameter - a `StaticRange/Range` object instead of an HTML element.
 
 
 
