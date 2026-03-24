@@ -9,7 +9,6 @@ instance.markRanges(ranges[, options]);
 // jQuery
 $(context).markRanges(ranges[, options]);
 ```
-
 #### Parameters:
 * `ranges` {object[]} - An array of objects with `start` and `length` properties with integer type values.
 * `options` {object} - Optional options:

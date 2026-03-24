@@ -2,8 +2,12 @@
 describe('using CSS Custom Highlight API', () => {
   let $ctx;
   beforeEach(() => {
-    loadFixtures('basic/main.html');
+    loadFixtures('highlight/main.html');
     $ctx = $('.basic');
+  });
+  
+  afterEach(() => {
+    if (CSS.highlights) CSS.highlights.clear();
   });
 
   it('should create expected number of Range objects', done => {

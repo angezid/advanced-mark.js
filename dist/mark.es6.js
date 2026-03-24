@@ -789,7 +789,7 @@ class Mark$1 {
             n.node = this.wrapRange(n, s, e, node => {
               eachCb(node, rangeStart);
             });
-            n.start += e;
+            if ( !highlight) n.start += e;
           }
           rangeStart = false;
         }

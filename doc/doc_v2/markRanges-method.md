@@ -34,7 +34,7 @@ $(context).markRanges(ranges[, options]);
     * `matchString` {string} - The current range matching string
     * `index` {number} - The current range index (is not reliable - range can be skipped if it matches the string that contains only white spaces)
   
-The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
+The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
   * `each: (markElement, range, rangeInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element

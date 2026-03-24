@@ -1098,7 +1098,7 @@
                 n.node = this.wrapRange(n, s, e, function (node) {
                   eachCb(node, rangeStart);
                 });
-                n.start += e;
+                if (!highlight) n.start += e;
               }
               rangeStart = false;
             }

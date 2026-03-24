@@ -803,7 +803,7 @@ class Mark {
               eachCb(node, rangeStart);
             });
             // sets the new text node start index in the case of subsequent matches in the same text node
-            n.start += e;
+            if ( !highlight) n.start += e;
           }
           rangeStart = false;
         }

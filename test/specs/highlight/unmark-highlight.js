@@ -2,7 +2,7 @@
 describe('delete ranges from Highlight object', () => {
   let $ctx, $ctx2;
   beforeEach(() => {
-    loadFixtures('basic/unmark.html');
+    loadFixtures('highlight/unmark.html');
 
     $ctx = $('p#normal');
     $ctx2 = $('p#marked');

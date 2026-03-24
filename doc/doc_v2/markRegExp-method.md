@@ -56,7 +56,7 @@ $(context).markRegExp(regex[, options]);
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.
         When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
   
-The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).
+The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
   * `each: (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
