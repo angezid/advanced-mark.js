@@ -17,9 +17,10 @@ describe('delete ranges from Highlight object except', () => {
       highlight = new Highlight();
 
     instance.mark('lorem ipsum dolor', {
-      'highlight': highlight,
       'separateWordSearch': true,
       'diacritics': false,
+      'acrossElements': true,
+      'highlight': highlight,
       'done': () => {
         expect(highlight.size).toBe(16);
 

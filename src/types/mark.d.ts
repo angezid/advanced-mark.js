@@ -159,7 +159,7 @@ declare namespace Mark {
     iframesTimeout?: number;
     shadowDOM?: boolean;
     highlight?: Highlight;
-    highlightName?: string;
+    highlightName?: string | string[];
 
     done?() : void;
     debug?: boolean;

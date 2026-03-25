@@ -30,7 +30,7 @@ describe('using CSS Custom Highlight API', () => {
     });
   });
 
-  it('should create expected number of Range objects opt.', done => {
+  it('should create expected number of single ranges for matches across elements', done => {
     let instance = new Mark($ctx[0]),
       // eslint-disable-next-line
       highlight = new Highlight();

@@ -10,9 +10,12 @@ $(context).unmark([options]);
 ```
 #### Parameters:
 * `options` {object} - Optional options:
-  * `highlight` {Highlight} - If a `highlight` object is specified, the library deletes necessary (if <a href="#unmark-exclude">exclude</a> option is specified) or all `StaticRange/Range` objects from the `highlight` object (default is `undefined`)
-    **Note:** it's not removed any mark elements; `element` and `className` options are ignored.
-  * `highlightName` {string} - A name of the `Highlight` object necessary to unregister it using the `HighlightRegistry` before  deleting ranges and register again if it contains some ranges (default is `'markjs'`)
+  * `highlightName` {string|string[]} - A name or an Array of names of the `Highlight` object(s) from which `StaticRange/Range` objects should be deleted (according with the <a href="#unmark-exclude">exclude</a> option) (default is `'markjs'`)
+  
+  * `highlight` {Highlight} - If a `highlight` object is specified, the library do not removed any mark elements; `element` and `className` options are ignored (default is `undefined`)
+    **Note** that Highlight object served as boolean:
+      1. to prevent unwrapping existing marked elements
+      2. to avoid unnecessary iteration try to remove non-existing marked elements
 
   * `element` {string} - Specifies marked elements to remove. (default is `'mark'`)
     **Important:** if other than default marked element is used, e.g. `span`, it must be also specified in the `unmark()` method. It is also possible to use `\*` in case of using different marked elements to unmark in one run. A `mark.js` library uses a default selector `\*[data-markjs]` but it is not safe to apply to all HTML elements.

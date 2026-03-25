@@ -11,42 +11,25 @@ describe('using Highlight API', () => {
   });
 
   it('should create expected number of Range objects when chaining', done => {
-    let count; 
+    let count = 0;
     const instance = new Mark($ctx[0]),
       // eslint-disable-next-line
       highlight = new Highlight();
 
-    instance.mark('lorem', {
+    const options = {
       'diacritics': false,
       'acrossElements': true,
       'highlight': highlight,
       'done': (total) => {
-        count = total;
-
-        instance.mark('ipsum', {
-          'diacritics': false,
-          'acrossElements': true,
-          'highlight': highlight,
-          'done': () => {
-            count += total;
-
-            instance.mark('dolor', {
-              'diacritics': false,
-              'acrossElements': true,
-              'highlight': highlight,
-              'done': (total) => {
-                count += total;
-                
-                expect(count).toBe(25);
-                expect(count).toBe(highlight.size);
-
-                done();
-              }
-            });
-          }
-        });
+        count += total;
       }
-    });
+    };
+
+    instance.mark('lorem', options).mark('ipsum', options).mark('dolor', options);
+
+    expect(count).toBe(25);
+    expect(count).toBe(highlight.size);
+    done();
   });
 
 });

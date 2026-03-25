@@ -1725,68 +1725,69 @@ class Mark {
   }
 
   /**
-   * If Highlight object is specified, deletes ranges from the Highlight object according to options,
-   * otherwise removes all marked elements inside the context with their HTML and normalizes text nodes
+   * If the option 'highlightName' is specified, iterates over names, if the HighlightRegistry contains
+   * a Highlight name, and deletes ranges from the Highlight object according with the 'exclude' option;
+   * next, if allow, unwraps all marked elements inside the context and normalizes text nodes
    * @param {Mark~commonOptions} [opt] - Optional options object without each,
    * noMatch and acrossElements properties
    * @access public
    */
   unmark(opt) {
     this.opt = opt;
-    const highlight = this.opt.highlight;
-
-    if (highlight) {
-      if (highlight.size) {
-        // unregister Highlight object before deleting ranges (Firefox bug/feature)
-        this.registerHighlight(true);
-
-        highlight.forEach((range) => {
-          let node = range.startContainer;
-
-          if (node.nodeType === 3) {
-            node = node.parentNode;
-          }
-
-          if ( !this.excluded(node)) {
-            highlight.delete(range);
-          }
-        });
-        this.registerHighlight();
-      }
-      this.opt.done();
-
-    } else {
-      let selector = this.opt.element + '[data-markjs]';
-
-      if (this.opt.className) {
-        selector += `.${this.opt.className}`;
-      }
-      this.log(`Removal selector "${selector}"`);
-
-      this.iterator.forEachNode(this.filter.SHOW_ELEMENT, node => { // each
-        this.unwrapMatches(node);
-      }, node => { // filter
-        return DOMIterator.matches(node, selector) && !this.excluded(node);
-      }, this.opt.done);
+    let names = this.opt.highlightName || 'markjs',
+      highlight;
+    const registry = CSS.highlights;
+    // if the browser supports Highlight API
+    if (registry) {
+      if (typeof names === 'string') names = [names];
+  
+      names.forEach((name) => {
+        if ((highlight = registry.get(name)) && highlight.size) {
+          // unregister the Highlight object before deleting ranges
+          registry.delete(name);
+  
+          highlight.forEach((range) => {
+            let node = range.startContainer;
+  
+            if (node.nodeType === 3) node = node.parentNode;
+  
+            if ( !this.excluded(node)) highlight.delete(range);
+          });
+          // register the Highlight object with excluded ranges
+          if (highlight.size) registry.set(name, highlight);
+        }
+      });
     }
+    // removes only StaticRange/Range objects
+    if (this.opt.highlight) {
+      this.opt.done();
+      return; 
+    }
+
+    let selector = this.opt.element + '[data-markjs]';
+
+    if (this.opt.className) {
+      selector += `.${this.opt.className}`;
+    }
+    this.log(`Removal selector "${selector}"`);
+
+    this.iterator.forEachNode(this.filter.SHOW_ELEMENT, node => { // each
+      this.unwrapMatches(node);
+    }, node => { // filter
+      return DOMIterator.matches(node, selector) && !this.excluded(node);
+    }, this.opt.done);
   }
 
   /**
-   * Registers or unregisters Highlight object using HighlightRegistry interface
-   * @param {boolean} remove - Specified to unregisters Highlight object
+   * Registers Highlight object using HighlightRegistry interface
    */
-  registerHighlight(remove) {
+  registerHighlight() {
     const highlight = this.opt.highlight;
 
     if (highlight) {
       const name = this.opt.highlightName || 'markjs',
         // eslint-disable-next-line
         registry = CSS.highlights;
-
-      if (remove) {
-        registry.delete(name);
-        return;
-      }
 
       if (this.rangeArray.length) {
         registry.delete(name);
@@ -1802,6 +1803,7 @@ class Mark {
         this.rangeArray.forEach(range => {
           highlight.add(range);
         });
+        this.rangeArray = [];
       }
       if (highlight.size) registry.set(name, highlight);
     }

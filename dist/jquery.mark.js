@@ -1625,47 +1625,46 @@
       value: function unmark(opt) {
         var _this14 = this;
         this.opt = opt;
-        var highlight = this.opt.highlight;
-        if (highlight) {
-          if (highlight.size) {
-            this.registerHighlight(true);
-            highlight.forEach(function (range) {
-              var node = range.startContainer;
-              if (node.nodeType === 3) {
-                node = node.parentNode;
-              }
-              if (!_this14.excluded(node)) {
-                highlight["delete"](range);
-              }
-            });
-            this.registerHighlight();
-          }
-          this.opt.done();
-        } else {
-          var selector = this.opt.element + '[data-markjs]';
-          if (this.opt.className) {
-            selector += ".".concat(this.opt.className);
-          }
-          this.log("Removal selector \"".concat(selector, "\""));
-          this.iterator.forEachNode(this.filter.SHOW_ELEMENT, function (node) {
-            _this14.unwrapMatches(node);
-          }, function (node) {
-            return DOMIterator.matches(node, selector) && !_this14.excluded(node);
-          }, this.opt.done);
+        var names = this.opt.highlightName || 'markjs',
+          highlight;
+        var registry = CSS.highlights;
+        if (registry) {
+          if (typeof names === 'string') names = [names];
+          names.forEach(function (name) {
+            if ((highlight = registry.get(name)) && highlight.size) {
+              registry["delete"](name);
+              highlight.forEach(function (range) {
+                var node = range.startContainer;
+                if (node.nodeType === 3) node = node.parentNode;
+                if (!_this14.excluded(node)) highlight["delete"](range);
+              });
+              if (highlight.size) registry.set(name, highlight);
+            }
+          });
         }
+        if (this.opt.highlight) {
+          this.opt.done();
+          return;
+        }
+        var selector = this.opt.element + '[data-markjs]';
+        if (this.opt.className) {
+          selector += ".".concat(this.opt.className);
+        }
+        this.log("Removal selector \"".concat(selector, "\""));
+        this.iterator.forEachNode(this.filter.SHOW_ELEMENT, function (node) {
+          _this14.unwrapMatches(node);
+        }, function (node) {
+          return DOMIterator.matches(node, selector) && !_this14.excluded(node);
+        }, this.opt.done);
       }
     }, {
       key: "registerHighlight",
-      value: function registerHighlight(remove) {
+      value: function registerHighlight() {
         var _this15 = this;
         var highlight = this.opt.highlight;
         if (highlight) {
           var name = this.opt.highlightName || 'markjs',
             registry = CSS.highlights;
-          if (remove) {
-            registry["delete"](name);
-            return;
-          }
           if (this.rangeArray.length) {
             registry["delete"](name);
             if (highlight.size) {
@@ -1680,6 +1679,7 @@
             this.rangeArray.forEach(function (range) {
               highlight.add(range);
             });
+            this.rangeArray = [];
           }
           if (highlight.size) registry.set(name, highlight);
         }

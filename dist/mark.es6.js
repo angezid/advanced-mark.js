@@ -1218,44 +1218,43 @@ class Mark$1 {
   }
   unmark(opt) {
     this.opt = opt;
-    const highlight = this.opt.highlight;
-    if (highlight) {
-      if (highlight.size) {
-        this.registerHighlight(true);
-        highlight.forEach((range) => {
-          let node = range.startContainer;
-          if (node.nodeType === 3) {
-            node = node.parentNode;
-          }
-          if ( !this.excluded(node)) {
-            highlight.delete(range);
-          }
-        });
-        this.registerHighlight();
-      }
-      this.opt.done();
-    } else {
-      let selector = this.opt.element + '[data-markjs]';
-      if (this.opt.className) {
-        selector += `.${this.opt.className}`;
-      }
-      this.log(`Removal selector "${selector}"`);
-      this.iterator.forEachNode(this.filter.SHOW_ELEMENT, node => {
-        this.unwrapMatches(node);
-      }, node => {
-        return DOMIterator.matches(node, selector) && !this.excluded(node);
-      }, this.opt.done);
+    let names = this.opt.highlightName || 'markjs',
+      highlight;
+    const registry = CSS.highlights;
+    if (registry) {
+      if (typeof names === 'string') names = [names];
+      names.forEach((name) => {
+        if ((highlight = registry.get(name)) && highlight.size) {
+          registry.delete(name);
+          highlight.forEach((range) => {
+            let node = range.startContainer;
+            if (node.nodeType === 3) node = node.parentNode;
+            if ( !this.excluded(node)) highlight.delete(range);
+          });
+          if (highlight.size) registry.set(name, highlight);
+        }
+      });
     }
+    if (this.opt.highlight) {
+      this.opt.done();
+      return;
+    }
+    let selector = this.opt.element + '[data-markjs]';
+    if (this.opt.className) {
+      selector += `.${this.opt.className}`;
+    }
+    this.log(`Removal selector "${selector}"`);
+    this.iterator.forEachNode(this.filter.SHOW_ELEMENT, node => {
+      this.unwrapMatches(node);
+    }, node => {
+      return DOMIterator.matches(node, selector) && !this.excluded(node);
+    }, this.opt.done);
   }
-  registerHighlight(remove) {
+  registerHighlight() {
     const highlight = this.opt.highlight;
     if (highlight) {
       const name = this.opt.highlightName || 'markjs',
         registry = CSS.highlights;
-      if (remove) {
-        registry.delete(name);
-        return;
-      }
       if (this.rangeArray.length) {
         registry.delete(name);
         if (highlight.size) {
@@ -1268,6 +1267,7 @@ class Mark$1 {
         this.rangeArray.forEach(range => {
           highlight.add(range);
         });
+        this.rangeArray = [];
       }
       if (highlight.size) registry.set(name, highlight);
     }
