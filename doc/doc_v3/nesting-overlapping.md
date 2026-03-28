@@ -50,7 +50,7 @@ instance.markRanges(ranges, {
 });
 ```
 
-#### To mark nesting groups with `acrossElements` option and `d` flag.
+#### To mark nesting groups with `acrossElements` option and the `d` flag
 ``` js
 instance.markRegExp(/\w+\s((nested group)\s+\w+)/dg, {
     'acrossElements': true,
@@ -63,8 +63,7 @@ instance.markRegExp(/\w+\s((nested group)\s+\w+)/dg, {
     }
 });
 ```
-
-#### Simple example with next/previous buttons.
+#### Simple example with next/previous buttons and `wrapAllRanges: true`
 
 It uses numbers as unique match identifiers in continuous ascending order.
 The code example [with next/previous buttons](some-examples.md#simple-example-with-nextprevious-buttons) which uses 'start elements' doesn't work correctly with nesting/overlapping matches.

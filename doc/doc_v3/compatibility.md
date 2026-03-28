@@ -10,7 +10,7 @@ Fixing this bug brought requirement of the <code>g</code> flag for normal workfl
 </details>
 For backward compatibility, a RegExp without <code>g</code> flag is recompiled internally.
 
-##### Dropping support to highlight RegExp groups without `d` flag:
+##### Dropping support to highlight RegExp groups without the `d` flag:
 
 
 ##### Removing `cacheTextNodes` option:

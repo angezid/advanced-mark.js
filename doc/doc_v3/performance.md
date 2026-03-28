@@ -1,7 +1,8 @@
 ## Performance
 
 ### The performance results in Firefox compare to mark.js v8.11.1:  
-**Warning:** this performance tests were run on a slow processor and advanced-mark.js version 2 (more important is ratio than actual time)  
+**Warning:** this performance tests were run on a slow processor and advanced-mark.js version 2 (more important is ratio than actual time)
+
 `markRegExp()` method, `acrossElements: true`; marked words 3000
 
 |    library     |  size 100KB  |   size 200KB  |   size 500KB  |   size 1MB    |

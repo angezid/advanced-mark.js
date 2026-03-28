@@ -20,7 +20,6 @@ A `dist` directory contains files:
 <li><code>jquery.mark.min.js</code></li>
 <li><code>jquery.mark.es6.js</code></li>
 <li><code>jquery.mark.es6.min.js</code></li>
-<li><code>node.jquery.mark.es6.js</code> for use in Virtual DOMs (contains necessary <code>import $ from 'jquery'</code> declaration)</li>
 </ul>
 </details>
 <details class="info">
@@ -28,8 +27,8 @@ A `dist` directory contains files:
 <ul>
 <li><code>mark.d.js</code></li>
 <li><code>mark.es6.d.js</code></li>
+<li><code>jquery.mark.d.js</code></li>
 <li><code>jquery.mark.es6.d.js</code></li>
-<li><code>node.jquery.mark.es6.d.js</code></li>
 </ul>
 </details>
 
@@ -38,9 +37,25 @@ To include library in web page just add:
 ``` html
 <script src="path/to/mark.js"></script>
 ```
-<strong>Note:</strong>the library requires UTF-8 encoding and may needs adding `charset` attribute:
+Note: the library requires UTF-8 encoding and may needs adding `charset` attribute:
 ``` html
-<script src="path/to/mark.min.js" charset="utf-8"></script>
+<script src="path/to/mark.js" charset="utf-8"></script>
+```
+
+### CSS
+To customize a style of mark elements:
+``` css
+mark {
+  background-color: yellow;
+  color: black;
+}
+```
+To customize a style when using CSS Custom Highlight API:
+``` css
+::highlight(highlight-name) { /* the default Highlight object name is 'markjs' */
+  background-color: yellow;
+  color: black;
+}
 ```
 
 ### API
@@ -67,3 +82,5 @@ API methods called on every jQuery element:
 ``` js
 $("div.test").mark('lorem');
 ```
+
+

@@ -1,7 +1,7 @@
 
 ## Highlighting separate groups
 
-**Important:** in this implementation, two branches of code process separate groups, which one, depending on the presence of a `d` flag.
+**Important:** in this implementation, two branches of code process separate groups, which one, depending on the presence of the `d` flag.
 1. Primitive, based on `indexOf()`, is only reliable with contiguous groups - unwanted group(s) can be easily filtered out.
 2. Exact, but older browsers do not support group `indices`.
 
@@ -12,13 +12,13 @@
 * The exact one wraps all (parent and nested group(s)) - you need to filter out unwanted group(s).
 
 They have different parent group logic:
-* The exact one does allow using a parent group as an auxiliary - you need to filter out it in order to mark a nested group(s).
+* The exact one does allow using a parent group as an auxiliary - you need to filter out it in order to highlight a nested group(s).
 * The primitive one does not allow this - if the parent group has filtered out, all nested groups are ignored.
 
 To test the primitive branch compatibility, just add the `d` flag.
 
 There is no strict requirement for the contiguity of capturing groups.  
-Compare: string - 'AAB xxx BCD xx BC', to mark groups AB and BC
+Compare: string - 'AAB xxx BCD xx BC', to highlight groups AB and BC
   - in `/(AB)\b.+?\b(BC)/g` the indexOf('BC', start) find first 'BC', which is correct
   - in `/(AB)\b(.+?)\b(BC)(?!D)/g` the indexOf('BC', start) also find first 'BC', which is wrong, because of condition '(?!D)', so group 2 is required.
 
@@ -54,7 +54,7 @@ instance.markRegExp(/(AB)\b(.+)\b(?<gr3>CD)?(.+)(EF)\b/gi, {
     },
 });
 ```
-#### Example to mark separate groups with `acrossElements` option:
+#### Example to highlight separate groups with `acrossElements` option:
 ``` js
 let groupCount = 0, gr1Count = 0, gr2Count = 0;
 
@@ -82,7 +82,7 @@ instance.markRegExp(/(AB)\b.+?\b(CD)/gi, {
     }
 });
 ```
-#### Example to mark separate groups without `acrossElements` option:
+#### Example to highlight separate groups without `acrossElements` option:
 ``` js
 let count = 0, gr1Count = 0;
 

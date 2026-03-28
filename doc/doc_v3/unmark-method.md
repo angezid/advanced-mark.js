@@ -15,7 +15,7 @@ $(context).unmark([options]);
   * `highlight` {Highlight} - If a `highlight` object is specified, the library do not removed any mark elements; `element` and `className` options are ignored (default is `undefined`)
     **Note** that Highlight object served as boolean:
       1. to prevent unwrapping existing marked elements
-      2. to avoid unnecessary iteration try to remove non-existing marked elements
+      2. to avoid unnecessary iteration over DOM for searching non-existing marked elements
 
   * `element` {string} - Specifies marked elements to remove. (default is `'mark'`)
     **Important:** if other than default marked element is used, e.g. `span`, it must be also specified in the `unmark()` method. It is also possible to use `\*` in case of using different marked elements to unmark in one run. A `mark.js` library uses a default selector `\*[data-markjs]` but it is not safe to apply to all HTML elements.

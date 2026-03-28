@@ -48,7 +48,6 @@
     "@rollup/plugin-terser": "^0.4.4",
     "eslint": "^8.28.0",
     "eslint-plugin-jasmine-jquery": "^1.0.0",
-    "handlebars": "^4.0.11",
     "jasmine-core": "^4.5.0",
     "jquery": "^3.2.1",
     "jsdoc": "^4.0.0",

@@ -49,7 +49,7 @@ instance.markRanges(ranges, {
 });
 ```
 
-#### To mark nesting groups with `acrossElements` option and `d` flag.
+#### To mark nesting groups with `acrossElements` option and the `d` flag.
 ``` js
 instance.markRegExp(/\w+\s((nested group)\s+\w+)/dg, {
     'acrossElements': true,
@@ -65,7 +65,7 @@ instance.markRegExp(/\w+\s((nested group)\s+\w+)/dg, {
 
 <h4 id="mark-nesting-groups">To mark nesting groups with <code>acrossElements</code> option and RegExp without <code>d</code> flag</h4>
 It treats the whole match as a group 0, and all child groups, in this case 'group1, group2', as nested ones.  
-It's an only way to wrap nested groups without `d` flag:
+It's an only way to wrap nested groups without the `d` flag:
 
 ``` js
 let regex = /\w+\s(group1).+?(group2).*/gi;
@@ -85,7 +85,7 @@ instance.markRegExp(regex, {
 });
 ```
 
-#### Simple example with next/previous buttons.
+#### Simple example with next/previous buttons and `wrapAllRanges: true`
 
 It uses numbers as unique match identifiers in continuous ascending order.
 The code example [with next/previous buttons](some-examples.md#simple-example-with-nextprevious-buttons) which uses 'start elements' doesn't work correctly with nesting/overlapping matches.

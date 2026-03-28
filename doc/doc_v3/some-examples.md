@@ -1,8 +1,8 @@
-characterSets
-## Code examples of using `each` and `done` callbacks
-See [mark() each callback](mark-method.md#mark-each) about callback `info` object properties.
+
+### Code examples of using `each` and `done` callbacks
 
 #### In `mark()` method with `acrossElements` option
+See [mark() each callback](mark-method.md#mark-each)'s `info` object property.
 ``` js
 let matchCount = 0;
 
@@ -54,7 +54,7 @@ context.mark('AB CD EF', {
 });
 ```
 #### In `markRegExp()` method with `acrossElements` option  
-See [markRegExp() each callback](markRegExp-method.md#markRegExp-each) about callback `info` object properties.
+See [markRegExp() each callback](markRegExp-method.md#markRegExp-each)'s `info` object property.
 
 ``` js
 let matchCount = 0;
@@ -74,7 +74,7 @@ instance.markRegExp(/.../gi, {
 });
 ```
 
-#### In `markRegExp()` method using `y` flag
+### Example of using the `y` flag in `markRegExp()` method
 ``` js
 // 'startIndexes' is an array of open tag's start indexes of the elements that need to be highlighted
 function highlightOpenTags(startIndexes) {
@@ -83,25 +83,18 @@ function highlightOpenTags(startIndexes) {
     // set RegExp index at which to start the first match
     tagReg.lastIndex = startIndexes[i];
 
-    const instance = new Mark(htmlBox);
-
-    instance.unmark().markRegExp(tagReg, {
+    new Mark(context).markRegExp(tagReg, {
         acrossElements: true,
         each: () => {
-            // set RegExp index at which to start the next match
-            if (++i < startIndexes.length) {
-                tagReg.lastIndex = startIndexes[i];
-            } else {
-                // prevents further matches
-                tagReg.lastIndex = Infinity;
-            }
+            // set the RegExp index at which to start the next match
+            tagReg.lastIndex = ++i < startIndexes.length ? startsIndexes[i] : Infinity
         }
     });
 }
 ```
 
-#### Simple example with next/previous buttons
-Unusable with `markRegExp()` method having `wrapAllRanges` option. See [Example with next/previous buttons](nesting-overlapping.md#simple-example-with-nextprevious-buttons) that can be used for this case.
+### Simple example with next/previous buttons
+Unusable with `markRegExp()` method having `wrapAllRanges` option. See [Example with next/previous buttons](nesting-overlapping.md#simple-example-with-nextprevious-buttons-and-wrapallranges-true) that can be used for this case.
 ``` js
 let currentIndex = 0,
     marks = $('mark'),

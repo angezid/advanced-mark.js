@@ -33,7 +33,7 @@ In the case if the context contains element(s) matches in which shouldn't be hig
 </section>
 ```
 ``` js
-new Mark(document.querySelector("section")).mark("Lorem dolor", {
+new Mark('section').mark(['Lorem', 'dolor'], {
   // Note: to exclude all descendants, you need to add 'p:last-child *' selector
   exclude: 'p:last-child, p:last-child *'
 });

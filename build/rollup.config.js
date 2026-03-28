@@ -1,5 +1,4 @@
 import pkg from '../package.json';
-import handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
 import resolve from '@rollup/plugin-node-resolve';
@@ -9,26 +8,23 @@ import babel from '@rollup/plugin-babel';
 import terser from "@rollup/plugin-terser";
 import versionInjector from 'rollup-plugin-version-injector';
 
+const years = (() => {
+  const startYear = 2022,
+    year = new Date().getFullYear();
+  return year > startYear ? `${startYear}–${year}` : year;
+})();
 // Shared config   @rollup/
 const output = {
     name: 'Mark',
     file: pkg.main,
     format: 'umd',
     extend: true,
-    banner: handlebars.compile(fs.readFileSync(path.join(
-      __dirname, 'templates/copyright2.hbs'
-    ), 'utf8'))({
-      name: pkg.name.split('/').pop(),
-      version: `v${pkg.version}`,
-      homepage: pkg.homepage,
-      author: pkg.author.name,
-      license: pkg.license,
-      year: (() => {
-        const startYear = 2022,
-          year = new Date().getFullYear();
-        return year > startYear ? `${startYear}–${year}` : year;
-      })()
-    })
+    banner:`/*!***************************************************
+* ${pkg.name} ${pkg.version}
+* ${pkg.homepage}
+* MIT licensed\n* Copyright (c) ${years}, ${pkg.author.name}
+* Based on 'mark.js', license https://git.io/vwTVl
+*****************************************************/`
   },
   output_es6 = Object.assign({}, output, {
     format : 'es'
