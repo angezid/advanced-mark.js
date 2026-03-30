@@ -1,44 +1,48 @@
 
 'use strict';
 
-describe('markRegExp with acrossElements and separateGroups and RegExp.hasIndices', function() {
+describe('markRegExp with separateGroups option and using Highlight API', function() {
   let $ctx,
     matchCount, group1Count, group2Count, group3Count,
     message = 'should count and test content of separate groups ',
     flags = 'dgi',
-    r1 = '\\b(group1)\\b[^]+?\\b(group2)\\b@?(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
-    groupReg = new RegExp(r1, flags),
-    r2 = '\\b(group1\\b[^]+?\\b(group2)\\b@?)(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b',
-    nestedGr = new RegExp(r2, flags);
+    groupReg = new RegExp('\\b(group1)\\b[^]+?\\b(group2)\\b@?(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b', flags),
+    nestedGr = new RegExp('\\b(group1\\b[^]+?\\b(group2)\\b@?)(?:\\s+(?:\\w+\\s+)?(\\w+3))?\\b', flags);
 
   beforeEach(() => {
-    // it used the same fixture as a spec separate-groups.js
-    loadFixtures('across-elements/regexp/separate-groups.html');
+    loadFixtures('highlight/separate-groups.html');
 
-    $ctx = $('.across-elements-separate-groups');
+    $ctx = $('.separate-groups-hasIndices');
     matchCount = 0, group1Count = 0, group2Count = 0, group3Count = 0;
   });
 
   afterEach(() => {
-    $ctx.unmark();
+    if (CSS.highlights) CSS.highlights.clear();
   });
 
   it(message, done => {
+    // eslint-disable-next-line
+    const highlight = new Highlight();
+
     new Mark($ctx[0]).markRegExp(groupReg, {
-      'acrossElements' : true,
+      'highlight': highlight,
       'separateGroups' : true,
       each : eachMark,
-      'done' : () => {
+      'done' : (total, matchCount) => {
+        expect(matchCount).toBe(8);
         // mch, gr1, gr2, gr3,
-        test([27, 27, 27, 16]);
+        test(highlight, [8, 8, 8, 4]);
         done();
       }
     });
   });
 
   it('should count filtered separate groups', done => {
+    // eslint-disable-next-line
+    const highlight = new Highlight();
+
     new Mark($ctx[0]).markRegExp(groupReg, {
-      'acrossElements' : true,
+      'highlight': highlight,
       'separateGroups' : true,
       filter : (node, group, total, obj) => {
         // current group index. Note: if group lays across several elements
@@ -51,15 +55,18 @@ describe('markRegExp with acrossElements and separateGroups and RegExp.hasIndice
       each : eachMark,
       'done' : () => {
         // mch, gr1, gr2, gr3,
-        test([27, 0, 27, 0]);
+        test(highlight, [8, 0, 8, 0]);
         done();
       }
     });
   });
 
   it(message + 'with nested group in filtered out one', done => {
+    // eslint-disable-next-line
+    const highlight = new Highlight();
+
     new Mark($ctx[0]).markRegExp(nestedGr, {
-      'acrossElements' : true,
+      'highlight': highlight,
       'separateGroups' : true,
       filter : (node, group) => {
         // current group matching string. Note: if group lays across several
@@ -73,93 +80,81 @@ describe('markRegExp with acrossElements and separateGroups and RegExp.hasIndice
       each : eachMark,
       'done' : () => {
         // mch, gr1, gr2, gr3,
-        test([27, 0, 27, 16]);
+        test(highlight, [8, 0, 8, 4]);
         done();
       }
     });
   });
 
   it(message + 'with nested group', done => {
+    // eslint-disable-next-line
+    const highlight = new Highlight();
+
     new Mark($ctx[0]).markRegExp(nestedGr, {
-      'acrossElements' : true,
+      'highlight': highlight,
       'separateGroups' : true,
       each : eachMark,
       'done' : () => {
         // mch, gr1, gr2, gr3,
-        test([27, 27, 0, 16]);
+        test(highlight, [8, 8, 0, 4]);
         done();
       }
     });
   });
 
-  function eachMark(elem, info) {
+  function eachMark(range, info) {
     if (info.matchStart) {
       matchCount++;
     }
-    if (info.groupStart) {
-      // info.groupIndex is index of the current match group
-      if (info.groupIndex === 1) {
-        elem.className = 'group1-1';
-        group1Count++;
+    if (info.groupIndex === 1) {
+      range.className = 'group1-1';
+      group1Count++;
 
-      } else if (info.groupIndex === 2) {
-        elem.className = 'group2-1';
-        group2Count++;
+    } else if (info.groupIndex === 2) {
+      range.className = 'group2-1';
+      group2Count++;
 
-      } else if (info.groupIndex === 3) {
-        elem.className = 'group3-1';
-        group3Count++;
-      }
+    } else if (info.groupIndex === 3) {
+      range.className = 'group3-1';
+      group3Count++;
     }
   }
 
-  function test(array) {
-    let count, marks = $ctx.find('mark');
+  function test(highlight, array) {
+    let count;
 
     expect(matchCount).toBe(array[0]);
 
-    count = countHighlights(marks, 'group1-1', /group1(?:\s*text\s*)?/i);
+    count = countHighlights(highlight, 'group1-1', /group1(?:\s*text\s*)?/i);
     expect(count).toBe(group1Count);
     expect(group1Count).toBe(array[1]);
 
-    count = countHighlights(marks, 'group2-1', /group2/i);
+    count = countHighlights(highlight, 'group2-1', /group2/i);
     expect(count).toBe(group2Count);
     expect(group2Count).toBe(array[2]);
 
-    count = countHighlights(marks, 'group3-1', /group3/i);
+    count = countHighlights(highlight, 'group3-1', /group3/i);
     expect(count).toBe(group3Count);
     expect(group3Count).toBe(array[3]);
   }
 
-  function countHighlights(marks, klass, reg) {
+  function countHighlights(highlight, klass, reg) {
     let count = 0;
 
-    marks.each(function(i, elem) {
-      if ($(elem).hasClass(klass) && reg.test(getMarkedText(elem, marks))) {
-        count++;
+    highlight.forEach((range) => {
+      if (range.className === klass) {
+        // match on single text node
+        let node = range.startContainer;
+
+        if (node.nodeType === 3) {
+          const text = node.textContent.slice(range.startOffset, range.endOffset);
+
+          if (reg.test(text)) {
+            count++;
+          }
+        }
       }
     });
     return count;
-  }
-
-  // aggregates highlighted text across elements
-  function getMarkedText(elem, marks) {
-    let text = '', found = false;
-    marks.each(function(i, el) {
-      if ( !found) {
-        // start element of a group
-        if (el === elem) {
-          found = true;
-        }
-      // the start of next group ends the current group
-      } else if (el.className && /\b[a-z]+\d-1\b/.test(el.className)) {
-        return false;
-      }
-      if (found) {
-        text += $(this).text();
-      }
-      return true;
-    });
-    return text;
   }
 });
