@@ -758,8 +758,8 @@ class Mark$1 {
       filterNodes = [],
       e;
     const wrapAllRanges = this.opt.wrapAllRanges,
-      highlight = this.opt.highlight,
-      singleRange = highlight && this.opt.rangeAcrossElements;
+      highlightAPI = !!this.opt.highlight,
+      singleRange = highlightAPI && this.opt.rangeAcrossElements;
     if (wrapAllRanges) {
       while (i > 0 && dict.nodes[i].start > start) {
         i--;
@@ -780,7 +780,7 @@ class Mark$1 {
             if (rangeStart) {
               startInfo = [n.node, s, n.start + s];
             }
-          } else if ( !highlight && wrapAllRanges) {
+          } else if ( !highlightAPI && wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
             n = obj.nodeInfo;
             eachCb(obj.mark, rangeStart);
@@ -788,7 +788,7 @@ class Mark$1 {
             n.node = this.wrapRange(n, s, e, node => {
               eachCb(node, rangeStart);
             });
-            if ( !highlight) n.start += e;
+            if ( !highlightAPI) n.start += e;
           }
           rangeStart = false;
         }
@@ -808,8 +808,8 @@ class Mark$1 {
     let lastIndex = 0,
       offset = 0,
       i = 0,
+      highlightAPI = this.opt.highlight,
       isWrapped = false,
-      node = n.node,
       group, start, end = 0;
     while (++i < match.length) {
       group = match[i];
@@ -818,24 +818,23 @@ class Mark$1 {
         if (start >= lastIndex) {
           end = match.indices[i][1];
           if (filterCb(n.node, group, i)) {
-            node = this.wrapRange(n, start - offset, end - offset, node => {
+            n.node = this.wrapRange(n, start - offset, end - offset, node => {
               eachCb(node, i);
             });
             if (end > lastIndex) {
               lastIndex = end;
             }
-            offset = end;
+            if ( !highlightAPI) offset = end;
             isWrapped = true;
           }
         }
       }
     }
     if (isWrapped) {
-      if ( !this.opt.highlight) regex.lastIndex = 0;
+      if ( !highlightAPI) regex.lastIndex = 0;
     } else if (match[0].length === 0) {
       this.setLastIndex(regex, end);
     }
-    return node;
   }
   wrapGroupsAcross(dict, match, regex, filterCb, eachCb) {
     let lastIndex = 0,
@@ -880,7 +879,7 @@ class Mark$1 {
         while ((match = regex.exec(n.node.textContent)) !== null) {
           info.match = match;
           filterStart = eachStart = true;
-          n.node = this.wrapGroups(n, match, regex, (node, group, grIndex) => {
+          this.wrapGroups(n, match, regex, (node, group, grIndex) => {
             info.matchStart = filterStart;
             info.groupIndex = grIndex;
             filterStart = false;
@@ -1217,10 +1216,10 @@ class Mark$1 {
   }
   unmark(opt) {
     this.opt = opt;
-    let names = this.opt.highlightName || 'markjs',
-      highlight;
     const registry = CSS.highlights;
     if (registry) {
+      let names = this.opt.highlightName || 'markjs',
+        highlight;
       if (typeof names === 'string') names = [names];
       names.forEach((name) => {
         if ((highlight = registry.get(name)) && highlight.size) {

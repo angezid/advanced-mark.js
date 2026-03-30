@@ -761,8 +761,8 @@ class Mark {
       filterNodes = [],
       e;
     const wrapAllRanges = this.opt.wrapAllRanges,
-      highlight = this.opt.highlight, // when using Highlight interface, no text nodes are split
-      singleRange = highlight && this.opt.rangeAcrossElements;
+      highlightAPI = !!this.opt.highlight, // when using Highlight API, no text nodes are split
+      singleRange = highlightAPI && this.opt.rangeAcrossElements;
 
     if (wrapAllRanges) {
       // finds the start index in case of nesting/overlapping
@@ -792,18 +792,18 @@ class Mark {
               startInfo = [n.node, s, n.start + s];
             }
 
-          } else if ( !highlight && wrapAllRanges) {
+          } else if ( !highlightAPI && wrapAllRanges) {
             const obj = this.wrapRangeInsert(dict, n, s, e, start, i);
             n = obj.nodeInfo;
             eachCb(obj.mark, rangeStart);
 
           } else {
-            // when highlight object is provided, it creates multiple ranges for matches that located across elements
+            // when Highlight object is provided, it creates multiple ranges for matches that located across elements
             n.node = this.wrapRange(n, s, e, node => {
               eachCb(node, rangeStart);
             });
             // sets the new text node start index in the case of subsequent matches in the same text node
-            if ( !highlight) n.start += e;
+            if ( !highlightAPI) n.start += e;
           }
           rangeStart = false;
         }
@@ -851,8 +851,8 @@ class Mark {
     let lastIndex = 0,
       offset = 0,
       i = 0,
+      highlightAPI = this.opt.highlight,
       isWrapped = false,
-      node = n.node,
       group, start, end = 0;
 
     while (++i < match.length) {
@@ -868,14 +868,15 @@ class Mark {
             // when a group is wrapping, a text node is split at the end index,
             // so to correct the start & end indexes of a new text node, subtract
             // the end index of the last wrapped group (offset)
-            node = this.wrapRange(n, start - offset, end - offset, node => { // each
+            n.node = this.wrapRange(n, start - offset, end - offset, node => { // each
               eachCb(node, i);
             });
 
             if (end > lastIndex) {
               lastIndex = end;
             }
-            offset = end;
+            // when using Highlight API, no text nodes are split
+            if ( !highlightAPI) offset = end;
             isWrapped = true;
           }
         }
@@ -883,13 +884,12 @@ class Mark {
     }
     // resets the lastIndex when at least one group is wrapped (prevents infinite loop)
     if (isWrapped) {
-      if ( !this.opt.highlight) regex.lastIndex = 0;
+      if ( !highlightAPI) regex.lastIndex = 0;
 
     // when the match has zero length, we need to control the RegExp lastIndex
     } else if (match[0].length === 0) {
       this.setLastIndex(regex, end);
     }
-    return node;
   }
 
   /**
@@ -1031,7 +1031,7 @@ class Mark {
           info.match = match;
           filterStart = eachStart = true;
 
-          n.node = this.wrapGroups(n, match, regex, (node, group, grIndex) => { // filter
+          this.wrapGroups(n, match, regex, (node, group, grIndex) => { // filter
             info.matchStart = filterStart;
             info.groupIndex = grIndex;
             filterStart = false;
@@ -1734,23 +1734,23 @@ class Mark {
    */
   unmark(opt) {
     this.opt = opt;
-    let names = this.opt.highlightName || 'markjs',
-      highlight;
     const registry = CSS.highlights;
     // if the browser supports Highlight API
     if (registry) {
+      let names = this.opt.highlightName || 'markjs',
+        highlight;
       if (typeof names === 'string') names = [names];
-  
+
       names.forEach((name) => {
         if ((highlight = registry.get(name)) && highlight.size) {
           // unregister the Highlight object before deleting ranges
           registry.delete(name);
-  
+
           highlight.forEach((range) => {
             let node = range.startContainer;
-  
+
             if (node.nodeType === 3) node = node.parentNode;
-  
+
             if ( !this.excluded(node)) highlight.delete(range);
           });
           // register the Highlight object with excluded ranges
@@ -1761,7 +1761,7 @@ class Mark {
     // removes only StaticRange/Range objects
     if (this.opt.highlight) {
       this.opt.done();
-      return; 
+      return;
     }
 
     let selector = this.opt.element + '[data-markjs]';

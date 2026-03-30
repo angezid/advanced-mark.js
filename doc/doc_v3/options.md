@@ -110,17 +110,12 @@ CSS
 ```
 
 ### `staticRanges` option
-When using a `Range` objects one serious problem was discovered: after the library runs using Highlight API, there is a huge performance degradation (a hundred times) if the next run is wrapping matches in HTML elements.  
+When using a `Range` objects one serious problem was discovered: after the library runs using Highlight API, there is a huge performance degradation (a hundred times) if the next run wraps matches in HTML elements.  
 The library splits text nodes before wrapping matches in HTML elements and this is forced the browser to re-calculate layout and re-render highlights.  
 
-This performance problem is solved by using `StaticRange` objects, but it raise another problem:
-a `StaticRange` does not keep the same content on document changes.
-
-
+This performance problem is solved by using `StaticRange` objects, but it can raise another problem - a `StaticRange` does not keep the same content on document changes.
 
 So, use only the Highlight API, or if there is a need to wrap some matches in HTML elements, wrap them first and then switch to using the Highlight API.
-
-
 
 ### `rangeAcrossElements` option
 This option allows creating a single range for matches located across elements when using the Highlight API with `acrossElements` (`markRanges()` API does not require this) option.  

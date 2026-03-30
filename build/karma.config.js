@@ -20,6 +20,7 @@ module.exports = config => {
       //'test/specs/!(across-elements)/**/*.js',
       //'test/specs/!(basic)/*.js',
       //'test/specs/!(highlight)/*.js',
+      //'test/specs/!(regexp)/*.js',
       //'test/specs/basic/*.js',
       //'test/specs/across-elements/**/*.js'
     ],
