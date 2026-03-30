@@ -1,7 +1,7 @@
 
 ## Highlighting separate groups
 
-**Important:** this version supports only RegExp with the `d` flag.
+**Important:** this version supports only the RegExp with the `d` flag.
 
 The group's highlighting logic:
 * Case without `wrapAllRanges` option:

@@ -20,11 +20,12 @@ const output = {
     format: 'umd',
     extend: true,
     banner:`/*!***************************************************
-* ${pkg.name} ${pkg.version}
+* ${pkg.name} v${pkg.version}
 * ${pkg.homepage}
 * MIT licensed\n* Copyright (c) ${years}, ${pkg.author.name}
 * Based on 'mark.js', license https://git.io/vwTVl
-*****************************************************/`
+*****************************************************/
+`
   },
   output_es6 = Object.assign({}, output, {
     format : 'es'

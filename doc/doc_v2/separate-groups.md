@@ -23,8 +23,8 @@ Compare: string - 'AAB xxx BCD xx BC', to highlight groups AB and BC
   - in `/(AB)\b(.+?)\b(BC)(?!D)/g` the indexOf('BC', start) also find first 'BC', which is wrong, because of condition '(?!D)', so group 2 is required.
 
 **Warning** related to using RegExp without the `d` flag:
-* Do not add a capturing group(s) to lookbehind assertion `(?<=)`, there is no code which handles such cases.
-* With `acrossElements` option, it is not possible to highlight a capturing group(s) inside a lookahead assertion `(?=)`.
+1. Do not add a capturing group(s) to lookbehind assertion `(?<=)`, there is no code which handles such cases.
+2. With `acrossElements` option, it is not possible to highlight a capturing group(s) inside a lookahead assertion `(?=)`.
 
 See [markRegExp() method](markRegExp-method.md#markRegExp-filter) about `info` object properties used in `filter` and `each` callbacks.    
 How to filter matches see [Filtering matches](filtering-matches.md).  

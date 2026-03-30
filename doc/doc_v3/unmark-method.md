@@ -8,20 +8,23 @@ instance.unmark([options]);
 // jQuery
 $(context).unmark([options]);
 ```
+**Important:** When using the Highlight API there is a simple and faster way to remove highlights `highlight.clear();`.
+Use `unmark()` when there is a need to keep compatibility with browsers that not supported the Highlight API (especially when using`exclude` option).
+
 #### Parameters:
 * `options` {object} - Optional options:
   * `highlightName` {string|string[]} - A name or an Array of names of the `Highlight` object(s) from which `StaticRange/Range` objects should be deleted (according with the <a href="#unmark-exclude">exclude</a> option) (default is `'markjs'`)
   
   * `highlight` {Highlight} - If a `highlight` object is specified, the library do not removed any mark elements; `element` and `className` options are ignored (default is `undefined`)
-    **Note** that Highlight object served as boolean:
-      1. to prevent unwrapping existing marked elements
-      2. to avoid unnecessary iteration over DOM for searching non-existing marked elements
+    **Note** that Highlight object served as boolean:  
+      1. to prevent unwrapping existing marked elements  
+      2. to avoid unnecessary iteration over DOM searching for non-existing marked elements
 
   * `element` {string} - Specifies marked elements to remove. (default is `'mark'`)
-    **Important:** if other than default marked element is used, e.g. `span`, it must be also specified in the `unmark()` method. It is also possible to use `\*` in case of using different marked elements to unmark in one run. A `mark.js` library uses a default selector `\*[data-markjs]` but it is not safe to apply to all HTML elements.
+    **Note:** if other than the default marked element is used, e.g. `span`, it must be also specified in the `unmark()` method. It is also possible to use `\*` in case of using different marked elements to unmark in one run. A `mark.js` library uses a default selector `\*[data-markjs]` but it is not safe to apply to all HTML elements.
   * `className` {string} - Remove only marked elements with specified class name. (default is `''`)
 
-  * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from removing highlighting. (default is `[]`)
+  * `exclude` {string|string[]} - A string or an array of selectors. Specifies the DOM elements that should be excluded from removing highlighting. (default is `[]`)
     **Important:** if highlighting is done using `Highlight` API with `acrossElements` and `rangeAcrossElements` options and wish to exclude element is inside a range, there is no possibility to exclude this element (the whole range will be removed).
   * `shadowDOM` {boolean} - Whether to remove highlighting inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.

@@ -11,6 +11,7 @@ $(context).markRegExp(regex[, options]);
 #### Parameters:
 * `regex` {RegExp} - The regular expression. It **must** have the `g` flag - the library works with indexes, and only two `g` and `y` flags allow setting RegExp `lastIndex`.  
   **Note** that for backward compatibility, RegExp without the `g` flag is recompiled internally with this flag.
+
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
@@ -52,7 +53,7 @@ $(context).markRegExp(regex[, options]);
     * `matchString` {string} - The matching string:
       1. without `ignoreGroups` and `separateGroups` options - the whole match
       2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string,  
-        e.g. `/(-)(\w+)\s+/g`, `ignoreGroups: 1`, the matching string is content of the group 2
+      e.g. `/(-)(\w+)\s+/g`, `ignoreGroups: 1`, the matching string is content of the group 2
       3. with `separateGroups` option - the current group matching string
     * `matchesSoFar` {number} - The number of all matches so far
     * `filterInfo` {object}:

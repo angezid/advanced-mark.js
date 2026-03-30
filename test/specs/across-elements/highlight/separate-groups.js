@@ -175,17 +175,21 @@ describe('markRegExp with separateGroups and acrossElements options and using Hi
       nd;
 
     while ((nd = iterator.nextNode())) {
-      if (nd === node) {
-        text += nd.textContent.slice(range.startOffset);
-        found = true;
-
-      } else if (nd === node2) {
-        text += nd.textContent.slice(0, range.endOffset);
-        break;
-
-      } else if (found) {
-        text += nd.textContent;
-      }
+      if ( !found) {
+        if (nd === node) {
+          text += nd.textContent.slice(range.startOffset);
+          found = true;
+        }
+        
+      } else {
+        if (nd === node2) {
+          text += nd.textContent.slice(0, range.endOffset);
+          break;
+  
+        } else {
+          text += nd.textContent;
+        }
+      } 
     }
     return text;
   }

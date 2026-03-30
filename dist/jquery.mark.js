@@ -1,10 +1,11 @@
 /*!***************************************************
-* advanced-mark.js 3.0.0
+* advanced-mark.js v3.0.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2026, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery')) :
   typeof define === 'function' && define.amd ? define(['jquery'], factory) :

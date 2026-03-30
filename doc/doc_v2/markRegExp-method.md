@@ -12,6 +12,7 @@ $(context).markRegExp(regex[, options]);
 * `regex` {RegExp} - The regular expression. With the `acrossElements` option, it **must** have the `g` flag - the library works with indexes, and only two `g` and `y` flags allow setting RegExp `lastIndex`.  
   **Note** that for backward compatibility, RegExp without the `g` flag is recompiled internally with this flag.  
   **Warning:** version 3 requires the `g` flag for any RegExp unless it has the `y` flag.
+  
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} -  A custom class to be added to mark elements. (default is `''`)
