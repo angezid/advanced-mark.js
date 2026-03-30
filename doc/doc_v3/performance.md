@@ -1,4 +1,5 @@
 ## Performance
+See [Performance page](https://angezid.github.io/advanced-mark.js/performance-v3) which demonstrate the library performance.
 
 ### The performance results in Firefox compare to mark.js v8.11.1:  
 **Warning:** this performance tests were run on a slow processor and advanced-mark.js version 2 (more important is ratio than actual time)
@@ -30,5 +31,3 @@ the same without `acrossElements` option; marked words 3000
 |----------------|--------------|---------------|
 |  mark.js       |   ~1200 ms.  |    ~1300 ms.  |
 |  this          |   ~210 ms.   |    ~630 ms.   |
-
-**The performance page that allows to test every API is under way**
