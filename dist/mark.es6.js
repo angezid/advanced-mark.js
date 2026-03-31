@@ -165,7 +165,13 @@ class DOMIterator {
             }
             if (iframe && this.isIframe(node) && this.map.get(node) === 'ready') {
               const doc = node.contentWindow.document;
-              if (doc) traverse(doc);
+              if (doc) {
+                if (this.opt.highlight && showText) {
+                  node.contentWindow.CSS.highlights.set(this.opt.highlightName || 'markjs', this.opt.highlight);
+                }
+                this.addRemoveStyle(doc.head, iframe.style, showText);
+                traverse(doc);
+              }
             }
             if (shadow && (root = node.shadowRoot) && root.mode === 'open') {
               this.addRemoveStyle(root, shadow.style, showText);

@@ -180,16 +180,16 @@ describe('markRegExp with separateGroups and acrossElements options and using Hi
           text += nd.textContent.slice(range.startOffset);
           found = true;
         }
-        
+
       } else {
         if (nd === node2) {
           text += nd.textContent.slice(0, range.endOffset);
           break;
-  
+
         } else {
           text += nd.textContent;
         }
-      } 
+      }
     }
     return text;
   }

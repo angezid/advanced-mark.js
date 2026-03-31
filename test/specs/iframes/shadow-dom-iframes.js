@@ -11,7 +11,7 @@ describe('mark iframes inside shadow DOMs', () => {
       'diacritics': false,
       'iframes': true,
       'shadowDOM': true,
-      'each' : () => {
+      'each': () => {
         count++;
       },
       'done': () => {

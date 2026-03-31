@@ -321,7 +321,13 @@ class DOMIterator {
 
             if (iframe && this.isIframe(node) && this.map.get(node) === 'ready') {
               const doc = node.contentWindow.document;
-              if (doc) traverse(doc);
+              if (doc) {
+                if (this.opt.highlight && showText) {
+                  node.contentWindow.CSS.highlights.set(this.opt.highlightName || 'markjs', this.opt.highlight);
+                }
+                this.addRemoveStyle(doc.head, iframe.style, showText);
+                traverse(doc);
+              }
             }
             // there is no possibility to filter a whole shadow DOM, because the 'DOMIterator.matches()'
             // is not working neither for 'shadowRoot' no for the element itself

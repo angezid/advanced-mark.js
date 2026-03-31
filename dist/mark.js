@@ -260,7 +260,13 @@
                 }
                 if (iframe && _this3.isIframe(node) && _this3.map.get(node) === 'ready') {
                   var doc = node.contentWindow.document;
-                  if (doc) traverse(doc);
+                  if (doc) {
+                    if (_this3.opt.highlight && showText) {
+                      node.contentWindow.CSS.highlights.set(_this3.opt.highlightName || 'markjs', _this3.opt.highlight);
+                    }
+                    _this3.addRemoveStyle(doc.head, iframe.style, showText);
+                    traverse(doc);
+                  }
                 }
                 if (shadow && (root = node.shadowRoot) && root.mode === 'open') {
                   _this3.addRemoveStyle(root, shadow.style, showText);
