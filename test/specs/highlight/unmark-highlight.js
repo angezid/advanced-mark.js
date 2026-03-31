@@ -16,26 +16,26 @@ describe('delete ranges from Highlight object', () => {
     const instance = new Mark($ctx[0]),
       registry = CSS.highlights;
 
-    instance.mark('lorem', getOptions()); // Highlight with default name
-    expect(registry.get('markjs').size).toBe(4);
-    
+    instance.mark('lorem', getOptions()); // Highlight with the default name
+    expect(registry.get('advanced-markjs').size).toBe(4);
+
     instance.mark('ipsum', getOptions('highlight-2'));
     expect(registry.get('highlight-2').size).toBe(4);
-    
+
     instance.mark('dolor', getOptions('highlight-3'));
     expect(registry.get('highlight-3').size).toBe(8);
 
     instance.unmark({
-      'highlightName': ['markjs', 'highlight-2'],
+      'highlightName': ['advanced-markjs', 'highlight-2'],
     });
 
-    expect(registry.get('markjs')).toBeUndefined();
+    expect(registry.get('advanced-markjs')).toBeUndefined();
     expect(registry.get('highlight-2')).toBeUndefined();
     expect(registry.get('highlight-3').size).toBe(8);
 
     done();
   });
-  
+
   function getOptions(name) {
     const options = {
       'diacritics': false,
@@ -43,10 +43,10 @@ describe('delete ranges from Highlight object', () => {
       // eslint-disable-next-line
       'highlight': new Highlight(),
     };
-    return options; 
+    return options;
   }
 
-  it('should not delete anything from Highlight object with default name when specify other name', done => {
+  it('should not delete anything from Highlight object with the default name when specify other name', done => {
     const instance = new Mark($ctx[0]),
       // eslint-disable-next-line
       highlight = new Highlight();
@@ -58,7 +58,7 @@ describe('delete ranges from Highlight object', () => {
         expect(highlight.size).toBe(16);
 
         instance.unmark({
-          'highlightName': 'dummy', // the default name is 'markjs'
+          'highlightName': 'dummy', // the default name is 'advanced-markjs'
           'done': () => {
             expect(highlight.size).toBe(16);
             done();
@@ -67,7 +67,7 @@ describe('delete ranges from Highlight object', () => {
       }
     });
   });
-  
+
   it('should delete all StaticRange objects from Highlight object using its default name', done => {
     const instance = new Mark($ctx[0]),
       // eslint-disable-next-line

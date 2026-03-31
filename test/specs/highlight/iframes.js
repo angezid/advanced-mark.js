@@ -15,7 +15,7 @@ describe('customize a iframe\'s style when using the Highlight API', () => {
       // eslint-disable-next-line
       highlight = new Highlight(),
       array = ['lorem', 'ipsum', 'dolor'],
-      iframeStyle = { style: '::highlight(markjs) { color:red; }' };
+      iframeStyle = { style: '::highlight(advanced-markjs) { color:red; }' };
 
     instance.mark(array, {
       'highlight': highlight,

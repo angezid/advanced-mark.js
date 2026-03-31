@@ -167,7 +167,7 @@ class DOMIterator {
               const doc = node.contentWindow.document;
               if (doc) {
                 if (this.opt.highlight && showText) {
-                  node.contentWindow.CSS.highlights.set(this.opt.highlightName || 'markjs', this.opt.highlight);
+                  node.contentWindow.CSS.highlights.set(this.opt.highlightName, this.opt.highlight);
                 }
                 this.addRemoveStyle(doc.head, iframe.style, showText);
                 traverse(doc);
@@ -429,6 +429,9 @@ class Mark {
     }
     this.filter = win.NodeFilter;
     this.empty = win.document.createTextNode('');
+    if ( !this._opt.highlightName) {
+      this._opt.highlightName = 'advanced-markjs';
+    }
     if (highlight) {
       this.rangeArray = [];
     } else {
@@ -1223,19 +1226,24 @@ class Mark {
   }
   unmark(opt) {
     this.opt = opt;
-    const registry = CSS.highlights;
+    const registry = CSS.highlights,
+      exclude = this.opt.exclude && this.opt.exclude.length;
     if (registry) {
-      let names = this.opt.highlightName || 'markjs',
+      let names = this.opt.highlightName,
         highlight;
       if (typeof names === 'string') names = [names];
       names.forEach((name) => {
         if ((highlight = registry.get(name)) && highlight.size) {
           registry.delete(name);
-          highlight.forEach((range) => {
-            let node = range.startContainer;
-            if (node.nodeType === 3) node = node.parentNode;
-            if ( !this.excluded(node)) highlight.delete(range);
-          });
+          if (exclude) {
+            highlight.forEach((range) => {
+              let node = range.startContainer;
+              if (node.nodeType === 3) node = node.parentNode;
+              if ( !this.excluded(node)) highlight.delete(range);
+            });
+          } else {
+            highlight.clear();
+          }
           if (highlight.size) registry.set(name, highlight);
         }
       });
@@ -1252,13 +1260,13 @@ class Mark {
     this.iterator.forEachNode(this.filter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      return DOMIterator.matches(node, selector) && !this.excluded(node);
+      return DOMIterator.matches(node, selector) && !(exclude && this.excluded(node));
     }, this.opt.done);
   }
   registerHighlight() {
     const highlight = this.opt.highlight;
     if (highlight) {
-      const name = this.opt.highlightName || 'markjs',
+      const name = this.opt.highlightName,
         registry = CSS.highlights;
       if (this.rangeArray.length) {
         registry.delete(name);

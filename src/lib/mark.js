@@ -97,6 +97,10 @@ class Mark {
     this.filter = win.NodeFilter;
     // this empty text node used to simplify code
     this.empty = win.document.createTextNode('');
+    
+    if ( !this._opt.highlightName) {
+      this._opt.highlightName = 'advanced-markjs';
+    }
 
     if (highlight) {
       this.rangeArray = [];
@@ -1734,10 +1738,12 @@ class Mark {
    */
   unmark(opt) {
     this.opt = opt;
-    const registry = CSS.highlights;
+    const registry = CSS.highlights,
+      exclude = this.opt.exclude && this.opt.exclude.length;
     // if the browser supports Highlight API
     if (registry) {
-      let names = this.opt.highlightName || 'markjs',
+      //let names = this.opt.highlightName || 'advanced-markjs',
+      let names = this.opt.highlightName,
         highlight;
       if (typeof names === 'string') names = [names];
 
@@ -1745,14 +1751,20 @@ class Mark {
         if ((highlight = registry.get(name)) && highlight.size) {
           // unregister the Highlight object before deleting ranges
           registry.delete(name);
+          // iterates over highlight when 'exclude' option is specified
+          if (exclude) {
+            highlight.forEach((range) => {
+              let node = range.startContainer;
+  
+              if (node.nodeType === 3) node = node.parentNode;
+  
+              if ( !this.excluded(node)) highlight.delete(range);
+            });
 
-          highlight.forEach((range) => {
-            let node = range.startContainer;
-
-            if (node.nodeType === 3) node = node.parentNode;
-
-            if ( !this.excluded(node)) highlight.delete(range);
-          });
+          } else {
+            // match faster way to remove highlights
+            highlight.clear();
+          }
           // register the Highlight object with excluded ranges
           if (highlight.size) registry.set(name, highlight);
         }
@@ -1774,7 +1786,7 @@ class Mark {
     this.iterator.forEachNode(this.filter.SHOW_ELEMENT, node => { // each
       this.unwrapMatches(node);
     }, node => { // filter
-      return DOMIterator.matches(node, selector) && !this.excluded(node);
+      return DOMIterator.matches(node, selector) && !(exclude && this.excluded(node));
     }, this.opt.done);
   }
 
@@ -1785,7 +1797,8 @@ class Mark {
     const highlight = this.opt.highlight;
 
     if (highlight) {
-      const name = this.opt.highlightName || 'markjs',
+      //const name = this.opt.highlightName || 'advanced-markjs',
+      const name = this.opt.highlightName,
         // eslint-disable-next-line
         registry = CSS.highlights;
 

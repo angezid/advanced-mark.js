@@ -280,7 +280,7 @@ function highlightWords(opt, highlight, obj) {
 		time = 0;
 
 	if (highlight) {
-		CSS.highlights.delete('markjs');
+		CSS.highlights.delete('advanced-markjs');
 		highlight.clear();
 	}
 

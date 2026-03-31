@@ -262,7 +262,7 @@
                   var doc = node.contentWindow.document;
                   if (doc) {
                     if (_this3.opt.highlight && showText) {
-                      node.contentWindow.CSS.highlights.set(_this3.opt.highlightName || 'markjs', _this3.opt.highlight);
+                      node.contentWindow.CSS.highlights.set(_this3.opt.highlightName, _this3.opt.highlight);
                     }
                     _this3.addRemoveStyle(doc.head, iframe.style, showText);
                     traverse(doc);
@@ -597,6 +597,9 @@
         }
         this.filter = win.NodeFilter;
         this.empty = win.document.createTextNode('');
+        if (!this._opt.highlightName) {
+          this._opt.highlightName = 'advanced-markjs';
+        }
         if (highlight) {
           this.rangeArray = [];
         } else {
@@ -1626,19 +1629,24 @@
       value: function unmark(opt) {
         var _this14 = this;
         this.opt = opt;
-        var registry = CSS.highlights;
+        var registry = CSS.highlights,
+          exclude = this.opt.exclude && this.opt.exclude.length;
         if (registry) {
-          var names = this.opt.highlightName || 'markjs',
+          var names = this.opt.highlightName,
             highlight;
           if (typeof names === 'string') names = [names];
           names.forEach(function (name) {
             if ((highlight = registry.get(name)) && highlight.size) {
               registry["delete"](name);
-              highlight.forEach(function (range) {
-                var node = range.startContainer;
-                if (node.nodeType === 3) node = node.parentNode;
-                if (!_this14.excluded(node)) highlight["delete"](range);
-              });
+              if (exclude) {
+                highlight.forEach(function (range) {
+                  var node = range.startContainer;
+                  if (node.nodeType === 3) node = node.parentNode;
+                  if (!_this14.excluded(node)) highlight["delete"](range);
+                });
+              } else {
+                highlight.clear();
+              }
               if (highlight.size) registry.set(name, highlight);
             }
           });
@@ -1655,7 +1663,7 @@
         this.iterator.forEachNode(this.filter.SHOW_ELEMENT, function (node) {
           _this14.unwrapMatches(node);
         }, function (node) {
-          return DOMIterator.matches(node, selector) && !_this14.excluded(node);
+          return DOMIterator.matches(node, selector) && !(exclude && _this14.excluded(node));
         }, this.opt.done);
       }
     }, {
@@ -1664,7 +1672,7 @@
         var _this15 = this;
         var highlight = this.opt.highlight;
         if (highlight) {
-          var name = this.opt.highlightName || 'markjs',
+          var name = this.opt.highlightName,
             registry = CSS.highlights;
           if (this.rangeArray.length) {
             registry["delete"](name);

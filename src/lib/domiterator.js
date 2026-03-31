@@ -323,7 +323,7 @@ class DOMIterator {
               const doc = node.contentWindow.document;
               if (doc) {
                 if (this.opt.highlight && showText) {
-                  node.contentWindow.CSS.highlights.set(this.opt.highlightName || 'markjs', this.opt.highlight);
+                  node.contentWindow.CSS.highlights.set(this.opt.highlightName, this.opt.highlight);
                 }
                 this.addRemoveStyle(doc.head, iframe.style, showText);
                 traverse(doc);
