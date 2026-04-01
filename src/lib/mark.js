@@ -295,7 +295,7 @@ class Mark {
    * @property {Text} node - The DOM text node
    * @property {number} start - The start index within the composite string
    * @property {number} end - The end index within the composite string
-   * @property {number} offset - The offset is used to correct position if space or string
+   * @property {number} offset - The offset is used to correct position if a space or string
    * was added to end of composite string after this node textContent
    */
 
@@ -456,7 +456,7 @@ class Mark {
    * @type {object.<string>}
    * @property {string} text - The composite value of all text nodes
    * @property {Mark~nodeInfo[]} nodes - The array of objects
-   * @property {number} lastIndex - The property used to store the nodes the last index
+   * @property {number} lastIndex - The property used to store the nodes last index
    */
 
   /**
@@ -524,7 +524,7 @@ class Mark {
    * @typedef Mark~getTextNodesDict
    * @type {object.<string>}
    * @property {Mark~nodeInfo[]} nodes - The array of objects
-   * @property {number} lastIndex - The property used to store the nodes the last index
+   * @property {number} lastIndex - The property used to store the nodes last index
    */
 
   /**
@@ -542,7 +542,6 @@ class Mark {
     let start = 0;
 
     this.iterator.forEachNode(this.filter.SHOW_TEXT, node => { // each
-      //nodes.push(node);
       nodes.push({
         node,
         start
@@ -640,7 +639,7 @@ class Mark {
   /**
    * Each callback
    * @callback Mark~wrapRangeEachCallback
-   * @param {HTMLElement|Range} node - The wrapped DOM element or range (Highlight)
+   * @param {HTMLElement|StaticRange|Range} node - The wrapped DOM element or range (Highlight API)
    */
   /**
    * Splits the text node into two or three nodes and wraps the necessary node or wraps the input node
@@ -677,12 +676,11 @@ class Mark {
   /**
    * Each callback
    * @callback Mark~createRangeEachCallback
-   * @param {Range} range - The created range
-   * @param {boolean} true - Required only for across elements code with rangeAcrossElements option
+   * @param {StaticRange|Range} range - The created range
+   * @param {boolean} true - Required only for across elements code with the rangeAcrossElements option
    */
   /**
-   * Creates new Range object with specified parameters
-   * @param {Mark~wrapRangeInsertDict} dict - The dictionary
+   * Creates the new StaticRange/Range object with the specified parameters
    * @param {Text} startNode - The text node where a match is started
    * @param {number} startOffset - The start index of the match in startNode
    * @param {number} endNode - The text node where a match is ended
@@ -738,14 +736,15 @@ class Mark {
   /**
    * Each callback
    * @callback Mark~wrapRangeAcrossEachCallback
-   * @param {HTMLElement|Range} node - The wrapped DOM element or range (Highlight)
-   * @param {boolean} rangeStart - Indicate the start of the current range or always true (Highlight)
+   * @param {HTMLElement|StaticRange|Range} node - The wrapped DOM element or range (Highlight API)
+   * @param {boolean} rangeStart - Indicate the start of the current range or always true (Highlight API)
    */
 
   /**
    * Filter callback
    * @callback Mark~wrapRangeAcrossFilterCallback
-   * @param {Text|Text[]} n - The current text node or an array of text nodes if rangeAcrossElements option is set
+   * @param {Text|Text[]} node - The current text node or an array of text nodes when using the Highlight API
+   * with the options 'acrossElements: true' and 'rangeAcrossElements: true'
    */
   /**
    * Determines matches by start and end positions using the text node dictionary
@@ -765,7 +764,7 @@ class Mark {
       filterNodes = [],
       e;
     const wrapAllRanges = this.opt.wrapAllRanges,
-      highlightAPI = !!this.opt.highlight, // when using Highlight API, no text nodes are split
+      highlightAPI = !!this.opt.highlight, // when using the Highlight API, no text nodes are split
       singleRange = highlightAPI && this.opt.rangeAcrossElements;
 
     if (wrapAllRanges) {
@@ -802,9 +801,10 @@ class Mark {
             eachCb(obj.mark, rangeStart);
 
           } else {
-            // when Highlight object is provided, it creates multiple ranges for matches that located across elements
-            n.node = this.wrapRange(n, s, e, node => {
-              eachCb(node, rangeStart);
+            // when using the Highlight API and the 'rangeAcrossElements: false',
+            // it creates multiple ranges for matches that are located across elements
+            n.node = this.wrapRange(n, s, e, elemOrRange => {
+              eachCb(elemOrRange, rangeStart);
             });
             // sets the new text node start index in the case of subsequent matches in the same text node
             if ( !highlightAPI) n.start += e;
@@ -817,7 +817,7 @@ class Mark {
           start = n.end + n.offset;
 
         } else {
-          // creates a single Range for matches that located across elements
+          // creates a single StaticRange/Range for matches that are located across elements
           if (startInfo && filterCb(filterNodes)) {
             this.createRange(startInfo[0], startInfo[1], n.node, e, startInfo[2], eachCb);
           }
@@ -831,15 +831,15 @@ class Mark {
 
   /**
    * Filter callback before each wrapping
-   * @callback Mark~wrapGroupsDFlagFilterCallback
+   * @callback Mark~wrapGroupsFilterCallback
    * @param {Text} node - The text node where the match occurs
    * @param {string} group - The current group matching string
    * @param {number} i - The current group index
    */
   /**
    * Callback for each wrapped element
-   * @callback Mark~wrapGroupsDFlagEachCallback
-   * @param {HTMLElement} element - The marked DOM element
+   * @callback Mark~wrapGroupsEachCallback
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {number} i - The current group index
    */
 
@@ -847,9 +847,9 @@ class Mark {
    * Wraps match groups with RegExp.hasIndices
    * @param {Text} node - The text node where the match occurs
    * @param {array} match - The result of RegExp exec() method
-   * @param {Mark~paramsObject} params - The object containing one property
-   * @param {Mark~wrapGroupsDFlagCallback} filterCb - Filter callback
-   * @param {Mark~wrapGroupsDFlagEachCallback} eachCb - Each callback
+   * @param {RegExp} regex - The regular expression
+   * @param {Mark~wrapGroupsFilterCallback} filterCb - Filter callback
+   * @param {Mark~wrapGroupsEachCallback} eachCb - Each callback
    */
   wrapGroups(n, match, regex, filterCb, eachCb) {
     let lastIndex = 0,
@@ -872,14 +872,14 @@ class Mark {
             // when a group is wrapping, a text node is split at the end index,
             // so to correct the start & end indexes of a new text node, subtract
             // the end index of the last wrapped group (offset)
-            n.node = this.wrapRange(n, start - offset, end - offset, node => { // each
-              eachCb(node, i);
+            n.node = this.wrapRange(n, start - offset, end - offset, elemOrRange => { // each
+              eachCb(elemOrRange, i);
             });
 
             if (end > lastIndex) {
               lastIndex = end;
             }
-            // when using Highlight API, no text nodes are split
+            // when using the Highlight API, no text nodes are split
             if ( !highlightAPI) offset = end;
             isWrapped = true;
           }
@@ -890,7 +890,6 @@ class Mark {
     if (isWrapped) {
       if ( !highlightAPI) regex.lastIndex = 0;
 
-    // when the match has zero length, we need to control the RegExp lastIndex
     } else if (match[0].length === 0) {
       this.setLastIndex(regex, end);
     }
@@ -898,26 +897,27 @@ class Mark {
 
   /**
    * Filter callback before each wrapping
-   * @callback Mark~wrapGroupsDFlagAcrossFilterCallback
-   * @param {Text} node - The text node where the match occurs or is part of the match
+   * @callback Mark~wrapGroupsAcrossFilterCallback
+   * @param {Text|Text[]} nodeOrArray - The current text node or an array of text nodes when using the Highlight API
+   * with the options 'acrossElements: true' and 'rangeAcrossElements: true'
    * @param {string} group - The current group matching string
    * @param {number} i - The current group index
    */
   /**
    * Callback for each wrapped element
-   * @callback Mark~wrapGroupsDFlagAcrossEachCallback
-   * @param {HTMLElement} element - The marked DOM element
-   * @param {boolean} groupStart - Indicate the start of a group
+   * @callback Mark~wrapGroupsAcrossEachCallback
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {number} i - The current group index
+   * @param {boolean} groupStart - Indicate the start of a group
    */
 
   /**
    * Wraps match groups with RegExp.hasIndices across elements
-   * @param {Mark~wrapGroupsDFlagAcrossDict} dict - The dictionary
+   * @param {Mark~wrapGroupsAcrossDict} dict - The dictionary
    * @param {array} match - The result of RegExp exec() method
-   * @param {Mark~paramsObject} params - The empty object
-   * @param {Mark~wrapGroupsDFlagAcrossFilterCallback} filterCb - Filter callback
-   * @param {Mark~wrapGroupsDFlagAcrossEachCallback} eachCb - Each callback
+   * @param {RegExp} regex - The regular expression
+   * @param {Mark~wrapGroupsAcrossFilterCallback} filterCb - Filter callback
+   * @param {Mark~wrapGroupsAcrossEachCallback} eachCb - Each callback
    */
   wrapGroupsAcross(dict, match, regex, filterCb, eachCb) {
     let lastIndex = 0,
@@ -938,12 +938,12 @@ class Mark {
           end = match.indices[i][1];
           isWrapped = false;
 
-          this.wrapRangeAcross(dict, start, end, node => { // filter
-            return filterCb(node, group, i);
+          this.wrapRangeAcross(dict, start, end, nodeOrArray => { // filter
+            return filterCb(nodeOrArray, group, i);
 
-          }, (node, groupStart) => { // each
+          }, (elemOrRange, groupStart) => { // each
             isWrapped = true;
-            eachCb(node, i, groupStart);
+            eachCb(elemOrRange, i, groupStart);
           });
           // group may be filtered out
           if (isWrapped && end > lastIndex) {
@@ -952,16 +952,16 @@ class Mark {
         }
       }
     }
-    // when the match has zero length, we need to control the RegExp lastIndex
+
     if (match[0].length === 0) {
       this.setLastIndex(regex, end);
     }
   }
 
   /**
-   * When processing zero length match, there is a need to set the RegExp lastIndex depending on conditions.
+   * When the length of a match is zero, there is a need to set the RegExp lastIndex depending on conditions.
    * It's necessary to avoid infinite loop and set position from which to start the next match
-   * @param {RegExp} regex - The regular expression to be searched for
+   * @param {RegExp} regex - The regular expression
    * @param {number} end - The end index of the last processed group
    */
   setLastIndex(regex, end) {
@@ -997,20 +997,20 @@ class Mark {
 
   /**
    * Group filter callback before each wrapping
-   * @callback Mark~wrapSeparateGroupsFilterCallback
+   * @callback Mark~processGroupsFilterCallback
    * @param {Text} node - The text node where the match occurs
    * @param {string} group - The matching string of the current group
    * @param {Mark~filterInfoObject} info - The object containing the match information
    */
   /**
    * Callback for each wrapped element
-   * @callback Mark~wrapSeparateGroupsEachCallback
-   * @param {HTMLElement} element - The marked DOM element
+   * @callback Mark~processGroupsEachCallback
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {Mark~eachInfoObject} - The object containing the match information
    */
   /**
    * Callback on end
-   * @callback Mark~wrapSeparateGroupsEndCallback
+   * @callback Mark~processGroupsEndCallback
    * @param {number} count - The number of matches
    */
 
@@ -1018,9 +1018,9 @@ class Mark {
    * Wraps match capturing groups
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} unused
-   * @param {Mark~wrapSeparateGroupsFilterCallback} filterCb - Filter callback
-   * @param {Mark~wrapSeparateGroupsEachCallback} eachCb - Each callback
-   * @param {Mark~wrapSeparateGroupsEndCallback} endCb
+   * @param {Mark~processGroupsFilterCallback} filterCb - Filter callback
+   * @param {Mark~processGroupsEachCallback} eachCb - Each callback
+   * @param {Mark~processGroupsEndCallback} endCb
    * @access protected
    */
   processGroups(regex, unused, filterCb, eachCb, endCb) {
@@ -1064,29 +1064,30 @@ class Mark {
 
   /**
    * Filter callback before each wrapping
-   * @callback Mark~wrapSeparateGroupsAcrossFilterCallback
-   * @param {Text} node - The text node where the match occurs or is part of the match
+   * @callback Mark~processGroupsAcrossFilterCallback
+   * @param {Text|Text[]} nodeOrArray - The current text node or an array of text nodes when using the Highlight API
+   * with the options 'acrossElements: true' and 'rangeAcrossElements: true'
    * @param {string} group - The matching string of the current group
    * @param {Mark~filterInfoObject} info - The object containing the match information
    */
   /**
    * Callback for each wrapped element
-   * @callback Mark~wrapSeparateGroupsAcrossEachCallback
-   * @param {HTMLElement} node - The marked DOM element
+   * @callback Mark~processGroupsAcrossEachCallback
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {Mark~eachInfoObject} - The object containing the match information
    */
   /**
    * Callback on end
-   * @callback Mark~wrapSeparateGroupsAcrossEndCallback
+   * @callback Mark~processGroupsAcrossEndCallback
    * @param {number} count - The number of all matches
    */
   /**
    * Wraps match capturing groups across elements
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} unused
-   * @param {Mark~wrapSeparateGroupsAcrossFilterCallback} filterCb - Filter callback
-   * @param {Mark~wrapSeparateGroupsAcrossEachCallback} eachCb - Each callback
-   * @param {Mark~wrapSeparateGroupsAcrossEndCallback} endCb
+   * @param {Mark~processGroupsAcrossFilterCallback} filterCb - Filter callback
+   * @param {Mark~processGroupsAcrossEachCallback} eachCb - Each callback
+   * @param {Mark~processGroupsAcrossEndCallback} endCb
    * @access protected
    */
   processGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
@@ -1100,18 +1101,17 @@ class Mark {
         info.match = match;
         filterStart = eachStart = true;
 
-        this.wrapGroupsAcross(dict, match, regex, (node, group, grIndex) => { // filter
+        this.wrapGroupsAcross(dict, match, regex, (nodeOrArray, group, grIndex) => { // filter
           info.matchStart = filterStart;
           info.groupIndex = grIndex;
           filterStart = false;
-          return filterCb(node, group, info);
+          return filterCb(nodeOrArray, group, info);
 
-        //}, (node, groupStart, grIndex) => { // each
-        }, (node, grIndex, groupStart) => { // each
+        }, (elemOrRange, grIndex, groupStart) => { // each
           if (eachStart) {
             count++;
           }
-          eachCb(node, {
+          eachCb(elemOrRange, {
             match : match,
             matchStart : eachStart,
             count : count,
@@ -1127,22 +1127,23 @@ class Mark {
     });
   }
 
+
   /**
    * Filter callback before each wrapping
-   * @callback Mark~wrapMatchesFilterCallback
+   * @callback Mark~processMatchesFilterCallback
    * @param {Text} node - The text node where the match occurs
    * @param {string} str - The matching string
    * @param {Mark~filterInfoObject} filterInfo - The object containing the match information
    */
   /**
    * Callback for each wrapped element
-   * @callback Mark~wrapMatchesEachCallback
-   * @param {HTMLElement} element - The marked DOM element
+   * @callback Mark~processMatchesEachCallback
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {Mark~eachInfoObject} eachInfo - The object containing the match information
    */
   /**
    * Callback on end
-   * @callback Mark~wrapMatchesEndCallback
+   * @callback Mark~processMatchesEndCallback
    * @param {number} count - The number of all matches
    */
 
@@ -1150,9 +1151,9 @@ class Mark {
    * Wraps the instance element and class around matches within single HTML elements in all contexts
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} ignoreGroups - A number of RegExp capturing groups to ignore from the beginning of a match
-   * @param {Mark~wrapMatchesFilterCallback} filterCb - Filter callback
-   * @param {Mark~wrapMatchesEachCallback} eachCb - Each callback
-   * @param {Mark~wrapMatchesEndCallback} endCb
+   * @param {Mark~processMatchesFilterCallback} filterCb - Filter callback
+   * @param {Mark~processMatchesEachCallback} eachCb - Each callback
+   * @param {Mark~processMatchesEndCallback} endCb
    * @access protected
    */
   processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
@@ -1165,7 +1166,7 @@ class Mark {
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
         while ((match = regex.exec(n.node.textContent)) !== null) {
-          // prevents infinite loop
+          // prevents an infinite loop
           if ((str = match[index]) === '') {
             regex.lastIndex++;
             continue;
@@ -1182,15 +1183,14 @@ class Mark {
               start += match[i].length;
             }
           }
-          const end = start + str.length;
 
-          n.node = this.wrapRange(n, start, end, node => {
-            eachCb(node, {
+          n.node = this.wrapRange(n, start, start + str.length, elemOrRange => {
+            eachCb(elemOrRange, {
               match: match,
               count: ++count
             });
           });
-          // when using Highlight interface, no text nodes are split
+          // when using the Highlight API, no text nodes are split
           if ( !this.opt.highlight) regex.lastIndex = 0;
 
           if (execution.abort) break;
@@ -1204,30 +1204,31 @@ class Mark {
 
   /**
    * Filter callback before each wrapping
-   * @callback Mark~wrapMatchesAcrossFilterCallback
-   * @param {Text} node - The text node where the match occurs or is part of the match
+   * @callback Mark~processMatchesAcrossFilterCallback
+   * @param {Text|Text[]} nodeOrArray - The current text node or an array of text nodes when using the Highlight API
+   * with the options 'acrossElements: true' and 'rangeAcrossElements: true'
    * @param {string} str - The matching string
    * @param {Mark~filterInfoObject} filterInfo - The object containing the match information
    */
   /**
    * Callback for each wrapped element
-   * @callback Mark~wrapMatchesAcrossEachCallback
-   * @param {HTMLElement} element - The marked DOM element
+   * @callback Mark~processMatchesAcrossEachCallback
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {Mark~eachInfoObject} - The object containing the match information
    */
 
   /**
    * Callback on end
-   * @callback Mark~wrapMatchesAcrossEndCallback
+   * @callback Mark~processMatchesAcrossEndCallback
    * @param {number} count - The number of all matches
    */
   /**
    * Wraps the instance element and class around matches across all HTML elements in all contexts
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} ignoreGroups - A number of RegExp capturing groups to ignore from the beginning of a match
-   * @param {Mark~wrapMatchesAcrossFilterCallback} filterCb - Filter callback
-   * @param {Mark~wrapMatchesAcrossEachCallback} eachCb - Each callback
-   * @param {Mark~wrapMatchesAcrossEndCallback} endCb
+   * @param {Mark~processMatchesAcrossFilterCallback} filterCb - Filter callback
+   * @param {Mark~processMatchesAcrossEachCallback} eachCb - Each callback
+   * @param {Mark~processMatchesAcrossEndCallback} endCb
    * @access protected
    */
   processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
@@ -1255,16 +1256,16 @@ class Mark {
           }
         }
 
-        this.wrapRangeAcross(dict, start, start + str.length, node => { // filter
+        this.wrapRangeAcross(dict, start, start + str.length, nodeOrArray => { // filter
           filterInfo.matchStart = matchStart;
           matchStart = false;
-          return filterCb(node, str, filterInfo);
+          return filterCb(nodeOrArray, str, filterInfo);
 
-        }, (node, mStart) => { // each
+        }, (elemOrRange, mStart) => { // each
           if (mStart) {
             count++;
           }
-          eachCb(node, {
+          eachCb(elemOrRange, {
             match: match,
             matchStart: mStart,
             count: count,
@@ -1280,7 +1281,7 @@ class Mark {
   /**
    * Callback for each wrapped element
    * @callback Mark~wrapRangesEachCallback
-   * @param {HTMLElement} element - The marked DOM element
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {Mark~rangeObject} range - the current range object; the start and length values can be
    * modified if they are not numeric integers
    * @param {Mark~rangeInfoObject} rangeInfo - The object containing the range information
@@ -1288,7 +1289,8 @@ class Mark {
   /**
    * Filter callback before each wrapping
    * @callback Mark~wrapRangesFilterCallback
-   * @param {Text} node - The text node which includes the range or is part of the range
+   * @param {Text|Text[]} nodeOrArray - The current text node or an array of text nodes when using the Highlight API
+   * with the options 'acrossElements: true' and 'rangeAcrossElements: true'
    * @param {Mark~rangeObject} range - the current range object
    * @param {string} substr - string extracted from the matching range
    * @param {number} index - The current range index ???
@@ -1340,14 +1342,14 @@ class Mark {
         const substr = dict.text.slice(start, end);
 
         if (substr.trim()) {
-          this.wrapRangeAcross(dict, start, end, node => {    // filter
-            return filterCb(node, range, substr, index);
+          this.wrapRangeAcross(dict, start, end, nodeOrArray => {    // filter
+            return filterCb(nodeOrArray, range, substr, index);
 
-          }, (node, rangeStart) => {    // each
+          }, (elemOrRange, rangeStart) => {    // each
             if (rangeStart) {
               count++;
             }
-            eachCb(node, range, {
+            eachCb(elemOrRange, range, {
               matchStart: rangeStart,
               count: count
             });
@@ -1424,7 +1426,8 @@ class Mark {
   /**
    * Callback to filter matches
    * @callback Mark~markRegExpFilterCallback
-   * @param {Text} node - The text node which includes the match or with acrossElements option can be part of the match
+   * @param {Text|Text[]} nodeOrArray - The current text node or an array of text nodes when using the Highlight API
+   * with the options 'acrossElements: true' and 'rangeAcrossElements: true'
    * @param {string} match - The matching string:
    * 1) without 'ignoreGroups' and 'separateGroups' options - the whole match.
    * 2) with 'ignoreGroups' option - the match[ignoreGroups+1] group matching string.
@@ -1435,7 +1438,7 @@ class Mark {
   /**
    * Callback for each marked element
    * @callback Mark~markRegExpEachCallback
-   * @param {HTMLElement} element - The marked DOM element
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {Mark~eachInfoObject} eachInfo - The object containing the match information.
    */
   /**
@@ -1486,13 +1489,13 @@ class Mark {
     }
     this.log(`RegExp "${regexp}"`);
 
-    this[fn](regexp, this.opt.ignoreGroups, (node, match, filterInfo) => { // filter
-      return this.opt.filter(node, match, matchesSoFar, filterInfo);
+    this[fn](regexp, this.opt.ignoreGroups, (nodeOrArray, match, filterInfo) => { // filter
+      return this.opt.filter(nodeOrArray, match, matchesSoFar, filterInfo);
 
-    }, (element, eachInfo) => { // each
+    }, (elemOrRange, eachInfo) => { // each
       matchesSoFar = eachInfo.count;
       totalMarks++;
-      this.opt.each(element, eachInfo);
+      this.opt.each(elemOrRange, eachInfo);
 
     }, (totalMatches) => { // done
       if (totalMatches === 0) {
@@ -1506,7 +1509,8 @@ class Mark {
   /**
    * Callback to filter matches
    * @callback Mark~markFilterCallback
-   * @param {Text} node - The text node which includes the match or with acrossElements option can be part of the match
+   * @param {Text|Text[]} nodeOrArray - The current text node or an array of text nodes when using the Highlight API
+   * with the options 'acrossElements: true' and 'rangeAcrossElements: true'
    * @param {string} term - The current term
    * @param {number} matches - The number of all wrapped matches so far
    * @param {number} termMatches - The number of wrapped matches for the current term so far
@@ -1515,7 +1519,7 @@ class Mark {
   /**
    * Callback for each marked element
    * @callback Mark~markEachCallback
-   * @param {HTMLElement} element - The marked DOM element
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {Mark~eachInfoObject} eachInfo - The object containing the match information.
    */
   /**
@@ -1566,21 +1570,21 @@ class Mark {
     const loop = ({ regex, regTerms }) => {
       this.log(`RegExp ${regex}`);
 
-      this[fn](regex, 1, (node, _, filterInfo) => { // filter
+      this[fn](regex, 1, (nodeOrArray, _, filterInfo) => { // filter
         if ( !across || filterInfo.matchStart) {
           term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
         // termStats[term] is the number of wrapped matches so far for the current term
         termMatches = termStats[term];
-        return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
+        return this.opt.filter(nodeOrArray, term, totalMatches + termMatches, termMatches, filterInfo);
 
-      }, (element, eachInfo) => { // each
+      }, (elemOrRange, eachInfo) => { // each
         totalMarks++;
 
         if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
         }
-        this.opt.each(element, eachInfo);
+        this.opt.each(elemOrRange, eachInfo);
 
       }, (count) => { // end
         totalMatches += count;
@@ -1678,7 +1682,8 @@ class Mark {
   /**
    * Callback to filter matches
    * @callback Mark~markRangesFilterCallback
-   * @param {Text} node - The text node which includes the range or is part of the range
+   * @param {Text|Text[]} nodeOrArray - The current text node or an array of text nodes when using the Highlight API
+   * with the options 'acrossElements: true' and 'rangeAcrossElements: true'
    * @param {Mark~rangeObject} range - The range object
    * @param {string} match - The current range matching string
    * @param {number} index - The current range index ???
@@ -1686,7 +1691,7 @@ class Mark {
   /**
    * Callback for each marked element
    * @callback Mark~markRangesEachCallback
-   * @param {HTMLElement} element - The marked DOM element
+   * @param {HTMLElement|StaticRange|Range} elemOrRange - The marked DOM element or range (Highlight API)
    * @param {Mark~rangeObject} range - The range object
    * @param {Mark~rangeInfoObject}  - The object containing the range information
    */
@@ -1709,12 +1714,12 @@ class Mark {
     if (Array.isArray(ranges)) {
       let totalMarks = 0;
 
-      this.processRanges(ranges, (node, range, match, index) => { // filter
-        return this.opt.filter(node, range, match, index);
+      this.processRanges(ranges, (nodeOrArray, range, match, index) => { // filter
+        return this.opt.filter(nodeOrArray, range, match, index);
 
-      }, (elem, range, rangeInfo) => { // each
+      }, (elemOrRange, range, rangeInfo) => { // each
         totalMarks++;
-        this.opt.each(elem, range, rangeInfo);
+        this.opt.each(elemOrRange, range, rangeInfo);
 
       }, (totalRanges, logs) => { // end
         this.report(logs);
@@ -1729,9 +1734,9 @@ class Mark {
   }
 
   /**
-   * If the option 'highlightName' is specified, iterates over names, if the HighlightRegistry contains
-   * a Highlight name, and deletes ranges from the Highlight object according with the 'exclude' option;
-   * next, if allow, unwraps all marked elements inside the context and normalizes text nodes
+   * Iterates over specified names or the default name, if the HighlightRegistry contains name,
+   * it deletes all (if the 'exclude' option is specified according this option) ranges from the Highlight object;
+   * next, if allowed, unwraps all marked elements inside the context and normalizes text nodes
    * @param {Mark~commonOptions} [opt] - Optional options object without each,
    * noMatch and acrossElements properties
    * @access public
@@ -1740,9 +1745,8 @@ class Mark {
     this.opt = opt;
     const registry = CSS.highlights,
       exclude = this.opt.exclude && this.opt.exclude.length;
-    // if the browser supports Highlight API
+    // if the browser supports the Highlight API
     if (registry) {
-      //let names = this.opt.highlightName || 'advanced-markjs',
       let names = this.opt.highlightName,
         highlight;
       if (typeof names === 'string') names = [names];
@@ -1755,9 +1759,9 @@ class Mark {
           if (exclude) {
             highlight.forEach((range) => {
               let node = range.startContainer;
-  
+
               if (node.nodeType === 3) node = node.parentNode;
-  
+
               if ( !this.excluded(node)) highlight.delete(range);
             });
 
@@ -1791,13 +1795,12 @@ class Mark {
   }
 
   /**
-   * Registers Highlight object using HighlightRegistry interface
+   * Registers a Highlight object using the HighlightRegistry
    */
   registerHighlight() {
     const highlight = this.opt.highlight;
 
     if (highlight) {
-      //const name = this.opt.highlightName || 'advanced-markjs',
       const name = this.opt.highlightName,
         // eslint-disable-next-line
         registry = CSS.highlights;

@@ -16,6 +16,10 @@ declare namespace Mark {
     style: string;
   }
 
+  interface IframesObject {
+    style: string;
+  }
+
   interface ExecutionObject {
     abort: boolean;
   }
@@ -39,9 +43,9 @@ declare namespace Mark {
     ignoreJoiners?: boolean;
     ignorePunctuation?: string | string[];
     wildcards?: 'disabled' | 'enabled' | 'withSpaces';
-    iframes?: boolean;
+    iframes?: boolean | IframesObject;
     iframesTimeout?: number;
-    
+
     highlight?: Highlight;
     highlightName?: string;
     staticRanges?: boolean;
@@ -83,9 +87,9 @@ declare namespace Mark {
     exclude?: string | string[];
     acrossElements?: boolean;
     ignoreGroups?: number;
-    iframes?: boolean;
+    iframes?: boolean | IframesObject;
     iframesTimeout?: number;
-    
+
     highlight?: Highlight;
     highlightName?: string;
     staticRanges?: boolean;
@@ -123,9 +127,9 @@ declare namespace Mark {
     element?: string;
     className?: string;
     exclude?: string | string[];
-    iframes?: boolean;
+    iframes?: boolean | IframesObject;
     iframesTimeout?: number;
-    
+
     highlight?: Highlight;
     highlightName?: string;
     staticRanges?: boolean;

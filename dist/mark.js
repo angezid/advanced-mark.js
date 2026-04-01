@@ -1104,8 +1104,8 @@
                 n = obj.nodeInfo;
                 eachCb(obj.mark, rangeStart);
               } else {
-                n.node = this.wrapRange(n, s, e, function (node) {
-                  eachCb(node, rangeStart);
+                n.node = this.wrapRange(n, s, e, function (elemOrRange) {
+                  eachCb(elemOrRange, rangeStart);
                 });
                 if (!highlightAPI) n.start += e;
               }
@@ -1141,8 +1141,8 @@
             if (start >= lastIndex) {
               end = match.indices[i][1];
               if (filterCb(n.node, group, i)) {
-                n.node = this.wrapRange(n, start - offset, end - offset, function (node) {
-                  eachCb(node, i);
+                n.node = this.wrapRange(n, start - offset, end - offset, function (elemOrRange) {
+                  eachCb(elemOrRange, i);
                 });
                 if (end > lastIndex) {
                   lastIndex = end;
@@ -1175,11 +1175,11 @@
             if (this.opt.wrapAllRanges || start >= lastIndex) {
               end = match.indices[i][1];
               isWrapped = false;
-              this.wrapRangeAcross(dict, start, end, function (node) {
-                return filterCb(node, group, i);
-              }, function (node, groupStart) {
+              this.wrapRangeAcross(dict, start, end, function (nodeOrArray) {
+                return filterCb(nodeOrArray, group, i);
+              }, function (elemOrRange, groupStart) {
                 isWrapped = true;
-                eachCb(node, i, groupStart);
+                eachCb(elemOrRange, i, groupStart);
               });
               if (isWrapped && end > lastIndex) {
                 lastIndex = end;
@@ -1256,16 +1256,16 @@
           while ((match = regex.exec(dict.text)) !== null) {
             info.match = match;
             filterStart = eachStart = true;
-            _this7.wrapGroupsAcross(dict, match, regex, function (node, group, grIndex) {
+            _this7.wrapGroupsAcross(dict, match, regex, function (nodeOrArray, group, grIndex) {
               info.matchStart = filterStart;
               info.groupIndex = grIndex;
               filterStart = false;
-              return filterCb(node, group, info);
-            }, function (node, grIndex, groupStart) {
+              return filterCb(nodeOrArray, group, info);
+            }, function (elemOrRange, grIndex, groupStart) {
               if (eachStart) {
                 count++;
               }
-              eachCb(node, {
+              eachCb(elemOrRange, {
                 match: match,
                 matchStart: eachStart,
                 count: count,
@@ -1311,9 +1311,8 @@
                   start += match[i].length;
                 }
               }
-              var end = start + str.length;
-              n.node = _this8.wrapRange(n, start, end, function (node) {
-                eachCb(node, {
+              n.node = _this8.wrapRange(n, start, start + str.length, function (elemOrRange) {
+                eachCb(elemOrRange, {
                   match: match,
                   count: ++count
                 });
@@ -1356,15 +1355,15 @@
                 start += match[i].length;
               }
             }
-            _this9.wrapRangeAcross(dict, start, start + str.length, function (node) {
+            _this9.wrapRangeAcross(dict, start, start + str.length, function (nodeOrArray) {
               filterInfo.matchStart = matchStart;
               matchStart = false;
-              return filterCb(node, str, filterInfo);
-            }, function (node, mStart) {
+              return filterCb(nodeOrArray, str, filterInfo);
+            }, function (elemOrRange, mStart) {
               if (mStart) {
                 count++;
               }
-              eachCb(node, {
+              eachCb(elemOrRange, {
                 match: match,
                 matchStart: mStart,
                 count: count
@@ -1408,13 +1407,13 @@
             }
             var substr = dict.text.slice(start, end);
             if (substr.trim()) {
-              _this10.wrapRangeAcross(dict, start, end, function (node) {
-                return filterCb(node, range, substr, index);
-              }, function (node, rangeStart) {
+              _this10.wrapRangeAcross(dict, start, end, function (nodeOrArray) {
+                return filterCb(nodeOrArray, range, substr, index);
+              }, function (elemOrRange, rangeStart) {
                 if (rangeStart) {
                   count++;
                 }
-                eachCb(node, range, {
+                eachCb(elemOrRange, range, {
                   matchStart: rangeStart,
                   count: count
                 });
@@ -1496,12 +1495,12 @@
           this.log('RegExp is recompiled - it must have a `g` flag', 'warn');
         }
         this.log("RegExp \"".concat(regexp, "\""));
-        this[fn](regexp, this.opt.ignoreGroups, function (node, match, filterInfo) {
-          return _this11.opt.filter(node, match, matchesSoFar, filterInfo);
-        }, function (element, eachInfo) {
+        this[fn](regexp, this.opt.ignoreGroups, function (nodeOrArray, match, filterInfo) {
+          return _this11.opt.filter(nodeOrArray, match, matchesSoFar, filterInfo);
+        }, function (elemOrRange, eachInfo) {
           matchesSoFar = eachInfo.count;
           totalMarks++;
-          _this11.opt.each(element, eachInfo);
+          _this11.opt.each(elemOrRange, eachInfo);
         }, function (totalMatches) {
           if (totalMatches === 0) {
             _this11.opt.noMatch(regexp);
@@ -1534,18 +1533,18 @@
           var regex = _ref.regex,
             regTerms = _ref.regTerms;
           _this12.log("RegExp ".concat(regex));
-          _this12[fn](regex, 1, function (node, _, filterInfo) {
+          _this12[fn](regex, 1, function (nodeOrArray, _, filterInfo) {
             if (!across || filterInfo.matchStart) {
               term = _this12.getCurrentTerm(filterInfo.match, regTerms);
             }
             termMatches = termStats[term];
-            return _this12.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
-          }, function (element, eachInfo) {
+            return _this12.opt.filter(nodeOrArray, term, totalMatches + termMatches, termMatches, filterInfo);
+          }, function (elemOrRange, eachInfo) {
             totalMarks++;
             if (!across || eachInfo.matchStart) {
               termStats[term] += 1;
             }
-            _this12.opt.each(element, eachInfo);
+            _this12.opt.each(elemOrRange, eachInfo);
           }, function (count) {
             totalMatches += count;
             var noMatches = regTerms.filter(function (term) {
@@ -1605,11 +1604,11 @@
         this.opt = opt;
         if (Array.isArray(ranges)) {
           var totalMarks = 0;
-          this.processRanges(ranges, function (node, range, match, index) {
-            return _this13.opt.filter(node, range, match, index);
-          }, function (elem, range, rangeInfo) {
+          this.processRanges(ranges, function (nodeOrArray, range, match, index) {
+            return _this13.opt.filter(nodeOrArray, range, match, index);
+          }, function (elemOrRange, range, rangeInfo) {
             totalMarks++;
-            _this13.opt.each(elem, range, rangeInfo);
+            _this13.opt.each(elemOrRange, range, rangeInfo);
           }, function (totalRanges, logs) {
             _this13.report(logs);
             _this13.registerHighlight();
