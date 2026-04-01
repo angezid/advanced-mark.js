@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Performance</title>
+<style>
+html { padding-bottom: 100px; }
+body { font: 16px/120% 'Arial', sans-serif; color: #000; background: #f4f4f4; overflow-y: scroll; }
+main { max-width: 1200px; margin: auto; }
+h1, #tables { margin-left: 20px; }
+
+article { padding: 10px 40px 0 20px; }
+section { padding: 0; margin: 20px 0; }
+p { text-indent: 1em; }
+
+button { width: 120px; height: 20px; font-size: 0.75em; margin: 0 15px 20px 0; background: #ddd; padding: 0; cursor: pointer; border: #ccc 1px solid; border-radius: 3px; }
+button.selected { color: #fff; background: #005a69; border: #005a69 1px solid; }
+
+.data { padding: 0; margin: 20px 0; position: relative; }
+.data ul { list-style-type: none; float: left; padding: 0; margin: 0; }
+.data ul li { width: 140px; height: 25px; line-height: 25px; margin: 4px 2px 0 0; display: block; float: left; text-align: center; font-size: 0.875em; cursor: pointer; background: #ddd; border-bottom: #ccc 1px solid; }
+.data ul li:hover { background-color: #88c2c8; }
+.data ul li.selected { background-color: #008390; color: #fff; border-bottom-color: #ccc; }
+
+.api { padding: 0; margin: 20px 0; position: relative; }
+.api ul { list-style-type: none; float: left; padding: 0; margin: 0; }
+.api ul li { width: 140px; height: 25px; line-height: 25px; margin: 4px 2px 0 0; display: block; float: left; text-align: center; font-size: 1em; cursor: pointer; background: #ddd; border-bottom: #ccc 1px solid; }
+.api ul li:hover { background-color: #88c2c8; }
+.api ul li.selected { background-color: #008390; color: #fff; border-bottom-color: #ccc; }
+
+table { border-collapse: collapse; border-spacing: 0; margin: 5px 0px 20px; }
+table caption { text-align: left; margin: 20px 0 10px 0; }
+table caption .warn { color: #ff2cca; }
+table tbody { border-bottom: #bbb 1px solid; border-top: #bbb 1px solid; }
+table thead th { padding: 5px 5px 5px 16px; color: #000; font-size: 1em; border: 1px solid #bbb; font-weight: normal; background-color: #ddd; vertical-align: middle; text-align: left; min-width: 100px; }
+table td { border: 1px solid #bbb; color: #000; padding: 5px 16px; overflow: visible; vertical-align: middle; }
+table tr.light { background-color: #b1f0ff; }
+
+table td { cursor: pointer; }
+
+::highlight(markjs) { background-color: #b1f0ff; }
+
+/*mark { background-color: #d8e8ff; }*/
+
+.column { float: left; width: 50%; }
+.row::after { content: ""; clear: both; display: table; }
+
+#warning { color: #ff00ff; }
+
+</style>
+</head>
+<body>
+<main>
+<h1></h1>
+<section id="tables">
+
+<div class="data row">
+<ul>
+<li class="selected" onclick="generate(this, [50,100,200], 100000, 5000)">100 KB, 5000</li>
+<li onclick="generate(this, [50,100,200], 250000, 10000)">250 KB, 10 000</li>
+<li onclick="generate(this, [50,100,200], 500000, 15000)">500 KB, 15 000</li>
+<li onclick="generate(this, [200,500,1000], 1000000, 25000)">1 MB, 25 000</li>
+</ul>
+</div>
+
+<div class="api row">
+<ul>
+<li onclick="mark(this)">mark</li>
+<li onclick="markRegExp(this)">markRegExp</li>
+<li onclick="markRanges(this)">markRanges</li>
+<li onclick="unmark(this)">unmark elements</li>
+<li id="unmark-highlight" onclick="unmark(this, true)">unmark highlight</li>
+</ul>
+</div>
+
+<div class="checkboxes row">
+<div>
+<input id="highlight-api" type="checkbox" checked>
+<label for="highlight-api">Highlight API</label>
+</div>
+
+<div>
+<input id="staticRanges" type="checkbox" checked>
+<label for="staticRanges">StaticRanges</label>
+<span id="warning"></span>
+</div>
+
+<div>
+<input id="diacritics" type="checkbox">
+<label for="diacritics">Diacritics</label>
+</div>
+
+<div>
+<input id="acrossElements" type="checkbox">
+<label for="acrossElements">Across elements</label>
+</div>
+
+<div>
+<input id="debug" type="checkbox">
+<label for="debug">debug</label>
+</div>
+
+<div>
+<label for="combineBy">combineBy:</label>
+<input id="combineBy" type="number" min="1" max="10000" value="1000">
+</div>
+
+</div>
+
+<div id="mark-table"></div>
+<div id="markRegExp-table"></div>
+<div id="markRanges-table"></div>
+<div id="unmark-table"></div>
+<pre id="message-box"></pre>
+</section>
+
+<article id="content">
+
+</article>
+
+<article id="highlight-content">
+
+</article>
+
+</main>
+</body>
+<script src="../../dist/mark.js"></script>
+<script src="js/main.js"></script>
+</html>
