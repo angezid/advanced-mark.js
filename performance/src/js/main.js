@@ -22,6 +22,8 @@ const acrossElements = document.getElementById('acrossElements'),
 	rangesWarning = document.getElementById('warning'),
 	diacritics = document.getElementById('diacritics'),
 	combineBy = document.getElementById('combineBy'),
+	exclude = document.getElementById('exclude'),
+	disable = document.getElementById('disable'),
 	unmarkHighlight = document.getElementById('unmark-highlight'),
 	markTable = document.getElementById('mark-table'),
 	unmarkTable = document.getElementById('unmark-table'),
@@ -46,6 +48,14 @@ combineBy.addEventListener('change', function() {
 	getOptions(performanceData.options.api);
 });
 
+exclude.addEventListener('change', function() {
+	getOptions(performanceData.options.api);
+});
+
+disable.addEventListener('change', function() {
+	checkExclude();
+});
+
 highlightAPI.addEventListener('click', function() {
 	getOptions(performanceData.options.api);
 	checkHighlightAPI();
@@ -56,12 +66,21 @@ staticRanges.addEventListener('click', function() {
 	location.reload();
 });
 
-staticRanges.checked = localStorage.getItem('staticRanges') === 'true'; // Chrome
-//staticRanges.checked = false; // Chrome
+staticRanges.checked = localStorage.getItem('staticRanges') === 'true';    // Chrome
+exclude.value = 'p.skip, p.skip *';
 
+checkExclude();
 getOptions('mark');
 checkHighlightAPI();
 mark();
+
+function checkExclude() {
+	exclude.disabled = !disable.checked;
+	const skip = document.querySelector(exclude.value);
+	if (skip) {
+		skip.setAttribute("style", 'opacity:' + (exclude.disabled ? '0.5' : '1'));
+	}
+}
 
 function checkHighlightAPI() {
 	if ( !highlight) {
@@ -84,12 +103,15 @@ function disableStaticRanges(disable) {
 }
 
 function getOptions(api) {
-	const options = { api: api,
+	const options = {
+		api: api,
 		highlightAPI: highlight && isChecked('highlight-api'),
 		staticRanges: staticRanges.disabled ? true : useHighlightAPI(),
 		diacritics: api === 'mark' && isChecked('diacritics'),
 		acrossElements: isChecked('acrossElements'),
 		combineBy: getNumericValue('combineBy', 10),
+		//exclude: 'div.skip, div.skip *'
+		exclude: exclude.value.trim()
 	};
 	performanceData.options = options;
 
@@ -99,30 +121,69 @@ function getOptions(api) {
 // DOM 'onclick' event
 function mark(button) {
 	getOptions('mark');
-	createPerformanceTable(markTable);
+	buildPerformanceTable(markTable);
 }
 
 // DOM 'onclick' event
 function markRegExp(button) {
 	getOptions('markRegExp');
-	createPerformanceTable(markRegExpTable);
+	buildPerformanceTable(markRegExpTable);
 }
 
 // DOM 'onclick' event
 function markRanges(button) {
 	const opt = getOptions('markRanges');
 	//opt.overlap = true;
-	createPerformanceTable(markRangesTable);
+	buildPerformanceTable(markRangesTable);
 }
 
 // DOM 'onclick' event
 function unmark(button, useHighlight) {
-	const array = performanceData.array;
-	const opt = performanceData.options;
-
 	if (useHighlight) {
 		useHighlight = isChecked('highlight-api');
 	}
+	buildUnmarkTable(unmarkTable, useHighlight);
+}
+
+function buildPerformanceTable(div) {
+	checkExclude();
+
+	const array = performanceData.array;
+	const opt = performanceData.options;
+
+	let table = getTableHeader(opt.api);
+
+	for (let i = 0; i < array.length; i++) {
+		const arr = array[i],
+			obj = buildData(arr);
+
+		const { count, time } = highlightWords(opt, null, obj);
+		const length = opt.api === 'markRanges' ? count : arr[0];
+		table += '<tr data-param=\'' + arr.toString() + '\'>';
+		table += `<td>${time}</td><td></td><td>${length}</td><td>${count}</td><td>${getNumber(obj.htmlSize)}</td></tr>\n`;
+
+		if (longOperation || opt.api === 'markRanges') break;
+	}
+
+	div.innerHTML = table + '</tbody></table>\n';
+
+	const trs = div.querySelectorAll('tr[data-param]');
+
+	addEventsToTable(div, trs);
+	runHighlights(div, trs, performanceData.options);
+
+	if ( !highlight || !performanceData.options.highlightAPI) {
+		div.querySelectorAll('tr th:nth-child(2), tr td:nth-child(2)').forEach((elem) => {
+			elem.remove();
+		});
+	}
+}
+
+function buildUnmarkTable(div, useHighlight) {
+	const array = performanceData.array;
+	const opt = performanceData.options;
+
+	checkExclude();
 
 	let table = '<table>\n<caption><b>' + opt.api + '() ➜ unmark()</b> ' + (useHighlightAPI() ? 'Highlight API' : '') + ' performance table</caption>\n<thead>';
 	table += '<tr><th>Mark time</th><th>Unmark time</th><th>Array length</th><th>Matches</th><th>HTML length</th></tr>\n';
@@ -130,31 +191,27 @@ function unmark(button, useHighlight) {
 
 	for (let i = 0; i < array.length; i++) {
 		const arr = array[i],
-			obj = buildData(opt, arr, useHighlight);
+			obj = buildData(arr, useHighlight);
 
 		const { count, time } = highlightWords(opt, useHighlight ? highlight : null, obj);
 
 		let time2 = performance.now();
-		new Mark('#content').unmark();
+		new Mark('#content').unmark({ 'exclude':!exclude.disabled && opt.exclude, });
 		time2 = Math.trunc(performance.now() - time2);
 
 		const length = opt.api === 'markRanges' ? count : arr[0];
 		table += '<tr data-param=\'' + arr.toString() + '\'>';
-		table += '<td>' + time + '</td><td>' + time2 + '</td><td>' + length + '</td><td>' + count + '</td><td>' + getNumber(arr[1]) + '</td></tr>\n';
+		table += `<td>${time}</td><td>${time2}</td><td>${length}</td><td>${count}</td><td>${getNumber(obj.htmlSize)}</td></tr>\n`;
 
-		if (longOperation) break;
+		if (longOperation || opt.api === 'markRanges') break;
 	}
 
-	table += '</tbody></table>\n';
-
-	const div = document.getElementById('unmark-table');
-	div.innerHTML = table;
+	div.innerHTML = table + '</tbody></table>\n';
 }
 
 function getNumber(num) {
 	num = num / 1000;
-	console.log( num, num >= 1000 );
-	return num >= 1000 ? (num / 1000) + ' MB' : num + ' KB';
+	return num >= 1000 ? (num / 1000).toPrecision(2) + ' MB' : Math.trunc(num) + ' KB';
 }
 
 function useHighlightAPI() {
@@ -170,49 +227,11 @@ function getNumericValue(id, defaultValue) {
 	return parseInt(document.getElementById(id).value.trim()) || defaultValue;
 }
 
-function createPerformanceTable(div) {
-	div.innerHTML = createTable();
-
-	const trs = div.querySelectorAll('tr[data-param]');
-
-	addEventsToTable(div, trs);
-	runHighlights(div, trs, performanceData.options);
-
-	//if ( !useHighlightAPI()) {
-	if ( !highlight || !performanceData.options.highlightAPI) {
-		div.querySelectorAll('tr th:nth-child(2), tr td:nth-child(2)').forEach((elem) => {
-			elem.remove();
-		});
-	}
-}
-
-function createTable() {
-	const array = performanceData.array;
-	const opt = performanceData.options;
-
-	let table = getTableHeader(opt.api);
-
-	for (let i = 0; i < array.length; i++) {
-		const arr = array[i],
-			obj = buildData(opt, arr);
-
-		const { count, time } = highlightWords(opt, null, obj);
-		const length = opt.api === 'markRanges' ? count : arr[0];
-		table += '<tr data-param=\'' + arr.toString() + '\'>';
-		table += '<td>' + time + '</td><td></td><td>' + length + '</td><td>' + count + '</td><td>' + getNumber(arr[1]) + '</td></tr>\n';
-
-		if (longOperation) break;
-	}
-
-	table += '</tbody></table>\n';
-	return table;
-}
-
 function runHighlights(div, trs, opt) {
 	if (opt.highlightAPI) {
 		trs.forEach((elem) => {
 			const data = elem.getAttribute('data-param').split(',').map((str) => Number(str)),
-				obj = buildData(opt, data, true);
+				obj = buildData(data, true);
 
 			const { count, time } = highlightWords(opt, highlight, obj);
 			elem.querySelector('td:nth-child(2)').textContent += ' ' + time;
@@ -249,14 +268,14 @@ function runSingle(e) {
 	let matchCount = 0,
 		obj;
 
-	obj = buildData(opt, data, false);
+	obj = buildData(data, false);
 	const { count, time } = highlightWords(opt, null, obj);
 	elem.querySelector('td:nth-child(1)').textContent += ' ' + time;
 	matchCount = count;
 
 	if (opt.highlightAPI) {
 		setTimeout(function() {
-			obj = buildData(opt, data, true);
+			obj = buildData(data, true);
 			const { count, time } = highlightWords(opt, highlight, obj);
 			elem.querySelector('td:nth-child(2)').textContent += ' ' + time;
 		}, 100);
@@ -304,6 +323,7 @@ function highlightWords(opt, highlight, obj) {
 			'staticRanges': opt.staticRanges,
 			'acrossElements': opt.acrossElements,
 			'combineBy': opt.combineBy,
+			//'exclude': opt.exclude,
 			done: finish,
 			debug: debug
 		});
@@ -338,7 +358,8 @@ function highlightWords(opt, highlight, obj) {
 	return { count: matchCount, time };
 }
 
-function buildData(opt, array, useHighlight) {
+function buildData(array, useHighlight) {
+	const opt = performanceData.options;
 	const obj = getContent(opt, array);
 	setHtmlContent(obj, useHighlight);
 	return obj;
@@ -392,7 +413,7 @@ function generate(elem, array, htmlSize, matches) {
 
 	array.forEach((num) => {
 		const arr = [num, htmlSize, matches];
-		buildData(performanceData.options, arr, false);
+		buildData(arr, false);
 		result.push(arr);
 	});
 
@@ -406,61 +427,130 @@ function generate(elem, array, htmlSize, matches) {
 function generateContent(opt, arraySize, htmlSize, matches) {
 	let t1 = performance.now();
 
-	const { htmlArray, wordStats, realLength, wordCount } = buildHtmlContent(opt, arraySize, htmlSize, matches);
-	const array = opt.api === 'markRanges' ? buildRanges(matches, htmlSize, opt) : buildArray(arraySize, htmlArray, wordStats, matches);
+	const { htmlArray, wordArray } = buildHtmlContent(opt, arraySize, htmlSize, matches),
+		html = htmlArray.join('');
+	const array = opt.api === 'markRanges' ? buildRanges(matches, htmlSize, opt) : wordArray;
 
 	let time = Math.trunc(performance.now() - t1);
-	message('array = ' + arraySize + '; matches = ' + matches + '; html = ' + htmlSize + '; time = ' + time);
+	message('array = ' + arraySize + '; matches = ' + matches + '; html = ' + html.length + '; time = ' + time);
 
-	return { array, html: htmlArray.join(''), htmlSize, matches };
+	return { array, html, htmlSize: html.length, matches };
 }
 
-function buildArray(arraySize, htmlArray, wordStats, matches) {
-	const sortedArray = [];
+function buildHtmlContent(opt, arraySize, htmlSize, matches) {
+	const results = [],
+		array = [];
 
-	for (const key in wordStats) {
-		sortedArray.push([key, wordStats[key]]);
+	shuffle(words);
+
+	const wordArray = words.slice(0, arraySize),
+		wordsLength = wordArray.length,
+		words2 = words.slice(arraySize);
+
+	htmlSize -= (matches / arraySize) * wordArray.join('').length + htmlSize / 5;
+	let length = 0;
+
+	while (length < htmlSize) {
+		shuffle(words2);
+		let section = words2.slice(0, Math.floor((Math.random() * (words2.length - 1001)) + 1000));
+		array.push(section);
+		length += section.join('').length;
 	}
-	sortedArray.sort((a, b) => b[1] - a[1]);    // by length, descending
 
-	let array = [],
-		count = 0;
+	let offset = Math.floor(wordsLength / 4),
+		start = 0;
+	length = 0;
 
-	for (let r = sortedArray.length - 1; r >= 0; r--) {
-		if (sortedArray[r][1] === 0) continue;
+	while (length < matches) {
+		const arr = wordArray.slice(start, start + offset),
+			len = arr.length;
 
-		count += sortedArray[r][1];
-		array.push(sortedArray[r]);
+		for (let i = 0; i < array.length; i++) {
+			if (length >= matches) break;
 
-		if (array.length >= arraySize) break;
+			if (length + len > matches) {
+				array[i].push(...wordArray.slice(wordsLength - (matches - length)));
+				length = Infinity;
+				break;
+			}
+
+			array[i].push(...arr);
+			length += len;
+		}
+		start = start + offset > wordsLength ? 0 : start + offset;
 	}
 
-	// reduces a number of matches to specify one (approximately)
-	if (count > matches) {
-		array.sort((a, b) => b[1] - a[1]);
+	results.push('<h1>Randomly generated text</h1>\n');
 
-		const len = htmlArray.length - 20;
-		let i = array.length,
-			num = count;
-		while (--i > 0 && (num -= array[i][1]) > matches);    // finds optimum start index
+	array.forEach((arr, index) => {
+		shuffle(arr);
 
-		// replaces words that has multiple matches by words having a single match
-		for (; i < array.length; i++) {
-			if ((count -= array[i][1] - 1) <= matches) break;
+		let i = 0,
+			start = 0,
+			next = getNext(0);
 
-			array[i] = [words[i], 1];
+		if (index === 0 && opt.exclude) {
+			results.push('<p class="skip">');
+			results.push(arr.slice(i, next).map((word, i) => {
+				return opt.acrossElements && word.length > 5 && wordArray.includes(word) ? generateAcross(word) : word;
+			}).join(' '));
+			results.push('</p>\n');
+			i = next;
+			next = getNext(i);
+		}
 
-			let index = Math.floor((Math.random() * len) + 1) - 1;
-			while (++index < len) {
-				if ( !htmlArray[index].startsWith('<')) {
-					htmlArray[index] += ' ' + words[i];
-					break;
-				}
+		results.push('<section>\n<p>');
+
+		for (; i < arr.length; i++) {
+			const word = arr[i];
+
+			if (opt.acrossElements && word.length > 5 && i % 10 === 0) {
+				arr[i] = generateAcross(word);
+			}
+
+			if (i > next) {
+				results.push(arr.slice(start, i).join(' '), '</p>\n<p>');
+				next = getNext(i);
+				start = i;
 			}
 		}
-	}
+		if (i < next) {
+			results.push(arr.slice(start, i).join(' '));
+		}
+		results.push('</p>\n</section>\n');
+	});
 
-	array = unique(array.map((arr) => arr[0]));
+	return { htmlArray: results, wordArray };
+}
+
+function getNext(num) {
+	return num + Math.floor((Math.random() * 150) + 50);
+}
+
+function generateAcross(word) {
+	const index = Math.floor(word.length / 2);
+	const num = Math.floor(Math.random() * 3) - 1;
+	if (num > 0) {
+		word = '<b>' + word.slice(0, index) + '</b>' + word.slice(index);
+
+	} else if (num < 0) {
+		word = word.slice(0, index) + '<b>' + word.slice(index) + '</b>';
+
+	} else {
+		word = word.slice(0, 2) + '<b>' + word.slice(2, 4) + '</b>' + word.slice(4);
+	}
+	return word;
+}
+
+function shuffle(array) {
+	let i = array.length;
+
+	while (--i > 1) {
+		let n = Math.floor((Math.random() * i) + 1);
+		let temp = array[i];
+		array[i] = array[n];
+		array[n] = temp;
+	}
 	return array;
 }
 
@@ -487,105 +577,6 @@ function buildRanges(length, htmlSize, opt) {
 		}
 	}
 
-	return array;
-}
-
-function buildHtmlContent(opt, arraySize, htmlSize, matches) {
-	const array = [],
-		wordStats = {};
-	let length = 0,
-		wordCount = 0,
-		allWords = htmlSize / 6.4;
-
-	words.forEach((word) => {
-		wordStats[word] = 0;
-	});
-
-	const endIndex = arraySize * allWords / matches;
-	const words2 = words.slice(arraySize, Math.max(arraySize + 50, endIndex));
-
-	array.push('<h1>Randomly generated text</h1>\n');
-
-	if (opt.exclude) {
-		array.push('<div class="skip">\n<p>');
-		words.slice(arraySize, 100).forEach((wd) => array.push(' ' + wd));
-		array.push('</p>\n</div>\n');
-	}
-
-	while (true) {
-		shuffle(words2);
-		array.push('<section>\n<p>');
-
-		let i = 0,
-			next = Math.floor((Math.random() * 150) + 20),
-			wordsSlice = words2.slice(0, Math.floor((Math.random() * (words2.length - 10)) + 10)),
-			start = 0;
-
-		for (; i < wordsSlice.length; i++) {
-			const word = wordsSlice[i];
-
-			if (opt.acrossElements && word.length > 5 && i % 10 === 0) {
-				wordsSlice[i] = generateAcross(word);
-			}
-
-			if (i > next) {
-				array.push(wordsSlice.slice(start, i).join(' '));
-				array.push('</p>\n<p>');
-				next = i + Math.floor((Math.random() * 150) + 20);
-				start = i;
-			}
-
-			wordStats[word] += 1;
-			length += word.length;
-			wordCount++;
-
-			if (length > htmlSize) break;
-		}
-		if (i < next) {
-			array.push(wordsSlice.slice(start, i).join(' '));
-		}
-
-		array.push('</p>\n</section>\n');
-
-		if (length > htmlSize) break;
-	}
-
-	return { htmlArray: array, wordStats, realLength: length, wordCount };
-}
-
-function generateAcross(word) {
-	const index = Math.floor(word.length / 2);
-	const num = Math.floor(Math.random() * 3) - 1;
-	if (num > 0) {
-		word = '<b>' + word.slice(0, index) + '</b>' + word.slice(index);
-
-	} else if (num < 0) {
-		word = word.slice(0, index) + '<b>' + word.slice(index) + '</b>';
-
-	} else {
-		word = word.slice(0, 2) + '<b>' + word.slice(2, 4) + '</b>' + word.slice(4);
-	}
-	return word;
-}
-
-function unique(arr) {
-	const array = [],
-		len = arr.length;
-	for (var i = 0; i < len; ++i) {
-		if (array.indexOf(arr[i]) === -1) array.push(arr[i]);
-	}
-	return array;
-}
-
-function shuffle(array) {
-	let i = array.length;
-
-	while (--i > 1) {
-		let n = Math.floor((Math.random() * i) + 1);
-		let temp = array[i];
-		array[i] = array[n];
-		array[n] = temp;
-	}
 	return array;
 }
 

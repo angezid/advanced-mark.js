@@ -55,7 +55,8 @@ $(context).mark(search[, options]);
   * `combinePatterns` {number|boolean} - Combine a specified number of individual term patterns into one (default is `10`)
     See [Performance](performance.md#ways-to-boost-performance) for more details.
   * `cacheTextNodes` {boolean} - Caching information to improve performance (default is `undefined`)
-    See [Performance](performance.md#ways-to-boost-performance) for more details.
+    See [Performance](performance.md#ways-to-boost-performance) for more details.  
+    **Warning:** this option is removed in version 3.x
   * `blockElementsBoundary` {boolean|object} - Whether to limit matches within default HTML block elements and/or custom elements (default is `undefined`)  AE
     See [Elements boundaries](elements-boundaries.md) for more details.
     * `tagNames` {string[]} - An array of custom HTML tag names
@@ -66,7 +67,7 @@ $(context).mark(search[, options]);
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
-  * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 

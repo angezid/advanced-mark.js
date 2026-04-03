@@ -11,7 +11,7 @@ $(context).markRegExp(regex[, options]);
 #### Parameters:
 * `regex` {RegExp} - The regular expression. With the `acrossElements` option, it **must** have the `g` flag - the library works with indexes, and only two `g` and `y` flags allow setting RegExp `lastIndex`.  
   **Note** that for backward compatibility, RegExp without the `g` flag is recompiled internally with this flag.  
-  **Warning:** version 3 requires the `g` flag for any RegExp unless it has the `y` flag.
+  **Warning:** the version 3.x requires the `g` flag for any RegExp unless it has the `y` flag.
   
 * `options` {object} - Optional options:
   * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
@@ -36,7 +36,7 @@ $(context).markRegExp(regex[, options]);
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
-  * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 

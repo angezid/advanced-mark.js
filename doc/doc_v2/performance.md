@@ -42,7 +42,7 @@ There are two options to boost performance:
 * `cacheTextNodes`: collecting text nodes information on every run is expensive. Caching this information improves performance with a large array.
   The performance gain gradually grows, starting with an array containing 2-3 items and doubled with 4-5 items.  
   **Note:** this option does not change behavior as the `combinePatterns` option does.  
-  **Warning:** this option is removed in version 3
+  **Warning:** this option is removed in version 3.x
   
 In Firefox marking an array of 500 words on a 1 MB page, 26500 text nodes, `diacritics: false` and ~7600 highlighted words:
 - with `combinePatterns: Infinity` ~0.2 second. (single pattern)
