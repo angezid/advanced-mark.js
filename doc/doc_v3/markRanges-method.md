@@ -27,11 +27,12 @@ $(context).markRanges(ranges[, options]);
   * `rangeAcrossElements` {boolean} - Whether to create a single `StaticRange/Range` object for matches located across elements (when using the `Highlight` API) (default is `true`)
     See [rangeAcrossElements](options.html#rangeacrosselements-option) option for more details.
 
-  * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
-    See [Highlighting in shadow DOM](shadow-dom.md) for more details.
+  * `shadowDOM` {boolean|object} - Whether to mark inside shadow DOMs (default is `undefined`)
+    See [shadowDOM](options.html#shadowdom-option) option for more details.
   * `markLines` {boolean} - Whether to mark ranges of lines instead of ranges of texts (default is `undefined`)
     See [Highlighting line ranges](mark-lines.md) for more details.
-  * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
+  * `iframes` {boolean|object} - Whether to mark inside iframes (default is `false`)
+    See [iframes](options.html#iframes-option) option for more details.
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)

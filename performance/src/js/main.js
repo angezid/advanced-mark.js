@@ -297,7 +297,7 @@ function highlightWords(opt, highlight, obj) {
 
 	let matchCount = 0,
 		time = 0;
-
+	
 	if (highlight) {
 		CSS.highlights.delete('advanced-markjs');
 		highlight.clear();

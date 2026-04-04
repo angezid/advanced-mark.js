@@ -8,8 +8,6 @@ instance.unmark([options]);
 // jQuery
 $(context).unmark([options]);
 ```
-**Important:** When using the Highlight API there is a simple and faster way to remove highlights `highlight.clear();`.
-Use `unmark()` when there is a need to keep compatibility with browsers that not supported the Highlight API (especially when using`exclude` option).
 
 #### Parameters:
 * `options` {object} - Optional options:
@@ -27,7 +25,7 @@ Use `unmark()` when there is a need to keep compatibility with browsers that not
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies the DOM elements that should be excluded from removing highlighting. (default is `[]`)
     **Important:** if highlighting is done using `Highlight` API with `acrossElements` and `rangeAcrossElements` options and wish to exclude element is inside a range, there is no possibility to exclude this element (the whole range will be removed).
   * `shadowDOM` {boolean} - Whether to remove highlighting inside shadow DOMs (default is `undefined`)
-    See [Highlighting in shadow DOM](shadow-dom.md) for more details.
+    See [shadowDOM](options.html#shadowdom-option) option for more details.
   * `iframes` {boolean} - Whether to remove highlighting inside iframes (default is `false`)
   * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)

@@ -80,11 +80,42 @@ instance.mark([ 'str1', 'str2', .. ], {
 });
 ```
 
+### `iframes` option
+To customize the style of mark elements in iframe, the option `iframes: { style: 'your mark element style' }` can be used.   
+To customize the style of highlighting when using a `Highlight` API the pseudo-element `::highlight(custom-highlight-name) { your highlight style }` should be added to the `iframes` style property.  
+The library creates a `style` element with the attribute 'data-markjs' and appends it to an iframe head element.  
+**Note** that the style is added to an iframe no matter whether it contains any matches or not.  
+
+An `unmark()` method will remove the style from an iframe if it call with option `iframes: { style: 'any string' }`.  
+
+### `shadowDOM` option
+The option `shadowDOM: true` allows to highlight a text inside shadow DOMs that have `mode: 'open'` option and are already created.  
+You can play with Playground - Examples -> Shadow DOM.
+
+To customize the style of mark elements in shadow DOM, the option `shadowDOM: { style: 'your mark element style' }` can be used.   
+To customize the style of highlighting when using a `Highlight` API the pseudo-element `::highlight(custom-highlight-name) { your highlight style }` should be added to the `shadowDOM` style property.  
+The library creates a `style` element with the attribute 'data-markjs' and appends it at the end of shadow root child nodes.  
+**Note** that the style is added to the shadow root no matter whether it contains any matches or not.
+
+An `unmark()` method will remove the style from a shadow root if it call with option `shadowDOM: { style: 'any string' }`.
+
+An inline style can be used as an alternative:
+**Warning:** it's not workable when using a `Highlight` API.
+
+``` js
+each: (markElement, info) => {
+  // a shadow root is the DocumentFragment
+  if (markElement.getRootNode().nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    markElement.style.color = "red";
+  }
+}
+```
+
 ### `highlight` option
 This option allows using [CSS Custom Highlight API](https://developer.mozilla.org/developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API.html).
 
 If a `Highlight` object is provided, the library creates `StaticRange/Range` objects of matches, adds them to the `Highlight` object, and registers it using the `HighlightRegistry` when it finishes.  
-**Note** that `each` callback's first parameter is the `StaticRange/Range` object instead of an HTML element.
+**Note** that the `each` callback's first parameter is the `StaticRange/Range` object instead of an HTML element.
 
 If a browser does not support the Highlight API, the library wrap matches in HTML elements.
 
@@ -110,20 +141,19 @@ CSS
 ```
 
 ### `staticRanges` option
-When using a `Range` objects one serious problem was discovered: after the library runs using Highlight API, there is a huge performance degradation (a hundred times) if the next run wraps matches in HTML elements.  
-The library splits text nodes before wrapping matches in HTML elements and this is forced the browser to re-calculate layout and re-render highlights.  
+When using `Range` objects one serious problem was discovered: after the library runs using a Highlight API, there is a huge performance degradation if the next run wraps matches in HTML elements.  
+The library splits text nodes when wrapping matches in HTML elements and this is forced the browser to re-calculate layout and re-render highlights.  
 
-This performance problem is solved by using `StaticRange` objects, but it can raise another problem - a `StaticRange` does not keep the same content on document changes.
+This performance problem is solved by using `StaticRange` objects, but it may raise another problem - a `StaticRange` does not keep the same content on document changes.
 
-So, use only the Highlight API, or if there is a need to wrap some matches in HTML elements, wrap them first and then switch to using the Highlight API.
+So, be aware of possible performance issue, when setting option `staticRanges: false`.
 
 ### `rangeAcrossElements` option
-This option allows creating a single range for matches located across elements when using the Highlight API with `acrossElements` (`markRanges()` API does not require this) option.  
-**Note** that `filter` callback's first parameter is an array of text node(s) containing a match instead of a text node.
+This option allows creating a single range for matches located across elements when using the Highlight API with `acrossElements` (`markRanges()` API does not require this) option.
+**Note** that the `filter` callback's first parameter is an array of text node(s) containing a match instead of a text node.
 
 When it is set to `false`, the number of `StaticRange/Range` objects is equal to the number of marked elements (the library creates a `StaticRange/Range` object instead of creating an element).  
 It can be useful for compatibility: the only difference is `each` callback's first parameter - a `StaticRange/Range` object instead of an HTML element.
-
 
 
 ``` js
