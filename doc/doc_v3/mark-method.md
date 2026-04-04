@@ -100,6 +100,8 @@ See [Filtering matches](filtering-matches.md) for more details.
       * `match` {array} - The result of RegExp exec() method
       * `matchStart` {boolean} - Indicate the start of a match  AE
       * `count` {number} - The number of wrapped matches so far
+      * `execution` {object} - The helper object for early abort:
+        * `abort` {boolean} - Setting it to `true` breaks method execution
   
 See [Code examples](some-examples.md).
 

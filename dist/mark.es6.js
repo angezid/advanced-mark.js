@@ -829,7 +829,7 @@ class Mark$1 {
           end = match.indices[i][1];
           if (filterCb(n.node, group, i)) {
             n.node = this.wrapRange(n, start - offset, end - offset, elemOrRange => {
-              eachCb(elemOrRange, i);
+              eachCb(elemOrRange);
             });
             if (end > lastIndex) {
               lastIndex = end;
@@ -864,7 +864,7 @@ class Mark$1 {
             return filterCb(nodeOrArray, group, i);
           }, (elemOrRange, groupStart) => {
             isWrapped = true;
-            eachCb(elemOrRange, i, groupStart);
+            eachCb(elemOrRange, groupStart);
           });
           if (isWrapped && end > lastIndex) {
             lastIndex = end;
@@ -894,14 +894,11 @@ class Mark$1 {
             info.groupIndex = grIndex;
             filterStart = false;
             return filterCb(node, group, info);
-          }, (node, grIndex) => {
+          }, (elemOrRange) => {
             if (eachStart) count++;
-            eachCb(node, {
-              match : match,
-              matchStart : eachStart,
-              count : count,
-              groupIndex : grIndex,
-            });
+            info.matchStart = eachStart;
+            info.count = count;
+            eachCb(elemOrRange, info);
             eachStart = false;
           });
           if (execution.abort) break;
@@ -924,17 +921,14 @@ class Mark$1 {
           info.groupIndex = grIndex;
           filterStart = false;
           return filterCb(nodeOrArray, group, info);
-        }, (elemOrRange, grIndex, groupStart) => {
+        }, (elemOrRange, groupStart) => {
           if (eachStart) {
             count++;
           }
-          eachCb(elemOrRange, {
-            match : match,
-            matchStart : eachStart,
-            count : count,
-            groupIndex : grIndex,
-            groupStart : groupStart,
-          });
+          info.matchStart = eachStart;
+          info.count = count;
+          info.groupStart = groupStart;
+          eachCb(elemOrRange, info);
           eachStart = false;
         });
         if (execution.abort) break;
@@ -945,7 +939,7 @@ class Mark$1 {
   processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
-      filterInfo = { execution: execution };
+      info = { execution: execution };
     let match, str, count = 0;
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
@@ -954,8 +948,8 @@ class Mark$1 {
             regex.lastIndex++;
             continue;
           }
-          filterInfo.match = match;
-          if ( !filterCb(n.node, str, filterInfo)) {
+          info.match = match;
+          if ( !filterCb(n.node, str, info)) {
             continue;
           }
           let i = 0, start = match.index;
@@ -965,10 +959,8 @@ class Mark$1 {
             }
           }
           n.node = this.wrapRange(n, start, start + str.length, elemOrRange => {
-            eachCb(elemOrRange, {
-              match: match,
-              count: ++count
-            });
+            info.count = ++count;
+            eachCb(elemOrRange, info);
           });
           if ( !this.opt.highlight) regex.lastIndex = 0;
           if (execution.abort) break;
@@ -981,7 +973,7 @@ class Mark$1 {
   processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
-      filterInfo = { execution: execution };
+      info = { execution: execution };
     let match, str, matchStart, count = 0;
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
@@ -989,7 +981,7 @@ class Mark$1 {
           regex.lastIndex++;
           continue;
         }
-        filterInfo.match = match;
+        info.match = match;
         matchStart = true;
         let i = 0, start = match.index;
         while (++i < index) {
@@ -998,18 +990,16 @@ class Mark$1 {
           }
         }
         this.wrapRangeAcross(dict, start, start + str.length, nodeOrArray => {
-          filterInfo.matchStart = matchStart;
+          info.matchStart = matchStart;
           matchStart = false;
-          return filterCb(nodeOrArray, str, filterInfo);
+          return filterCb(nodeOrArray, str, info);
         }, (elemOrRange, mStart) => {
           if (mStart) {
             count++;
           }
-          eachCb(elemOrRange, {
-            match: match,
-            matchStart: mStart,
-            count: count,
-          });
+          info.matchStart = mStart;
+          info.count = count;
+          eachCb(elemOrRange, info);
         });
         if (execution.abort) break;
       }

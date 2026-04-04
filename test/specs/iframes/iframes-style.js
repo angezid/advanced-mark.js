@@ -34,4 +34,68 @@ describe('customize a iframe\'s style', () => {
       }
     });
   });
+
+  it('should change an iframe style\'s content', done => {
+    const instance = new Mark($ctx[0]),
+      ownerDocument = $ctx[0].ownerDocument,
+      iframeStyle = { style: 'mark[data-markjs] { color:red; }' },
+      iframeStyle2 = { style: 'mark[data-markjs] { color:green; }' };
+
+    let markElement;
+
+    instance.mark('lorem', {
+      'diacritics': false,
+      'iframes': iframeStyle,
+      'done': () => {
+
+        instance.mark('dolor', {
+          'diacritics': false,
+          'iframes': iframeStyle2,
+          'each': (elem, info) => {
+            if (elem.ownerDocument !== ownerDocument) {
+              markElement = elem;
+              info.execution.abort = true;
+            }
+          },
+          'done': () => {
+            const style = markElement.ownerDocument.head.querySelector('style[data-markjs]');
+            expect(style.textContent).toEqual(iframeStyle2.style);
+
+            done();
+          }
+        });
+      }
+    });
+  });
+
+  it('should remove a style from an iframe head', done => {
+    const instance = new Mark($ctx[0]),
+      iframeStyle = { style: 'mark[data-markjs] { color:red; }' },
+      ownerDocument = $ctx[0].ownerDocument;
+    let markElement;
+
+    instance.mark('lorem', {
+      'diacritics': false,
+      'iframes': iframeStyle,
+      'each': (elem, info) => {
+        if (elem.ownerDocument !== ownerDocument) {
+          markElement = elem;
+          info.execution.abort = true;
+        }
+      },
+      'done': () => {
+
+        instance.unmark({
+          'iframes': { style: 'x' },
+          'done': () => {
+            const style = markElement.ownerDocument.head.querySelector('style[data-markjs]');
+            expect(style).toBeNull();
+
+            done();
+          }
+        });
+      }
+    });
+  });
+
 });

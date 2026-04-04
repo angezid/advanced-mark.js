@@ -1142,7 +1142,7 @@
               end = match.indices[i][1];
               if (filterCb(n.node, group, i)) {
                 n.node = this.wrapRange(n, start - offset, end - offset, function (elemOrRange) {
-                  eachCb(elemOrRange, i);
+                  eachCb(elemOrRange);
                 });
                 if (end > lastIndex) {
                   lastIndex = end;
@@ -1179,7 +1179,7 @@
                 return filterCb(nodeOrArray, group, i);
               }, function (elemOrRange, groupStart) {
                 isWrapped = true;
-                eachCb(elemOrRange, i, groupStart);
+                eachCb(elemOrRange, groupStart);
               });
               if (isWrapped && end > lastIndex) {
                 lastIndex = end;
@@ -1221,14 +1221,11 @@
                 info.groupIndex = grIndex;
                 filterStart = false;
                 return filterCb(node, group, info);
-              }, function (node, grIndex) {
+              }, function (elemOrRange) {
                 if (eachStart) count++;
-                eachCb(node, {
-                  match: match,
-                  matchStart: eachStart,
-                  count: count,
-                  groupIndex: grIndex
-                });
+                info.matchStart = eachStart;
+                info.count = count;
+                eachCb(elemOrRange, info);
                 eachStart = false;
               });
               if (execution.abort) break;
@@ -1261,17 +1258,14 @@
               info.groupIndex = grIndex;
               filterStart = false;
               return filterCb(nodeOrArray, group, info);
-            }, function (elemOrRange, grIndex, groupStart) {
+            }, function (elemOrRange, groupStart) {
               if (eachStart) {
                 count++;
               }
-              eachCb(elemOrRange, {
-                match: match,
-                matchStart: eachStart,
-                count: count,
-                groupIndex: grIndex,
-                groupStart: groupStart
-              });
+              info.matchStart = eachStart;
+              info.count = count;
+              info.groupStart = groupStart;
+              eachCb(elemOrRange, info);
               eachStart = false;
             });
             if (execution.abort) break;
@@ -1287,7 +1281,7 @@
           execution = {
             abort: false
           },
-          filterInfo = {
+          info = {
             execution: execution
           };
         var match,
@@ -1300,8 +1294,8 @@
                 regex.lastIndex++;
                 continue;
               }
-              filterInfo.match = match;
-              if (!filterCb(n.node, str, filterInfo)) {
+              info.match = match;
+              if (!filterCb(n.node, str, info)) {
                 continue;
               }
               var i = 0,
@@ -1312,10 +1306,8 @@
                 }
               }
               n.node = _this8.wrapRange(n, start, start + str.length, function (elemOrRange) {
-                eachCb(elemOrRange, {
-                  match: match,
-                  count: ++count
-                });
+                info.count = ++count;
+                eachCb(elemOrRange, info);
               });
               if (!_this8.opt.highlight) regex.lastIndex = 0;
               if (execution.abort) break;
@@ -1333,7 +1325,7 @@
           execution = {
             abort: false
           },
-          filterInfo = {
+          info = {
             execution: execution
           };
         var match,
@@ -1346,7 +1338,7 @@
               regex.lastIndex++;
               continue;
             }
-            filterInfo.match = match;
+            info.match = match;
             matchStart = true;
             var i = 0,
               start = match.index;
@@ -1356,18 +1348,16 @@
               }
             }
             _this9.wrapRangeAcross(dict, start, start + str.length, function (nodeOrArray) {
-              filterInfo.matchStart = matchStart;
+              info.matchStart = matchStart;
               matchStart = false;
-              return filterCb(nodeOrArray, str, filterInfo);
+              return filterCb(nodeOrArray, str, info);
             }, function (elemOrRange, mStart) {
               if (mStart) {
                 count++;
               }
-              eachCb(elemOrRange, {
-                match: match,
-                matchStart: mStart,
-                count: count
-              });
+              info.matchStart = mStart;
+              info.count = count;
+              eachCb(elemOrRange, info);
             });
             if (execution.abort) break;
           }

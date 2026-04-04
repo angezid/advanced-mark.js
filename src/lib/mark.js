@@ -97,7 +97,7 @@ class Mark {
     this.filter = win.NodeFilter;
     // this empty text node used to simplify code
     this.empty = win.document.createTextNode('');
-    
+
     if ( !this._opt.highlightName) {
       this._opt.highlightName = 'advanced-markjs';
     }
@@ -873,7 +873,7 @@ class Mark {
             // so to correct the start & end indexes of a new text node, subtract
             // the end index of the last wrapped group (offset)
             n.node = this.wrapRange(n, start - offset, end - offset, elemOrRange => { // each
-              eachCb(elemOrRange, i);
+              eachCb(elemOrRange);
             });
 
             if (end > lastIndex) {
@@ -943,7 +943,7 @@ class Mark {
 
           }, (elemOrRange, groupStart) => { // each
             isWrapped = true;
-            eachCb(elemOrRange, i, groupStart);
+            eachCb(elemOrRange, groupStart);
           });
           // group may be filtered out
           if (isWrapped && end > lastIndex) {
@@ -1041,15 +1041,13 @@ class Mark {
             filterStart = false;
             return filterCb(node, group, info);
 
-          }, (node, grIndex) => { // each
+          }, (elemOrRange) => { // each
             if (eachStart) count++;
 
-            eachCb(node, {
-              match : match,
-              matchStart : eachStart,
-              count : count,
-              groupIndex : grIndex,
-            });
+            info.matchStart = eachStart;
+            info.count = count;
+
+            eachCb(elemOrRange, info);
             eachStart = false;
           });
 
@@ -1107,17 +1105,14 @@ class Mark {
           filterStart = false;
           return filterCb(nodeOrArray, group, info);
 
-        }, (elemOrRange, grIndex, groupStart) => { // each
+        }, (elemOrRange, groupStart) => { // each
           if (eachStart) {
             count++;
           }
-          eachCb(elemOrRange, {
-            match : match,
-            matchStart : eachStart,
-            count : count,
-            groupIndex : grIndex,
-            groupStart : groupStart,
-          });
+          info.matchStart = eachStart;
+          info.count = count;
+          info.groupStart = groupStart;
+          eachCb(elemOrRange, info);
           eachStart = false;
         });
         // breaks loop on custom abort
@@ -1126,7 +1121,6 @@ class Mark {
       endCb(count);
     });
   }
-
 
   /**
    * Filter callback before each wrapping
@@ -1159,7 +1153,7 @@ class Mark {
   processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
-      filterInfo = { execution: execution };
+      info = { execution: execution };
 
     let match, str, count = 0;
 
@@ -1171,9 +1165,9 @@ class Mark {
             regex.lastIndex++;
             continue;
           }
-          filterInfo.match = match;
+          info.match = match;
 
-          if ( !filterCb(n.node, str, filterInfo)) {
+          if ( !filterCb(n.node, str, info)) {
             continue;
           }
           // calculates the start index inside node.textContent
@@ -1185,10 +1179,8 @@ class Mark {
           }
 
           n.node = this.wrapRange(n, start, start + str.length, elemOrRange => {
-            eachCb(elemOrRange, {
-              match: match,
-              count: ++count
-            });
+            info.count = ++count;
+            eachCb(elemOrRange, info);
           });
           // when using the Highlight API, no text nodes are split
           if ( !this.opt.highlight) regex.lastIndex = 0;
@@ -1234,7 +1226,7 @@ class Mark {
   processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
-      filterInfo = { execution: execution };
+      info = { execution: execution };
 
     let match, str, matchStart, count = 0;
 
@@ -1245,7 +1237,7 @@ class Mark {
           regex.lastIndex++;
           continue;
         }
-        filterInfo.match = match;
+        info.match = match;
         matchStart = true;
 
         // calculates the start index inside dict.text
@@ -1257,19 +1249,17 @@ class Mark {
         }
 
         this.wrapRangeAcross(dict, start, start + str.length, nodeOrArray => { // filter
-          filterInfo.matchStart = matchStart;
+          info.matchStart = matchStart;
           matchStart = false;
-          return filterCb(nodeOrArray, str, filterInfo);
+          return filterCb(nodeOrArray, str, info);
 
         }, (elemOrRange, mStart) => { // each
           if (mStart) {
             count++;
           }
-          eachCb(elemOrRange, {
-            match: match,
-            matchStart: mStart,
-            count: count,
-          });
+          info.matchStart = mStart;
+          info.count = count;
+          eachCb(elemOrRange, info);
         });
 
         if (execution.abort) break;

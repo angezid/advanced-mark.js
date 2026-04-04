@@ -74,6 +74,8 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
       * `count` {number} - The number of wrapped matches so far
       * `groupIndex` {number} - The current index of match group  SG
       * `groupStart` {boolean} - Indicate the start of group  AE SG
+      * `execution` {object} - The helper object for early abort:
+        * `abort` {boolean} - Setting it to `true` breaks method execution
 
   * `done: (total, totalMatches) => {}` {function} - A callback on finish. (default is )
     * `total` {number} - The total number of marked DOM elements OR created `StaticRange/Range` objects if the `Highlight` API is enabled
