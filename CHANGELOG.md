@@ -8,6 +8,9 @@
 * Added the ability to break an execution on the 'each' callback.
 * Dropped support of very older browsers.
 
+### 2.7.1
+* Fixed the 'filter' callback 'matchesSoFar' counter (3 parameter) that affected the mark() method with the 'combinePatterns' option.
+
 ### 2.7.0
 * Added source code to the npm package.
 
