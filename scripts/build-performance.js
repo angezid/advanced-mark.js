@@ -26,7 +26,14 @@ async function process() {
 			result = await minify(main);
 			scripts += result.code + '\n\n';
 		}
-		fs.writeFileSync(destDir + '/js/bundle.js', scripts);
+
+		let jsPath = destDir + '/js';
+
+		if ( !fs.existsSync(jsPath)) {
+			fs.mkdirSync(jsPath, { recursive: true });
+		}
+
+		fs.writeFileSync(jsPath + '/bundle.js', scripts);
 
 		let html = fs.readFileSync(sourceDir + '/performance.html', 'utf-8');
 		html = html.replace(/(<script src=").+("><\/script>)/, '$1js/bundle.js$2');
@@ -39,6 +46,6 @@ async function process() {
 	}
 
 	if (success) {
-		console.log('The performance page was build');
+		console.log('The performance page was build successfully.');
 	}
 }
