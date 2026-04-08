@@ -1209,6 +1209,7 @@
             abort: false
           },
           info = {
+            count: 0,
             execution: execution
           };
         var match,
@@ -1227,10 +1228,10 @@
                 return filterCb(node, group, info);
               }, function (elemOrRange) {
                 if (eachStart) count++;
-                info.matchStart = eachStart;
                 info.count = count;
-                eachCb(elemOrRange, info);
+                info.matchStart = eachStart;
                 eachStart = false;
+                eachCb(elemOrRange, info);
               });
               if (execution.abort) break;
             }
@@ -1247,6 +1248,7 @@
             abort: false
           },
           info = {
+            count: 0,
             execution: execution
           };
         var match,
@@ -1258,14 +1260,13 @@
             info.match = match;
             filterStart = eachStart = true;
             _this7.wrapGroupsAcross(dict, match, regex, function (nodeOrArray, group, grIndex) {
+              info.groupStart = undefined;
               info.matchStart = filterStart;
               info.groupIndex = grIndex;
               filterStart = false;
               return filterCb(nodeOrArray, group, info);
             }, function (elemOrRange, groupStart) {
-              if (eachStart) {
-                count++;
-              }
+              if (eachStart) count++;
               info.matchStart = eachStart;
               info.count = count;
               info.groupStart = groupStart;
@@ -1286,6 +1287,7 @@
             abort: false
           },
           info = {
+            count: 0,
             execution: execution
           };
         var match,
@@ -1330,6 +1332,7 @@
             abort: false
           },
           info = {
+            count: 0,
             execution: execution
           };
         var match,
@@ -1356,11 +1359,9 @@
               matchStart = false;
               return filterCb(nodeOrArray, str, info);
             }, function (elemOrRange, mStart) {
-              if (mStart) {
-                count++;
-              }
-              info.matchStart = mStart;
+              if (mStart) count++;
               info.count = count;
+              info.matchStart = mStart;
               eachCb(elemOrRange, info);
             });
             if (execution.abort) break;

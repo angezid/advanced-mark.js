@@ -1024,8 +1024,8 @@ class Mark {
    * @access protected
    */
   processGroups(regex, unused, filterCb, eachCb, endCb) {
-    const execution = { abort : false },
-      info = { execution : execution };
+    const execution = { abort: false },
+      info = { count: 0, execution: execution };
 
     let match, filterStart, eachStart, count = 0;
 
@@ -1044,11 +1044,11 @@ class Mark {
           }, (elemOrRange) => { // each
             if (eachStart) count++;
 
-            info.matchStart = eachStart;
             info.count = count;
+            info.matchStart = eachStart;
+            eachStart = false;
 
             eachCb(elemOrRange, info);
-            eachStart = false;
           });
 
           if (execution.abort) break;
@@ -1089,8 +1089,8 @@ class Mark {
    * @access protected
    */
   processGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
-    const execution = { abort : false },
-      info = { execution : execution };
+    const execution = { abort: false },
+      info = { count: 0, execution: execution };
 
     let match, filterStart, eachStart, count = 0;
 
@@ -1100,15 +1100,16 @@ class Mark {
         filterStart = eachStart = true;
 
         this.wrapGroupsAcross(dict, match, regex, (nodeOrArray, group, grIndex) => { // filter
+          // eslint-disable-next-line 
+          info.groupStart = undefined;
           info.matchStart = filterStart;
           info.groupIndex = grIndex;
           filterStart = false;
           return filterCb(nodeOrArray, group, info);
 
         }, (elemOrRange, groupStart) => { // each
-          if (eachStart) {
-            count++;
-          }
+          if (eachStart) count++;
+
           info.matchStart = eachStart;
           info.count = count;
           info.groupStart = groupStart;
@@ -1153,7 +1154,7 @@ class Mark {
   processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
-      info = { execution: execution };
+      info = { count: 0, execution: execution };
 
     let match, str, count = 0;
 
@@ -1226,13 +1227,13 @@ class Mark {
   processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
       execution = { abort: false },
-      info = { execution: execution };
+      info = { count: 0, execution: execution };
 
     let match, str, matchStart, count = 0;
 
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
-        // prevents infinite loop
+        // prevents an infinite loop
         if ((str = match[index]) === '') {
           regex.lastIndex++;
           continue;
@@ -1254,11 +1255,10 @@ class Mark {
           return filterCb(nodeOrArray, str, info);
 
         }, (elemOrRange, mStart) => { // each
-          if (mStart) {
-            count++;
-          }
-          info.matchStart = mStart;
+          if (mStart) count++;
+
           info.count = count;
+          info.matchStart = mStart;
           eachCb(elemOrRange, info);
         });
 
@@ -1756,7 +1756,7 @@ class Mark {
             });
 
           } else {
-            // match faster way to remove highlights
+            // much faster way to remove highlights
             highlight.clear();
           }
           // register the Highlight object with excluded ranges
