@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -48,17 +47,17 @@
 <article id="article"><h2 id="regexpcreator-module">RegExpCreator module</h2>
 <p>It has three API methods:</p>
 <ul>
-<li><a href="regexpcreator.html#117">create()</a></li>
-<li><a href="regexpcreator.html#155">createCombinePattern()</a></li>
-<li><a href="regexpcreator.html#344">createDiacritics()</a></li>
+<li><span class="page404" title="regexpcreator.md#117">create()</span></li>
+<li><span class="page404" title="regexpcreator.md#155">createCombinePattern()</span></li>
+<li><span class="page404" title="regexpcreator.md#344">createDiacritics()</span></li>
 </ul>
 <h4 id="create">create()</h4>
 <p>The <code>create(string, true)</code> method with the second parameter set to <code>true</code> instead of RegExp, returns an object containing three properties:</p>
 <ul>
-<li> <code>lookbehind</code> - is actuality a capturing group; is non-empty group only with <a href="mark-method.html#mark-accuracy">accuracy</a> options: <code>'exactly'</code> or <code>{ 'value' : 'exactly', 'limiters': .. }</code>, and <code>'startsWith'</code> or <code>{ 'value' : 'startsWith', 'limiters': .. }</code>.<br />
+<li> <code>lookbehind</code> - is actuality a capturing group; is non-empty group only with <a href="mark-method.html#mark-accuracy">accuracy</a> options: <code>'exactly'</code> or <code>{ 'value': 'exactly', 'limiters': .. }</code>, and <code>'startsWith'</code> or <code>{ 'value': 'startsWith', 'limiters': .. }</code>.<br />
 It can be easily converted to lookbehind assertion by replacing the first <code>(</code> by <code>(?&lt;=</code>.</li>
 <li> <code>pattern</code> - a string pattern</li>
-<li> <code>lookahead</code> - is real lookahead assertion pattern; is non-empty string only with <a href="mark-method.html#mark-accuracy">accuracy</a> option: <code>'exactly'</code> or <code>{ 'value' : 'exactly', 'limiters': .. }</code>.<br />
+<li> <code>lookahead</code> - is real lookahead assertion pattern; is non-empty string only with <a href="mark-method.html#mark-accuracy">accuracy</a> option: <code>'exactly'</code> or <code>{ 'value': 'exactly', 'limiters': .. }</code>.<br />
 These properties can be used in options object: <a href="mark-method.html#mark-accuracy">accuracy</a>, <a href="mark-method.html#mark-diacritics">diacritics</a>, <a href="mark-method.html#mark-synonyms">synonyms</a>, <a href="mark-method.html#mark-caseSensitive">caseSensitive</a>, <a href="mark-method.html#mark-ignoreJoiners">ignoreJoiners</a>, <a href="mark-method.html#mark-ignorePunctuation">ignorePunctuation</a>, and <a href="mark-method.html#mark-wildcards">wildcards</a>.</li>
 </ul>
 <p>See <a href="mark-method.html">mark() method</a> for properties details.</p>
@@ -79,7 +78,7 @@ If the <code>capture</code> parameter set to true, an individual pattern is wrap
 console.log(obj.pattern);  <span class="com">// true - (ptn1)|(ptn2)|(ptn3); false - (?:ptn1)|(?:ptn2)|(?:ptn3)</span></code></pre>
 <h4 id="creatediacritics">createDiacritics()</h4>
 <p>The <code>createDiacritics(string)</code> method returns a string diacritic pattern.
-It's affected only by one option : <a href="mark-method.html#mark-caseSensitive">caseSensitive</a>.</p>
+It's affected only by one option: <a href="mark-method.html#mark-caseSensitive">caseSensitive</a>.</p>
 <pre><code class="language-js"><span class="kwd">import</span> creator from <span class="str">'./regexpcreator.es6.js'</span>;
 <span class="kwd">const</span> pattern = <span class="kwd">new</span> creator(options).createDiacritics(string);
 console.log(pattern);</code></pre>

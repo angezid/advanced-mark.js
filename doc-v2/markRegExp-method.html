@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -54,22 +53,24 @@ instance.markRegExp(regex[, options]);
 $(context).markRegExp(regex[, options]);</code></pre>
 <h4 id="parameters">Parameters:</h4>
 <ul>
-<li><code>regex</code> <em class="type">RegExp</em> - The regular expression. With <code>acrossElements</code> option it <b>must</b> have <code>g</code> flag - it works with indexes and only two <code>g</code> and <code>y</code> flags allow control RegExp <code>lastIndex</code>.<br />
-<b>Note</b> that for backward compatibility, RegExp without <code>g</code> flag is recompile internally with <code>g</code> flag.<br />
-Although without <code>acrossElements</code> option it doesn't require <code>g</code> flag, it still recommended having this flag for future changes.</li>
-<li><code>options</code> <em class="type">object</em> - Optional options:</li>
+<li><p><code>regex</code> <em class="type">RegExp</em> - The regular expression. With the <code>acrossElements</code> option, it <b>must</b> have the <code>g</code> flag - the library works with indexes, and only two <code>g</code> and <code>y</code> flags allow setting RegExp <code>lastIndex</code>.</p>
+<div class='note'><b>Note</b> that for backward compatibility, RegExp without the <code>g</code> flag is recompiled internally with this flag.  </div>
+<div class='warning'><b>Warning:</b> the version 3.x requires the <code>g</code> flag for any RegExp unless it has the <code>y</code> flag.</div>
+</li>
+<li><p><code>options</code> <em class="type">object</em> - Optional options:</p>
+</li>
 </ul>
 <table class="options">
 <thead>
 <tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr id="markRegExp-element"><td><code>element</code></td><td><em class="type">string</em></td><td> <code>mark</code></td><td>A custom mark element e.g. <code>span</code>. </td></tr>
+<tr id="markRegExp-element"><td><code>element</code></td><td><em class="type">string</em></td><td> <code>'mark'</code></td><td>A custom mark element e.g. <code>span</code>. </td></tr>
 <tr id="markRegExp-className"><td><code>className</code></td><td><em class="type">string</em></td><td> <code>''</code></td><td> A custom class to be added to mark elements. </td></tr>
 <tr id="markRegExp-exclude"><td><code>exclude</code></td><td><em class="type">string <span class="or">or</span> string[]</em></td><td> <code>[]</code></td><td>A string or an array of selectors. Specifies DOM elements that should be excluded from searching. 
 <p>See <a href="options.html#exclude-option">exclude</a> option for more details.</td></tr></p>
 <tr id="markRegExp-ignoreGroups"><td><code>ignoreGroups</code></td><td><em class="type">number</em></td><td> <code>0</code></td><td>The number of adjacent capturing groups that should be ignored from the start of RegExp 
-<p>e.g. <code>/(\w+)(.)(\w+)(?!\2)/g</code>, <code>ignoreGroups : 2</code> - mark the group 3</td></tr></p>
+<p>e.g. <code>/(\w+)(.)(\w+)(?!\2)/g</code>, <code>ignoreGroups: 2</code> - mark the group 3</td></tr></p>
 <tr id="markRegExp-separateGroups"><td><code>separateGroups</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to mark RegExp capturing groups instead of whole match 
 <p>See <a href="separate-groups.html">Highlighting separate groups</a> for more details.</td></tr></p>
 <tr id="markRegExp-acrossElements"><td><code>acrossElements</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to search for matches across elements 
@@ -88,28 +89,33 @@ otherwise only the custom elements do have boundaries</li>
 <tr id="markRegExp-shadowDOM"><td><code>shadowDOM</code></td><td><em class="type">boolean</em></td><td> <code>undefined</code></td><td>Whether to mark inside shadow DOMs 
 <p>See <a href="shadow-dom.html">Highlighting in shadow DOM</a> for more details.</td></tr></p>
 <tr id="markRegExp-iframes"><td><code>iframes</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to mark inside iframes </td></tr>
-<tr id="markRegExp-iframesTimeout"><td><code>iframesTimeout</code></td><td><em class="type">number</em></td><td> <code>5000</code> ms</td><td>The max time to wait for iframe(s) to load before skipping </td></tr>
+<tr id="markRegExp-iframesTimeout"><td><code>iframesTimeout</code></td><td><em class="type">number</em></td><td> <code>5000</code> ms</td><td>The maximum time to wait for an iframe to load before skipping </td></tr>
 <tr id="markRegExp-debug"><td><code>debug</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to log messages </td></tr>
 <tr id="markRegExp-log"><td><code>log</code></td><td><em class="type">object</em></td><td> <code>console</code></td><td>Log messages to a specific object 
 </td></tr>
 <tr id="markRegExp-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each match (with <code>acrossElements</code> option, if the match is located across several elements, it calls for each text node which is part of the match) 
-<br><b>filter : (textNode, matchString, matchesSoFar, filterInfo) => {}</b>
+<br><b>filter: (textNode, matchString, matchesSoFar, filterInfo) => {}</b>
 <ul>
 <li><code>textNode</code> <em class="type">Text</em> - The text node which includes the match or with <code>acrossElements</code> option can be part of the match</li>
 <li><code>matchString</code> <em class="type">string</em> - The matching string:
+<br></li>
+</ul>
 <ol>
 <li>without <code>ignoreGroups</code> and <code>separateGroups</code> options - the whole match</li>
-<li>with <code>ignoreGroups</code> option - the match[ignoreGroups+1] group matching string,<br />
-e.g. <code>/(-)(\w+)\s+/g</code>, <code>ignoreGroups : 1</code>, the matching string is content of the group 2</li>
-<li>with <code>separateGroups</code> option - the current group matching string</li>
 </ol>
-</li>
+  <br>
+2. with <code>ignoreGroups</code> option - the match[ignoreGroups+1] group matching string,  
+<pre><code>e.g. &lt;code&gt;/(-)(\w+)\s+/g&lt;/code&gt;, &lt;code&gt;ignoreGroups: 1&lt;/code&gt;, the matching string is content of the group 2
+</code></pre>
+  <br>
+3. with <code>separateGroups</code> option - the current group matching string
+<ul>
 <li><code>matchesSoFar</code> <em class="type">number</em> - The number of all wrapped matches so far</li>
 <li><code>filterInfo</code> <em class="type">object</em>:
 <ul>
 <li><code>match</code> <em class="type">array</em> - The result of RegExp exec() method</li>
-<li><code>matchStart</code> <em class="type">boolean</em> - indicate the start of a match  <em>AE</em></li>
-<li><code>groupIndex</code> <em class="type">number</em> - The current group index  <em>SG</em></li>
+<li><code>matchStart</code> <em class="type">boolean</em> - indicate the start of a match  <a href='#AE'>AE</a></li>
+<li><code>groupIndex</code> <em class="type">number</em> - The current group index  <a href='#SG'>SG</a></li>
 <li><code>execution</code> <em class="type">object</em> - The helper object for early abort:
 <ul>
 <li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks method execution</li>
@@ -120,32 +126,32 @@ When 'acrossElements: true': the sum of the lengths of separated spaces or bound
 </ul>
 </li>
 </ul>
-<p>The function <b>must</b> return either <code>true</code> (to wrap) or <code>false</code> (to skip wrapping mark element).</p>
+<p>The function <b>must</b> return either <code>true</code> (highlight) or <code>false</code> (skip highlighting).</p>
 </td></tr>
 <tr id="markRegExp-each"><td><code>each</code></td><td><em class="type">function</em></td><td> </td><td>A callback for each marked element 
-<br><b>each : (markElement, eachInfo) => {}</b>
+<br><b>each: (markElement, eachInfo) => {}</b>
 <ul>
 <li><code>markElement</code> <em class="type">HTMLElement</em> - The marked DOM element</li>
 <li><code>eachInfo</code> <em class="type">object</em>:
 <ul>
 <li><code>match</code> <em class="type">array</em> - The result of RegExp exec() method</li>
-<li><code>matchStart</code> <em class="type">boolean</em> - Indicate the start of a match  <em>AE</em></li>
+<li><code>matchStart</code> <em class="type">boolean</em> - Indicate the start of a match  <a href='#AE'>AE</a></li>
 <li><code>count</code> <em class="type">number</em> - The number of wrapped matches so far</li>
-<li><code>groupIndex</code> <em class="type">number</em> - The current index of match group  <em>SG</em></li>
-<li><code>groupStart</code> <em class="type">boolean</em> - Indicate the start of group  <em>AE</em> <em>SG</em></li>
+<li><code>groupIndex</code> <em class="type">number</em> - The current index of match group  <a href='#SG'>SG</a></li>
+<li><code>groupStart</code> <em class="type">boolean</em> - Indicate the start of group  <a href='#AE SG'>AE SG</a></li>
 </ul>
 </li>
 </ul>
 </td></tr>
 <tr id="markRegExp-done"><td><code>done</code></td><td><em class="type">function</em></td><td> </td><td>A callback on finish. 
-<br><b>done : (totalMarks, totalMatches) => {}</b>
+<br><b>done: (totalMarks, totalMatches) => {}</b>
 <ul>
 <li><code>totalMarks</code> <em class="type">number</em> - The total number of marked elements</li>
 <li><code>totalMatches</code> <em class="type">number</em> - The total number of matches</li>
 </ul>
 </td></tr>
 <tr id="markRegExp-noMatch"><td><code>noMatch</code></td><td><em class="type">function</em></td><td> </td><td>A callback that is called when regex failed to match 
-<br><b>noMatch : (regex) => {}</b>
+<br><b>noMatch: (regex) => {}</b>
 <ul>
 <li><code>regex</code> <em class="type">string</em> - The stringify RegExp</td></tr></li>
 </ul>
@@ -247,24 +253,24 @@ When 'acrossElements: true': the sum of the lengths of separated spaces or bound
 <details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">const</span> options = {
-    element : <span class="str">'mark'</span>,
-    className : <span class="str">''</span>,
-    exclude : [],
-    ignoreGroups : 0,
-    acrossElements : <span class="kwd">false</span>,
-    wrapAllRanges : <span class="kwd">false</span>,
-    blockElementsBoundary : <span class="kwd">false</span>,
-    shadowDOM : <span class="kwd">false</span>,
-    iframes : <span class="kwd">false</span>,
-    iframesTimeout : 5000,
-    filter : (textNode, matchString, matchesSoFar, filterInfo) => {
+    element: <span class="str">'mark'</span>,
+    className: <span class="str">''</span>,
+    exclude: [],
+    ignoreGroups: 0,
+    acrossElements: <span class="kwd">false</span>,
+    wrapAllRanges: <span class="kwd">false</span>,
+    blockElementsBoundary: <span class="kwd">false</span>,
+    shadowDOM: <span class="kwd">false</span>,
+    iframes: <span class="kwd">false</span>,
+    iframesTimeout: 5000,
+    filter: (textNode, matchString, matchesSoFar, filterInfo) => {
         <span class="kwd">return</span> <span class="kwd">true</span>; <span class="com">// must return either true or false</span>
     },
-    each : (markElement, eachInfo) => {},
-    done : (totalMarks, totalMatches) => {},
-    noMatch : (regex) => {},
-    debug : <span class="kwd">false</span>,
-    log : window.console
+    each: (markElement, eachInfo) => {},
+    done: (totalMarks, totalMatches) => {},
+    noMatch: (regex) => {},
+    debug: <span class="kwd">false</span>,
+    log: window.console
 };</code></pre>
 <p>JavaScript:</p>
 <pre><code class='lang-javascript'><span class="kwd">const</span> instance = <span class="kwd">new</span> Mark(document.querySelector(<span class="str">'selector'</span>)),
@@ -273,11 +279,9 @@ instance.markRegExp(regex, options);</code></pre>
 <p>jQuery:</p>
 <pre><code class='lang-javascript'>$(<span class="str">'selector'</span>).markRegExp(regex, options);</code></pre>
 </details>
-<ul>
-<li><em>AE</em> - only available when <code>acrossElements</code> option is set to <code>true</code></li>
-<li><em>SG</em> - only available when <code>separateGroups</code> option is set to <code>true</code></li>
-<li><em>AE</em> <em>SG</em> - only available when both <code>acrossElements</code> and <code>separateGroups</code> options are set to <code>true</code></li>
-</ul>
+<p id='AE'>• <b>AE</b> - only available with option <code>acrossElements: true</code></p>
+<p id='SG'>• <b>SG</b> - only available with option <code>separateGroups: true</code></p>
+<p id='AE SG'>• <b>AE SG</b> - only available when with options <code>acrossElements: true</code> and <code>separateGroups: true</code></p>
 
 </article>
 <footer><div class="info">

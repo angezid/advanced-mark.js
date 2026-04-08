@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -46,20 +45,20 @@
 </form>
 <main>
 <article id="article"><h2 id="options-descriptions">Options descriptions</h2>
-<p><strong>Note:</strong> this is still under development.</p>
+<div class='note'><b>Note:</b> this is still under development.</div>
 <h3 id="acrosselements-option"><code>acrossElements</code> option</h3>
-<p>With this option the library aggregate all context(s) text node contents into a single string taking into account HTML elements.<br />
-If a block element 'divides' two text nodes, and <code>node.textContent</code>s doesn't separated by white space, the space is added to the string to separate them,<br />
+<p>With this option, the library aggregates all context(s) text node contents into a single string taking into account HTML elements.<br />
+If two text nodes are divided by a block element, and <code>node.textContent</code>s doesn't separated by white spaces, a space is added to the string to separate them,<br />
 e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Header Paragraph' (in <em>mark.js</em> - 'HeaderParagraph').</p>
 <p>Due to searching in single string, it can highlight matches across HTML block elements, which in most cases are undesirable.
 A <code>blockElementsBoundary</code> option can be used to limit matches within HTML elements. See <a href="elements-boundaries.html">Elements boundaries</a> for more details.</p>
 <h3 id="separatewordsearch-option"><code>separateWordSearch</code> option</h3>
-<p>When it set to <code>true</code>, if a searching string contains several words, it splits the string by spaces into separate words and highlights individual words instead of the whole string.<br />
-It also applies to every string in a searching array.</p>
-<p>When it set to <code>'preserveTerms'</code>, it preserved term(s) surrounding by double quotes from breaking into separate words.<br />
-This allows highlight exact term(s) alone side with individual words.<br />
-It can be useful, when library is used to highlight searchings or in case of using a string instead of an array and there is need to keep some term(s) intact.</p>
-<p>It also allows highlight quoted terms no matter how many quotes it contains on each side (but not in the middle),<br />
+<p>When it is set to <code>true</code>, if a searching string contains several words, it splits the string by spaces into separate words and highlights individual words instead of the whole string.
+It also applies to every string in a search array.</p>
+<p>When it is set to <code>'preserveTerms'</code>, it preserves the term(s) surrounded by double quotes from breaking into separate words.<br />
+This allows highlighting exact term(s) alongside with individual words.<br />
+It can be useful when the library is used to highlight searches or in the case of using a string instead of an array, and there is a need to keep some term(s) intact.</p>
+<p>It also allows highlighting quoted terms no matter how many quotes it contains on each side (but not in the middle),
 e.g. <code>&quot;&quot;term&quot;&quot;</code> - marked <code>&quot;term&quot;</code>, <code>&quot;&quot;&quot;&quot;term&quot;</code> - <code>&quot;&quot;&quot;term</code>.</p>
 <h3 id="exclude-option"><code>exclude</code> option</h3>
 <p>In the case if the context contains element(s) matches in which shouldn't be highlighted, the <code>exclude</code> option can be pretty handy.</p>
@@ -69,7 +68,7 @@ e.g. <code>&quot;&quot;term&quot;&quot;</code> - marked <code>&quot;term&quot;</
     &lt;p&gt;Lorem &lt;i&gt;ipsum &lt;b&gt;dolor&lt;/b&gt;&lt;/i&gt;&lt;/p&gt;
 &lt;/section&gt;
 </code></pre>
-<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">new</span> Mark(document.querySelector(<span class="str">"section"</span>)).mark(<span class="str">"Lorem dolor"</span>, {
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">new</span> Mark(<span class="str">'section'</span>).mark([<span class="str">'Lorem'</span>, <span class="str">'dolor'</span>], {
   <span class="com">// Note: to exclude all descendants, you need to add 'p:last-child *' selector</span>
   exclude: <span class="str">'p:last-child, p:last-child *'</span>
 });</code></pre>
@@ -97,14 +96,23 @@ e.g. <code>&quot;&quot;term&quot;&quot;</code> - marked <code>&quot;term&quot;</
 </ul>
 </li>
 </ul>
-<p>The <strong>built-in</strong> word boundary characters are: white spaces and <code>!&quot;#$%&amp;'`()*+,-./:;&lt;=&gt;?@[\\]^_{|}~¡¿</code>.</p>
+<p>The <b>built-in</b> word boundary characters are: white spaces and <code>!&quot;#$%&amp;'`()*+,-./:;&lt;=&gt;?@[\\]^_{|}~¡¿</code>.</p>
 <p>An accuracy object can be used if the default boundaries are not satisfactory:</p>
 <ul>
 <li><code>value</code>: <code>'exactly'</code> or <code>'startsWith'</code> or <code>'complementary'</code></li>
 <li><code>limiters</code>: a string or an array of custom word boundary characters,<br />
-e.g. <code>{ value : 'exactly', limiters : &quot;,.;:?!'\\&quot;()&quot; }</code></li>
+e.g. <code>{ value: 'exactly', limiters: &quot;,.;:?!'\\&quot;()&quot; }</code></li>
 </ul>
-<p><strong>AE</strong> - with option <code>acrossElements: true</code> or <code>acrossElements: inline</code>.</p>
+<p><b>AE</b> - with option <code>acrossElements: true</code>.</p>
+<h3 id="combinepatterns-option"><code>combinePatterns</code> option</h3>
+<p>Related to <code>mark()</code> method.<br />
+This option allows to control how many individual terms will be processed at run, e.g., an array of 50 strings, <code>combinePatterns: 10</code> - the library creates 5 combine patterns and perform 5 runs.<br />
+Any number bigger than the array length or <code>Infinity</code> creates a single combined pattern.</p>
+<div class='note'><b>Note:</b> when highlighting a (especially) large array of strings with the <code>diacritics</code> option (<code>ignorePunctuation</code> and <code>ignoreJoiners</code> options also affect size), a single pattern can be monstrous and slower (it can also exceed the browser RegExp size limit); it's better to create several patterns.   
+   Also, a single pattern prevents highlighting inside already highlighted elements.</div>
+<pre><code class="language-js">instance.mark([ <span class="str">'str1'</span>, <span class="str">'str2'</span>, .. ], {
+  <span class="str">'combinePatterns'</span>: number  <span class="com">// default number is 10</span>
+});</code></pre>
 <pre><code class="language-js"></code></pre>
 
 </article>

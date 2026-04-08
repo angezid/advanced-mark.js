@@ -13,6 +13,7 @@ package-lock.json
 test/
 doc/
 doc_v2/
+performance/*
 
 # Build
 build/

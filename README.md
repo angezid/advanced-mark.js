@@ -1,3 +1,3 @@
-# Documentation and Playground for advanced-mark.js
+# Documentation, Playground, and Performance for the advanced-mark.js
 
-This is the generated HTML documentation for versions 1 and 2, and Playground for version 2.
+This is the generated HTML documentation and Playground for versions 2.x and 3.x, and the Performance page for version 3.x.

@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+<title>Compatibility with version 2</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ..." />
+<input class="submit" type="submit" />
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground-v3/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="compatibility-with-version-2">Compatibility with version 2</h2>
+<h5 id="the-requirement-for-g-flag-in-markregexp-api">The requirement for <code>g</code> flag in <code>markRegExp()</code> API:</h5>
+<details>
+<summary>Details:</summary>
+Prior to version 3, the RegExp <code>/(?<=word\s+)(?:\w+)?/g</code> failed to match <i>'match2'</i> in the string <i>'word match1 word $$$ word match2'</i> because of returning an empty match on <i>'word $$$'</i>.<br>
+This causes breaking of the execution loop, as a result, there is no further matching.<br>
+Fixing this bug brought requirement of the <code>g</code> flag for normal workflow.
+</details>
+For backward compatibility, a RegExp without <code>g</code> flag is recompiled internally.
+<h5 id="dropping-support-to-highlight-regexp-groups-without-the-d-flag">Dropping support to highlight RegExp groups without the <code>d</code> flag:</h5>
+<h5 id="removing-cachetextnodes-option">Removing <code>cacheTextNodes</code> option:</h5>
+<p>Although in some cases this option increases performance, but not so radical as <code>combineBy</code> (old name <code>combinePatterns</code>) option.</p>
+<h5 id="removing-offset-property-from-filter-callback">Removing <code>offset</code> property from filter callback:</h5>
+<p>I suspect it has very rare usage if any. If it's needed there is version 2.</p>
+<h5 id="adding-support-for-css-custom-highlight-api">Adding support for CSS Custom Highlight API:</h5>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> <span class="version">version 3<span></p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

@@ -1,16 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
-<title>Code examples of using `each` and `done` callbacks</title>
+<title>Code examples of using `each` and `done` callbacks `d`</title>
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -45,14 +44,14 @@
 </div>
 </form>
 <main>
-<article id="article"><h2 id="code-examples-of-using-each-and-done-callbacks">Code examples of using <code>each</code> and <code>done</code> callbacks</h2>
-<p>See <a href="mark-method.html#mark-each">mark() each callback</a> about callback <code>info</code> object properties.</p>
+<article id="article"><h3 id="code-examples-of-using-each-and-done-callbacks-d">Code examples of using <code>each</code> and <code>done</code> callbacks <code>d</code></h3>
 <h4 id="in-mark-method-with-acrosselements-option">In <code>mark()</code> method with <code>acrossElements</code> option</h4>
+<p>See <a href="mark-method.html#mark-each">mark() each callback</a>'s <code>info</code> object property.</p>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> matchCount = 0;
 
 instance.mark([<span class="str">'AB CD'</span>, <span class="str">'EF'</span>], {
-    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
-    <span class="str">'each'</span> : (markElement, info) =&gt; {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
         <span class="com">// sets external counter</span>
         matchCount = info.count;
 
@@ -67,7 +66,7 @@ instance.mark([<span class="str">'AB CD'</span>, <span class="str">'EF'</span>],
             <span class="com">// matchCount++; // to use the custom counter instead of info.count</span>
         }
     },
-    <span class="str">'done'</span> : (totalMarks, totalMatches, termStats) =&gt; {
+    <span class="str">'done'</span>: (totalMarks, totalMatches, termStats) =&gt; {
         <span class="kwd">for</span> (<span class="kwd">const</span> term <span class="kwd">in</span> termStats) {
             console.log(term + <span class="str">' = '</span> + termStats[term]);
         }
@@ -77,15 +76,15 @@ instance.mark([<span class="str">'AB CD'</span>, <span class="str">'EF'</span>],
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> matchCount = 0;
 
 context.mark(<span class="str">'AB CD EF'</span>, {
-    <span class="str">'separateWordSearch'</span> : <span class="kwd">true</span>,
-    <span class="str">'each'</span> : (markElement, info) =&gt; {
+    <span class="str">'separateWordSearch'</span>: <span class="kwd">true</span>,
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
         <span class="com">// for external counter</span>
         matchCount = info.count; <span class="com">// also possible matchCount++;</span>
 
         <span class="com">// for internal use</span>
         <span class="kwd">if</span>(info.count ..) {}
     },
-    <span class="str">'done'</span> : (totalMarks, totalMatches, termStats) =&gt; {
+    <span class="str">'done'</span>: (totalMarks, totalMatches, termStats) =&gt; {
         console.log(<span class="str">'Total matches = '</span> + totalMatches);
 
         <span class="kwd">for</span>(<span class="kwd">var</span> term <span class="kwd">in</span> termStats) {
@@ -94,23 +93,39 @@ context.mark(<span class="str">'AB CD EF'</span>, {
     }
 });</code></pre>
 <h4 id="in-markregexp-method-with-acrosselements-option">In <code>markRegExp()</code> method with <code>acrossElements</code> option</h4>
-<p>See <a href="markRegExp-method.html#markRegExp-each">markRegExp() each callback</a> about callback <code>info</code> object properties.</p>
+<p>See <a href="markRegExp-method.html#markRegExp-each">markRegExp() each callback</a>'s <code>info</code> object property.</p>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> matchCount = 0;
 
 instance.markRegExp(<span class="jreg">/.../gi</span>, {
-    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
-    <span class="str">'each'</span> : (markElement, info) =&gt; {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
         <span class="com">// usage of info.count and custom counter are the same
         // as in mark() method with `acrossElements` option</span>
 
         <span class="com">// use of info.count as a unique match identifier</span>
         markElement.setAttribute(<span class="str">'data-markjs'</span>, info.count);
     },
-    <span class="str">'done'</span> : (totalMarks, totalMatches) =&gt; {
+    <span class="str">'done'</span>: (totalMarks, totalMatches) =&gt; {
         console.log(<span class="str">'Total matches = '</span> + totalMatches);
     }
 });</code></pre>
-<h4 id="simple-example-with-nextprevious-buttons">Simple example with next/previous buttons</h4>
+<h3 id="example-of-using-the-y-flag-in-markregexp-method">Example of using the <code>y</code> flag in <code>markRegExp()</code> method</h3>
+<pre><code class="language-js"><span class="copy-code"></span><span class="com">// 'startIndexes' is an array of open tag's start indexes of the elements that need to be highlighted</span>
+<span class="kwd">function</span> highlightOpenTags(startIndexes) {
+    <span class="kwd">const</span> tagReg = <span class="jreg">/&lt;\w+[^&gt;]*&gt;/y</span>;
+    <span class="kwd">let</span> i = 0; 
+    <span class="com">// set RegExp index at which to start the first match</span>
+    tagReg.lastIndex = startIndexes[i];
+
+    <span class="kwd">new</span> Mark(context).markRegExp(tagReg, {
+        acrossElements: <span class="kwd">true</span>,
+        each: () =&gt; {
+            <span class="com">// set the RegExp index at which to start the next match</span>
+            tagReg.lastIndex = ++i &lt; startIndexes.length ? startsIndexes[i] : Infinity
+        }
+    });
+}</code></pre>
+<h3 id="simple-example-with-nextprevious-buttons">Simple example with next/previous buttons</h3>
 <p>Unusable with <code>markRegExp()</code> method having <code>wrapAllRanges</code> option. See <a href="nesting-overlapping.html#simple-example-with-nextprevious-buttons">Example with next/previous buttons</a> that can be used for this case.</p>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> currentIndex = 0,
     marks = $(<span class="str">'mark'</span>),

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -46,50 +45,43 @@
 </form>
 <main>
 <article id="article"><h2 id="highlighting-separate-groups">Highlighting separate groups</h2>
-<p><strong>Important:</strong> in this implementation two branches of code process separate groups, which one, depending on the existence of <code>d</code> flag.</p>
-<ol>
-<li>Primitive, base on <code>indexOf()</code>, only reliable with contiguous groups - unwanted group(s) can be easily filtered out.</li>
-<li>Exact, but not all browsers currently supported group <code>indices</code>.</li>
-</ol>
+<div class='important'><b>Important:</b> in this implementation, two branches of code process separate groups, which one, depending on the presence of the <code>d</code> flag.
+<br>
+1. Primitive, based on <code>indexOf()</code>, is only reliable with contiguous groups - unwanted group(s) can be easily filtered out.
+<br>
+2. Exact, but older browsers do not support group <code>indices</code>.</div>
 <ul>
-<li>Case without <code>wrapAllRanges</code> option:
-<ul>
-<li>They both have identical logic for nested groups - if a parent group has been marked, there is no way to mark nested groups.<br />
-This means you can use a nested group(s) as auxiliary and don't care about filtering them.</li>
+<li>Case without <code>wrapAllRanges</code> option:</li>
+<li>They both have identical logic for nested groups - if a parent group has been marked, all nested groups are ignored.</li>
+<li>Case <code>wrapAllRanges: true</code>:</li>
+<li>With <code>acrossElements</code> option, the primitive one wraps a whole match as a group 0 and then all groups that are children of match[0] as nested (see <a href="nesting-overlapping.html#mark-nesting-groups">Example</a>).</li>
+<li>The exact one wraps all (parent and nested group(s)) - you need to filter out unwanted group(s).</li>
 </ul>
-</li>
-<li>Case <code>wrapAllRanges : true</code>:
+<p>They have different parent group logic:</p>
 <ul>
-<li>With <code>acrossElements</code> option, the primitive one wrap a whole match as a group 0 and then all groups that are child of match[0] as a nested (see <a href="nesting-overlapping.html#mark-nesting-groups">Example</a>).</li>
-<li>The exact one wrap all nested groups - you need to filter nested an auxiliary group(s).</li>
-</ul>
-</li>
-</ul>
-<p>They have different parent groups logic:</p>
-<ul>
-<li>The exact one does allow using a parent group as an auxiliary - you need to filter out it in order to mark a nested group(s).</li>
-<li>The primitive one does not allow this - if a parent group has filtered out, a nested group(s) won't be marked.</li>
+<li>The exact one does allow using a parent group as an auxiliary - you need to filter out it in order to highlight a nested group(s).</li>
+<li>The primitive one does not allow this - if the parent group has filtered out, all nested groups are ignored.</li>
 </ul>
 <p>To test the primitive branch compatibility, just add the <code>d</code> flag.</p>
 <p>There is no strict requirement for the contiguity of capturing groups.<br />
-Compare: string - 'AAB xxx BCD xx BC', to mark groups AB and BC</p>
+Compare: string - 'AAB xxx BCD xx BC', to highlight groups AB and BC</p>
 <ul>
 <li>in <code>/(AB)\b.+?\b(BC)/g</code> the indexOf('BC', start) find first 'BC', which is correct</li>
 <li>in <code>/(AB)\b(.+?)\b(BC)(?!D)/g</code> the indexOf('BC', start) also find first 'BC', which is wrong, because of condition '(?!D)', so group 2 is required.</li>
 </ul>
-<p>Warning: related using RegExp without the <code>d</code> flag:</p>
-<ul>
-<li>Do not add a capturing group(s) to lookbehind assertion <code>(?&lt;=)</code>, there is no code which handles such cases.</li>
-<li>With <code>acrossElements</code> option, it is not possible to highlight a capturing group(s) inside a lookahead assertion <code>(?=)</code>.</li>
-</ul>
+<div class='warning'><b>Warning</b> related to using RegExp without the <code>d</code> flag:
+<br>
+1. Do not add a capturing group(s) to lookbehind assertion <code>(?<=)</code>, there is no code which handles such cases.
+<br>
+2. With <code>acrossElements</code> option, it is not possible to highlight a capturing group(s) inside a lookahead assertion <code>(?=)</code>.</div>
 <p>See <a href="markRegExp-method.html#markRegExp-filter">markRegExp() method</a> about <code>info</code> object properties used in <code>filter</code> and <code>each</code> callbacks.<br />
 How to filter matches see <a href="filtering-matches.html">Filtering matches</a>.<br />
 How to highlight nesting groups see <a href="nesting-overlapping.html">Nesting groups</a>.</p>
 <h4 id="filtering-capturing-groups">Filtering capturing groups:</h4>
 <pre><code class="language-js"><span class="copy-code"></span>instance.markRegExp(<span class="jreg">/(AB)\b(.+)\b(?&lt;gr3&gt;CD)?(.+)(EF)\b/gi</span>, {
-    <span class="com">// 'acrossElements' : true,</span>
-    <span class="str">'separateGroups'</span> : <span class="kwd">true</span>,
-    <span class="str">'filter'</span> : (textNode, matchString, matchesSoFar, info) =&gt; {
+    <span class="com">// 'acrossElements': true,</span>
+    <span class="str">'separateGroups'</span>: <span class="kwd">true</span>,
+    <span class="str">'filter'</span>: (textNode, matchString, matchesSoFar, info) =&gt; {
         <span class="com">// To filter any group use info.groupIndex - a current group index
         // Note: if a group lays across several elements, the index be the same while a group is wrapping</span>
         <span class="kwd">if</span> (info.groupIndex === 2 || info.groupIndex === 4) <span class="kwd">return</span> <span class="kwd">false</span>;
@@ -107,13 +99,13 @@ How to highlight nesting groups see <a href="nesting-overlapping.html">Nesting g
         <span class="kwd">return</span>  <span class="kwd">true</span>;
     },
 });</code></pre>
-<h4 id="example-to-mark-separate-groups-with-acrosselements-option">Example to mark separate groups with <code>acrossElements</code> option:</h4>
+<h4 id="example-to-highlight-separate-groups-with-acrosselements-option">Example to highlight separate groups with <code>acrossElements</code> option:</h4>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> groupCount = 0, gr1Count = 0, gr2Count = 0;
 
 instance.markRegExp(<span class="jreg">/(AB)\b.+?\b(CD)/gi</span>, {
-    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
-    <span class="str">'separateGroups'</span> : <span class="kwd">true</span>,
-    <span class="str">'each'</span> : (markElement, info) =&gt; {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'separateGroups'</span>: <span class="kwd">true</span>,
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
         <span class="com">// info.count - matches count so far</span>
         
         <span class="com">// if start of match group</span>
@@ -133,12 +125,12 @@ instance.markRegExp(<span class="jreg">/(AB)\b.+?\b(CD)/gi</span>, {
         }
     }
 });</code></pre>
-<h4 id="example-to-mark-separate-groups-without-acrosselements-option">Example to mark separate groups without <code>acrossElements</code> option:</h4>
+<h4 id="example-to-highlight-separate-groups-without-acrosselements-option">Example to highlight separate groups without <code>acrossElements</code> option:</h4>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0, gr1Count = 0;
 
 instance.markRegExp(<span class="jreg">/(AB).+?(CD)/gi</span>, {
-    <span class="str">'separateGroups'</span> : <span class="kwd">true</span>,
-    <span class="str">'each'</span> : (markElement, info) =&gt; {
+    <span class="str">'separateGroups'</span>: <span class="kwd">true</span>,
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
         <span class="com">// all group count</span>
         count++;
         

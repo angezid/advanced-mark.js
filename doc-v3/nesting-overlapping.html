@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+<title>Nesting/overlapping ranges and RegExp capturing groups</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ...">
+<input class="submit" type="submit">
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground-v3/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="nestingoverlapping-ranges-and-regexp-capturing-groups">Nesting/overlapping ranges and RegExp capturing groups</h2>
+<p>The <code>markRanges()</code> method with <code>wrapAllRanges</code> option, can highlight nesting/overlapping ranges.<br>
+With this option, all ranges that have indexes within 0 and context length be wrapped.</p>
+<p>The <code>markRegExp()</code> method with <code>separateGroups</code> and <code>wrapAllRanges</code> options can highlight the following:</p>
+<ul>
+<li>capturing groups regardless of nested level. You need to filter out unwanted groups<br>
+Without the <code>wrapAllRanges</code> option - if a group has been wrapped, all nested groups are ignored.</li>
+<li>capturing groups inside <b>positive</b> lookaround assertions</li>
+</ul>
+<p>It practically removes all restrictions.</p>
+<p>See Playground examples that demonstrate cases of using <code>wrapAllRanges</code> option:</p>
+<ul>
+<li>Playground - Examples -&gt; Overlapped groups</li>
+<li>Playground - Examples -&gt; Overlapped matches</li>
+<li>Playground - Examples -&gt; Random groups</li>
+</ul>
+<p><b>The below issue does not occur when using a <code>Highlight</code> API with <code>acrossElements</code> (<code>markRanges()</code> API does not require this) option.</b></p>
+<div class='note'><b>Note:</b> the <code>wrapAllRanges</code> option can cause performance degradation when highlighting a very large number of overlapping matches.  
+This is because with each wrapping, two more objects are inserted into the array, which require a lot of copying, memory allocation ...</div>
+<p>The 1MB file containing 20800 text nodes:</p>
+<div class='warning'><b>Warning:</b> this performance tests were run on a slow processor and advanced-mark.js version 2 (more important is ratio than actual time)</div>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>marked groups 2500</th>
+<th>marked groups 29000</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wrapAllRanges: true</td>
+<td>120 ms</td>
+<td>710 ms</td>
+</tr>
+<tr>
+<td>wrapAllRanges: false</td>
+<td>70 ms</td>
+<td>310 ms</td>
+</tr>
+</tbody>
+</table>
+<h4 id="to-mark-nestingoverlapping-ranges">To mark nesting/overlapping ranges.</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">const</span> ranges = [{ start: 0, length: 50 }, { start: 10, length: 20, nested: <span class="kwd">true</span> }, ..];
+
+instance.markRanges(ranges, {
+  <span class="str">'wrapAllRanges'</span>: <span class="kwd">true</span>,
+  <span class="str">'each'</span>: (markElement, range) =&gt; {
+    <span class="com">// to distinguish ranges you can add some property to it</span>
+    <span class="kwd">if</span> (range.nested) {
+      markElement.className = <span class="str">'nested'</span>;
+    }
+  }
+});</code></pre>
+<h4 id="to-mark-nesting-groups-with-the-acrosselements-option-and-the-d-flag">To mark nesting groups with the <code>acrossElements</code> option and the <code>d</code> flag</h4>
+<pre><code class="language-js"><span class="copy-code"></span>instance.markRegExp(<span class="jreg">/\w+\s((nested group)\s+\w+)/dg</span>, {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'separateGroups'</span>: <span class="kwd">true</span>,
+    <span class="str">'wrapAllRanges'</span>: <span class="kwd">true</span>,
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
+      <span class="kwd">if</span> (info.groupIndex === 2) {
+          markElement.className = <span class="str">'nested'</span>;
+      }
+    }
+});</code></pre>
+<h4 id="simple-example-with-nextprevious-buttons-and-wrapallranges-true">Simple example with next/previous buttons and <code>wrapAllRanges: true</code></h4>
+<p>It uses numbers as unique match identifiers in continuous ascending order.
+The code example <a href="some-examples.html#simple-example-with-nextprevious-buttons" class="tooltip">with next/previous buttons</a> which uses 'start elements' doesn't work correctly with nesting/overlapping matches.</p>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> currentIndex = 0,
+    matchCount,
+    marks,
+    <span class="com">// highlight 3 words in sentences in any order, e.g. 'word word2 word word3 word word1.'</span>
+    regex = <span class="jreg">/(?=[^.]*?(word1))(?=[^.]*?(word2))(?=[^.]*?(word3))/dgi</span>;
+    
+instance.markRegExp(regex, {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'separateGroups'</span>: <span class="kwd">true</span>,
+    <span class="str">'wrapAllRanges'</span>: <span class="kwd">true</span>,
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
+        <span class="com">// info.count as a match identifier</span>
+        markElement.setAttribute(<span class="str">'data-markjs'</span>, info.count);
+    },
+    <span class="str">'done'</span>: (totalMarks, totalMatches) =&gt; {
+        marks = $(<span class="str">'mark'</span>);
+        matchCount = totalMatches;
+    }
+});
+
+prevButton.click(<span class="kwd">function</span>() {
+    <span class="kwd">if</span> (--currentIndex &lt;= 0) currentIndex = 0;
+    highlightMatchGroups();
+});
+
+nextButton.click(<span class="kwd">function</span>() {
+    <span class="kwd">if</span> (++currentIndex &gt; matchCount) currentIndex = matchCount;
+    highlightMatchGroups();
+});
+
+<span class="kwd">function</span> highlightMatchGroups() {
+    marks.removeClass(<span class="str">'current'</span>);
+    <span class="kwd">const</span> elems = marks.filter((i, elem) =&gt; $(elem).data(<span class="str">'markjs'</span>) === currentIndex).addClass(<span class="str">'current'</span>);
+    elems.find(<span class="str">'*[data-markjs]'</span>).addClass(<span class="str">'current'</span>); <span class="com">// add class to all descendant too</span>
+}</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> <span class="version">version 3</span><span></span></p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

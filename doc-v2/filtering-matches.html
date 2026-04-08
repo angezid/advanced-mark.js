@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -46,18 +45,18 @@
 </form>
 <main>
 <article id="article"><h2 id="filtering-matches">Filtering matches</h2>
-<p>See <a href="mark-method.html#mark-filter">mark() filter callback</a> and <a href="markRegExp-method.html#markRegExp-filter">markRegExp() filter callback</a> about <code>filter</code> callback <code>info</code> object properties.<br />
-<br>To filter RegExp capturing groups see: <a href="separate-groups.html#filtering-capturing-groups">Filtering capturing groups</a>.</p>
+<p>To filter RegExp capturing groups see: <a href="separate-groups.html#filtering-capturing-groups">Filtering capturing groups</a>.</p>
 <h4 id="to-filter-matches-in-the-mark-method-with-acrosselements-option">To filter matches in the <code>mark()</code> method with <code>acrossElements</code> option</h4>
+<p>See <a href="mark-method.html#mark-filter">mark() filter callback</a>'s <code>info</code> object property.</p>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0;
 
 instance.mark(<span class="str">'AB'</span>, {
-    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
-    <span class="str">'filter'</span> : (textNode, term, matchesSoFar, termMatchesSoFar, info) =&gt; {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'filter'</span>: (textNode, term, matchesSoFar, termMatchesSoFar, info) =&gt; {
          <span class="com">// to mark only the first match</span>
         info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">true</span>;
 
-        <span class="com">// filter callback requires its own match counter</span>
+        <span class="com">// the filter callback requires its own match counter</span>
         <span class="kwd">if</span> (info.matchStart) {
             count++;
         }
@@ -78,21 +77,22 @@ instance.mark(<span class="str">'AB'</span>, {
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0;
 
 instance.mark(<span class="str">'AB'</span>, {
-    <span class="str">'filter'</span> : (textNode, term, matchesSoFar, termMatchesSoFar, info) =&gt; {
+    <span class="str">'filter'</span>: (textNode, term, matchesSoFar, termMatchesSoFar, info) =&gt; {
         <span class="com">// the only difference is counter implementation</span>
         count++;
     }
 });</code></pre>
 <h4 id="to-filter-matches-in-the-markregexp-method">To filter matches in the <code>markRegExp()</code> method</h4>
+<p>See <a href="markRegExp-method.html#markRegExp-filter">markRegExp() filter callback</a>'s <code>info</code> object property.</p>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0, reg = <span class="jreg">/.../gi</span>;
 <span class="com">// if you have access to the RegExp object with 'acrossElements' option, you can
-// also used `reg.lastIndex = Infinity;` instead of `info.execution.abort = true;`</span>
+// also used 'reg.lastIndex = Infinity;' instead of 'info.execution.abort = true;'</span>
 instance.markRegExp(reg, {
-    <span class="str">'filter'</span> : (textNode, matchString, matchesSoFar, info) =&gt; {
+    <span class="str">'filter'</span>: (textNode, matchString, matchesSoFar, info) =&gt; {
         <span class="com">// to mark only the first match</span>
         info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">true</span>;
 
-        <span class="com">// filter callback requires its own match counter</span>
+        <span class="com">// the filter callback requires its own match counter</span>
         <span class="kwd">if</span> (info.matchStart) {
             count++;
         }
@@ -115,13 +115,12 @@ instance.markRegExp(reg, {
         <span class="kwd">return</span>  <span class="kwd">true</span>;
     },
 });</code></pre>
-<h4 id="mark-the-first-desired-number-of-matches-on-each-callback-using-acrosselements-option">Mark the first desired number of matches on <code>each</code> callback using <code>acrossElements</code> option.</h4>
-<p>It's much more limited than the <code>filter</code> callback.</p>
+<h4 id="mark-the-first-desired-number-of-matches-on-each-callback-with-acrosselements-option">Mark the first desired number of matches on <code>each</code> callback with <code>acrossElements</code> option.</h4>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> reg = <span class="jreg">/.../gi</span>;
 
 instance.markRegExp(reg, {
-    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
-    <span class="str">'each'</span> : (markElement, info) =&gt; {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
         <span class="com">// to mark only the first match</span>
         reg.lastIndex = Infinity;
 

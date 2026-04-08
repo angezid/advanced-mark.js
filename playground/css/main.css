@@ -65,7 +65,7 @@ h1.title { font-size: 1.4em; padding: 0; margin: 60px 0 0 0; }
 .right-column { float: right; width: 48%; margin: 20px 0 1px 2%; }
 .row::after { content: ""; clear: both; display: table; }
 
-header { width: 100%; position: fixed; top: 0; right: 0; height: 50px; background: #444; border: #ddd 1px solid; z-index: 20; }
+header { width: 100%; position: fixed; top: 0; right: 0; height: 50px; background: #005a69; border: #ddd 1px solid; z-index: 20; }
 header .section { margin: 0 40px; }
 header .content { max-width: 1420px; margin: auto; }
 header .button-block.left { margin: 0; }
@@ -80,10 +80,13 @@ header .mark-type { padding: 0; margin: 12px 0 0 0; position: relative; }
 header .mark-type ul { list-style-type: none; float: left; padding: 0; margin: 0; }
 header .mark-type ul li { width: 120px; height: 25px; line-height: 25px; margin-right: 2px; display: block; float: left; text-align: center; font-size: 1.1em; cursor: pointer; background: #ddd; border-bottom: #ccc 1px solid; }
 header .mark-type ul li:hover { background-color: #c0c0c0; }
-header .mark-type ul li.selected { background-color: #7e7e7e; color: #fff; border-bottom-color: #ccc; }
+header .mark-type ul li.selected { background-color: #008390; color: #fff; border-bottom-color: #ccc; }
 header select#examples { font-size: 0.875em; float: left; width: 160px; margin: 2px 20px 0 0; padding: 1px 3px; background: #f0f0f0; border: #ccc 1px solid; }
 header button.show-instructions { width: 18px; height: 18px; margin-left: -10px; border: #ccc 1px solid; border-radius: 8px; }
 #playground-instructions { display: none; }
+
+::highlight(markjs) { background-color: #d8e8ff; }
+::highlight(playground) { background-color: #d8e8ff; }
 
 .setting-form,
 .file-form,
@@ -134,13 +137,13 @@ header button.show-instructions { width: 18px; height: 18px; margin-left: -10px;
 
 .file-form #file-dialog, .options-info { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); }
 
-input[type=checkbox] { accent-color: #666; cursor: pointer; }
+input[type=checkbox] { accent-color: #00646e; cursor: pointer; }
 
 .actions button { width: 55px; height: 20px; font-size: 0.75em; color: #000; float: left; background: #ddd; padding: 0; margin: 0 20px 0 0; border: #888 1px solid; border-radius: 3px; cursor: pointer; }
 .actions button:hover { background: #c8c8c8; }
 
 .actions button.pressed,
-.actions button.pressed:hover { color: #fff; background: #666; }
+.actions button.pressed:hover { color: #fff; background: #00646e; }
 .actions button:last-child { margin: 0; }
 
 .actions button.previous,

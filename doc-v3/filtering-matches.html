@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+<title>Filtering matches</title>
+<link rel="icon" href="../static/img/favicon.ico">
+<link href="../static/css/core.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="data/toc.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
+</head>
+<body>
+<header>
+<div id="menu"> </div>
+<div class="logo"><a href=""></a></div>
+<div class="search-form">
+<form class="search" action="$search.html" method="get">
+<input id="q" class="field" type="text" name="q" required placeholder="Search ...">
+<input class="submit" type="submit">
+</form>
+</div>
+<ul class="header-menu">
+<li><a href="../index.html" id="home"> </a></li>
+<li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground-v3/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
+</ul>
+</header>
+
+<div id="wrapper">
+<div id="nav-wrap" class="nav-wrap">
+<nav class="sidebar">
+<div class="toc">
+</div>
+</nav>
+</div>
+<div id="content-wrap" class="content-wrap">
+<form class="search-bar">
+<div class="advanced-search"></div>
+<div class="control-block">
+<div class="highlight-all" data-label="All"></div>
+<div class="whole-word" data-label="Whole"></div>
+</div>
+</form>
+<main>
+<article id="article"><h2 id="filtering-matches">Filtering matches</h2>
+<p>To filter RegExp capturing groups see: <a href="separate-groups.html#filtering-capturing-groups" class="tooltip">Filtering capturing groups</a>.</p>
+<h4 id="to-filter-matches-in-the-mark-method-with-the-acrosselements-option">To filter matches in the <code>mark()</code> method with the <code>acrossElements</code> option</h4>
+<p>See <a href="mark-method.html#mark-filter" class="tooltip">mark() filter callback</a>'s <code>info</code> object properties.</p>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0;
+
+instance.mark(<span class="str">'AB'</span>, {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'filter'</span>: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, info) =&gt; {
+         <span class="com">// highlights only the first match</span>
+        info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">true</span>;
+
+        <span class="com">// highlights the first 10 matches using internal counter</span>
+        <span class="kwd">if</span> (matchesSoFar &gt;= 10) { info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
+        <span class="com">// if (info.count &gt;= 10) {..}</span>
+
+        <span class="com">// using external counter</span>
+        <span class="kwd">if</span> (info.matchStart) {
+            count++;
+        }
+
+        <span class="com">// skips between</span>
+        <span class="kwd">if</span> (count &gt; 10 &amp;&amp; count &lt; 20) { <span class="kwd">return</span>  <span class="kwd">false</span>; }
+
+        <span class="com">// highlights between</span>
+        <span class="kwd">if</span> (count &lt;= 10) { <span class="kwd">return</span>  <span class="kwd">false</span>; }
+        <span class="kwd">else</span> <span class="kwd">if</span> (count &gt; 20) { info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
+
+        <span class="kwd">return</span>  <span class="kwd">true</span>;
+    }
+});</code></pre>
+<h4 id="to-filter-matches-in-the-mark-method-without-the-acrosselements-option">To filter matches in the <code>mark()</code> method without the <code>acrossElements</code> option</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0;
+
+instance.mark(<span class="str">'AB'</span>, {
+    <span class="str">'filter'</span>: (textNode, term, matchesSoFar, termMatchesSoFar, info) =&gt; {
+        <span class="com">// the only difference is the external counter implementation</span>
+        count++;
+    }
+});</code></pre>
+<h4 id="to-filter-matches-in-the-markregexp-method-with-the-acrosselements-option">To filter matches in the <code>markRegExp()</code> method with the <code>acrossElements</code> option</h4>
+<p>See <a href="markRegExp-method.html#markRegExp-filter" class="tooltip">markRegExp() filter callback</a>'s <code>info</code> object properties.</p>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0,
+    reg = <span class="jreg">/.../gi</span>;
+<span class="com">// if you have access to the RegExp object, you can also used 'reg.lastIndex = Infinity;'
+// instead of 'info.execution.abort = true;'</span>
+instance.markRegExp(reg, {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'filter'</span>: (nodeOrArray, matchString, matchesSoFar, info) =&gt; {
+        <span class="com">// highlights only the first match</span>
+        info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">true</span>;
+
+        <span class="com">// highlights the first 10 matches using internal counter</span>
+        <span class="kwd">if</span> (matchesSoFar &gt;= 10) { info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
+        <span class="com">// if (info.count &gt;= 10) {..}</span>
+
+        <span class="com">// using external counter</span>
+        <span class="kwd">if</span> (info.matchStart) {
+            count++;
+        }
+
+        <span class="com">// skips between</span>
+        <span class="kwd">if</span> (count &gt; 10 &amp;&amp; count &lt; 20) { <span class="kwd">return</span>  <span class="kwd">false</span>; }
+
+        <span class="com">// highlights between</span>
+        <span class="kwd">if</span> (count &lt;= 10) { <span class="kwd">return</span>  <span class="kwd">false</span>; }
+        <span class="kwd">else</span> <span class="kwd">if</span> (count &gt; 20) {
+            info.execution.abort = <span class="kwd">true</span>;
+            <span class="kwd">return</span>  <span class="kwd">false</span>;
+        }
+
+        <span class="kwd">return</span>  <span class="kwd">true</span>;
+    },
+});</code></pre>
+<h4 id="to-filter-matches-in-the-markregexp-method-without-the-acrosselements-option">To filter matches in the <code>markRegExp()</code> method without the <code>acrossElements</code> option</h4>
+<pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0,
+    reg = <span class="jreg">/.../gi</span>;
+
+instance.markRegExp(reg, {
+    <span class="str">'filter'</span>: (textNode, matchString, matchesSoFar, info) =&gt; {
+        <span class="com">// the only difference is the external counter implementation</span>
+        count++;
+    }
+});</code></pre>
+<h4 id="to-filter-matches-on-each-callback">To filter matches on <code>each</code> callback</h4>
+<p>This is applicable to the <code>mark()</code> and <code>markRegExp()</code> methods</p>
+<pre><code class="language-js"><span class="copy-code"></span>instance.mark(str, {
+    <span class="com">// 'acrossElements': true,</span>
+    <span class="str">'each'</span>: (markElement, info) =&gt; {
+        <span class="com">// highlights only the first match</span>
+        info.execution.abort = <span class="kwd">true</span>;
+
+        <span class="com">// highlights the first 10 matches</span>
+        <span class="kwd">if</span> (info.count &gt;= 10) {
+            info.execution.abort = <span class="kwd">true</span>;
+        }
+    }
+});</code></pre>
+
+</article>
+<footer><div class="info">
+<p><a href="https://github.com/angezid/advanced-mark.js">advanced-mark.js</a> <span class="version">version 3</span><span></span></p>
+</div></footer>
+</main>
+</div>
+</div>
+</body>
+</html>

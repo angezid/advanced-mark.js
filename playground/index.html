@@ -8,9 +8,7 @@
 <link rel="icon" type="image/png" href="img/logo.png">
 <link rel="stylesheet" href="css/main.css">
 <script src="js/plugins.js"></script>
-<script src="js/data.js"></script>
 <script src="js/main.js"></script>
-<script src="js/highlighter.js"></script>
 </head>
 <body class="playground">
 <header class="playground-header">
@@ -770,22 +768,13 @@
 </article>
 <article class="options-info">
 <div class="options">
-<div id="element"><span><code>element</code></span><span><em class="type">string</em></span><span> <code>mark</code></span><div>A custom mark element e.g. <code>span</code>. </div></div>
-
-<div id="className"><span><code>className</code></span><span><em class="type">string</em></span><span> <code>''</code></span><div>A custom class to be added to mark elements. </div></div>
-
-<div id="exclude"><span><code>exclude</code></span><span><em class="type">string <span class="or">or</span> string[]</em></span><span> <code>[]</code></span><div>A string or an array of selectors. Specifies DOM elements that should be excluded from searching. 
-<p>See <a href="../doc-v2/options.html#exclude-option" target="_blank">exclude</a> option for more details.</div></div>
-
-<div id="separateWordSearch"><span><code>separateWordSearch</code></span><span><em class="type">boolean <span class="or">or</span> string</em></span><span> <code>true</code></span><div>A <b>boolean</b> value <code>true</code> specifies to break term(s) into separate words and search for each individual word. 
-<p>A <b>string</b> value <code>'preserveTerms'</code> preserved term(s) surrounding by double quotes from breaking into separate words.
-See <a href="../doc-v2/options.html#separatewordsearch-option" target="_blank">separateWordSearch</a> option for more details.</div></div>
-
-<div id="diacritics"><span><code>diacritics</code></span><span><em class="type">boolean</em></span><span> <code>true</code></span><div>Whether to match diacritic characters </div></div>
-
-<div id="caseSensitive"><span><code>caseSensitive</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to search case sensitive </div></div>
-
-<div id="accuracy"><span><code>accuracy</code></span><span><em class="type">string <span class="or">or</span> object</em></span><span> <code>'partially'</code></span><div>  
+<div id="element"><span><code>element</code></span><span><em class="type">string</em></span><span> <code>mark</code></span><div>A custom mark element e.g. <code>span</code>.</div></div>
+<div id="className"><span><code>className</code></span><span><em class="type">string</em></span><span> <code>''</code></span><div>A custom class to be added to mark elements.</div></div>
+<div id="exclude"><span><code>exclude</code></span><span><em class="type">string <span class="or">or</span> string[]</em></span><span> <code>[]</code></span><div>A string or an array of selectors. Specifies DOM elements that should be excluded from searching.<p>See <a href="../doc-v2/options.html#exclude-option" target="_blank">exclude</a> for more details.</div></div>
+<div id="separateWordSearch"><span><code>separateWordSearch</code></span><span><em class="type">boolean <span class="or">or</span> string</em></span><span> <code>true</code></span><div>A <b>boolean</b> value <code>true</code> specifies to break term(s) into separate words and search for each individual word.<p>A <b>string</b> value <code>'preserveTerms'</code> preserved term(s) surrounding by double quotes from breaking into separate words. See <a href="../doc-v2/options.html#separatewordsearch-option" target="_blank">separateWordSearch</a> for more details.</div></div>
+<div id="diacritics"><span><code>diacritics</code></span><span><em class="type">boolean</em></span><span> <code>true</code></span><div>Whether to match diacritic characters</div></div>
+<div id="caseSensitive"><span><code>caseSensitive</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to search case sensitive</div></div>
+<div id="accuracy"><span><code>accuracy</code></span><span><em class="type">string <span class="or">or</span> object</em></span><span> <code>'partially'</code></span><div>
 <ul>
 <li><p>Either one of the following <b>string</b> value:</p>
 <ul>
@@ -794,90 +783,53 @@ See <a href="../doc-v2/options.html#separatewordsearch-option" target="_blank">s
 <li><code>'startsWith'</code> e.g. searching 'pre' mark the whole words 'prefix', 'predict', and 'prefab'.</li>
 <li><code>'complementary'</code> e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.</li>
 </ul>
-<p>The <b>built-in</b> boundaries for values <code>startsWith</code> and <code>complementary</code> are:<br>
-white spaces and <code>!&quot;#$%&amp;'`()*+,-./:;&lt;=&gt;?@[\]^_{|}~¡¿</code> characters.</p>
+<p>The <b>built-in</b> boundaries for values <code>startsWith</code> and <code>complementary</code> are:<br>white spaces and <code>!&quot;#$%&amp;'`()*+,-./:;&lt;=&gt;?@[\]^_{|}~¡¿</code> characters.</p>
 </li>
 <li><p>Or an <b>object</b> with two properties:</p>
 <ul>
 <li><code>value</code>: <code>'exactly'</code> or <code>'startsWith'</code> or <code>'complementary'</code></li>
-<li><code>limiters</code>: a string or an array of custom word boundary characters,<br>
-e.g. <code>{ value : &quot;exactly&quot;, limiters : &quot;,.;:?!'\&quot;()&quot; }</code></li>
+<li><code>limiters</code>: a string or an array of custom word boundary characters,<br>e.g. <code>{ value : &quot;exactly&quot;, limiters : &quot;,.;:?!'\&quot;()&quot; }</code></li>
 </ul>
 </li>
 </ul>
 </div></div>
-
-<div id="wildcards"><span><code>wildcards</code></span><span><em class="type">string</em></span><span> <code>disabled</code></span><div>Two characters <code>?</code> and <code>*</code> used as wildcards unless they are escaped 
-<ul>
+<div id="wildcards"><span><code>wildcards</code></span><span><em class="type">string</em></span><span> <code>disabled</code></span><div>Two characters <code>?</code> and <code>*</code> used as wildcards unless they are escaped<ul>
 <li><code>disabled</code>: The characters <code>?</code> and <code>*</code> match itself</li>
-<li><code>enabled</code>:
-<ul>
+<li><code>enabled</code>:<ul>
 <li>The character <code>?</code> match any non-white-space character zero or one time.</li>
-<li>The character <code>*</code> match any non-white-space character zero or more times.</li>
+<li>The character <code>*</code> match any non-white-space character zero or more time.</li>
 </ul>
 </li>
-<li><code>withSpaces</code>:
-<ul>
+<li><code>withSpaces</code>:<ul>
 <li>The character <code>?</code> match any character zero or one time.</li>
-<li>The character <code>*</code> match any character zero or more times, but as few times as possible.</ul></ul></div></div>
-
-<div id="ignoreJoiners"><span><code>ignoreJoiners</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner </div></div>
-
-<div id="ignorePunctuation"><span><code>ignorePunctuation</code></span><span><em class="type">string <span class="or">or</span> string[]</em></span><span> <code>[]</code></span><div>A string or an array of punctuation characters </div></div>
-
-<div id="synonyms"><span><code>synonyms</code></span><span><em class="type">object</em></span><span> <code>{}</code></span><div>An object with synonyms  
-<p>e.g. <code>{ 'one': '1' }</code> - '1' is synonym for 'one' and vice versa.<br>
-The value can be an array, e.g. <code>{ 'be': ['am', 'is', 'are'] }</code>.</p>
- </div></div>
-
-<div id="acrossElements"><span><code>acrossElements</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to search for matches across elements 
-<p>See <a href="../doc-v2/options.html#acrosselements-option" target="_blank">acrossElements</a> option for more details.</div></div>
-
-<div id="combinePatterns"><span><code>combinePatterns</code></span><span><em class="type">number <span class="or">or</span> boolean</em></span><span> <code>10</code></span><div>Combine a specified number of individual term patterns into one 
-<p>See <a href="../doc-v2/performance.html#ways-to-boost-performance" target="_blank">Performance</a> for more details.</div></div>
-
-<div id="cacheTextNodes"><span><code>cacheTextNodes</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Caching information to improve performance 
-<p>See <a href="../doc-v2/performance.html#ways-to-boost-performance" target="_blank">Performance</a> for more details.</div></div>
-
-<div id="blockElementsBoundary"><span><code>blockElementsBoundary</code></span><span><em class="type">boolean <span class="or">or</span> object</em></span><span> <code>undefined</code></span><div>Whether to limit matches within default HTML block elements and/or custom elements 
-<p>See <a href="../doc-v2/elements-boundaries.html" target="_blank">Elements boundaries</a> for more details.</p>
+<li>The character <code>*</code> match any character zero or more time, but as few times as possible.</ul></ul></div></div>
+<div id="ignoreJoiners"><span><code>ignoreJoiners</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner</div></div>
+<div id="ignorePunctuation"><span><code>ignorePunctuation</code></span><span><em class="type">string <span class="or">or</span> string[]</em></span><span> <code>[]</code></span><div>A string or an array of punctuation characters</div></div>
+<div id="synonyms"><span><code>synonyms</code></span><span><em class="type">object</em></span><span> <code>{}</code></span><div>An object with synonyms<p>e.g. <code>{ 'one': '1' }</code> - '1' is synonym for 'one' and vice versa.<br>The value can be an array, e.g. <code>{ 'be': ['am', 'is', 'are'] }</code>.</p>
+</div></div>
+<div id="acrossElements"><span><code>acrossElements</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to search for matches across elements</div></div>
+<div id="combinePatterns"><span><code>combinePatterns</code></span><span><em class="type">number <span class="or">or</span> boolean</em></span><span> <code>10</code></span><div>Combine a specified number of individual term patterns into one<p>See <a href="../doc-v2/performance.html#ways-to-boost-performance" target="_blank">Performance</a> for more details.</div></div>
+<div id="cacheTextNodes"><span><code>cacheTextNodes</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Caching information to improve performance<p>See <a href="../doc-v2/performance.html#ways-to-boost-performance" target="_blank">Performance</a> for more details.</div></div>
+<div id="blockElementsBoundary"><span><code>blockElementsBoundary</code></span><span><em class="type">boolean <span class="or">or</span> object</em></span><span> <code>undefined</code></span><div>Whether to limit matches within default HTML block elements and/or custom elements<p>See <a href="../doc-v2/elements-boundaries.html" target="_blank">Elements boundaries</a> for more details.</p>
 <ul>
 <li><code>tagNames</code> <em class="type">string[]</em> - An array of custom HTML tag names</li>
-<li><code>extend</code> <em class="type">boolean</em> - <code>true</code> extends default boundary elements by the custom elements
-otherwise only the custom elements do have boundaries</li>
+<li><code>extend</code> <em class="type">boolean</em> - <code>true</code> extends default boundary elements by the custom elements otherwise only the custom elements do have boundaries</li>
 <li><code>char</code> <em class="type">string</em> - A custom boundary character. The default is <code>\x01</code>.</li>
 </ul>
 </div></div>
-
-<div id="shadowDOM"><span><code>shadowDOM</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Whether to mark inside shadow DOMs 
-<p>See <a href="../doc-v2/shadow-dom.html" target="_blank">Highlighting in shadow DOM</a> for more details.</div></div>
-
-<div id="iframes"><span><code>iframes</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to mark inside iframes </div></div>
-
-<div id="iframesTimeout"><span><code>iframesTimeout</code></span><span><em class="type">number</em></span><span> <code>5000</code> ms</span><div>The max time to wait for iframe(s) to load before skipping </div></div>
-
-<div id="debug"><span><code>debug</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to log messages </div></div>
-
-<div id="log"><span><code>log</code></span><span><em class="type">object</em></span><span> <code>console</code></span><div>Log messages to a specific object 
-</div></div>
-
-<div id="noMatch"><span><code>noMatch</code></span><span><em class="type">function</em></span><span> </span><div>A callback that is called when a term has no match at all 
-<br><b>noMatch : (term) => {}</b>
+<div id="shadowDOM"><span><code>shadowDOM</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Whether to mark inside shadow DOMs<p>See <a href="../doc-v2/shadow-dom.html" target="_blank">Highlighting in shadow DOM</a> for more details.</div></div>
+<div id="iframes"><span><code>iframes</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to mark inside iframes</div></div>
+<div id="iframesTimeout"><span><code>iframesTimeout</code></span><span><em class="type">number</em></span><span> <code>5000</code> ms</span><div>The max time to wait for iframe(s) to load before skipping</div></div>
+<div id="debug"><span><code>debug</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to log messages</div></div>
+<div id="log"><span><code>log</code></span><span><em class="type">object</em></span><span> <code>console</code></span><div>Log messages to a specific object</div></div>
+<div id="noMatch"><span><code>noMatch</code></span><span><em class="type">function</em></span><span></span><div>A callback that is called when a term has no match at all<br><b>noMatch : (term) => {}</b>
 <ul>
 <li><code>term</code> <em class="type">string <span class="or">or</span> string[]</em> - The not found term(s); the parameter is an array when <code>combinePatterns</code> option is used</ul></div></div>
-
-<div id="wrapAllRanges"><span><code>wrapAllRanges</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Mark nesting/overlapping capturing groups 
-<p>See <a href="../doc-v2/nesting-overlapping.html" target="_blank">Marking nesting and overlapping ranges and match groups</a> for more details.</p>
+<div id="wrapAllRanges"><span><code>wrapAllRanges</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Mark nesting/overlapping capturing groups<p>See <a href="../doc-v2/nesting-overlapping.html" target="_blank">Marking nesting and overlapping ranges and match groups</a> for more details.</p>
 </div></div>
-
-<div id="markLines"><span><code>markLines</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Whether to mark ranges of lines instead of ranges of texts 
-<p>See <a href="../doc-v2/mark-lines.html" target="_blank">Highlighting line ranges</a> for more details.</div></div>
-
-<div id="ignoreGroups"><span><code>ignoreGroups</code></span><span><em class="type">number</em></span><span> <code>0</code></span><div>The number of adjacent capturing groups that should be ignored from the start of RegExp 
-<p>e.g. <code>/(\w+)(.)(\w+)(?!\2)/g</code>, <code>ignoreGroups : 2</code> - mark the group 3</div></div>
-
-<div id="separateGroups"><span><code>separateGroups</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to mark RegExp capturing groups instead of whole match 
-<p>See <a href="../doc-v2/separate-groups.html" target="_blank">Highlighting separate groups</a> for more details.</div></div>
+<div id="markLines"><span><code>markLines</code></span><span><em class="type">boolean</em></span><span> <code>undefined</code></span><div>Whether to mark ranges of lines instead of ranges of texts<p>See <a href="../doc-v2/mark-lines.html" target="_blank">Highlighting line ranges</a> for more details.</div></div>
+<div id="ignoreGroups"><span><code>ignoreGroups</code></span><span><em class="type">number</em></span><span> <code>0</code></span><div>The number of adjacent capturing groups that should be ignored from the start of RegExp<p>e.g. <code>/(\w+)(.)(\w+)(?!\2)/g</code>, <code>ignoreGroups : 2</code> - mark the group 3</div></div>
+<div id="separateGroups"><span><code>separateGroups</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to mark RegExp capturing groups instead of whole match<p>See <a href="../doc-v2/separate-groups.html" target="_blank">Highlighting separate groups</a> for more details.</div></div>
 </div>
 <div id="accuracyObject">
 <ul>

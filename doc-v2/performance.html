@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -47,7 +46,8 @@
 <main>
 <article id="article"><h2 id="performance">Performance</h2>
 <h3 id="the-performance-results-in-firefox-compare-to-mark.js-v8.11.1">The performance results in Firefox compare to mark.js v8.11.1:</h3>
-<p><code>markRegExp()</code> method, <code>acrossElements : true</code>; marked words 3000</p>
+<div class='warning'><b>Warning:</b> this performance tests were run on a slow processor (more important is ratio than actual time)  
+<code>markRegExp()</code> method, <code>acrossElements: true</code>; marked words 3000</div>
 <table>
 <thead>
 <tr>
@@ -61,17 +61,17 @@
 <tbody>
 <tr>
 <td>mark.js</td>
-<td>~350 ms.</td>
-<td>~680 ms.</td>
-<td>~1700 ms.</td>
-<td>~2800 ms.</td>
+<td>~350 ms</td>
+<td>~680 ms</td>
+<td>~1700 ms</td>
+<td>~2800 ms</td>
 </tr>
 <tr>
 <td>this</td>
-<td>~30 ms.</td>
-<td>~35 ms.</td>
-<td>~45 ms.</td>
-<td>~60 ms.</td>
+<td>~30 ms</td>
+<td>~35 ms</td>
+<td>~45 ms</td>
+<td>~60 ms</td>
 </tr>
 </tbody>
 </table>
@@ -89,17 +89,17 @@
 <tbody>
 <tr>
 <td>mark.js</td>
-<td>~30 ms.</td>
-<td>~40 ms.</td>
-<td>~70 ms.</td>
-<td>~110 ms.</td>
+<td>~30 ms</td>
+<td>~40 ms</td>
+<td>~70 ms</td>
+<td>~110 ms</td>
 </tr>
 <tr>
 <td>this</td>
-<td>~30 ms.</td>
-<td>~35 ms.</td>
-<td>~40 ms.</td>
-<td>~50 ms.</td>
+<td>~30 ms</td>
+<td>~35 ms</td>
+<td>~40 ms</td>
+<td>~50 ms</td>
 </tr>
 </tbody>
 </table>
@@ -117,17 +117,17 @@
 <tbody>
 <tr>
 <td>mark.js</td>
-<td>~220 ms.</td>
-<td>~350 ms.</td>
-<td>~970 ms.</td>
-<td>~1700 ms.</td>
+<td>~220 ms</td>
+<td>~350 ms</td>
+<td>~970 ms</td>
+<td>~1700 ms</td>
 </tr>
 <tr>
 <td>this</td>
-<td>~36 ms.</td>
-<td>~40 ms.</td>
-<td>~51 ms.</td>
-<td>~60 ms.</td>
+<td>~36 ms</td>
+<td>~40 ms</td>
+<td>~51 ms</td>
+<td>~60 ms</td>
 </tr>
 </tbody>
 </table>
@@ -143,33 +143,34 @@
 <tbody>
 <tr>
 <td>mark.js</td>
-<td>~1200 ms.</td>
-<td>~1300 ms.</td>
+<td>~1200 ms</td>
+<td>~1300 ms</td>
 </tr>
 <tr>
 <td>this</td>
-<td>~210 ms.</td>
-<td>~630 ms.</td>
+<td>~210 ms</td>
+<td>~630 ms</td>
 </tr>
 </tbody>
 </table>
 <h3 id="ways-to-boost-performance">Ways to boost performance</h3>
 <p>Related highlighting a (especially) large array of strings or string with the <code>separateWordSearch</code> option.<br />
 A <code>mark()</code> method highlights an array item by item, e.g. an array of 10 items is run 10 times. It isn't efficient.</p>
-<p>There are two options to boost performance :</p>
+<p>There are two options to boost performance:</p>
 <ul>
-<li><p><code>combinePatterns</code> : combines given numbers of RegExp patterns into a single pattern, e.g. an array of 50 strings, <code>combinePatterns : 10</code> - creates 5 combine patterns, so instead of 50 runs there are only 5 runs. Any number bigger than the array length or <code>Infinity</code> creates a single combined pattern.
+<li><p><code>combinePatterns</code>: combines given numbers of RegExp patterns into a single pattern, e.g. an array of 50 strings, <code>combinePatterns: 10</code> - creates 5 combine patterns, so instead of 50 runs there are only 5 runs. Any number bigger than the array length or <code>Infinity</code> creates a single combined pattern.
 Note: with <code>diacritics</code> option, a single pattern can be monstrous and more slowly, it's better to create 5-7 patterns (it's probably related to a processor cache).<br />
 Also, this option prevents highlighting inside already highlighted elements, but it only true for single combined pattern.</p>
 </li>
-<li><p><code>cacheTextNodes</code> : collecting text nodes information on every run is expensive. Caching this information improves performance with a large array.
-The performance gain gradually grows, starting with an array containing 2-3 items and doubled with 4-5 items.<br />
-  Note: this option does not change behavior as the <code>combinePatterns</code> option does. It can be used with existing code to improve performance.</p>
+<li><p><code>cacheTextNodes</code>: collecting text nodes information on every run is expensive. Caching this information improves performance with a large array.
+The performance gain gradually grows, starting with an array containing 2-3 items and doubled with 4-5 items.</p>
+<div class='note'><b>Note:</b> this option does not change behavior as the <code>combinePatterns</code> option does.  </div>
+<div class='warning'><b>Warning:</b> this option is removed in version 3.x</div>
 </li>
 </ul>
-<p>In Firefox marking an array of 500 words on a 1 MB page, 26500 text nodes, <code>diacritics : false</code> and ~7600 highlighted words :</p>
+<p>In Firefox marking an array of 500 words on a 1 MB page, 26500 text nodes, <code>diacritics: false</code> and ~7600 highlighted words:</p>
 <ul>
-<li>with <code>combinePatterns : Infinity</code> ~0.2 second. (single pattern)</li>
+<li>with <code>combinePatterns: Infinity</code> ~0.2 second. (single pattern)</li>
 <li>with <code>cacheTextNodes</code> option ~4.2 sec.</li>
 <li>with <code>cacheTextNodes</code> and <code>acrossElements</code> options ~1 sec.</li>
 <li>with <code>acrossElements</code> options ~21 sec.</li>
@@ -177,11 +178,11 @@ The performance gain gradually grows, starting with an array containing 2-3 item
 </ul>
 <p>The same with <code>diacritics</code>:</p>
 <ul>
-<li>with <code>combinePatterns : Infinity</code> ~1.8 second. (single pattern)</li>
-<li>with <code>combinePatterns : 100</code> ~0.4 second. (5 patterns)</li>
+<li>with <code>combinePatterns: Infinity</code> ~1.8 second. (single pattern)</li>
+<li>with <code>combinePatterns: 100</code> ~0.4 second. (5 patterns)</li>
 </ul>
 <pre><code class="language-js">instance.mark([ <span class="str">'str1'</span>, <span class="str">'str2'</span>, .. ], {
-  <span class="str">'combinePatterns'</span> : number  <span class="com">// or true (default number is 10)</span>
+  <span class="str">'combinePatterns'</span>: number  <span class="com">// default number is 10</span>
 });</code></pre>
 
 </article>

@@ -1,1 +1,1 @@
-﻿var toc = '<ul class="root"><h3>advanced-mark.js</h3><li><a href="doc-v1/index.html">Docs v1</a></li><li><a href="doc-v2/index.html">Docs v2</a></li></ul>';
+﻿var toc = '<ul class="root"><h3>advanced-mark.js</h3><li><a href="doc-v2/index.html">Docs v2.x</a></li><li><a href="doc-v3/index.html">Docs v3.x</a></li><li><a href="playground/index.html">Playground v2.x</a></li><li><a href="playground-v3/index.html">Playground v3.x</a></li><li><a href="performance-v3/index.html">Performance v3.x</a></li></ul>';

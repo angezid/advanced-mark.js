@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -50,17 +49,17 @@
 It correctly handles <code>br</code> elements. With an option <code>wrapAllRanges</code> it can highlight nesting/overlapping lines.<br />
 This option is useful in <code>pre</code> elements. It can be used in other elements, if HTLM page isn't minified or used <code>br</code> elements for formatting.</p>
 <p>You can play with Playground - Examples -&gt; Mark line ranges.</p>
-<p><strong>Note</strong> that minimal line number is 1 (a text range can start with 0).</p>
+<div class='note'><b>Note</b> that minimal line number is 1 (a text range can start with 0).</div>
 <h4 id="highlight-and-scroll-into-view-the-specified-code-line">Highlight and scroll into view the specified code line:</h4>
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> elem;
 <span class="kwd">const</span> instance = <span class="kwd">new</span> Mark(document.querySelector(<span class="str">'pre'</span>));
 instance.markRanges([{ start: line, length: 1 }], {
-  <span class="str">'markLines'</span> : <span class="kwd">true</span>,
-  <span class="str">'each'</span> : (markElement, range, info) =&gt; {
+  <span class="str">'markLines'</span>: <span class="kwd">true</span>,
+  <span class="str">'each'</span>: (markElement, range, info) =&gt; {
     <span class="kwd">if</span> (info.matchStart) elem = markElement;
     markElement.className = <span class="str">'mark-line'</span>;
   },
-  <span class="str">'done'</span> : () =&gt; {
+  <span class="str">'done'</span>: () =&gt; {
     <span class="kwd">if</span> (elem) elem.scrollIntoView();
   }
 });</code></pre>

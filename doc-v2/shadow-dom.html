@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -46,13 +45,13 @@
 </form>
 <main>
 <article id="article"><h2 id="highlighting-in-shadow-dom">Highlighting in shadow DOM</h2>
-<p>An option <code>shadowDOM : true</code>allows to highlight a text inside shadow DOMs that have <code>mode: 'open'</code> and are already created.<br />
+<p>The option <code>shadowDOM: true</code> allows to highlight a text inside shadow DOMs that have <code>mode: 'open'</code> option and are already created.<br />
 You can play with Playground - Examples -&gt; Shadow DOM.</p>
-<p><strong>Note:</strong> to style mark elements in shadow DOM, the option <code>shadowDOM : {style : 'your mark element style'}</code> can be used.<br />
-It creates a <code>style</code> element and inserts it at the beginning of shadow root child node(s).<br />
-But this operation is invasive, it can break the root code.<br />
-An inline style can be used as an alternative:</p>
-<pre><code class="language-js"><span class="copy-code"></span>each : (markElement, info) =&gt; {
+<p>To customize the style of mark elements in shadow DOM, the option <code>shadowDOM: {style: 'your mark element style'}</code> can be used.<br />
+It creates a <code>style</code> element and appends it at the end of shadow root child nodes (before v2.6.0 it inserted the style at the beginning of shadow root child nodes).</p>
+<div class='note'><b>Note</b> that the style is added to the shadow root no matter whether it contains any matches or not.</div>
+<p>An inline style can be used as an alternative:</p>
+<pre><code class="language-js"><span class="copy-code"></span>each: (markElement, info) =&gt; {
   <span class="com">// a shadow root is the DocumentFragment</span>
   <span class="kwd">if</span> (markElement.getRootNode().nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
     markElement.style.color = <span class="str">"red"</span>;

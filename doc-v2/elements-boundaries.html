@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -46,7 +45,7 @@
 </form>
 <main>
 <article id="article"><h2 id="elements-boundaries">Elements boundaries</h2>
-<p><strong>Note</strong> that using a <code>blockElementsBoundary</code> option only makes sense with <code>acrossElements</code> option when highlighting phrases, or RegExp capturing groups, or using a wildcards character <code>*</code> with <code><a href="mark-method.html#mark-wildcards">wildcards</a> : 'withSpaces'</code> option (can match multiple words).</p>
+<div class='note'><b>Note</b> that using a <code>blockElementsBoundary</code> option only makes sense with <code>acrossElements</code> option when highlighting phrases, or RegExp capturing groups, or using a wildcards character <code>*</code> with <code><a href="mark-method.html#mark-wildcards">wildcards</a>: 'withSpaces'</code> option (can match multiple words).</div>
 <p>This, how library aggregates all context(s) text node contents into a single string with <code>blockElementsBoundary: true</code> option:
 if a block element 'divides' two text nodes, <code>\x01</code> character with spaces (it depends) is added between them,<br />
 e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Header \x01 Paragraph'.</p>
@@ -54,7 +53,7 @@ e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Head
 <ul>
 <li><code>blockElementsBoundary: true</code> except default block elements</li>
 <li><code>blockElementsBoundary: { tagNames: [..] }</code> except custom element(s)</li>
-<li><code>blockElementsBoundary: { tagNames: [..], extend : true }</code> except default block elements and custom element(s)</li>
+<li><code>blockElementsBoundary: { tagNames: [..], extend: true }</code> except default block elements and custom element(s)</li>
 </ul>
 <h4 id="boundary-object">Boundary object:</h4>
 <ul>
@@ -64,24 +63,24 @@ e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Head
 </ul>
 <h3 id="example">Example:</h3>
 <pre><code class="language-js"><span class="copy-code"></span>instance.mark(<span class="str">'lorem ipsum dolor'</span>, {
-    <span class="str">'separateWordSearch'</span> : <span class="kwd">false</span>,
-    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
-    <span class="str">'blockElementsBoundary'</span> : <span class="kwd">true</span>
+    <span class="str">'separateWordSearch'</span>: <span class="kwd">false</span>,
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'blockElementsBoundary'</span>: <span class="kwd">true</span>
     <span class="com">// or</span>
-    <span class="str">'blockElementsBoundary'</span> : {
+    <span class="str">'blockElementsBoundary'</span>: {
         <span class="com">// only these custom elements have boundaries</span>
-        <span class="str">'tagNames'</span> : [<span class="str">'div'</span>, <span class="str">'p'</span>, <span class="str">'h1'</span>, <span class="str">'h2'</span>],  <span class="com">// optional</span>
+        <span class="str">'tagNames'</span>: [<span class="str">'div'</span>, <span class="str">'p'</span>, <span class="str">'h1'</span>, <span class="str">'h2'</span>],  <span class="com">// optional</span>
         <span class="com">// custom boundary char, default is '\x01'</span>
-        <span class="str">'char'</span> : <span class="str">'.'</span>   <span class="com">// optional</span>
+        <span class="str">'char'</span>: <span class="str">'.'</span>   <span class="com">// optional</span>
     }
 });</code></pre>
 <h3 id="extending-default-block-elements-with-custom-elements">Extending default block elements with custom elements:</h3>
 <pre><code class="language-js"><span class="copy-code"></span>instance.markRegExp(<span class="jreg">/.../gi</span>, {
-    <span class="str">'acrossElements'</span> : <span class="kwd">true</span>,
-    <span class="str">'blockElementsBoundary'</span> : {
+    <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
+    <span class="str">'blockElementsBoundary'</span>: {
         <span class="com">// custom elements are added to the default block elements</span>
-        <span class="str">'tagNames'</span> : [<span class="str">'tab-container'</span>, <span class="str">'custom-tag'</span>],
-        <span class="str">'extend'</span> : <span class="kwd">true</span>
+        <span class="str">'tagNames'</span>: [<span class="str">'tab-container'</span>, <span class="str">'custom-tag'</span>],
+        <span class="str">'extend'</span>: <span class="kwd">true</span>
     }
 });</code></pre>
 <p>The default elements are:</p>

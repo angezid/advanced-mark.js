@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -8,9 +8,7 @@
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
-<script src="../static/js/jquery.js"></script>
-<script src="../static/js/core.js"></script>
-<script src="../static/js/mark.js"></script>
+<script type="text/javascript" src="../static/js/plugins.js"></script>
 </head>
 <body>
 <header>
@@ -24,8 +22,9 @@
 </div>
 <ul class="header-menu">
 <li><a href="../index.html" id="home"> </a></li>
-<li><a href="../playground/index.html" target="_blank">Playground</a></li>
 <li><a class="selected" href="index.html">Doc</a></li>
+<li><a href="../playground/index.html" target="_blank">Playground</a></li>
+<li><a href="../performance-v3/index.html" target="_blank">Performance</a></li>
 </ul>
 </header>
 
@@ -100,7 +99,7 @@ instance.mark(<span class="str">'lorem'</span>);</code></pre>
 <ul>
 <li>a single element get by e.g. <code>document.getElementById()</code> or <code>document.querySelector()</code></li>
 <li>a NodeList get by e.g. <code>document.querySelectorAll()</code></li>
-<li>an array containing multiple single elements (<strong>Note</strong> that internally the array is sorted by the element position in the document)</li>
+<li>an array containing multiple single elements (<b>Note</b> that internally the array is sorted by the element position in the document)</li>
 <li>a string selector (internally calls <code>document.querySelectorAll()</code>)</li>
 </ul>
 <h4 id="jquery">jQuery</h4>
