@@ -1513,10 +1513,10 @@
           return;
         }
         var index = 0,
+          runCount = 0,
           totalMarks = 0,
           totalMatches = 0,
-          term,
-          termMatches;
+          term;
         var across = this.opt.acrossElements,
           fn = across ? 'processMatchesAcross' : 'processMatches',
           array = this.getRegExps(terms);
@@ -1528,10 +1528,10 @@
             if (!across || filterInfo.matchStart) {
               term = _this12.getCurrentTerm(filterInfo.match, regTerms);
             }
-            termMatches = termStats[term];
-            return _this12.opt.filter(nodeOrArray, term, totalMatches + termMatches, termMatches, filterInfo);
+            return _this12.opt.filter(nodeOrArray, term, totalMatches + runCount, termStats[term], filterInfo);
           }, function (elemOrRange, eachInfo) {
             totalMarks++;
+            runCount = eachInfo.count;
             if (!across || eachInfo.matchStart) {
               termStats[term] += 1;
             }

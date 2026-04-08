@@ -13,6 +13,7 @@ describe('basic mark with filter callback', () => {
         'ipsum': 0,
         'dolor': 0
       },
+      totalCounter = 0,
       calls = 0;
     try {
       new Mark($ctx[0]).mark(Object.keys(counter), {
@@ -23,10 +24,12 @@ describe('basic mark with filter callback', () => {
 
           expect($.inArray(term, Object.keys(counter))).toBeGreaterThan(-1);
 
+          expect(totalCounter).toBe(totalMatches);
           expect(counter[term]).toBe(matches);
 
           if (++calls !== 3) {
             counter[term]++;
+            totalCounter++;
             return true;
           } else {
             return false;
@@ -41,4 +44,45 @@ describe('basic mark with filter callback', () => {
       done.fail(e.message);
     }
   });
+
+  it('should correctly count total matches so far', done => {
+    new Mark($ctx[0]).mark('lorem ipsum dolor', {
+      'diacritics': false,
+      'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
+        if (totalMatchesSoFar >= 9) {
+          info.execution.abort = true;
+          return  false;
+        }
+        return true;
+      },
+      'done': (m, totalMatches) => {
+        expect($ctx.find('mark').length).toBe(9);
+        expect(totalMatches).toBe(9);
+
+        done();
+      }
+    });
+  });
+
+  // tests markCombinePatterns() method
+  it('should correctly count total matches so far with \'combineBy: Infinity\'', done => {
+    new Mark($ctx[0]).mark('lorem ipsum dolor', {
+      'diacritics': false,
+      'combineBy' : Infinity,
+      'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
+        if (totalMatchesSoFar >= 9) {
+          info.execution.abort = true;
+          return  false;
+        }
+        return true;
+      },
+      'done': (m, totalMatches) => {
+        expect($ctx.find('mark').length).toBe(9);
+        expect(totalMatches).toBe(9);
+
+        done();
+      }
+    });
+  });
+
 });

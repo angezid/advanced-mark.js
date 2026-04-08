@@ -1548,10 +1548,10 @@ class Mark {
     }
 
     let index = 0,
+      runCount = 0,
       totalMarks = 0,
       totalMatches = 0,
-      term,
-      termMatches;
+      term;
 
     const across = this.opt.acrossElements,
       fn = across ? 'processMatchesAcross' : 'processMatches',
@@ -1565,11 +1565,11 @@ class Mark {
           term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
         // termStats[term] is the number of wrapped matches so far for the current term
-        termMatches = termStats[term];
-        return this.opt.filter(nodeOrArray, term, totalMatches + termMatches, termMatches, filterInfo);
+        return this.opt.filter(nodeOrArray, term, totalMatches + runCount, termStats[term], filterInfo);
 
       }, (elemOrRange, eachInfo) => { // each
         totalMarks++;
+        runCount = eachInfo.count;
 
         if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
