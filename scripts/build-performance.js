@@ -36,7 +36,7 @@ async function process() {
 		fs.writeFileSync(jsPath + '/bundle.js', scripts);
 
 		let html = fs.readFileSync(sourceDir + '/performance.html', 'utf-8');
-		html = html.replace(/(<script src=").+("><\/script>)/, '$1js/bundle.js$2');
+		html = html.replace(/<script\s[^]+<\/script>/, '<script src="js/bundle.js"><\/script>');
 
 		fs.writeFileSync(destDir + '/index.html', html);
 
