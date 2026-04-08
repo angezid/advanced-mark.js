@@ -11,7 +11,7 @@ $(context).mark(search[, options]);
 #### Parameters:
 * `search` {string|string[]} - string or array of strings
 * `options` {object} - Optional options:
-  * `element` {string} - A custom mark element e.g. `span`. (default is `mark`)
+  * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
   * `className` {string} - A custom class to be added to mark elements. (default is `''`)
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
     See [exclude](options.html#exclude-option) option for more details.
@@ -33,14 +33,14 @@ $(context).mark(search[, options]);
     * Or an <b>object</b> with two properties:
       * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
       * `limiters`: a string or an array of custom word boundary characters,  
-        e.g. `{ value : "exactly", limiters : ",.;:?!'\\"()" }`
+        e.g. `{ value: 'exactly', limiters: ',.;:?!\\'"()' }`
 
-  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `disabled`):
-    * `disabled`: The characters `?` and `*` match itself
-    * `enabled`:
+  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `'disabled'`):
+    * `'disabled'`: The characters `?` and `*` match itself
+    * `'enabled'`:
       * The character `?` match any non-white-space character zero or one time.
       * The character `*` match any non-white-space character zero or more times.
-    * `withSpaces`:
+    * `'withSpaces'`:
       * The character `?` match any character zero or one time.
       * The character `*` match any character zero or more times, but as few times as possible.
         
@@ -55,7 +55,8 @@ $(context).mark(search[, options]);
   * `combinePatterns` {number|boolean} - Combine a specified number of individual term patterns into one (default is `10`)
     See [Performance](performance.md#ways-to-boost-performance) for more details.
   * `cacheTextNodes` {boolean} - Caching information to improve performance (default is `undefined`)
-    See [Performance](performance.md#ways-to-boost-performance) for more details.
+    See [Performance](performance.md#ways-to-boost-performance) for more details.  
+    **Warning:** this option is removed in version 3.x
   * `blockElementsBoundary` {boolean|object} - Whether to limit matches within default HTML block elements and/or custom elements (default is `undefined`)  AE
     See [Elements boundaries](elements-boundaries.md) for more details.
     * `tagNames` {string[]} - An array of custom HTML tag names
@@ -66,11 +67,11 @@ $(context).mark(search[, options]);
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
-  * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for an iframe to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter : (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
+  * `filter: (textNode, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
     * `textNode` {Text} - The text node which includes the match or with `acrossElements` option can be part of the match
     * `term` {string} - The current term
     * `matchesSoFar` {number} - The number of all wrapped matches so far
@@ -83,10 +84,10 @@ $(context).mark(search[, options]);
       * `offset` {number} - When 'acrossElements: false': the absolute start index of a text node in joined context.  
         When 'acrossElements: true': the sum of the lengths of separated spaces or boundary strings that were added to the composite string so far.
   
-The function **must** return either `true` (to wrap) or `false` (to skip wrapping mark element).  
+The function **must** return either `true` (highlight) or `false` (skip highlighting).  
 See [Filtering matches](filtering-matches.md) for more details.
 
-  * `each : (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
+  * `each: (markElement, eachInfo) => {}` {function} - A callback for each marked element (default is )
     * `markElement` {HTMLElement} - The marked DOM element
     * `eachInfo` {object}:
       * `match` {array} - The result of RegExp exec() method
@@ -95,13 +96,13 @@ See [Filtering matches](filtering-matches.md) for more details.
   
 See [Code examples](some-examples.md).
 
-  * `done : (totalMarks, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
+  * `done: (totalMarks, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
     * `totalMarks` {number} - The total number of marked elements
     * `totalMatches` {number} - The total number of matches
     * `termStats` {object} - An object containing an individual term's matches count
 
-  * `noMatch : (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
-    * `term` {string|string[]} - The not found term(s); the parameter is an array when `combinePatterns` option is used
+  * `noMatch: (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
+    * `term` {string|string[]} - The not found term(s); the parameter is an array when the `combinePatterns` option is used
 
 ### Available properties of the `filterInfo` object depending on options
 
@@ -122,35 +123,35 @@ See [Code examples](some-examples.md).
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
-    element : 'mark',
-    className : '',
-    separateWordSearch : true,
-    diacritics : true,
-    exclude : [],
-    caseSensitive : false,
-    accuracy : 'partially',
-    synonyms : {},
-    ignoreJoiners : false,
-    ignorePunctuation : [],
-    wildcards : 'disabled',
+    element: 'mark',
+    className: '',
+    separateWordSearch: true,
+    diacritics: true,
+    exclude: [],
+    caseSensitive: false,
+    accuracy: 'partially',
+    synonyms: {},
+    ignoreJoiners: false,
+    ignorePunctuation: [],
+    wildcards: 'disabled',
     
-    acrossElements : false,
-    combinePatterns : false,
-    cacheTextNodes : false,
-    blockElementsBoundary : false,
+    acrossElements: false,
+    combinePatterns: false,
+    cacheTextNodes: false,
+    blockElementsBoundary: false,
     
-    shadowDOM : false,
-    iframes : false,
-    iframesTimeout : 5000,
+    shadowDOM: false,
+    iframes: false,
+    iframesTimeout: 5000,
     
-    filter : (textNode, term, marksSoFar, termMarksSoFar, filterInfo) => {
+    filter: (textNode, term, marksSoFar, termMarksSoFar, filterInfo) => {
         return true; // must return either true or false
     },
-    each : (markElement, eachInfo) => {},
-    done : (totalMarks, totalMatches, termStats) => {},
-    noMatch : (term) => {},
-    debug : false,
-    log : window.console
+    each: (markElement, eachInfo) => {},
+    done: (totalMarks, totalMatches, termStats) => {},
+    noMatch: (term) => {},
+    debug: false,
+    log: window.console
 };
 </code></pre>
 
@@ -166,4 +167,4 @@ jQuery:
 <pre><code class='lang-javascript'>$('selector').mark('test', options);</code></pre>
 </details>
 
-* AE - only available when `acrossElements` option is set to `true`
+* AE - only available with option `acrossElements: true`

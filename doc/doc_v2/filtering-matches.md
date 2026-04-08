@@ -1,20 +1,20 @@
 
 ## Filtering matches
-See [mark() filter callback](mark-method.md#mark-filter) and [markRegExp() filter callback](markRegExp-method.md#markRegExp-filter) about `filter` callback `info` object properties.  
 
 To filter RegExp capturing groups see: [Filtering capturing groups](separate-groups.md#filtering-capturing-groups).
 
 #### To filter matches in the `mark()` method with `acrossElements` option
+See [mark() filter callback](mark-method.md#mark-filter)'s `info` object property.
 ``` js
 let count = 0;
 
 instance.mark('AB', {
-    'acrossElements' : true,
-    'filter' : (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
+    'acrossElements': true,
+    'filter': (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
          // to mark only the first match
         info.execution.abort = true; return  true;
 
-        // filter callback requires its own match counter
+        // the filter callback requires its own match counter
         if (info.matchStart) {
             count++;
         }
@@ -37,7 +37,7 @@ instance.mark('AB', {
 let count = 0;
 
 instance.mark('AB', {
-    'filter' : (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
+    'filter': (textNode, term, matchesSoFar, termMatchesSoFar, info) => {
         // the only difference is counter implementation
         count++;
     }
@@ -45,16 +45,17 @@ instance.mark('AB', {
 ```
 
 #### To filter matches in the `markRegExp()` method
+See [markRegExp() filter callback](markRegExp-method.md#markRegExp-filter)'s `info` object property.
 ``` js
 let count = 0, reg = /.../gi;
 // if you have access to the RegExp object with 'acrossElements' option, you can
-// also used `reg.lastIndex = Infinity;` instead of `info.execution.abort = true;`
+// also used 'reg.lastIndex = Infinity;' instead of 'info.execution.abort = true;'
 instance.markRegExp(reg, {
-    'filter' : (textNode, matchString, matchesSoFar, info) => {
+    'filter': (textNode, matchString, matchesSoFar, info) => {
         // to mark only the first match
         info.execution.abort = true; return  true;
 
-        // filter callback requires its own match counter
+        // the filter callback requires its own match counter
         if (info.matchStart) {
             count++;
         }
@@ -79,14 +80,13 @@ instance.markRegExp(reg, {
 });
 
 ```
-#### Mark the first desired number of matches on `each` callback using `acrossElements` option.
-It's much more limited than the `filter` callback.
+#### Mark the first desired number of matches on `each` callback with `acrossElements` option.
 ``` js
 let reg = /.../gi;
 
 instance.markRegExp(reg, {
-    'acrossElements' : true,
-    'each' : (markElement, info) => {
+    'acrossElements': true,
+    'each': (markElement, info) => {
         // to mark only the first match
         reg.lastIndex = Infinity;
 
