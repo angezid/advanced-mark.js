@@ -10,27 +10,27 @@ The group's highlighting logic:
 * Case `wrapAllRanges: true`:
   * All groups (parent and nested group(s)) are highlighted - you need to filter out unwanted group(s).
 
-See [markRegExp() method](markRegExp-method.md#markRegExp-filter) about `info` object properties used in `filter` and `each` callbacks.    
 How to filter matches see [Filtering matches](filtering-matches.md).  
 How to highlight nesting groups see [Nesting groups](nesting-overlapping.md).
 
-#### Filtering capturing groups:
+#### Filtering capturing groups:  
+See [markRegExp() filter callback](markRegExp-method.md#markRegExp-filter)'s `info` object properties.
 ``` js
 instance.markRegExp(/(AB)\b.+\b(?<gr2>CD)?.+(EF)\b/dgi, {
     // 'acrossElements': true,
     'separateGroups': true,
     'filter': (textNode, matchString, matchesSoFar, info) => {
         // To filter any group use info.groupIndex - a current group index
-        // Note: if a group lays across several elements, the index be the same while a group is wrapping
+        // Note: if a group lays across elements, the index be the same while a group is wrapping
         if (info.groupIndex === 1) return false;
 
-        // also can be used a group content
+        // also can be used a group content (not reliable)
        // if (matchString === 'AB') return  false;
 
         // To filter a whole match on a group presence
         // Note: it iterates through all groups and only then returns
         if (info.match[2]) return true/false;
-        // or
+
         // also can be used a named capturing group
         if (info.match.groups.gr2) return  true/false;
 
@@ -38,7 +38,8 @@ instance.markRegExp(/(AB)\b.+\b(?<gr2>CD)?.+(EF)\b/dgi, {
     },
 });
 ```
-#### Example to highlight separate groups with `acrossElements` option:
+#### Highlighting capturing groups with `acrossElements` option:  
+See [markRegExp() each callback](markRegExp-method.md#markRegExp-each)'s `info` object properties.
 ``` js
 let groupCount = 0, gr1Count = 0, gr2Count = 0;
 
@@ -48,12 +49,12 @@ instance.markRegExp(/(AB)\b.+?\b(CD)/dgi, {
     'each': (markElement, info) => {
         // info.count - matches count so far
         
-        // if start of match group
+        // if the start of capturing group
         if (info.groupStart) {
-            // all group count
+            // all group counter
             groupCount++;
             
-            // info.groupIndex is the index of a current match group
+            // info.groupIndex is the index of a current group
             if (info.groupIndex === 1) {
                 markElement.className = 'group1-1';
                 gr1Count++;
@@ -66,15 +67,15 @@ instance.markRegExp(/(AB)\b.+?\b(CD)/dgi, {
     }
 });
 ```
-#### Example to highlight separate groups without `acrossElements` option:
+#### Highlighting separate groups without `acrossElements` option:
 ``` js
-let count = 0, gr1Count = 0;
+let groupCount = 0, gr1Count = 0;
 
 instance.markRegExp(/(AB).+?(CD)/dgi, {
     'separateGroups': true,
     'each': (markElement, info) => {
-        // all group count
-        count++;
+        // all group counter
+        groupCount++;
         
         if (info.groupIndex === 1) {
             // an individual group count

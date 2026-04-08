@@ -4,9 +4,9 @@
 The `markRanges()` method with `wrapAllRanges` option, can highlight nesting/overlapping ranges.  
 With this option, all ranges that have indexes within 0 and context length be wrapped.
 
-The `markRegExp()` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can highlight:
+The `markRegExp()` method with RegExp having the `d` flag, with `separateGroups` and `wrapAllRanges` options can highlight the following:
 * capturing groups regardless of nested level. You need to filter out unwanted groups  
-  Without `wrapAllRanges` option - if a group has been wrapped, all nested groups are ignored.
+  Without the `wrapAllRanges` option - if a group has been wrapped, all nested groups are ignored.
 * capturing groups inside **positive** lookaround assertions
 
 It practically removes all restrictions.
@@ -19,20 +19,13 @@ See Playground examples that demonstrate cases of using `wrapAllRanges` option:
 **Note:** the `wrapAllRanges` option can cause performance degradation when highlighting a very large number of overlapping matches.
 This is because with each wrapping, two more objects are inserted into the array, which require a lot of copying, memory allocation ...
 
-The 8MB file containing 177000 text nodes:  
-**Warning:** this performance tests were run on slow processor (important is ratio than actual time)  
-
-|         option         |  marked groups 2500  |  marked groups 29000  |
-|------------------------|----------------------|-----------------------|
-| wrapAllRanges: true    |       0.7 sec.       |      2.9 sec.         |
-| wrapAllRanges: false   |       0.65 sec.      |      0.7 sec.         |
-
 The 1MB file containing 20800 text nodes:
+**Warning:** this performance tests were run on slow processor (important is ratio than actual time)
 
 |         option         |  marked groups 2500  |  marked groups 29000  |
 |------------------------|----------------------|-----------------------|
-| wrapAllRanges: true    |       120 ms.        |      710 ms.          |
-| wrapAllRanges: false   |       70 ms.         |      310 ms.          |
+| wrapAllRanges: true    |       120 ms        |      710 ms          |
+| wrapAllRanges: false   |       70 ms         |      310 ms          |
 
 #### To mark nesting/overlapping ranges.
 ``` js
@@ -41,7 +34,7 @@ const ranges = [{ start: 0, length: 50 }, { start: 10, length: 20, nested: true 
 instance.markRanges(ranges, {
   'wrapAllRanges': true,
   'each': (markElement, range) => {
-    // to distinguish ranges you can add some property to ranges
+    // to distinguish ranges you can add some property to it
     if (range.nested) {
       markElement.className = 'nested';
     }
@@ -49,7 +42,7 @@ instance.markRanges(ranges, {
 });
 ```
 
-#### To mark nesting groups with `acrossElements` option and the `d` flag.
+#### To mark nesting groups with the `acrossElements` option and the `d` flag.
 ``` js
 instance.markRegExp(/\w+\s((nested group)\s+\w+)/dg, {
     'acrossElements': true,

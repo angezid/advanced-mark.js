@@ -24,7 +24,7 @@ $(context).markRanges(ranges[, options]);
   * `markLines` {boolean} - Whether to mark ranges of lines instead of ranges of texts (default is `undefined`)
     See [Highlighting line ranges](mark-lines.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
-  * `iframesTimeout` {number} - The maximum time to wait for iframe(s) to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for an iframe to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 

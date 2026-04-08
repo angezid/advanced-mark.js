@@ -63,7 +63,7 @@ An accuracy object can be used if the default boundaries are not satisfactory:
 * `limiters`: a string or an array of custom word boundary characters,  
   e.g. `{ value: 'exactly', limiters: ",.;:?!'\\"()" }`
 
-**AE** - with option `acrossElements: true`.
+**AE** - with the option `acrossElements: true`.
 
 ### `combineBy` option
 Old name is `combinePatterns`. Related to `mark()` method.  
@@ -149,7 +149,7 @@ This performance problem is solved by using `StaticRange` objects, but it may ra
 So, be aware of possible performance issue, when setting option `staticRanges: false`.
 
 ### `rangeAcrossElements` option
-This option allows creating a single range for matches located across elements when using the Highlight API with `acrossElements` (`markRanges()` API does not require this) option.
+This option allows creating a single range for matches located across elements when using the Highlight API with the `acrossElements` (`markRanges()` API does not require this) option.
 **Note** that the `filter` callback's first parameter is an array of text node(s) containing a match instead of a text node.
 
 When it is set to `false`, the number of `StaticRange/Range` objects is equal to the number of marked elements (the library creates a `StaticRange/Range` object instead of creating an element).  

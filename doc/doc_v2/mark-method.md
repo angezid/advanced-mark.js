@@ -67,7 +67,7 @@ $(context).mark(search[, options]);
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
-  * `iframesTimeout` {number} - The maximum time to wait for iframe(s) to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for an iframe to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
@@ -102,7 +102,7 @@ See [Code examples](some-examples.md).
     * `termStats` {object} - An object containing an individual term's matches count
 
   * `noMatch: (term) => {}` {function} - A callback that is called when a term has no match at all (default is )
-    * `term` {string|string[]} - The not found term(s); the parameter is an array when `combinePatterns` option is used
+    * `term` {string|string[]} - The not found term(s); the parameter is an array when the `combinePatterns` option is used
 
 ### Available properties of the `filterInfo` object depending on options
 

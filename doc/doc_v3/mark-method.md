@@ -65,7 +65,7 @@ $(context).mark(search[, options]);
     
   * `highlight` {Highlight} - If a `Highlight` object is provided, the library switches to using the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
     See [highlight](options.html#highlight-option) option for more details.
-  * `highlightName` {string} - The name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'markjs'`)
+  * `highlightName` {string} - The name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'advanced-markjs'`)
   * `staticRanges` {boolean} - Whether to use `StaticRange` objects instead of `Range` objects (`Highlight` API) (default is `true`)
     See [staticRanges](options.html#staticranges-option) option for more details.
   * `rangeAcrossElements` {boolean} - Whether to create a single `StaticRange/Range` object for matches located across elements (when using the `Highlight` API with `acrossElements` option) (default is `true`)
@@ -75,18 +75,19 @@ $(context).mark(search[, options]);
     See [shadowDOM](options.html#shadowdom-option) option for more details.
   * `iframes` {boolean|object} - Whether to mark inside iframes (default is `false`)
     See [iframes](options.html#iframes-option) option for more details.
-  * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for an iframe to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, filterInfo) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
+  * `filter: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, info) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
     * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with the `acrossElements` option can be part of the match)  
-      OR an array of text node(s) if the `Highlight` API is enabled with `acrossElements` and `rangeAcrossElements` options
+      OR an array of text node(s) if the `Highlight` API is used with `acrossElements` and `rangeAcrossElements` options
     * `term` {string} - The current term
     * `matchesSoFar` {number} - The number of all matches so far
     * `termMatchesSoFar` {number} - The number of matches for the current term so far
-    * `filterInfo` {object}:
+    * `info` {object}:
       * `match` {array} - The result of RegExp exec() method
+      * `count` {number} - The number of matches so far
       * `matchStart` {boolean} - indicate the start of a match  AE
       * `execution` {object} - The helper object for early abort:
         * `abort` {boolean} - Setting it to `true` breaks method execution
@@ -94,40 +95,26 @@ $(context).mark(search[, options]);
 The function **must** return either `true` (highlight) or `false` (skip highlighting).  
 See [Filtering matches](filtering-matches.md) for more details.
 
-  * `each: (elementOrRange, eachInfo) => {}` {function} - A callback for each created marked element OR `StaticRange/Range` object if the `Highlight` API is enabled (default is )
-    * `elementOrRange` {HTMLElement|StaticRange|Range} - The marked DOM element OR `StaticRange/Range` object if the `Highlight` API is enabled 
-    * `eachInfo` {object}:
+  * `each: (elementOrRange, info) => {}` {function} - A callback for each created element OR `StaticRange/Range` object (`Highlight` API) (default is )
+    * `elementOrRange` {HTMLElement|StaticRange|Range} - The marked DOM element OR `StaticRange/Range` object (`Highlight` API)
+    * `info` {object}:
       * `match` {array} - The result of RegExp exec() method
+      * `count` {number} - The number of matches so far
       * `matchStart` {boolean} - Indicate the start of a match  AE
-      * `count` {number} - The number of wrapped matches so far
       * `execution` {object} - The helper object for early abort:
         * `abort` {boolean} - Setting it to `true` breaks method execution
-  
+
 See [Code examples](some-examples.md).
+**Note:** the `filter` and `each` callbacks are shared the `info` object with updated properties.
 
   * `done: (total, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
-    * `total` {number} - The total number of marked DOM elements OR created `StaticRange/Range` objects if the `Highlight` API is enabled
-    * `totalMatches` {number} - The total number of matches
+    * `total` {number} - The total number of created HTML elements OR `StaticRange/Range` objects (`Highlight` API)
+    * `totalMatches` {number} - The total number of highlighted matches
     * `termStats` {object} - An object containing an individual term's matches count
 
   * `noMatch: (terms) => {}` {function} - A callback that is called when a term has no match at all (default is )
     * `terms` {string[]} - An array containing not found term(s)
 
-### Available properties of the `filterInfo` object depending on options
-
-|            options               |    match   |   matchStart   |  execution  |
-|----------------------------------|------------|----------------|-------------|
-|  acrossElements: true            |     +      |      +         |     +       |
-|  acrossElements: false           |     +      |      -         |     +       |
-
-
-### Available properties of the `eachInfo` object depending on options
-
-|             options              |    match   |    matchStart   | count |
-|----------------------------------|------------|-----------------|-------|
-|  acrossElements: true            |     +      |      +          |   +   |
-|  acrossElements: false           |     +      |      -          |   +   |
-  
 <details class="internal-code">
 <summary><b>Example with default options values</b></summary>
 
@@ -177,4 +164,4 @@ jQuery:
 <pre><code class='lang-javascript'>$('selector').mark('test', options);</code></pre>
 </details>
 
-* AE - only available with option `acrossElements: true`
+* AE - only available with the option `acrossElements: true`

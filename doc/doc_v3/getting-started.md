@@ -32,8 +32,8 @@ A `dist` directory contains files:
 </ul>
 </details>
 
-### HTML
-To include library in web page just add:
+### JS
+To include the library in web page just add:
 ``` html
 <script src="path/to/mark.js"></script>
 ```
@@ -50,13 +50,14 @@ mark {
   color: black;
 }
 ```
-To customize a style when using CSS Custom Highlight API:
+To customize a style of highlighting when using the CSS Custom Highlight API:
 ``` css
-::highlight(highlight-name) { /* the default Highlight object name is 'markjs' */
+::highlight(highlight-name) { /* the default Highlight object name is 'advanced-markjs' */
   background-color: yellow;
   color: black;
 }
 ```
+Also see how to customize a style inside [iframes](options.html#iframes-option) and [shadow DOM](options.html#shadowdom-option).
 
 ### API
 There are four API methods:

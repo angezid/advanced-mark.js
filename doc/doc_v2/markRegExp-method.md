@@ -36,7 +36,7 @@ $(context).markRegExp(regex[, options]);
   * `shadowDOM` {boolean} - Whether to mark inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to mark inside iframes (default is `false`)
-  * `iframesTimeout` {number} - The maximum time to wait for iframe(s) to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for an iframe to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
@@ -133,6 +133,6 @@ jQuery:
 <pre><code class='lang-javascript'>$('selector').markRegExp(regex, options);</code></pre>
 </details>
 
-* AE - only available when `acrossElements` option is set to `true`
-* SG - only available when `separateGroups` option is set to `true`
-* AE SG - only available when both `acrossElements` and `separateGroups` options are set to `true`
+* AE - only available with option `acrossElements: true`
+* SG - only available with option `separateGroups: true`
+* AE SG - only available when with options `acrossElements: true` and `separateGroups: true`

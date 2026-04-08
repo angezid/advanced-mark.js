@@ -11,10 +11,10 @@ $(context).unmark([options]);
 
 #### Parameters:
 * `options` {object} - Optional options:
-  * `highlightName` {string|string[]} - A name or an Array of names of the `Highlight` object(s) from which `StaticRange/Range` objects should be deleted (according with the <a href="#unmark-exclude">exclude</a> option) (default is `'markjs'`)
+  * `highlightName` {string|string[]} - A name or an Array of names of the `Highlight` object(s) from which `StaticRange/Range` objects should be deleted (according with the <a href="#unmark-exclude">exclude</a> option) (default is `'advanced-markjs'`)
   
   * `highlight` {Highlight} - If a `highlight` object is specified, the library do not removed any mark elements; `element` and `className` options are ignored (default is `undefined`)
-    **Note** that Highlight object served as boolean:  
+    **Note** that the Highlight object served as boolean:  
       1. to prevent unwrapping existing marked elements  
       2. to avoid unnecessary iteration over DOM searching for non-existing marked elements
 
@@ -23,11 +23,13 @@ $(context).unmark([options]);
   * `className` {string} - Remove only marked elements with specified class name. (default is `''`)
 
   * `exclude` {string|string[]} - A string or an array of selectors. Specifies the DOM elements that should be excluded from removing highlighting. (default is `[]`)
-    **Important:** if highlighting is done using `Highlight` API with `acrossElements` and `rangeAcrossElements` options and wish to exclude element is inside a range, there is no possibility to exclude this element (the whole range will be removed).
+    **Important:** if highlighting is done using the `Highlight` API with `acrossElements` and `rangeAcrossElements` options and the element you want to exclude is inside a range, there is no possibility to exclude this element (the whole range will be removed).
+
   * `shadowDOM` {boolean} - Whether to remove highlighting inside shadow DOMs (default is `undefined`)
     See [shadowDOM](options.html#shadowdom-option) option for more details.
+
   * `iframes` {boolean} - Whether to remove highlighting inside iframes (default is `false`)
-  * `iframesTimeout` {number} - The max time to wait for iframe(s) to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for an iframe to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
   * `done: () => {}` {function} - A callback after highlighting was removed (default is )
@@ -38,7 +40,7 @@ $(context).unmark([options]);
 
 <pre><code class="language-js">const options = {
     highlight: undefined,
-    highlightName: 'markjs',
+    highlightName: 'advanced-markjs',
     element: 'mark',
     className: '',
     shadowDOM: false,

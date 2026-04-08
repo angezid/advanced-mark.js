@@ -3,9 +3,10 @@
 * Combine pattern become default 
 * Added requirement for `g` flag in `markRegExp()` API when not using `acrossElements` option.
 * Dropped support to highlight RegExp groups without `d` flag.
-* Dropped support of very older browsers.
 * Removed RegExpCreator module from the npm package.
 * Added support for CSS Custom Highlight API.
+* Added the ability to break an execution on the 'each' callback.
+* Dropped support of very older browsers.
 
 ### 2.7.0
 * Added source code to the npm package.

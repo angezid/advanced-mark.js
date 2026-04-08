@@ -2,25 +2,26 @@
 ### Code examples of using `each` and `done` callbacks
 
 #### In `mark()` method with `acrossElements` option
-See [mark() each callback](mark-method.md#mark-each)'s `info` object property.
+See [mark() each callback](mark-method.md#mark-each)'s `info` object properties.
 ``` js
 let matchCount = 0;
 
 instance.mark(['AB CD', 'EF'], {
     'acrossElements': true,
-    'each': (markElement, info) => {
-        // sets external counter
+    'each': (elemOrRange, info) => {
+        // sets the external counter
         matchCount = info.count;
 
-        // internal use
-        if (info.count ..) {}
+        // highlight the first 10 matches
+        if (info.count >= 10) { info.execution.abort = true; }
 
-        // if start of the match
+        // if the start of a match
         if(info.matchStart) {
-            markElement.className = 'start-1';
-            // markElement.setAttribute('data-markjs', 'start-1'); // to use the attribute instead of class
+            // set a class or attribute for HTML element
+            elemOrRange.className = 'start-1';
+            // elemOrRange.setAttribute('data-markjs', 'start-1');
 
-            // matchCount++; // to use the custom counter instead of info.count
+            // matchCount++; // to set the external counter
         }
     },
     'done': (totalMarks, totalMatches, termStats) => {
@@ -38,11 +39,11 @@ let matchCount = 0;
 context.mark('AB CD EF', {
     'separateWordSearch': true,
     'each': (markElement, info) => {
-        // for external counter
+        // sets the external counter
         matchCount = info.count; // also possible matchCount++;
-
-        // for internal use
-        if(info.count ..) {}
+        
+        // highlights the first 10 matches
+        if (info.count >= 10) { info.execution.abort = true; }
     },
     'done': (totalMarks, totalMatches, termStats) => {
         console.log('Total matches = ' + totalMatches);
@@ -54,7 +55,7 @@ context.mark('AB CD EF', {
 });
 ```
 #### In `markRegExp()` method with `acrossElements` option  
-See [markRegExp() each callback](markRegExp-method.md#markRegExp-each)'s `info` object property.
+See [markRegExp() each callback](markRegExp-method.md#markRegExp-each)'s `info` object properties.
 
 ``` js
 let matchCount = 0;
@@ -99,7 +100,7 @@ Unusable with `markRegExp()` method having `wrapAllRanges` option. See [Example 
 let currentIndex = 0,
     marks = $('mark'),
     startElements = marks.filter((i, elem) => $(elem).hasClass('start-1'));
-    //startElements = marks.filter((i, elem) => $(elem).data('markjs') === 'start-1');
+    //startElements = marks.filter((i, elem) => $(elem).data('advanced-markjs') === 'start-1');
 
 prevButton.on('click', function() {
     if (--currentIndex <= 0) currentIndex = 0;
@@ -125,7 +126,7 @@ function highlightMatch(elem) {
 
         // start of the next 'start element' means the end of the current match
         } else if ($(el).hasClass('start-1')) return  false;
-        //} else if ($(el).data('markjs') === 'start-1') return  false;
+        //} else if ($(el).data('advanced-markjs') === 'start-1') return  false;
 
         if (found) {
             $(el).addClass('current');

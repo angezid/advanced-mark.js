@@ -18,7 +18,7 @@ $(context).unmark([options]);
   * `shadowDOM` {boolean} - Whether to remove highlighting inside shadow DOMs (default is `undefined`)
     See [Highlighting in shadow DOM](shadow-dom.md) for more details.
   * `iframes` {boolean} - Whether to remove highlighting inside iframes (default is `false`)
-  * `iframesTimeout` {number} - The maximum time to wait for iframe to load before skipping (default is `5000` ms)
+  * `iframesTimeout` {number} - The maximum time to wait for an iframe to load before skipping (default is `5000` ms)
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
   * `done: () => {}` {function} - A callback after highlighting was removed (default is )
@@ -28,8 +28,6 @@ $(context).unmark([options]);
 <summary><b>Example with default options values</b></summary>
 
 <pre><code class="language-js">const options = {
-    highlight: undefined,
-    highlightName: 'markjs',
     element: 'mark',
     className: '',
     shadowDOM: false,
