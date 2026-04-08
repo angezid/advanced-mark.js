@@ -1689,7 +1689,6 @@ class Mark {
 
     let index = 0,
       totalMarks = 0,
-      matches = 0,
       totalMatches = 0,
       termMatches;
 
@@ -1702,8 +1701,7 @@ class Mark {
       this.log(`RegExp "${regex}"`);
 
       this[fn](regex, 1, (node, t, filterInfo) => { // filter
-        matches = totalMatches + termMatches;
-        return this.opt.filter(node, term, matches, termMatches, filterInfo);
+        return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
 
       }, (element, eachInfo) => { // each
         termMatches = eachInfo.count;
@@ -1737,10 +1735,10 @@ class Mark {
     */
   markCombinePatterns(terms, termStats) {
     let index = 0,
+      runCount = 0,
       totalMarks = 0,
       totalMatches = 0,
-      term,
-      termMatches;
+      term;
 
     const across = this.opt.acrossElements,
       fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
@@ -1757,11 +1755,11 @@ class Mark {
           term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
         // termStats[term] is the number of wrapped matches so far for the current term
-        termMatches = termStats[term];
-        return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
+        return this.opt.filter(node, term, totalMatches + runCount, termStats[term], filterInfo);
 
       }, (element, eachInfo) => { // each
         totalMarks++;
+        runCount = eachInfo.count;
 
         if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;

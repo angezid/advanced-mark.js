@@ -44,4 +44,45 @@ describe('basic mark with filter callback', () => {
       done.fail(e.message);
     }
   });
+
+  it('should correctly count total matches so far', done => {
+    new Mark($ctx[0]).mark('lorem ipsum dolor', {
+      'diacritics': false,
+      'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
+        if (totalMatchesSoFar >= 9) {
+          info.execution.abort = true;
+          return  false;
+        }
+        return true;
+      },
+      'done': (m, totalMatches) => {
+        expect($ctx.find('mark').length).toBe(9);
+        expect(totalMatches).toBe(9);
+
+        done();
+      }
+    });
+  });
+
+  // tests markCombinePatterns() method
+  it('should correctly count total matches so far with \'combinePatterns: Infinity\'', done => {
+    new Mark($ctx[0]).mark('lorem ipsum dolor', {
+      'diacritics': false,
+      'combinePatterns' : Infinity,
+      'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
+        if (totalMatchesSoFar >= 9) {
+          info.execution.abort = true;
+          return  false;
+        }
+        return true;
+      },
+      'done': (m, totalMatches) => {
+        expect($ctx.find('mark').length).toBe(9);
+        expect(totalMatches).toBe(9);
+
+        done();
+      }
+    });
+  });
+
 });

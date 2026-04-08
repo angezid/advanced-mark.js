@@ -2,12 +2,11 @@
 * advanced-mark.js v2.7.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
-* Copyright (c) 2022–2025, angezid
+* Copyright (c) 2022–2026, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
 
-import $ from 'jquery';
-class DOMIterator {
+import $ from 'jquery';class DOMIterator {
   constructor(ctx, opt) {
     this.ctx = ctx;
     this.opt = opt;
@@ -1244,7 +1243,6 @@ class Mark {
     }
     let index = 0,
       totalMarks = 0,
-      matches = 0,
       totalMatches = 0,
       termMatches;
     const regCreator = new RegExpCreator(this.opt),
@@ -1254,8 +1252,7 @@ class Mark {
       const regex = regCreator.create(term);
       this.log(`RegExp "${regex}"`);
       this[fn](regex, 1, (node, t, filterInfo) => {
-        matches = totalMatches + termMatches;
-        return this.opt.filter(node, term, matches, termMatches, filterInfo);
+        return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
       }, (element, eachInfo) => {
         termMatches = eachInfo.count;
         totalMarks++;
@@ -1277,10 +1274,10 @@ class Mark {
   }
   markCombinePatterns(terms, termStats) {
     let index = 0,
+      runCount = 0,
       totalMarks = 0,
       totalMatches = 0,
-      term,
-      termMatches;
+      term;
     const across = this.opt.acrossElements,
       fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
       flags = `g${this.opt.caseSensitive ? '' : 'i'}`,
@@ -1292,10 +1289,10 @@ class Mark {
         if ( !across || filterInfo.matchStart) {
           term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
-        termMatches = termStats[term];
-        return this.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
+        return this.opt.filter(node, term, totalMatches + runCount, termStats[term], filterInfo);
       }, (element, eachInfo) => {
         totalMarks++;
+        runCount = eachInfo.count;
         if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
         }

@@ -2,10 +2,9 @@
 * advanced-mark.js v2.7.0
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
-* Copyright (c) 2022–2025, angezid
+* Copyright (c) 2022–2026, angezid
 * Based on 'mark.js', license https://git.io/vwTVl
 *****************************************************/
-
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -1625,7 +1624,6 @@
         }
         var index = 0,
           totalMarks = 0,
-          matches = 0,
           totalMatches = 0,
           termMatches;
         var regCreator = new RegExpCreator(this.opt),
@@ -1635,8 +1633,7 @@
           var regex = regCreator.create(term);
           _this13.log("RegExp \"".concat(regex, "\""));
           _this13[fn](regex, 1, function (node, t, filterInfo) {
-            matches = totalMatches + termMatches;
-            return _this13.opt.filter(node, term, matches, termMatches, filterInfo);
+            return _this13.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
           }, function (element, eachInfo) {
             termMatches = eachInfo.count;
             totalMarks++;
@@ -1661,10 +1658,10 @@
       value: function markCombinePatterns(terms, termStats) {
         var _this14 = this;
         var index = 0,
+          runCount = 0,
           totalMarks = 0,
           totalMatches = 0,
-          term,
-          termMatches;
+          term;
         var across = this.opt.acrossElements,
           fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
           flags = "g".concat(this.opt.caseSensitive ? '' : 'i'),
@@ -1678,10 +1675,10 @@
             if (!across || filterInfo.matchStart) {
               term = _this14.getCurrentTerm(filterInfo.match, regTerms);
             }
-            termMatches = termStats[term];
-            return _this14.opt.filter(node, term, totalMatches + termMatches, termMatches, filterInfo);
+            return _this14.opt.filter(node, term, totalMatches + runCount, termStats[term], filterInfo);
           }, function (element, eachInfo) {
             totalMarks++;
+            runCount = eachInfo.count;
             if (!across || eachInfo.matchStart) {
               termStats[term] += 1;
             }

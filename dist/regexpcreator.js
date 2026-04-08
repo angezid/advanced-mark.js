@@ -1,10 +1,9 @@
 /*!***************************************************
 * advanced-mark.js v2.7.0
-* Copyright (c) 2014–2025, Julian Kühnel
+* Copyright (c) 2014–2026, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
 *****************************************************/
-
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :

@@ -1,10 +1,9 @@
 /*!***************************************************
 * advanced-mark.js v2.7.0
-* Copyright (c) 2014–2025, Julian Kühnel
+* Copyright (c) 2014–2026, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 * Modified by angezid
 *****************************************************/
-
 class RegExpCreator$1 {
   constructor(options) {
     this.opt = Object.assign({}, {
