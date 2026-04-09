@@ -24,16 +24,17 @@ describe('basic mark with each callback', () => {
   });
 
   it('should be able to break an execution on the \'each\' callback', done => {
-    new Mark($ctx[0]).mark('lorem', {
+    new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
       'diacritics': false,
-      'separateWordSearch': false,
+      'accuracy' : 'exactly',
+      'combineBy': 3,
       'each': (elem, info) => {
-        if (info.count >= 2) {
+        if (info.count >= 19) {
           info.execution.abort = true;
         }
       },
-      'done': (total) => {
-        expect(total).toBe(2);
+      'done': (total, totalMatches) => {
+        expect(totalMatches).toBe(19);
         done();
       }
     });

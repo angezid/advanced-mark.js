@@ -10,11 +10,11 @@ describe('markCombinePatterns() without acrossElements option', () => {
     $ctx = $('.diacritics');
   });
 
-  it('should mark array with combinePatterns option', done => {
+  it('should mark array with combineBy option', done => {
     let first = true, groups = 0;
 
     new Mark($ctx[0]).mark(words, {
-      'combinePatterns' : 3,
+      'combineBy' : 3,
       'accuracy' : 'exactly',
       each : (elem, info) => {
         if (first) {
@@ -38,7 +38,7 @@ describe('markCombinePatterns() without acrossElements option', () => {
 
   it('should mark first match of each array item', done => {
     new Mark($ctx[0]).mark(words, {
-      'combinePatterns' : 2,
+      'combineBy' : 2,
       'accuracy' : 'exactly',
       'filter' : (node, term, marks, termMatchCount) => {
         // 'info.execution.abort' is useless here as it will break execution of whole combine pattern
@@ -58,11 +58,11 @@ describe('markCombinePatterns() without acrossElements option', () => {
     });
   });
 
-  it('should create a single combine pattern with `combinePatterns : Infinity`', done => {
+  it('should create a single combine pattern with `combineBy : Infinity`', done => {
     let first = true, groups = 0;
 
     new Mark($ctx[0]).mark(words, {
-      'combinePatterns' : Infinity,
+      'combineBy' : Infinity,
       'each' : (elem, info) => {
         if (first) {
           first = false;

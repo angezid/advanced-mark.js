@@ -994,6 +994,12 @@ class Mark {
    * @property {boolean} groupStart - Indicate the start of group. It's only
    * available with both 'acrossElements' and 'separateGroups' options
    */
+  /**
+   * @typedef Mark~infoObject
+   * @type {object}
+   * @property {number} count - The number of matches so far
+   * @property {object} execution - The helper object for early abort. Contains boolean 'abort' property.
+   */
 
   /**
    * Group filter callback before each wrapping
@@ -1018,16 +1024,14 @@ class Mark {
    * Wraps match capturing groups
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} unused
+   * @param {Mark~infoObject} info - The object used on filter and each callbacks
    * @param {Mark~processGroupsFilterCallback} filterCb - Filter callback
    * @param {Mark~processGroupsEachCallback} eachCb - Each callback
    * @param {Mark~processGroupsEndCallback} endCb
    * @access protected
    */
-  processGroups(regex, unused, filterCb, eachCb, endCb) {
-    const execution = { abort: false },
-      info = { count: 0, execution: execution };
-
-    let match, filterStart, eachStart, count = 0;
+  processGroups(regex, unused, info, filterCb, eachCb, endCb) {
+    let match, filterStart, eachStart;
 
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
@@ -1042,21 +1046,20 @@ class Mark {
             return filterCb(node, group, info);
 
           }, (elemOrRange) => { // each
-            if (eachStart) count++;
+            if (eachStart) info.count++;
 
-            info.count = count;
             info.matchStart = eachStart;
             eachStart = false;
 
             eachCb(elemOrRange, info);
           });
 
-          if (execution.abort) break;
+          if (info.execution.abort) break;
         }
         // breaks loop on custom abort
-        return !execution.abort;
+        return !info.execution.abort;
       });
-      endCb(count);
+      endCb(info.count);
     });
   }
 
@@ -1083,16 +1086,14 @@ class Mark {
    * Wraps match capturing groups across elements
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} unused
+   * @param {Mark~infoObject} info - The object used on filter and each callbacks
    * @param {Mark~processGroupsAcrossFilterCallback} filterCb - Filter callback
    * @param {Mark~processGroupsAcrossEachCallback} eachCb - Each callback
    * @param {Mark~processGroupsAcrossEndCallback} endCb
    * @access protected
    */
-  processGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
-    const execution = { abort: false },
-      info = { count: 0, execution: execution };
-
-    let match, filterStart, eachStart, count = 0;
+  processGroupsAcross(regex, unused, info, filterCb, eachCb, endCb) {
+    let match, filterStart, eachStart;
 
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
@@ -1100,7 +1101,7 @@ class Mark {
         filterStart = eachStart = true;
 
         this.wrapGroupsAcross(dict, match, regex, (nodeOrArray, group, grIndex) => { // filter
-          // eslint-disable-next-line 
+          // eslint-disable-next-line
           info.groupStart = undefined;
           info.matchStart = filterStart;
           info.groupIndex = grIndex;
@@ -1108,18 +1109,17 @@ class Mark {
           return filterCb(nodeOrArray, group, info);
 
         }, (elemOrRange, groupStart) => { // each
-          if (eachStart) count++;
+          if (eachStart) info.count++;
 
           info.matchStart = eachStart;
-          info.count = count;
           info.groupStart = groupStart;
           eachCb(elemOrRange, info);
           eachStart = false;
         });
         // breaks loop on custom abort
-        if (execution.abort) break;
+        if (info.execution.abort) break;
       }
-      endCb(count);
+      endCb(info.count);
     });
   }
 
@@ -1146,17 +1146,15 @@ class Mark {
    * Wraps the instance element and class around matches within single HTML elements in all contexts
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} ignoreGroups - A number of RegExp capturing groups to ignore from the beginning of a match
+   * @param {Mark~infoObject} info - The object used on filter and each callbacks
    * @param {Mark~processMatchesFilterCallback} filterCb - Filter callback
    * @param {Mark~processMatchesEachCallback} eachCb - Each callback
    * @param {Mark~processMatchesEndCallback} endCb
    * @access protected
    */
-  processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
-    const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
-      execution = { abort: false },
-      info = { count: 0, execution: execution };
-
-    let match, str, count = 0;
+  processMatches(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
+    const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
+    let match, str;
 
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
@@ -1180,18 +1178,18 @@ class Mark {
           }
 
           n.node = this.wrapRange(n, start, start + str.length, elemOrRange => {
-            info.count = ++count;
+            info.count++;
             eachCb(elemOrRange, info);
           });
           // when using the Highlight API, no text nodes are split
           if ( !this.opt.highlight) regex.lastIndex = 0;
 
-          if (execution.abort) break;
+          if (info.execution.abort) break;
         }
         // breaks loop on custom abort
-        return !execution.abort;
+        return !info.execution.abort;
       });
-      endCb(count);
+      endCb(info.count);
     });
   }
 
@@ -1219,17 +1217,15 @@ class Mark {
    * Wraps the instance element and class around matches across all HTML elements in all contexts
    * @param {RegExp} regex - The regular expression to be searched for
    * @param {number} ignoreGroups - A number of RegExp capturing groups to ignore from the beginning of a match
+   * @param {Mark~infoObject} info - The object used on filter and each callbacks
    * @param {Mark~processMatchesAcrossFilterCallback} filterCb - Filter callback
    * @param {Mark~processMatchesAcrossEachCallback} eachCb - Each callback
    * @param {Mark~processMatchesAcrossEndCallback} endCb
    * @access protected
    */
-  processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
-    const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
-      execution = { abort: false },
-      info = { count: 0, execution: execution };
-
-    let match, str, matchStart, count = 0;
+  processMatchesAcross(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
+    const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
+    let match, str, matchStart;
 
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
@@ -1255,16 +1251,15 @@ class Mark {
           return filterCb(nodeOrArray, str, info);
 
         }, (elemOrRange, mStart) => { // each
-          if (mStart) count++;
+          if (mStart) info.count++;
 
-          info.count = count;
           info.matchStart = mStart;
           eachCb(elemOrRange, info);
         });
 
-        if (execution.abort) break;
+        if (info.execution.abort) break;
       }
-      endCb(count);
+      endCb(info.count);
     });
   }
 
@@ -1471,6 +1466,8 @@ class Mark {
       fn = 'processMatchesAcross';
     }
 
+    const info = { count: 0, execution: { abort: false } };
+
     // solves backward-compatibility
     if ( !regexp.global && !regexp.sticky) {
       let splits = regexp.toString().split('/');
@@ -1479,7 +1476,7 @@ class Mark {
     }
     this.log(`RegExp "${regexp}"`);
 
-    this[fn](regexp, this.opt.ignoreGroups, (nodeOrArray, match, filterInfo) => { // filter
+    this[fn](regexp, this.opt.ignoreGroups, info, (nodeOrArray, match, filterInfo) => { // filter
       return this.opt.filter(nodeOrArray, match, matchesSoFar, filterInfo);
 
     }, (elemOrRange, eachInfo) => { // each
@@ -1548,43 +1545,41 @@ class Mark {
     }
 
     let index = 0,
-      runCount = 0,
       totalMarks = 0,
-      totalMatches = 0,
+      matchesSoFar = 0,
       term;
 
     const across = this.opt.acrossElements,
       fn = across ? 'processMatchesAcross' : 'processMatches',
-      array = this.getRegExps(terms);
+      array = this.getRegExps(terms),
+      info = { count: 0, execution: { abort: false } };
 
     const loop = ({ regex, regTerms }) => {
       this.log(`RegExp ${regex}`);
 
-      this[fn](regex, 1, (nodeOrArray, _, filterInfo) => { // filter
+      this[fn](regex, 1, info, (nodeOrArray, _, filterInfo) => { // filter
         if ( !across || filterInfo.matchStart) {
           term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
         // termStats[term] is the number of wrapped matches so far for the current term
-        return this.opt.filter(nodeOrArray, term, totalMatches + runCount, termStats[term], filterInfo);
+        return this.opt.filter(nodeOrArray, term, matchesSoFar, termStats[term], filterInfo);
 
       }, (elemOrRange, eachInfo) => { // each
         totalMarks++;
-        runCount = eachInfo.count;
+        matchesSoFar = eachInfo.count;
 
         if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
         }
         this.opt.each(elemOrRange, eachInfo);
 
-      }, (count) => { // end
-        totalMatches += count;
-
+      }, (totalMatches) => { // end
         const noMatches = regTerms.filter(term => termStats[term] === 0);
         if (noMatches.length) {
           this.opt.noMatch(noMatches);
         }
 
-        if (++index < array.length) {
+        if ( !info.execution.abort && ++index < array.length) {
           loop(array[index]);
         } else {
           this.registerHighlight();

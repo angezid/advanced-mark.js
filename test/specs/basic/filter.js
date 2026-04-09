@@ -64,7 +64,23 @@ describe('basic mark with filter callback', () => {
     });
   });
 
-  // tests markCombinePatterns() method
+  it('should be able to break an execution on the \'each\' callback', done => {
+    new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
+      'diacritics': false,
+      'accuracy' : 'exactly',
+      'combineBy': 3,
+      'each': (elem, info) => {
+        if (info.count >= 9) {
+          info.execution.abort = true;
+        }
+      },
+      'done': (total, totalMatches) => {
+        expect(totalMatches).toBe(9);
+        done();
+      }
+    });
+  });
+
   it('should correctly count total matches so far with \'combineBy: Infinity\'', done => {
     new Mark($ctx[0]).mark('lorem ipsum dolor', {
       'diacritics': false,
@@ -80,6 +96,25 @@ describe('basic mark with filter callback', () => {
         expect($ctx.find('mark').length).toBe(9);
         expect(totalMatches).toBe(9);
 
+        done();
+      }
+    });
+  });
+
+  it('should correctly count matches so far when using \'info.count\' property', done => {
+    new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
+      'diacritics': false,
+      'accuracy' : 'exactly',
+      'combineBy': 3,
+      'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
+        if (info.count >= 19) {
+          info.execution.abort = true;
+          return  false;
+        }
+        return true;
+      },
+      'done': (total, totalMatches) => {
+        expect(totalMatches).toBe(19);
         done();
       }
     });

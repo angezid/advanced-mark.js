@@ -880,10 +880,8 @@ class Mark {
     const index = regex.lastIndex;
     regex.lastIndex = end > index ? end : end > 0 ? index + 1 : Infinity;
   }
-  processGroups(regex, unused, filterCb, eachCb, endCb) {
-    const execution = { abort: false },
-      info = { count: 0, execution: execution };
-    let match, filterStart, eachStart, count = 0;
+  processGroups(regex, unused, info, filterCb, eachCb, endCb) {
+    let match, filterStart, eachStart;
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
         while ((match = regex.exec(n.node.textContent)) !== null) {
@@ -895,23 +893,20 @@ class Mark {
             filterStart = false;
             return filterCb(node, group, info);
           }, (elemOrRange) => {
-            if (eachStart) count++;
-            info.count = count;
+            if (eachStart) info.count++;
             info.matchStart = eachStart;
             eachStart = false;
             eachCb(elemOrRange, info);
           });
-          if (execution.abort) break;
+          if (info.execution.abort) break;
         }
-        return !execution.abort;
+        return !info.execution.abort;
       });
-      endCb(count);
+      endCb(info.count);
     });
   }
-  processGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
-    const execution = { abort: false },
-      info = { count: 0, execution: execution };
-    let match, filterStart, eachStart, count = 0;
+  processGroupsAcross(regex, unused, info, filterCb, eachCb, endCb) {
+    let match, filterStart, eachStart;
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
         info.match = match;
@@ -923,23 +918,20 @@ class Mark {
           filterStart = false;
           return filterCb(nodeOrArray, group, info);
         }, (elemOrRange, groupStart) => {
-          if (eachStart) count++;
+          if (eachStart) info.count++;
           info.matchStart = eachStart;
-          info.count = count;
           info.groupStart = groupStart;
           eachCb(elemOrRange, info);
           eachStart = false;
         });
-        if (execution.abort) break;
+        if (info.execution.abort) break;
       }
-      endCb(count);
+      endCb(info.count);
     });
   }
-  processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
-    const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
-      execution = { abort: false },
-      info = { count: 0, execution: execution };
-    let match, str, count = 0;
+  processMatches(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
+    const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
+    let match, str;
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
         while ((match = regex.exec(n.node.textContent)) !== null) {
@@ -958,22 +950,20 @@ class Mark {
             }
           }
           n.node = this.wrapRange(n, start, start + str.length, elemOrRange => {
-            info.count = ++count;
+            info.count++;
             eachCb(elemOrRange, info);
           });
           if ( !this.opt.highlight) regex.lastIndex = 0;
-          if (execution.abort) break;
+          if (info.execution.abort) break;
         }
-        return !execution.abort;
+        return !info.execution.abort;
       });
-      endCb(count);
+      endCb(info.count);
     });
   }
-  processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
-    const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
-      execution = { abort: false },
-      info = { count: 0, execution: execution };
-    let match, str, matchStart, count = 0;
+  processMatchesAcross(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
+    const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
+    let match, str, matchStart;
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
         if ((str = match[index]) === '') {
@@ -993,14 +983,13 @@ class Mark {
           matchStart = false;
           return filterCb(nodeOrArray, str, info);
         }, (elemOrRange, mStart) => {
-          if (mStart) count++;
-          info.count = count;
+          if (mStart) info.count++;
           info.matchStart = mStart;
           eachCb(elemOrRange, info);
         });
-        if (execution.abort) break;
+        if (info.execution.abort) break;
       }
-      endCb(count);
+      endCb(info.count);
     });
   }
   processRanges(ranges, filterCb, eachCb, endCb) {
@@ -1099,13 +1088,14 @@ class Mark {
     } else if (across) {
       fn = 'processMatchesAcross';
     }
+    const info = { count: 0, execution: { abort: false } };
     if ( !regexp.global && !regexp.sticky) {
       let splits = regexp.toString().split('/');
       regexp = new RegExp(regexp.source, 'g' + splits[splits.length-1]);
       this.log('RegExp is recompiled - it must have a `g` flag', 'warn');
     }
     this.log(`RegExp "${regexp}"`);
-    this[fn](regexp, this.opt.ignoreGroups, (nodeOrArray, match, filterInfo) => {
+    this[fn](regexp, this.opt.ignoreGroups, info, (nodeOrArray, match, filterInfo) => {
       return this.opt.filter(nodeOrArray, match, matchesSoFar, filterInfo);
     }, (elemOrRange, eachInfo) => {
       matchesSoFar = eachInfo.count;
@@ -1127,34 +1117,33 @@ class Mark {
       return;
     }
     let index = 0,
-      runCount = 0,
       totalMarks = 0,
-      totalMatches = 0,
+      matchesSoFar = 0,
       term;
     const across = this.opt.acrossElements,
       fn = across ? 'processMatchesAcross' : 'processMatches',
-      array = this.getRegExps(terms);
+      array = this.getRegExps(terms),
+      info = { count: 0, execution: { abort: false } };
     const loop = ({ regex, regTerms }) => {
       this.log(`RegExp ${regex}`);
-      this[fn](regex, 1, (nodeOrArray, _, filterInfo) => {
+      this[fn](regex, 1, info, (nodeOrArray, _, filterInfo) => {
         if ( !across || filterInfo.matchStart) {
           term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
-        return this.opt.filter(nodeOrArray, term, totalMatches + runCount, termStats[term], filterInfo);
+        return this.opt.filter(nodeOrArray, term, matchesSoFar, termStats[term], filterInfo);
       }, (elemOrRange, eachInfo) => {
         totalMarks++;
-        runCount = eachInfo.count;
+        matchesSoFar = eachInfo.count;
         if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
         }
         this.opt.each(elemOrRange, eachInfo);
-      }, (count) => {
-        totalMatches += count;
+      }, (totalMatches) => {
         const noMatches = regTerms.filter(term => termStats[term] === 0);
         if (noMatches.length) {
           this.opt.noMatch(noMatches);
         }
-        if (++index < array.length) {
+        if ( !info.execution.abort && ++index < array.length) {
           loop(array[index]);
         } else {
           this.registerHighlight();
