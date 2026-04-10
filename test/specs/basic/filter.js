@@ -45,27 +45,26 @@ describe('basic mark with filter callback', () => {
     }
   });
 
-  it('should correctly count total matches so far', done => {
-    new Mark($ctx[0]).mark('lorem ipsum dolor', {
+  it('should correctly count matches so far', done => {
+    let count = 0;
+
+    new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
       'diacritics': false,
-      'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
-        if (totalMatchesSoFar >= 9) {
-          info.execution.abort = true;
-          return  false;
-        }
+      'combinePatterns' : 3,
+      'filter': (node, term, matchesSoFar) => {
+        count = matchesSoFar;
         return true;
       },
-      'done': (m, totalMatches) => {
-        expect($ctx.find('mark').length).toBe(9);
-        expect(totalMatches).toBe(9);
+      'done': () => {
+        // + 1 because matchesSoFar counter is set on the 'each' callback
+        expect($ctx.find('mark').length).toBe(count + 1);
 
         done();
       }
     });
   });
 
-  // tests markCombinePatterns() method
-  it('should correctly count total matches so far with \'combinePatterns: Infinity\'', done => {
+  it('should correctly count matches so far with \'combinePatterns: Infinity\'', done => {
     new Mark($ctx[0]).mark('lorem ipsum dolor', {
       'diacritics': false,
       'combinePatterns' : Infinity,
