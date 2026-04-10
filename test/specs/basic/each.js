@@ -30,7 +30,7 @@ describe('basic mark with each callback', () => {
       'combineBy': 3,
       'each': (elem, info) => {
         if (info.count >= 19) {
-          info.execution.abort = true;
+          info.abort = true;
         }
       },
       'done': (total, totalMatches) => {

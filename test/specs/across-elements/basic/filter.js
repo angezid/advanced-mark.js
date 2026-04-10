@@ -68,7 +68,7 @@ describe('mark with acrossElements and filter callback', () => {
       'combineBy': 3,
       'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
         if (info.count >= 19) {
-          info.execution.abort = true;
+          info.abort = true;
           return  false;
         }
         return true;

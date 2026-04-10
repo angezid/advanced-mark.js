@@ -1222,9 +1222,9 @@
                 eachStart = false;
                 eachCb(elemOrRange, info);
               });
-              if (info.execution.abort) break;
+              if (info.abort) break;
             }
-            return !info.execution.abort;
+            return !info.abort;
           });
           endCb(info.count);
         });
@@ -1251,7 +1251,7 @@
               eachCb(elemOrRange, info);
               eachStart = false;
             });
-            if (info.execution.abort) break;
+            if (info.abort) break;
           }
           endCb(info.count);
         });
@@ -1285,9 +1285,9 @@
                 eachCb(elemOrRange, info);
               });
               if (!_this8.opt.highlight) regex.lastIndex = 0;
-              if (info.execution.abort) break;
+              if (info.abort) break;
             }
-            return !info.execution.abort;
+            return !info.abort;
           });
           endCb(info.count);
         });
@@ -1322,7 +1322,7 @@
               info.matchStart = mStart;
               eachCb(elemOrRange, info);
             });
-            if (info.execution.abort) break;
+            if (info.abort) break;
           }
           endCb(info.count);
         });
@@ -1444,9 +1444,7 @@
         }
         var info = {
           count: 0,
-          execution: {
-            abort: false
-          }
+          abort: false
         };
         if (!regexp.global && !regexp.sticky) {
           var splits = regexp.toString().split('/');
@@ -1489,9 +1487,7 @@
           array = this.getRegExps(terms),
           info = {
             count: 0,
-            execution: {
-              abort: false
-            }
+            abort: false
           };
         var loop = function loop(_ref) {
           var regex = _ref.regex,
@@ -1516,7 +1512,7 @@
             if (noMatches.length) {
               _this12.opt.noMatch(noMatches);
             }
-            if (!info.execution.abort && ++index < array.length) {
+            if (!info.abort && ++index < array.length) {
               loop(array[index]);
             } else {
               _this12.registerHighlight();

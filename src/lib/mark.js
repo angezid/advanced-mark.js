@@ -1054,10 +1054,10 @@ class Mark {
             eachCb(elemOrRange, info);
           });
 
-          if (info.execution.abort) break;
+          if (info.abort) break;
         }
         // breaks loop on custom abort
-        return !info.execution.abort;
+        return !info.abort;
       });
       endCb(info.count);
     });
@@ -1117,7 +1117,7 @@ class Mark {
           eachStart = false;
         });
         // breaks loop on custom abort
-        if (info.execution.abort) break;
+        if (info.abort) break;
       }
       endCb(info.count);
     });
@@ -1184,10 +1184,10 @@ class Mark {
           // when using the Highlight API, no text nodes are split
           if ( !this.opt.highlight) regex.lastIndex = 0;
 
-          if (info.execution.abort) break;
+          if (info.abort) break;
         }
         // breaks loop on custom abort
-        return !info.execution.abort;
+        return !info.abort;
       });
       endCb(info.count);
     });
@@ -1257,7 +1257,7 @@ class Mark {
           eachCb(elemOrRange, info);
         });
 
-        if (info.execution.abort) break;
+        if (info.abort) break;
       }
       endCb(info.count);
     });
@@ -1466,7 +1466,7 @@ class Mark {
       fn = 'processMatchesAcross';
     }
 
-    const info = { count: 0, execution: { abort: false } };
+    const info = { count: 0, abort: false };
 
     // solves backward-compatibility
     if ( !regexp.global && !regexp.sticky) {
@@ -1552,7 +1552,7 @@ class Mark {
     const across = this.opt.acrossElements,
       fn = across ? 'processMatchesAcross' : 'processMatches',
       array = this.getRegExps(terms),
-      info = { count: 0, execution: { abort: false } };
+      info = { count: 0, abort: false };
 
     const loop = ({ regex, regTerms }) => {
       this.log(`RegExp ${regex}`);
@@ -1579,7 +1579,7 @@ class Mark {
           this.opt.noMatch(noMatches);
         }
 
-        if ( !info.execution.abort && ++index < array.length) {
+        if ( !info.abort && ++index < array.length) {
           loop(array[index]);
         } else {
           this.registerHighlight();

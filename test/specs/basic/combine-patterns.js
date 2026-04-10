@@ -41,7 +41,7 @@ describe('markCombinePatterns() without acrossElements option', () => {
       'combineBy' : 2,
       'accuracy' : 'exactly',
       'filter' : (node, term, marks, termMatchCount) => {
-        // 'info.execution.abort' is useless here as it will break execution of whole combine pattern
+        // 'info.abort' is useless here as it will break execution of whole combine pattern
         if (termMatchCount >= 1) {
           return false;
         }

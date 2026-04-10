@@ -62,8 +62,7 @@ $(context).markRegExp(regex[, options]);
       * `count` {number} - The number of matches so far
       * `matchStart` {boolean} - indicate the start of a match  AE
       * `groupIndex` {number} - The current group index  SG
-      * `execution` {object} - The helper object for early abort:
-        * `abort` {boolean} - Setting it to `true` breaks method execution
+      * `abort` {boolean} - Setting it to `true` breaks the method execution
  
 The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
@@ -75,8 +74,7 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
       * `matchStart` {boolean} - Indicate the start of a match  AE
       * `groupIndex` {number} - The current index of match group  SG
       * `groupStart` {boolean} - Indicate the start of group  AE SG
-      * `execution` {object} - The helper object for early abort:
-        * `abort` {boolean} - Setting it to `true` breaks method execution
+      * `abort` {boolean} - Setting it to `true` breaks the method execution
 
 **Note:** the `filter` and `each` callbacks are shared the `info` object with updated properties.
 

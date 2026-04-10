@@ -12,10 +12,10 @@ instance.mark('AB', {
     'acrossElements': true,
     'filter': (nodeOrArray, term, matchesSoFar, termMatchesSoFar, info) => {
          // highlights only the first match
-        info.execution.abort = true; return  true;
+        info.abort = true; return  true;
 
         // highlights the first 10 matches using internal counter
-        if (matchesSoFar >= 10) { info.execution.abort = true; return  false; }
+        if (matchesSoFar >= 10) { info.abort = true; return  false; }
         // if (info.count >= 10) {..}
 
         // using external counter
@@ -28,7 +28,7 @@ instance.mark('AB', {
 
         // highlights between
         if (count <= 10) { return  false; }
-        else if (count > 20) { info.execution.abort = true; return  false; }
+        else if (count > 20) { info.abort = true; return  false; }
 
         return  true;
     }
@@ -53,15 +53,15 @@ See [markRegExp() filter callback](markRegExp-method.md#markRegExp-filter)'s `in
 let count = 0,
     reg = /.../gi;
 // if you have access to the RegExp object, you can also used 'reg.lastIndex = Infinity;'
-// instead of 'info.execution.abort = true;'
+// instead of 'info.abort = true;'
 instance.markRegExp(reg, {
     'acrossElements': true,
     'filter': (nodeOrArray, matchString, matchesSoFar, info) => {
         // highlights only the first match
-        info.execution.abort = true; return  true;
+        info.abort = true; return  true;
 
         // highlights the first 10 matches using internal counter
-        if (matchesSoFar >= 10) { info.execution.abort = true; return  false; }
+        if (matchesSoFar >= 10) { info.abort = true; return  false; }
         // if (info.count >= 10) {..}
 
         // using external counter
@@ -75,7 +75,7 @@ instance.markRegExp(reg, {
         // highlights between
         if (count <= 10) { return  false; }
         else if (count > 20) {
-            info.execution.abort = true;
+            info.abort = true;
             return  false;
         }
 
@@ -105,11 +105,11 @@ instance.mark(str, {
     // 'acrossElements': true,
     'each': (markElement, info) => {
         // highlights only the first match
-        info.execution.abort = true;
+        info.abort = true;
 
         // highlights the first 10 matches
         if (info.count >= 10) {
-            info.execution.abort = true;
+            info.abort = true;
         }
     }
 });

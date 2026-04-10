@@ -89,8 +89,7 @@ $(context).mark(search[, options]);
       * `match` {array} - The result of RegExp exec() method
       * `count` {number} - The number of matches so far
       * `matchStart` {boolean} - indicate the start of a match  AE
-      * `execution` {object} - The helper object for early abort:
-        * `abort` {boolean} - Setting it to `true` breaks method execution
+      * `abort` {boolean} - Setting it to `true` breaks the method execution
 
 The function **must** return either `true` (highlight) or `false` (skip highlighting).  
 See [Filtering matches](filtering-matches.md) for more details.
@@ -101,8 +100,7 @@ See [Filtering matches](filtering-matches.md) for more details.
       * `match` {array} - The result of RegExp exec() method
       * `count` {number} - The number of matches so far
       * `matchStart` {boolean} - Indicate the start of a match  AE
-      * `execution` {object} - The helper object for early abort:
-        * `abort` {boolean} - Setting it to `true` breaks method execution
+      * `abort` {boolean} - Setting it to `true` breaks the method execution
 
 See [Code examples](some-examples.md).
 **Note:** the `filter` and `each` callbacks are shared the `info` object with updated properties.

@@ -898,9 +898,9 @@ class Mark {
             eachStart = false;
             eachCb(elemOrRange, info);
           });
-          if (info.execution.abort) break;
+          if (info.abort) break;
         }
-        return !info.execution.abort;
+        return !info.abort;
       });
       endCb(info.count);
     });
@@ -924,7 +924,7 @@ class Mark {
           eachCb(elemOrRange, info);
           eachStart = false;
         });
-        if (info.execution.abort) break;
+        if (info.abort) break;
       }
       endCb(info.count);
     });
@@ -954,9 +954,9 @@ class Mark {
             eachCb(elemOrRange, info);
           });
           if ( !this.opt.highlight) regex.lastIndex = 0;
-          if (info.execution.abort) break;
+          if (info.abort) break;
         }
-        return !info.execution.abort;
+        return !info.abort;
       });
       endCb(info.count);
     });
@@ -987,7 +987,7 @@ class Mark {
           info.matchStart = mStart;
           eachCb(elemOrRange, info);
         });
-        if (info.execution.abort) break;
+        if (info.abort) break;
       }
       endCb(info.count);
     });
@@ -1088,7 +1088,7 @@ class Mark {
     } else if (across) {
       fn = 'processMatchesAcross';
     }
-    const info = { count: 0, execution: { abort: false } };
+    const info = { count: 0, abort: false };
     if ( !regexp.global && !regexp.sticky) {
       let splits = regexp.toString().split('/');
       regexp = new RegExp(regexp.source, 'g' + splits[splits.length-1]);
@@ -1123,7 +1123,7 @@ class Mark {
     const across = this.opt.acrossElements,
       fn = across ? 'processMatchesAcross' : 'processMatches',
       array = this.getRegExps(terms),
-      info = { count: 0, execution: { abort: false } };
+      info = { count: 0, abort: false };
     const loop = ({ regex, regTerms }) => {
       this.log(`RegExp ${regex}`);
       this[fn](regex, 1, info, (nodeOrArray, _, filterInfo) => {
@@ -1143,7 +1143,7 @@ class Mark {
         if (noMatches.length) {
           this.opt.noMatch(noMatches);
         }
-        if ( !info.execution.abort && ++index < array.length) {
+        if ( !info.abort && ++index < array.length) {
           loop(array[index]);
         } else {
           this.registerHighlight();

@@ -71,7 +71,7 @@ describe('basic mark with filter callback', () => {
       'combineBy': 3,
       'each': (elem, info) => {
         if (info.count >= 9) {
-          info.execution.abort = true;
+          info.abort = true;
         }
       },
       'done': (total, totalMatches) => {
@@ -87,7 +87,7 @@ describe('basic mark with filter callback', () => {
       'combineBy' : Infinity,
       'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
         if (totalMatchesSoFar >= 9) {
-          info.execution.abort = true;
+          info.abort = true;
           return  false;
         }
         return true;
@@ -108,7 +108,7 @@ describe('basic mark with filter callback', () => {
       'combineBy': 3,
       'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
         if (info.count >= 19) {
-          info.execution.abort = true;
+          info.abort = true;
           return  false;
         }
         return true;

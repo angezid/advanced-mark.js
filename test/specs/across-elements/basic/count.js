@@ -11,7 +11,7 @@ describe('mark with acrossElements', () => {
     new Mark($ctx[0]).mark('Lorem', {
       'acrossElements' : true,
       'filter' : (node, kw, totalMatches, matches, info) => {
-        info.execution.abort = true;
+        info.abort = true;
         return true; 
       },
       'done' : () => {
@@ -19,7 +19,7 @@ describe('mark with acrossElements', () => {
 
         new Mark($ctx[0]).mark('ipsum', {
           'filter' : (node, kw, totalMatches, matches, info) => {
-            info.execution.abort = true;
+            info.abort = true;
             return true;
           },
           'done' : () => {

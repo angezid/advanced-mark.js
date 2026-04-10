@@ -22,7 +22,7 @@ describe('type of callback\'s first parameter', () => {
       'highlight': highlight,
       'filter': (textNode, t, m, tm, info) => {
         expect(textNode instanceof Text).toBe(true);
-        info.execution.abort = true;
+        info.abort = true;
         run++;
         return true;
       },
@@ -43,7 +43,7 @@ describe('type of callback\'s first parameter', () => {
       'diacritics': false,
       'highlight': highlight,
       'filter': (n, t, m, tm, info) => {
-        if (++run === 1) info.execution.abort = true;
+        if (++run === 1) info.abort = true;
         return true;
       },
       'each': (elementOrRange) => {
@@ -67,7 +67,7 @@ describe('type of callback\'s first parameter', () => {
       'highlight': highlight,
       'staticRanges': false,
       'filter': (n, t, m, tm, info) => {
-        if (++run === 1) info.execution.abort = true;
+        if (++run === 1) info.abort = true;
         return true;
       },
       'each': (elementOrRange) => {

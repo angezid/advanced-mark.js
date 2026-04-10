@@ -54,7 +54,7 @@ describe('customize a iframe\'s style', () => {
           'each': (elem, info) => {
             if (elem.ownerDocument !== ownerDocument) {
               markElement = elem;
-              info.execution.abort = true;
+              info.abort = true;
             }
           },
           'done': () => {
@@ -80,7 +80,7 @@ describe('customize a iframe\'s style', () => {
       'each': (elem, info) => {
         if (elem.ownerDocument !== ownerDocument) {
           markElement = elem;
-          info.execution.abort = true;
+          info.abort = true;
         }
       },
       'done': () => {
