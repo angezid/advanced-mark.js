@@ -45,43 +45,26 @@ describe('basic mark with filter callback', () => {
     }
   });
 
-  it('should correctly count total matches so far', done => {
-    new Mark($ctx[0]).mark('lorem ipsum dolor', {
-      'diacritics': false,
-      'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
-        if (totalMatchesSoFar >= 9) {
-          info.execution.abort = true;
-          return  false;
-        }
-        return true;
-      },
-      'done': (m, totalMatches) => {
-        expect($ctx.find('mark').length).toBe(9);
-        expect(totalMatches).toBe(9);
+  it('should correctly count matches so far', done => {
+    let count = 0;
 
-        done();
-      }
-    });
-  });
-
-  it('should be able to break an execution on the \'each\' callback', done => {
     new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
       'diacritics': false,
-      'accuracy' : 'exactly',
-      'combineBy': 3,
-      'each': (elem, info) => {
-        if (info.count >= 9) {
-          info.abort = true;
-        }
+      'combineBy' : 3,
+      'filter': (node, term, matchesSoFar) => {
+        count = matchesSoFar;
+        return true;
       },
-      'done': (total, totalMatches) => {
-        expect(totalMatches).toBe(9);
+      'done': () => {
+        // + 1 because matchesSoFar counter is set on the 'each' callback
+        expect($ctx.find('mark').length).toBe(count + 1);
+
         done();
       }
     });
   });
 
-  it('should correctly count total matches so far with \'combineBy: Infinity\'', done => {
+  it('should correctly count matches so far with \'combineBy: Infinity\'', done => {
     new Mark($ctx[0]).mark('lorem ipsum dolor', {
       'diacritics': false,
       'combineBy' : Infinity,

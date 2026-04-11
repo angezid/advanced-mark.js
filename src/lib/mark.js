@@ -1031,7 +1031,7 @@ class Mark {
    * @access protected
    */
   processGroups(regex, unused, info, filterCb, eachCb, endCb) {
-    let match, filterStart, eachStart;
+    let count = info.count, match, filterStart, eachStart;
 
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
@@ -1046,8 +1046,9 @@ class Mark {
             return filterCb(node, group, info);
 
           }, (elemOrRange) => { // each
-            if (eachStart) info.count++;
+            if (eachStart) count++;
 
+            info.count = count;
             info.matchStart = eachStart;
             eachStart = false;
 
@@ -1059,7 +1060,7 @@ class Mark {
         // breaks loop on custom abort
         return !info.abort;
       });
-      endCb(info.count);
+      endCb(count);
     });
   }
 
@@ -1093,7 +1094,7 @@ class Mark {
    * @access protected
    */
   processGroupsAcross(regex, unused, info, filterCb, eachCb, endCb) {
-    let match, filterStart, eachStart;
+    let count = info.count, match, filterStart, eachStart;
 
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
@@ -1109,8 +1110,9 @@ class Mark {
           return filterCb(nodeOrArray, group, info);
 
         }, (elemOrRange, groupStart) => { // each
-          if (eachStart) info.count++;
+          if (eachStart) count++;
 
+          info.count = count;
           info.matchStart = eachStart;
           info.groupStart = groupStart;
           eachCb(elemOrRange, info);
@@ -1119,7 +1121,7 @@ class Mark {
         // breaks loop on custom abort
         if (info.abort) break;
       }
-      endCb(info.count);
+      endCb(count);
     });
   }
 
@@ -1154,7 +1156,7 @@ class Mark {
    */
   processMatches(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
-    let match, str;
+    let count = info.count, match, str;
 
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
@@ -1178,7 +1180,7 @@ class Mark {
           }
 
           n.node = this.wrapRange(n, start, start + str.length, elemOrRange => {
-            info.count++;
+            info.count = ++count;
             eachCb(elemOrRange, info);
           });
           // when using the Highlight API, no text nodes are split
@@ -1189,7 +1191,7 @@ class Mark {
         // breaks loop on custom abort
         return !info.abort;
       });
-      endCb(info.count);
+      endCb(count);
     });
   }
 
@@ -1225,7 +1227,7 @@ class Mark {
    */
   processMatchesAcross(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
-    let match, str, matchStart;
+    let count = info.count, match, str, matchStart;
 
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
@@ -1251,15 +1253,16 @@ class Mark {
           return filterCb(nodeOrArray, str, info);
 
         }, (elemOrRange, mStart) => { // each
-          if (mStart) info.count++;
+          if (mStart) count++;
 
+          info.count = count;
           info.matchStart = mStart;
           eachCb(elemOrRange, info);
         });
 
         if (info.abort) break;
       }
-      endCb(info.count);
+      endCb(count);
     });
   }
 

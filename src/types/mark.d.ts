@@ -18,10 +18,6 @@ declare namespace Mark {
     style: string;
   }
 
-  interface ExecutionObject {
-    abort: boolean;
-  }
-
   interface AccuracyObject {
     value: 'exactly' | 'startsWith' | 'complementary';
     limiters: string | string[];
@@ -65,14 +61,16 @@ declare namespace Mark {
 
   interface MarkFilterInfo {
     match: RegExpExecArray;
-    matchStart: boolean;
-    execution: ExecutionObject;
+    matchStart?: boolean;
+    count: number;
+    abort: boolean;
   }
 
   interface MarkEachInfo {
     match: RegExpExecArray;
-    matchStart: boolean;
+    matchStart?: boolean;
     count: number;
+    abort: boolean;
   }
 
   interface TermStats {
@@ -108,17 +106,19 @@ declare namespace Mark {
 
   interface RegExpFilterInfo {
     match: RegExpExecArray;
-    matchStart: boolean;
-    execution: ExecutionObject;
+    matchStart?: boolean;
+    count: number;
     groupIndex?: number;
+    abort: boolean;
   }
 
   interface RegExpEachInfo {
     match: RegExpExecArray;
-    matchStart: boolean;
+    matchStart?: boolean;
     count: number;
     groupIndex?: number;
     groupStart?: boolean;
+    abort: boolean;
   }
 
   interface RangesOptions {
@@ -151,7 +151,7 @@ declare namespace Mark {
   }
 
   interface RangeEachInfo {
-    matchStart: boolean;
+    matchStart?: boolean;
     count: number;
   }
 
@@ -159,7 +159,7 @@ declare namespace Mark {
     element?: string;
     className?: string;
     exclude?: string | string[];
-    iframes?: boolean;
+    iframes?: boolean | IframesObject;
     iframesTimeout?: number;
     shadowDOM?: boolean;
     highlight?: Highlight;

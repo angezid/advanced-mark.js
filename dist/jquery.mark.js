@@ -1205,7 +1205,10 @@
       key: "processGroups",
       value: function processGroups(regex, unused, info, filterCb, eachCb, endCb) {
         var _this6 = this;
-        var match, filterStart, eachStart;
+        var count = info.count,
+          match,
+          filterStart,
+          eachStart;
         this.getTextNodes(function (dict) {
           dict.nodes.every(function (n) {
             while ((match = regex.exec(n.node.textContent)) !== null) {
@@ -1217,7 +1220,8 @@
                 filterStart = false;
                 return filterCb(node, group, info);
               }, function (elemOrRange) {
-                if (eachStart) info.count++;
+                if (eachStart) count++;
+                info.count = count;
                 info.matchStart = eachStart;
                 eachStart = false;
                 eachCb(elemOrRange, info);
@@ -1226,14 +1230,17 @@
             }
             return !info.abort;
           });
-          endCb(info.count);
+          endCb(count);
         });
       }
     }, {
       key: "processGroupsAcross",
       value: function processGroupsAcross(regex, unused, info, filterCb, eachCb, endCb) {
         var _this7 = this;
-        var match, filterStart, eachStart;
+        var count = info.count,
+          match,
+          filterStart,
+          eachStart;
         this.getTextNodesAcross(function (dict) {
           while ((match = regex.exec(dict.text)) !== null) {
             info.match = match;
@@ -1245,7 +1252,8 @@
               filterStart = false;
               return filterCb(nodeOrArray, group, info);
             }, function (elemOrRange, groupStart) {
-              if (eachStart) info.count++;
+              if (eachStart) count++;
+              info.count = count;
               info.matchStart = eachStart;
               info.groupStart = groupStart;
               eachCb(elemOrRange, info);
@@ -1253,7 +1261,7 @@
             });
             if (info.abort) break;
           }
-          endCb(info.count);
+          endCb(count);
         });
       }
     }, {
@@ -1261,7 +1269,9 @@
       value: function processMatches(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
         var _this8 = this;
         var index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
-        var match, str;
+        var count = info.count,
+          match,
+          str;
         this.getTextNodes(function (dict) {
           dict.nodes.every(function (n) {
             while ((match = regex.exec(n.node.textContent)) !== null) {
@@ -1281,7 +1291,7 @@
                 }
               }
               n.node = _this8.wrapRange(n, start, start + str.length, function (elemOrRange) {
-                info.count++;
+                info.count = ++count;
                 eachCb(elemOrRange, info);
               });
               if (!_this8.opt.highlight) regex.lastIndex = 0;
@@ -1289,7 +1299,7 @@
             }
             return !info.abort;
           });
-          endCb(info.count);
+          endCb(count);
         });
       }
     }, {
@@ -1297,7 +1307,10 @@
       value: function processMatchesAcross(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
         var _this9 = this;
         var index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
-        var match, str, matchStart;
+        var count = info.count,
+          match,
+          str,
+          matchStart;
         this.getTextNodesAcross(function (dict) {
           while ((match = regex.exec(dict.text)) !== null) {
             if ((str = match[index]) === '') {
@@ -1318,13 +1331,14 @@
               matchStart = false;
               return filterCb(nodeOrArray, str, info);
             }, function (elemOrRange, mStart) {
-              if (mStart) info.count++;
+              if (mStart) count++;
+              info.count = count;
               info.matchStart = mStart;
               eachCb(elemOrRange, info);
             });
             if (info.abort) break;
           }
-          endCb(info.count);
+          endCb(count);
         });
       }
     }, {

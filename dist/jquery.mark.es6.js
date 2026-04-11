@@ -881,7 +881,7 @@ class Mark {
     regex.lastIndex = end > index ? end : end > 0 ? index + 1 : Infinity;
   }
   processGroups(regex, unused, info, filterCb, eachCb, endCb) {
-    let match, filterStart, eachStart;
+    let count = info.count, match, filterStart, eachStart;
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
         while ((match = regex.exec(n.node.textContent)) !== null) {
@@ -893,7 +893,8 @@ class Mark {
             filterStart = false;
             return filterCb(node, group, info);
           }, (elemOrRange) => {
-            if (eachStart) info.count++;
+            if (eachStart) count++;
+            info.count = count;
             info.matchStart = eachStart;
             eachStart = false;
             eachCb(elemOrRange, info);
@@ -902,11 +903,11 @@ class Mark {
         }
         return !info.abort;
       });
-      endCb(info.count);
+      endCb(count);
     });
   }
   processGroupsAcross(regex, unused, info, filterCb, eachCb, endCb) {
-    let match, filterStart, eachStart;
+    let count = info.count, match, filterStart, eachStart;
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
         info.match = match;
@@ -918,7 +919,8 @@ class Mark {
           filterStart = false;
           return filterCb(nodeOrArray, group, info);
         }, (elemOrRange, groupStart) => {
-          if (eachStart) info.count++;
+          if (eachStart) count++;
+          info.count = count;
           info.matchStart = eachStart;
           info.groupStart = groupStart;
           eachCb(elemOrRange, info);
@@ -926,12 +928,12 @@ class Mark {
         });
         if (info.abort) break;
       }
-      endCb(info.count);
+      endCb(count);
     });
   }
   processMatches(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
-    let match, str;
+    let count = info.count, match, str;
     this.getTextNodes(dict => {
       dict.nodes.every(n => {
         while ((match = regex.exec(n.node.textContent)) !== null) {
@@ -950,7 +952,7 @@ class Mark {
             }
           }
           n.node = this.wrapRange(n, start, start + str.length, elemOrRange => {
-            info.count++;
+            info.count = ++count;
             eachCb(elemOrRange, info);
           });
           if ( !this.opt.highlight) regex.lastIndex = 0;
@@ -958,12 +960,12 @@ class Mark {
         }
         return !info.abort;
       });
-      endCb(info.count);
+      endCb(count);
     });
   }
   processMatchesAcross(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
     const index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
-    let match, str, matchStart;
+    let count = info.count, match, str, matchStart;
     this.getTextNodesAcross(dict => {
       while ((match = regex.exec(dict.text)) !== null) {
         if ((str = match[index]) === '') {
@@ -983,13 +985,14 @@ class Mark {
           matchStart = false;
           return filterCb(nodeOrArray, str, info);
         }, (elemOrRange, mStart) => {
-          if (mStart) info.count++;
+          if (mStart) count++;
+          info.count = count;
           info.matchStart = mStart;
           eachCb(elemOrRange, info);
         });
         if (info.abort) break;
       }
-      endCb(info.count);
+      endCb(count);
     });
   }
   processRanges(ranges, filterCb, eachCb, endCb) {
