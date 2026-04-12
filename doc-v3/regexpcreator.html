@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -176,8 +176,7 @@
    * Creates a regular expression to match the specified search term considering
    * the available option settings
    * @</span><span class="dtag">param</span><span class="doc"> {string} str - The search term to be used
-   * @</span><span class="dtag">param</span><span class="doc"> {boolean} patterns - Whether to return an object with pattern parts or RegExp object
-   * @</span><span class="dtag">return</span><span class="doc"> {RegExpCreator~patternObj|RegExp}
+   * @</span><span class="dtag">return</span><span class="doc"> {RegExp}
    */</span>
   create(terms) {
     <span class="kwd">const</span> flags = <span class="str">`g$</span>{<span class="kwd">this</span>.opt.caseSensitive ? <span class="str">''</span> : <span class="str">'i'</span>}<span class="str">`</span>;
@@ -221,24 +220,7 @@
   }
 
   <span class="doc">/**
-    * Creates a single combine pattern from an array of string considering the available option settings
-    * @</span><span class="dtag">param</span><span class="doc"> {Array} array - The array of string
-    * @</span><span class="dtag">param</span><span class="doc"> {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
-    * @</span><span class="dtag">return</span><span class="doc"> {RegExpCreator~patternObj|null}
-    */</span>
-  createCombinePattern(array, capture) {
-    <span class="kwd">if</span> ( !Array.isArray(array) || !array.length) {
-      <span class="kwd">return</span> <span class="kwd">null</span>;
-    }
-    <span class="kwd">const</span> group = capture ? <span class="str">'('</span> : <span class="str">'(?:'</span>,
-      obj = <span class="kwd">this</span>.create(array[0], <span class="kwd">true</span>);
-    obj.pattern = <span class="kwd">this</span>.distinct(array.map(str =&gt; <span class="str">`$</span>{group}<span class="str">$</span>{<span class="kwd">this</span>.create(str, <span class="kwd">true</span>).pattern}<span class="str">)`</span>)).join(<span class="str">'|'</span>);
-
-    <span class="kwd">return</span> obj;
-  }
-
-  <span class="doc">/**
-   * Escapes RegExp special characters
+   * Escapes the RegExp special characters
    * @</span><span class="dtag">param</span><span class="doc"> {string} str - The string to escape
    * @</span><span class="dtag">return</span><span class="doc"> {string}
    */</span>
@@ -247,7 +229,7 @@
   }
 
   <span class="doc">/**
-   * Splits string if val is string, removes duplicates, escape '-^]\\' which are special in RegExp characters set
+   * Splits val if it is a string, removes duplicates, escape '-^]\\' which are special in the RegExp characters set
    * @</span><span class="dtag">param</span><span class="doc"> {array|string} val - The parameter to process
    * @</span><span class="dtag">return</span><span class="doc"> {string}
    */</span>

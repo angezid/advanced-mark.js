@@ -51,9 +51,9 @@ if a block element 'divides' two text nodes, <code>\x01</code> character with sp
 e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Header \x01 Paragraph'.</p>
 <p>With different values the option allows matches across all HTML elements:</p>
 <ul>
-<li><code>blockElementsBoundary: true</code> except default block elements</li>
-<li><code>blockElementsBoundary: { tagNames: [..] }</code> except custom element(s)</li>
-<li><code>blockElementsBoundary: { tagNames: [..], extend: true }</code> except default block elements and custom element(s)</li>
+<li><code>blockElementsBoundary: true</code> except the default block elements</li>
+<li><code>blockElementsBoundary: { tagNames: [..] }</code> except the only custom element(s)</li>
+<li><code>blockElementsBoundary: { tagNames: [..], extend: true }</code> except the default block elements and custom element(s)</li>
 </ul>
 <h4 id="boundary-object">Boundary object:</h4>
 <ul>

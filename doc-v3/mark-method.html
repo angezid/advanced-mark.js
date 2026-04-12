@@ -83,7 +83,7 @@ See <a href="options.html#separatewordsearch-option" class="tooltip">separateWor
 <li><code>'complementary'</code> e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.</li>
 </ul>
 <p>The <b>built-in</b> boundaries for values <code>startsWith</code> and <code>complementary</code> are:<br>
-white spaces and <code>!&quot;#$%&amp;'`()*+,-./:;&lt;=&gt;?@[\]^_{|}~¡¿</code> characters.
+white spaces and <code>!&quot;#$%&amp;'`()*+,-./:;&lt;=&gt;?@[\]^_{|}~¡¿</code> characters.<br>
 See <a href="options.html#accuracy-option" class="tooltip">accuracy</a> option for more details.</p>
 </li>
 <li><p>Or an <b>object</b> with two properties:</p>
@@ -145,24 +145,20 @@ otherwise only the custom elements do have boundaries</li>
 <tr id="mark-debug"><td><code>debug</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to log messages </td></tr>
 <tr id="mark-log"><td><code>log</code></td><td><em class="type">object</em></td><td> <code>console</code></td><td>Log messages to a specific object 
 </td></tr>
-<tr id="mark-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each match (with <code>acrossElements</code> option, if the match is located across several elements, it calls for each text node which is part of the match) 
+<tr id="mark-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each match (<a href='#FAE'>FAE</a>) 
 <br><b>filter: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, info) => {}</b>
 <ul>
-<li><code>nodeOrArray</code> <em class="type">Text <span class="or">or</span> Text[]</em> - The text node which includes the match (with the <code>acrossElements</code> option can be part of the match)<br>
-OR an array of text node(s) if the <code>Highlight</code> API is used with <code>acrossElements</code> and <code>rangeAcrossElements</code> options</li>
+<li><code>nodeOrArray</code> <em class="type">Text <span class="or">or</span> Text[]</em> - The text node which includes the match (<a href='#TAE'>TAE</a>)<br>
+OR an array of text node(s) which include the match if the <code>Highlight</code> API is used with <code>acrossElements</code> and <code>rangeAcrossElements</code> options</li>
 <li><code>term</code> <em class="type">string</em> - The current term</li>
 <li><code>matchesSoFar</code> <em class="type">number</em> - The number of all matches so far</li>
 <li><code>termMatchesSoFar</code> <em class="type">number</em> - The number of matches for the current term so far</li>
 <li><code>info</code> <em class="type">object</em>:
 <ul>
 <li><code>match</code> <em class="type">array</em> - The result of RegExp exec() method</li>
-<li><code>count</code> <em class="type">number</em> - The number of matches so far</li>
+<li><code>count</code> <em class="type">number</em> - The number of matches so far <a href='#MC'>MC</a></li>
 <li><code>matchStart</code> <em class="type">boolean</em> - indicate the start of a match  <a href='#AE'>AE</a></li>
-<li><code>execution</code> <em class="type">object</em> - The helper object for early abort:
-<ul>
-<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks method execution</li>
-</ul>
-</li>
+<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks the method execution</li>
 </ul>
 </li>
 </ul>
@@ -176,13 +172,9 @@ See <a href="filtering-matches.html">Filtering matches</a> for more details.</p>
 <li><code>info</code> <em class="type">object</em>:
 <ul>
 <li><code>match</code> <em class="type">array</em> - The result of RegExp exec() method</li>
-<li><code>count</code> <em class="type">number</em> - The number of matches so far</li>
+<li><code>count</code> <em class="type">number</em> - The number of matches so far <a href='#MC'>MC</a></li>
 <li><code>matchStart</code> <em class="type">boolean</em> - Indicate the start of a match  <a href='#AE'>AE</a></li>
-<li><code>execution</code> <em class="type">object</em> - The helper object for early abort:
-<ul>
-<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks method execution</li>
-</ul>
-</li>
+<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks the method execution.</li>
 </ul>
 </li>
 </ul>
@@ -243,7 +235,10 @@ instance.mark(<span class="str">'test'</span>, options);</code></pre>
 <p>jQuery:</p>
 <pre><code class='lang-javascript'>$(<span class="str">'selector'</span>).mark(<span class="str">'test'</span>, options);</code></pre>
 </details>
-<p id='AE'>• <b>AE</b> - only available with the option <code>acrossElements: true</code></p>
+<div>• <b>AE</b> - <span id='AE'>only available with the option <code>acrossElements: true</code></span></div>
+<div>• <b>MC</b> - <span id='MC'>were already wrapped in HTML elements OR for which were created <code>StaticRange/Range</code> objects</span></div>
+<div>• <b>FAE</b> - <span id='FAE'>with the <code>acrossElements</code> option, if the match is located across several elements, it calls for each text node which is part of the match  </span></div>
+<div>• <b>TAE</b> - <span id='TAE'>with the <code>acrossElements</code> option can be part of the match</span></div>
 
 </article>
 <footer><div class="info">

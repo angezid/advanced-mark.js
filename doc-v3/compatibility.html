@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
-<title>Compatibility with version 2</title>
+<title>Compatibility with version 2.x</title>
 <link rel="icon" href="../static/img/favicon.ico">
 <link href="../static/css/core.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="data/toc.js"></script>
@@ -44,8 +44,14 @@
 </div>
 </form>
 <main>
-<article id="article"><h2 id="compatibility-with-version-2">Compatibility with version 2</h2>
-<h5 id="the-requirement-for-g-flag-in-markregexp-api">The requirement for <code>g</code> flag in <code>markRegExp()</code> API:</h5>
+<article id="article"><h2 id="compatibility-with-version-2.x">Compatibility with version 2.x</h2>
+<h5 id="the-combineby-old-name-combinepatterns-option-become-the-default-in-the-mark-api">The <code>combineBy</code> (old name <code>combinePatterns</code>) option become the default in the <code>mark()</code> API</h5>
+<p>If your code uses <code>combinePatterns</code> option it should work correctly with version 3.x, otherwise set the <code>combineBy: 1</code> option.</p>
+<h5 id="removing-the-execution-object-from-the-filter-and-each-callbacks-info-object">Removing the 'execution' object from the <code>filter </code> and <code>each</code> callbacks` info object</h5>
+<p>This allow setting <code>info.abort = true; </code> instead of <code>info.execution.abort = true;</code>.</p>
+<h5 id="dropping-support-to-highlight-regexp-groups-without-the-d-flag">Dropping support to highlight RegExp groups without the <code>d</code> flag</h5>
+<p>RegExp.prototype.hasIndices is well established and works across many browser versions.</p>
+<h5 id="the-requirement-for-the-g-flag-in-the-markregexp-api">The requirement for the <code>g</code> flag in the <code>markRegExp()</code> API</h5>
 <details>
 <summary>Details:</summary>
 Prior to version 3, the RegExp <code>/(?<=word\s+)(?:\w+)?/g</code> failed to match <i>'match2'</i> in the string <i>'word match1 word $$$ word match2'</i> because of returning an empty match on <i>'word $$$'</i>.<br>
@@ -53,12 +59,11 @@ This causes breaking of the execution loop, as a result, there is no further mat
 Fixing this bug brought requirement of the <code>g</code> flag for normal workflow.
 </details>
 For backward compatibility, a RegExp without <code>g</code> flag is recompiled internally.
-<h5 id="dropping-support-to-highlight-regexp-groups-without-the-d-flag">Dropping support to highlight RegExp groups without the <code>d</code> flag:</h5>
-<h5 id="removing-cachetextnodes-option">Removing <code>cacheTextNodes</code> option:</h5>
-<p>Although in some cases this option increases performance, but not so radical as <code>combineBy</code> (old name <code>combinePatterns</code>) option.</p>
-<h5 id="removing-offset-property-from-filter-callback">Removing <code>offset</code> property from filter callback:</h5>
+<h5 id="removing-cachetextnodes-option">Removing <code>cacheTextNodes</code> option</h5>
+<p>Although in some cases this option increases performance, but not radical as <code>combineBy</code> (old name <code>combinePatterns</code>) option.<br />
+Plus, added support for the CSS Custom Highlight API.</p>
+<h5 id="removing-offset-property-from-filter-callback">Removing <code>offset</code> property from filter callback</h5>
 <p>I suspect it has very rare usage if any. If it's needed there is version 2.</p>
-<h5 id="adding-support-for-css-custom-highlight-api">Adding support for CSS Custom Highlight API:</h5>
 
 </article>
 <footer><div class="info">

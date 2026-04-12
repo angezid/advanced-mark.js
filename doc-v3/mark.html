@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -1041,6 +1041,12 @@
    * @</span><span class="dtag">property</span><span class="doc"> {boolean} groupStart - Indicate the start of group. It's only
    * available with both 'acrossElements' and 'separateGroups' options
    */</span>
+  <span class="doc">/**
+   * @</span><span class="dtag">typedef</span><span class="doc"> Mark~infoObject
+   * @</span><span class="dtag">type</span><span class="doc"> {object}
+   * @</span><span class="dtag">property</span><span class="doc"> {number} count - The number of matches so far
+   * @</span><span class="dtag">property</span><span class="doc"> {object} execution - The helper object for early abort. Contains boolean 'abort' property.
+   */</span>
 
   <span class="doc">/**
    * Group filter callback before each wrapping
@@ -1065,16 +1071,14 @@
    * Wraps match capturing groups
    * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
    * @</span><span class="dtag">param</span><span class="doc"> {number} unused
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~infoObject} info - The object used on filter and each callbacks
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processGroupsFilterCallback} filterCb - Filter callback
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processGroupsEachCallback} eachCb - Each callback
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processGroupsEndCallback} endCb
    * @</span><span class="dtag">access</span><span class="doc"> protected
    */</span>
-  processGroups(regex, unused, filterCb, eachCb, endCb) {
-    <span class="kwd">const</span> execution = { abort: <span class="kwd">false</span> },
-      info = { count: 0, execution: execution };
-
-    <span class="kwd">let</span> match, filterStart, eachStart, count = 0;
+  processGroups(regex, unused, info, filterCb, eachCb, endCb) {
+    <span class="kwd">let</span> count = info.count, match, filterStart, eachStart;
 
     <span class="kwd">this</span>.getTextNodes(dict =&gt; {
       dict.nodes.every(n =&gt; {
@@ -1098,10 +1102,10 @@
             eachCb(elemOrRange, info);
           });
 
-          <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+          <span class="kwd">if</span> (info.abort) <span class="kwd">break</span>;
         }
         <span class="com">// breaks loop on custom abort</span>
-        <span class="kwd">return</span> !execution.abort;
+        <span class="kwd">return</span> !info.abort;
       });
       endCb(count);
     });
@@ -1130,16 +1134,14 @@
    * Wraps match capturing groups across elements
    * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
    * @</span><span class="dtag">param</span><span class="doc"> {number} unused
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~infoObject} info - The object used on filter and each callbacks
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processGroupsAcrossFilterCallback} filterCb - Filter callback
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processGroupsAcrossEachCallback} eachCb - Each callback
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processGroupsAcrossEndCallback} endCb
    * @</span><span class="dtag">access</span><span class="doc"> protected
    */</span>
-  processGroupsAcross(regex, unused, filterCb, eachCb, endCb) {
-    <span class="kwd">const</span> execution = { abort: <span class="kwd">false</span> },
-      info = { count: 0, execution: execution };
-
-    <span class="kwd">let</span> match, filterStart, eachStart, count = 0;
+  processGroupsAcross(regex, unused, info, filterCb, eachCb, endCb) {
+    <span class="kwd">let</span> count = info.count, match, filterStart, eachStart;
 
     <span class="kwd">this</span>.getTextNodesAcross(dict =&gt; {
       <span class="kwd">while</span> ((match = regex.exec(dict.text)) !== <span class="kwd">null</span>) {
@@ -1147,7 +1149,7 @@
         filterStart = eachStart = <span class="kwd">true</span>;
 
         <span class="kwd">this</span>.wrapGroupsAcross(dict, match, regex, (nodeOrArray, group, grIndex) =&gt; { <span class="com">// filter</span>
-          <span class="com">// eslint-disable-next-line </span>
+          <span class="com">// eslint-disable-next-line</span>
           info.groupStart = undefined;
           info.matchStart = filterStart;
           info.groupIndex = grIndex;
@@ -1157,14 +1159,14 @@
         }, (elemOrRange, groupStart) =&gt; { <span class="com">// each</span>
           <span class="kwd">if</span> (eachStart) count++;
 
-          info.matchStart = eachStart;
           info.count = count;
+          info.matchStart = eachStart;
           info.groupStart = groupStart;
           eachCb(elemOrRange, info);
           eachStart = <span class="kwd">false</span>;
         });
         <span class="com">// breaks loop on custom abort</span>
-        <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+        <span class="kwd">if</span> (info.abort) <span class="kwd">break</span>;
       }
       endCb(count);
     });
@@ -1193,17 +1195,15 @@
    * Wraps the instance element and class around matches within single HTML elements in all contexts
    * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
    * @</span><span class="dtag">param</span><span class="doc"> {number} ignoreGroups - A number of RegExp capturing groups to ignore from the beginning of a match
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~infoObject} info - The object used on filter and each callbacks
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processMatchesFilterCallback} filterCb - Filter callback
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processMatchesEachCallback} eachCb - Each callback
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processMatchesEndCallback} endCb
    * @</span><span class="dtag">access</span><span class="doc"> protected
    */</span>
-  processMatches(regex, ignoreGroups, filterCb, eachCb, endCb) {
-    <span class="kwd">const</span> index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
-      execution = { abort: <span class="kwd">false</span> },
-      info = { count: 0, execution: execution };
-
-    <span class="kwd">let</span> match, str, count = 0;
+  processMatches(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
+    <span class="kwd">const</span> index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
+    <span class="kwd">let</span> count = info.count, match, str;
 
     <span class="kwd">this</span>.getTextNodes(dict =&gt; {
       dict.nodes.every(n =&gt; {
@@ -1233,10 +1233,10 @@
           <span class="com">// when using the Highlight API, no text nodes are split</span>
           <span class="kwd">if</span> ( !<span class="kwd">this</span>.opt.highlight) regex.lastIndex = 0;
 
-          <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+          <span class="kwd">if</span> (info.abort) <span class="kwd">break</span>;
         }
         <span class="com">// breaks loop on custom abort</span>
-        <span class="kwd">return</span> !execution.abort;
+        <span class="kwd">return</span> !info.abort;
       });
       endCb(count);
     });
@@ -1266,17 +1266,15 @@
    * Wraps the instance element and class around matches across all HTML elements in all contexts
    * @</span><span class="dtag">param</span><span class="doc"> {RegExp} regex - The regular expression to be searched for
    * @</span><span class="dtag">param</span><span class="doc"> {number} ignoreGroups - A number of RegExp capturing groups to ignore from the beginning of a match
+   * @</span><span class="dtag">param</span><span class="doc"> {Mark~infoObject} info - The object used on filter and each callbacks
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processMatchesAcrossFilterCallback} filterCb - Filter callback
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processMatchesAcrossEachCallback} eachCb - Each callback
    * @</span><span class="dtag">param</span><span class="doc"> {Mark~processMatchesAcrossEndCallback} endCb
    * @</span><span class="dtag">access</span><span class="doc"> protected
    */</span>
-  processMatchesAcross(regex, ignoreGroups, filterCb, eachCb, endCb) {
-    <span class="kwd">const</span> index = ignoreGroups === 0 ? 0 : ignoreGroups + 1,
-      execution = { abort: <span class="kwd">false</span> },
-      info = { count: 0, execution: execution };
-
-    <span class="kwd">let</span> match, str, matchStart, count = 0;
+  processMatchesAcross(regex, ignoreGroups, info, filterCb, eachCb, endCb) {
+    <span class="kwd">const</span> index = ignoreGroups === 0 ? 0 : ignoreGroups + 1;
+    <span class="kwd">let</span> count = info.count, match, str, matchStart;
 
     <span class="kwd">this</span>.getTextNodesAcross(dict =&gt; {
       <span class="kwd">while</span> ((match = regex.exec(dict.text)) !== <span class="kwd">null</span>) {
@@ -1309,7 +1307,7 @@
           eachCb(elemOrRange, info);
         });
 
-        <span class="kwd">if</span> (execution.abort) <span class="kwd">break</span>;
+        <span class="kwd">if</span> (info.abort) <span class="kwd">break</span>;
       }
       endCb(count);
     });
@@ -1518,6 +1516,8 @@
       fn = <span class="str">'processMatchesAcross'</span>;
     }
 
+    <span class="kwd">const</span> info = { count: 0, abort: <span class="kwd">false</span> };
+
     <span class="com">// solves backward-compatibility</span>
     <span class="kwd">if</span> ( !regexp.global &amp;&amp; !regexp.sticky) {
       <span class="kwd">let</span> splits = regexp.toString().split(<span class="str">'/'</span>);
@@ -1526,7 +1526,7 @@
     }
     <span class="kwd">this</span>.log(<span class="str">`RegExp "$</span>{regexp}<span class="str">"`</span>);
 
-    <span class="kwd">this</span>[fn](regexp, <span class="kwd">this</span>.opt.ignoreGroups, (nodeOrArray, match, filterInfo) =&gt; { <span class="com">// filter</span>
+    <span class="kwd">this</span>[fn](regexp, <span class="kwd">this</span>.opt.ignoreGroups, info, (nodeOrArray, match, filterInfo) =&gt; { <span class="com">// filter</span>
       <span class="kwd">return</span> <span class="kwd">this</span>.opt.filter(nodeOrArray, match, matchesSoFar, filterInfo);
 
     }, (elemOrRange, eachInfo) =&gt; { <span class="com">// each</span>
@@ -1595,43 +1595,41 @@
     }
 
     <span class="kwd">let</span> index = 0,
-      runCount = 0,
       totalMarks = 0,
-      totalMatches = 0,
+      matchesSoFar = 0,
       term;
 
     <span class="kwd">const</span> across = <span class="kwd">this</span>.opt.acrossElements,
       fn = across ? <span class="str">'processMatchesAcross'</span> : <span class="str">'processMatches'</span>,
-      array = <span class="kwd">this</span>.getRegExps(terms);
+      array = <span class="kwd">this</span>.getRegExps(terms),
+      info = { count: 0, abort: <span class="kwd">false</span> };
 
     <span class="kwd">const</span> loop = ({ regex, regTerms }) =&gt; {
       <span class="kwd">this</span>.log(<span class="str">`RegExp $</span>{regex}<span class="str">`</span>);
 
-      <span class="kwd">this</span>[fn](regex, 1, (nodeOrArray, _, filterInfo) =&gt; { <span class="com">// filter</span>
+      <span class="kwd">this</span>[fn](regex, 1, info, (nodeOrArray, _, filterInfo) =&gt; { <span class="com">// filter</span>
         <span class="kwd">if</span> ( !across || filterInfo.matchStart) {
           term = <span class="kwd">this</span>.getCurrentTerm(filterInfo.match, regTerms);
         }
         <span class="com">// termStats[term] is the number of wrapped matches so far for the current term</span>
-        <span class="kwd">return</span> <span class="kwd">this</span>.opt.filter(nodeOrArray, term, totalMatches + runCount, termStats[term], filterInfo);
+        <span class="kwd">return</span> <span class="kwd">this</span>.opt.filter(nodeOrArray, term, matchesSoFar, termStats[term], filterInfo);
 
       }, (elemOrRange, eachInfo) =&gt; { <span class="com">// each</span>
         totalMarks++;
-        runCount = eachInfo.count;
+        matchesSoFar = eachInfo.count;
 
         <span class="kwd">if</span> ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
         }
         <span class="kwd">this</span>.opt.each(elemOrRange, eachInfo);
 
-      }, (count) =&gt; { <span class="com">// end</span>
-        totalMatches += count;
-
+      }, (totalMatches) =&gt; { <span class="com">// end</span>
         <span class="kwd">const</span> noMatches = regTerms.filter(term =&gt; termStats[term] === 0);
         <span class="kwd">if</span> (noMatches.length) {
           <span class="kwd">this</span>.opt.noMatch(noMatches);
         }
 
-        <span class="kwd">if</span> (++index &lt; array.length) {
+        <span class="kwd">if</span> ( !info.abort &amp;&amp; ++index &lt; array.length) {
           loop(array[index]);
         } <span class="kwd">else</span> {
           <span class="kwd">this</span>.registerHighlight();

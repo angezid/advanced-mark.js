@@ -101,11 +101,11 @@ otherwise only the custom elements do have boundaries</li>
 <tr id="markRegExp-debug"><td><code>debug</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to log messages </td></tr>
 <tr id="markRegExp-log"><td><code>log</code></td><td><em class="type">object</em></td><td> <code>console</code></td><td>Log messages to a specific object 
 </td></tr>
-<tr id="markRegExp-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each match (with <code>acrossElements</code> option, if the match is located across several elements, it calls for each text node which is part of the match) 
+<tr id="markRegExp-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each match (<a href='#FAE'>FAE</a>) 
 <br><b>filter: (nodeOrArray, matchString, matchesSoFar, info) => {}</b>
 <ul>
-<li><code>nodeOrArray</code> <em class="type">Text <span class="or">or</span> Text[]</em> - The text node which includes the match (with the <code>acrossElements</code> option can be part of the match)<br>
-OR an array of text node(s) if the <code>Highlight</code> API is used with <code>acrossElements</code> and <code>rangeAcrossElements</code> options</li>
+<li><code>nodeOrArray</code> <em class="type">Text <span class="or">or</span> Text[]</em> - The text node which includes the match (<a href='#TAE'>TAE</a>)<br>
+OR an array of text node(s) which include the match if the <code>Highlight</code> API is used with <code>acrossElements</code> and <code>rangeAcrossElements</code> options</li>
 <li><code>matchString</code> <em class="type">string</em> - The matching string:
 <br></li>
 </ul>
@@ -122,14 +122,10 @@ OR an array of text node(s) if the <code>Highlight</code> API is used with <code
 <li><code>info</code> <em class="type">object</em>:
 <ul>
 <li><code>match</code> <em class="type">array</em> - The result of RegExp exec() method</li>
-<li><code>count</code> <em class="type">number</em> - The number of matches so far</li>
+<li><code>count</code> <em class="type">number</em> - The number of matches so far <a href='#MC'>MC</a></li>
 <li><code>matchStart</code> <em class="type">boolean</em> - indicate the start of a match  <a href='#AE'>AE</a></li>
 <li><code>groupIndex</code> <em class="type">number</em> - The current group index  <a href='#SG'>SG</a></li>
-<li><code>execution</code> <em class="type">object</em> - The helper object for early abort:
-<ul>
-<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks method execution</li>
-</ul>
-</li>
+<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks the method execution</li>
 </ul>
 </li>
 </ul>
@@ -142,15 +138,11 @@ OR an array of text node(s) if the <code>Highlight</code> API is used with <code
 <li><code>info</code> <em class="type">object</em>:
 <ul>
 <li><code>match</code> <em class="type">array</em> - The result of RegExp exec() method</li>
-<li><code>count</code> <em class="type">number</em> - The number of matches so far</li>
+<li><code>count</code> <em class="type">number</em> - The number of matches so far <a href='#MC'>MC</a></li>
 <li><code>matchStart</code> <em class="type">boolean</em> - Indicate the start of a match  <a href='#AE'>AE</a></li>
 <li><code>groupIndex</code> <em class="type">number</em> - The current index of match group  <a href='#SG'>SG</a></li>
 <li><code>groupStart</code> <em class="type">boolean</em> - Indicate the start of group  <a href='#AE SG'>AE SG</a></li>
-<li><code>execution</code> <em class="type">object</em> - The helper object for early abort:
-<ul>
-<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks method execution</li>
-</ul>
-</li>
+<li><code>abort</code> <em class="type">boolean</em> - Setting it to <code>true</code> breaks the method execution</li>
 </ul>
 </li>
 </ul>
@@ -201,9 +193,12 @@ instance.markRegExp(regex, options);</code></pre>
 <p>jQuery:</p>
 <pre><code class='lang-javascript'>$(<span class="str">'selector'</span>).markRegExp(regex, options);</code></pre>
 </details>
-<p id='AE'>• <b>AE</b> - only available with the option <code>acrossElements: true</code></p>
-<p id='SG'>• <b>SG</b> - only available with the option <code>separateGroups: true</code></p>
-<p id='AE SG'>• <b>AE SG</b> - only available when with options <code>acrossElements: true</code> and <code>separateGroups: true</code></p>
+<div>• <b>AE</b> - <span id='AE'>only available with the option <code>acrossElements: true</code></span></div>
+<div>• <b>SG</b> - <span id='SG'>only available with the option <code>separateGroups: true</code></span></div>
+<div>• <b>AE SG</b> - <span id='AE SG'>only available when with options <code>acrossElements: true</code> and <code>separateGroups: true</code></span></div>
+<div>• <b>MC</b> - <span id='MC'>were already wrapped in HTML elements OR for which were created <code>StaticRange/Range</code> objects</span></div>
+<div>• <b>FAE</b> - <span id='FAE'>with the <code>acrossElements</code> option, if the match is located across several elements, it calls for each text node which is part of the match  </span></div>
+<div>• <b>TAE</b> - <span id='TAE'>with the <code>acrossElements</code> option can be part of the match</span></div>
 
 </article>
 <footer><div class="info">

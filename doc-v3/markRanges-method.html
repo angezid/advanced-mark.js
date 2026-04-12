@@ -74,7 +74,7 @@ $(context).markRanges(ranges[, options]);</code></pre>
 <tr id="markRanges-highlightName"><td><code>highlightName</code></td><td><em class="type">string</em></td><td> <code>'advanced-markjs'</code></td><td>The name of the <code>Highlight</code> object necessary to register it using <code>HighlightRegistry</code> </td></tr>
 <tr id="markRanges-staticRanges"><td><code>staticRanges</code></td><td><em class="type">boolean</em></td><td> <code>true</code></td><td>Whether to use <code>StaticRange</code> objects instead of <code>Range</code> objects (<code>Highlight</code> API) 
 <p>See <a href="options.html#staticranges-option" class="tooltip">staticRanges</a> option for more details.</td></tr>
-<tr id="markRanges-rangeAcrossElements"><td><code>rangeAcrossElements</code></td><td><em class="type">boolean</em></td><td> <code>true</code></td><td>Whether to create a single <code>StaticRange/Range</code> object for matches located across elements (when using the <code>Highlight</code> API) 
+<tr id="markRanges-rangeAcrossElements"><td><code>rangeAcrossElements</code></td><td><em class="type">boolean</em></td><td> <code>true</code></td><td>Whether to create a single <code>StaticRange/Range</code> object for matches located across elements (<code>Highlight</code> API) 
 <p>See <a href="options.html#rangeacrosselements-option" class="tooltip">rangeAcrossElements</a> option for more details.</p>
 </td></tr>
 <tr id="markRanges-shadowDOM"><td><code>shadowDOM</code></td><td><em class="type">boolean <span class="or">or</span> object</em></td><td> <code>undefined</code></td><td>Whether to mark inside shadow DOMs 
@@ -87,7 +87,7 @@ $(context).markRanges(ranges[, options]);</code></pre>
 <tr id="markRanges-debug"><td><code>debug</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to log messages </td></tr>
 <tr id="markRanges-log"><td><code>log</code></td><td><em class="type">object</em></td><td> <code>console</code></td><td>Log messages to a specific object 
 </td></tr>
-<tr id="markRanges-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) 
+<tr id="markRanges-filter"><td><code>filter</code></td><td><em class="type">function</em></td><td> </td><td>A callback to filter matches. It calls for each range (<a href='#FR'>FR</a>) 
 <br><b>filter: (nodeOrArray, range, matchString, index) => {}</b>
 <ul>
 <li><code>nodeOrArray</code> <em class="type">Text <span class="or">or</span> Text[]</em> - The text node which includes the range or is the part of the range<br>
@@ -98,7 +98,7 @@ OR an array of text node(s) if the <code>Highlight</code> API is used with <code
 </ul>
 <p>The function <b>must</b> return either <code>true</code> (highlight) or <code>false</code> (skip highlighting).</p>
 </td></tr>
-<tr id="markRanges-each"><td><code>each</code></td><td><em class="type">function</em></td><td> </td><td>A callback for each created element OR <code>StaticRange/Range</code> object (<code>Highlight</code> API) 
+<tr id="markRanges-each"><td><code>each</code></td><td><em class="type">function</em></td><td> </td><td>A callback for each created HTML element OR <code>StaticRange/Range</code> object (<code>Highlight</code> API) 
 <br><b>each: (elementOrRange, range, rangeInfo) => {}</b>
 <ul>
 <li><code>elementOrRange</code> <em class="type">HTMLElement <span class="or">or</span> StaticRange <span class="or">or</span> Range</em> - The marked DOM element OR <code>StaticRange/Range</code> object (<code>Highlight</code> API)</li>
@@ -131,20 +131,17 @@ OR an array of text node(s) if the <code>Highlight</code> API is used with <code
     className: <span class="str">''</span>,
     exclude: [],
     
-    wrapAllRanges: <span class="kwd">false</span>,
-    markLines: <span class="kwd">false</span>,
-    
-    staticRanges: <span class="kwd">true</span>, <span class="com">// Highlight API</span>
-    rangeAcrossElements: <span class="kwd">true</span>, <span class="com">// Highlight API</span>
+    staticRanges: <span class="kwd">true</span>, <span class="com">// Highlight API only</span>
+    rangeAcrossElements: <span class="kwd">true</span>, <span class="com">// Highlight API only</span>
     shadowDOM: <span class="kwd">false</span>,
     iframes: <span class="kwd">false</span>,
     iframesTimeout: 5000,
     
-    filter: (textNode, range, matchingString, index) => {
+    filter: (nodeOrArray, range, matchingString, index) => {
         <span class="kwd">return</span> <span class="kwd">true</span>; <span class="com">// must return either true or false</span>
     },
-    each: (markElement, range, rangeInfo) => {},
-    done: (totalMarks, totalMatches) => {},
+    each: (elementOrRange, range, rangeInfo) => {},
+    done: (total, totalMatches) => {},
     noMatch: (range) => {},
     debug: <span class="kwd">false</span>,
     log: window.console
@@ -157,6 +154,7 @@ instance.markRanges(ranges, options);</code></pre>
 <p>jQuery:</p>
 <pre><code class='lang-javascript'>$(<span class="str">'selector'</span>).markRanges(ranges, options);</code></pre>
 </details>
+<div>• <b>FR</b> - <span id='FR'>if a range is located across several elements, it calls for each text node which includes the range</span></div>
 
 </article>
 <footer><div class="info">

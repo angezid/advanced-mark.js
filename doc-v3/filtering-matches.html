@@ -54,10 +54,10 @@ instance.mark(<span class="str">'AB'</span>, {
     <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
     <span class="str">'filter'</span>: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, info) =&gt; {
          <span class="com">// highlights only the first match</span>
-        info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">true</span>;
+        info.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">true</span>;
 
         <span class="com">// highlights the first 10 matches using internal counter</span>
-        <span class="kwd">if</span> (matchesSoFar &gt;= 10) { info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
+        <span class="kwd">if</span> (matchesSoFar &gt;= 10) { info.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
         <span class="com">// if (info.count &gt;= 10) {..}</span>
 
         <span class="com">// using external counter</span>
@@ -70,7 +70,7 @@ instance.mark(<span class="str">'AB'</span>, {
 
         <span class="com">// highlights between</span>
         <span class="kwd">if</span> (count &lt;= 10) { <span class="kwd">return</span>  <span class="kwd">false</span>; }
-        <span class="kwd">else</span> <span class="kwd">if</span> (count &gt; 20) { info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
+        <span class="kwd">else</span> <span class="kwd">if</span> (count &gt; 20) { info.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
 
         <span class="kwd">return</span>  <span class="kwd">true</span>;
     }
@@ -89,15 +89,15 @@ instance.mark(<span class="str">'AB'</span>, {
 <pre><code class="language-js"><span class="copy-code"></span><span class="kwd">let</span> count = 0,
     reg = <span class="jreg">/.../gi</span>;
 <span class="com">// if you have access to the RegExp object, you can also used 'reg.lastIndex = Infinity;'
-// instead of 'info.execution.abort = true;'</span>
+// instead of 'info.abort = true;'</span>
 instance.markRegExp(reg, {
     <span class="str">'acrossElements'</span>: <span class="kwd">true</span>,
     <span class="str">'filter'</span>: (nodeOrArray, matchString, matchesSoFar, info) =&gt; {
         <span class="com">// highlights only the first match</span>
-        info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">true</span>;
+        info.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">true</span>;
 
         <span class="com">// highlights the first 10 matches using internal counter</span>
-        <span class="kwd">if</span> (matchesSoFar &gt;= 10) { info.execution.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
+        <span class="kwd">if</span> (matchesSoFar &gt;= 10) { info.abort = <span class="kwd">true</span>; <span class="kwd">return</span>  <span class="kwd">false</span>; }
         <span class="com">// if (info.count &gt;= 10) {..}</span>
 
         <span class="com">// using external counter</span>
@@ -111,7 +111,7 @@ instance.markRegExp(reg, {
         <span class="com">// highlights between</span>
         <span class="kwd">if</span> (count &lt;= 10) { <span class="kwd">return</span>  <span class="kwd">false</span>; }
         <span class="kwd">else</span> <span class="kwd">if</span> (count &gt; 20) {
-            info.execution.abort = <span class="kwd">true</span>;
+            info.abort = <span class="kwd">true</span>;
             <span class="kwd">return</span>  <span class="kwd">false</span>;
         }
 
@@ -134,11 +134,11 @@ instance.markRegExp(reg, {
     <span class="com">// 'acrossElements': true,</span>
     <span class="str">'each'</span>: (markElement, info) =&gt; {
         <span class="com">// highlights only the first match</span>
-        info.execution.abort = <span class="kwd">true</span>;
+        info.abort = <span class="kwd">true</span>;
 
         <span class="com">// highlights the first 10 matches</span>
         <span class="kwd">if</span> (info.count &gt;= 10) {
-            info.execution.abort = <span class="kwd">true</span>;
+            info.abort = <span class="kwd">true</span>;
         }
     }
 });</code></pre>

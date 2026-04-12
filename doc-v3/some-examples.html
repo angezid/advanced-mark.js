@@ -55,9 +55,6 @@ instance.mark([<span class="str">'AB CD'</span>, <span class="str">'EF'</span>],
         <span class="com">// sets the external counter</span>
         matchCount = info.count;
 
-        <span class="com">// highlight the first 10 matches</span>
-        <span class="kwd">if</span> (info.count &gt;= 10) { info.execution.abort = <span class="kwd">true</span>; }
-
         <span class="com">// if the start of a match</span>
         <span class="kwd">if</span>(info.matchStart) {
             <span class="com">// set a class or attribute for HTML element</span>
@@ -81,9 +78,6 @@ context.mark(<span class="str">'AB CD EF'</span>, {
     <span class="str">'each'</span>: (markElement, info) =&gt; {
         <span class="com">// sets the external counter</span>
         matchCount = info.count; <span class="com">// also possible matchCount++;</span>
-        
-        <span class="com">// highlights the first 10 matches</span>
-        <span class="kwd">if</span> (info.count &gt;= 10) { info.execution.abort = <span class="kwd">true</span>; }
     },
     <span class="str">'done'</span>: (totalMarks, totalMatches, termStats) =&gt; {
         console.log(<span class="str">'Total matches = '</span> + totalMatches);
@@ -111,11 +105,11 @@ instance.markRegExp(<span class="jreg">/.../gi</span>, {
     }
 });</code></pre>
 <h3 id="example-of-using-the-y-flag-in-markregexp-method">Example of using the <code>y</code> flag in <code>markRegExp()</code> method</h3>
-<pre><code class="language-js"><span class="copy-code"></span><span class="com">// 'startIndexes' is an array of open tag's start indexes of the elements that need to be highlighted</span>
+<pre><code class="language-js"><span class="copy-code"></span><span class="com">// the 'startIndexes' is an array of open tags' start indexes of HTML tags that need to be highlighted</span>
 <span class="kwd">function</span> highlightOpenTags(startIndexes) {
     <span class="kwd">const</span> tagReg = <span class="jreg">/&lt;\w+[^&gt;]*&gt;/y</span>;
     <span class="kwd">let</span> i = 0; 
-    <span class="com">// set RegExp index at which to start the first match</span>
+    <span class="com">// set the RegExp index at which to start the first match</span>
     tagReg.lastIndex = startIndexes[i];
 
     <span class="kwd">new</span> Mark(context).markRegExp(tagReg, {
