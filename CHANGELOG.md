@@ -1,4 +1,15 @@
 
+### 3.0.0
+* Combine pattern become the default in the `mark()` API.
+* The default number of the `combineBy` (old name `combinePatterns`) option is increase from 10 to 100.
+* Added requirement for `g` flag in `markRegExp()` API when not using `acrossElements` option.
+* Dropped support to highlight RegExp groups without `d` flag.
+* Removed RegExpCreator module from the npm package.
+* Added the ability to abort a method execution on the 'each' callback.
+* Removed the 'execution' object from the 'filter ' and 'each' callbacks' info object.
+* Added support for CSS Custom Highlight API.
+* Dropped support of very older browsers.
+
 ### 2.7.1
 * Fixed the 'filter' callback 'matchesSoFar' counter (3 parameter) that affected the mark() method with the 'combinePatterns' option.
 

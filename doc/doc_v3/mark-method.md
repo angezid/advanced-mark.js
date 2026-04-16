@@ -1,0 +1,169 @@
+
+## mark() method
+### Syntax
+``` js
+// javascript
+const instance = new Mark(context);
+instance.mark(search[, options]);
+// jQuery
+$(selector).mark(search[, options]);
+```
+#### Parameters:
+* `search` {string|string[]} - string or array of strings
+* `options` {object} - Optional options:
+  * `element` {string} - A custom mark element e.g. `span`. (default is `'mark'`)
+  * `className` {string} - A custom class to be added to mark elements. (default is `''`)
+  * `exclude` {string|string[]} - A string or an array of selectors. Specifies DOM elements that should be excluded from searching. (default is `[]`)
+    See [exclude](options.html#exclude-option) option for more details.
+  * `separateWordSearch` {boolean|string} - A **boolean** value `true` specifies to break term(s) into separate words and search for each individual word. (default is `true`)
+    A **string** value `'preserveTerms'` preserved term(s) surrounding by double quotes from breaking into separate words.
+    See [separateWordSearch](options.html#separatewordsearch-option) option for more details.
+  * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
+  * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
+  * `combineBy` {number} - Combine a specified number of individual term patterns into one (old name `combinePatterns`) (default is `100`)
+    See [combineBy](options.html#combineby-option) option for more details.
+
+  * `accuracy` {string|object} -   (default is `'partially'`):
+    * Either one of the following <b>string</b> value:
+      * `'partially'` e.g. searching 'a' mark 'a' in words 'and', 'back', and 'visa'.
+      * `'exactly'` This option is actually forced to use an accuracy object, because the default word boundaries are white spaces and start/end of a text node content (with `acrossElements` option - start/end of a context).
+      * `'startsWith'` e.g. searching 'pre' mark the whole words 'prefix', 'predict', and 'prefab'.  
+      * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.  
+  
+  The **built-in** boundaries for values `startsWith` and `complementary` are:  
+  white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.  
+  See [accuracy](options.html#accuracy-option) option for more details.
+
+    * Or an <b>object</b> with two properties:
+      * `value`: `'exactly'` or `'startsWith'` or `'complementary'`
+      * `limiters`: a string or an array of custom word boundary characters,  
+        e.g. `{ value: 'exactly', limiters: ',.;:?!\\'"()' }`
+
+  * `wildcards` {string} - Two characters `?` and `*` used as wildcards unless they are escaped (default is `'disabled'`):
+    * `'disabled'`: The characters `?` and `*` match itself
+    * `'enabled'`:
+      * The character `?` match any non-white-space character zero or one time.
+      * The character `*` match any non-white-space character zero or more times.
+    * `'withSpaces'`:
+      * The character `?` match any character zero or one time.
+      * The character `*` match any character zero or more times, but as few times as possible.
+
+  * `ignoreJoiners` {boolean} - Whether to find matches that contain soft hyphen, zero width space, zero width non-joiner and zero width joiner (default is `false`)
+  * `ignorePunctuation` {string|string[]} - A string or an array of punctuation characters (default is `[]`)
+  * `synonyms` {object} - An object with synonyms  (default is `{}`)
+    e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa.  
+    The value can be an array, e.g. `{ 'be': ['am', 'is', 'are'] }`.
+    See [synonyms](options.html#synonyms-option) option for more details.
+ 
+  * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
+    See [acrossElements](options.html#acrosselements-option) option for more details.
+  * `blockElementsBoundary` {boolean|object} - Whether to limit matches within default HTML block elements and/or custom elements (default is `undefined`)  AE
+    See [Elements boundaries](elements-boundaries.md) for more details.
+    * `tagNames` {string[]} - An array of custom HTML tag names
+    * `extend` {boolean} - `true` extends default boundary elements by the custom elements
+      otherwise only the custom elements do have boundaries
+    * `char` {string} - A custom boundary character. The default is `\x01`.
+    
+  * `highlight` {Highlight} - If a `Highlight` object is provided, the library switches to using the `CSS Custom Highlight API` instead of wrapping matches in HTML elements (default is `undefined`)
+    See [highlight](options.html#highlight-option) option for more details.
+  * `highlightName` {string} - The name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'advanced-markjs'`)
+  * `staticRanges` {boolean} - Whether to use `StaticRange` objects instead of `Range` objects (`Highlight` API) (default is `true`)
+    See [staticRanges](options.html#staticranges-option) option for more details.
+  * `rangeAcrossElements` {boolean} - Whether to create a single `StaticRange/Range` object for matches located across elements (when using the `Highlight` API with `acrossElements` option) (default is `true`)
+    See [rangeAcrossElements](options.html#rangeacrosselements-option) option for more details.
+
+  * `shadowDOM` {boolean|object} - Whether to mark inside shadow DOMs (default is `undefined`)
+    See [shadowDOM](options.html#shadowdom-option) option for more details.
+  * `iframes` {boolean|object} - Whether to mark inside iframes (default is `false`)
+    See [iframes](options.html#iframes-option) option for more details.
+  * `iframesTimeout` {number} - The maximum time to wait for an iframe to load before skipping (default is `5000` ms)
+  * `debug` {boolean} - Whether to log messages (default is `false`)
+  * `log` {object} - Log messages to a specific object (default is `console`)
+
+  * `filter: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, info) => {}` {function} - A callback to filter matches. It calls for each match (FAE) (default is )
+    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (TAE)  
+      OR an array of text node(s) which include the match if the `Highlight` API is used with `acrossElements` and `rangeAcrossElements` options
+    * `term` {string} - The current term
+    * `matchesSoFar` {number} - The number of all matches so far
+    * `termMatchesSoFar` {number} - The number of matches for the current term so far
+    * `info` {object}:
+      * `match` {array} - The result of RegExp exec() method
+      * `count` {number} - The number of matches so far MC
+      * `matchStart` {boolean} - indicate the start of a match  AE
+      * `abort` {boolean} - Setting it to `true` breaks the method execution
+
+The function **must** return either `true` (highlight) or `false` (skip highlighting).  
+See [Filtering matches](filtering-matches.md) for more details.
+
+  * `each: (elementOrRange, info) => {}` {function} - A callback for each created element OR `StaticRange/Range` object (`Highlight` API) (default is )
+    * `elementOrRange` {HTMLElement|StaticRange|Range} - The marked DOM element OR `StaticRange/Range` object (`Highlight` API)
+    * `info` {object}:
+      * `match` {array} - The result of RegExp exec() method
+      * `count` {number} - The number of matches so far MC
+      * `matchStart` {boolean} - Indicate the start of a match  AE
+      * `abort` {boolean} - Setting it to `true` breaks the method execution.
+
+See [Code examples](some-examples.md).
+**Note:** the `filter` and `each` callbacks are shared the `info` object with updated properties.
+
+  * `done: (total, totalMatches, termStats) => {}` {function} - A callback on finish (default is )
+    * `total` {number} - The total number of created HTML elements OR `StaticRange/Range` objects (`Highlight` API)
+    * `totalMatches` {number} - The total number of highlighted matches
+    * `termStats` {object} - An object containing an individual term's matches count
+
+  * `noMatch: (terms) => {}` {function} - A callback that is called when a term has no match at all (default is )
+    * `terms` {string[]} - An array containing not found term(s)
+
+<details class="internal-code">
+<summary><b>Example with default options values</b></summary>
+
+<pre><code class="language-js">const options = {
+    element: 'mark',
+    className: '',
+    separateWordSearch: true,
+    diacritics: true,
+    exclude: [],
+    caseSensitive: false,
+    accuracy: 'partially',
+    synonyms: {},
+    ignoreJoiners: false,
+    ignorePunctuation: [],
+    wildcards: 'disabled',
+    
+    acrossElements: false,
+    combineBy: 10,
+    blockElementsBoundary: false,
+    
+    staticRanges: true, // Highlight API
+    rangeAcrossElements: true, // Highlight API
+    shadowDOM: false,
+    iframes: false,
+    iframesTimeout: 5000,
+    
+    filter: (nodeOrArray, term, marksSoFar, termMarksSoFar, filterInfo) => {
+        return true; // must return either true or false
+    },
+    each: (elementOrRange, eachInfo) => {},
+    done: (total, totalMatches, termStats) => {},
+    noMatch: (term) => {},
+    debug: false,
+    log: window.console
+};
+</code></pre>
+
+JavaScript:
+
+<pre><code class='lang-javascript'>
+var instance = new Mark(document.querySelector('selector'));
+instance.mark('test', options);
+</code></pre>
+
+jQuery:
+
+<pre><code class='lang-javascript'>$('selector').mark('test', options);</code></pre>
+</details>
+
+* AE - only available with the option `acrossElements: true`
+* MC - were already wrapped in HTML elements OR for which were created `StaticRange/Range` objects
+* FAE - with the `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match  
+* TAE - with the `acrossElements` option can be part of the match

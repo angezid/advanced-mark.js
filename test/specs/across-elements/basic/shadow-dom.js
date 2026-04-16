@@ -36,21 +36,6 @@ describe('shadow DOM with acrossElements option', () => {
     });
   });
 
-  // important to test 'cacheTextNodes' option
-  it('should mark/unmark shadow DOM with cacheTextNodes option', done => {
-    new Mark($ctx[0]).mark(array, {
-      'diacritics' : false,
-      'acrossElements' : true,
-      'shadowDOM' : true,
-      'cacheTextNodes' : true,
-      'exclude' : exclude,
-      'done' : () => {
-        test();
-        unmark(done);
-      }
-    });
-  });
-
   // important to test 'blockElementsBoundary' option
   it('should mark/unmark shadow DOM with blockElementsBoundary option', done => {
     new Mark($ctx[0]).mark(array, {

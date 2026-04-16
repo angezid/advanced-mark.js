@@ -7,7 +7,7 @@ module.exports = config => {
     frameworks: ['jasmine-jquery', 'jasmine'],
     files: [
       'node_modules/jquery/dist/jquery.min.js',
-      'dist/!(*.es6|*.umd|*.min|regexpcreator).js',
+      'dist/!(*.es6|*.umd|*.min).js',
       'test/specs/configuration.js',
       'test/specs/**/*.js',
       {
@@ -19,6 +19,9 @@ module.exports = config => {
     exclude: [
       //'test/specs/!(across-elements)/**/*.js',
       //'test/specs/!(basic)/*.js',
+      //'test/specs/!(highlight)/*.js',
+      //'test/specs/!(regexp)/*.js',
+      //'test/specs/!(iframes)/*.js',
       //'test/specs/basic/*.js',
       //'test/specs/across-elements/**/*.js'
     ],

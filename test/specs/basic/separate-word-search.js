@@ -10,8 +10,8 @@ describe('basic mark with separateWordsearch', () => {
     new Mark($ctx1[0]).mark('lorem ipsum test', {
       'diacritics': false,
       'separateWordSearch': true,
-      'noMatch': term => {
-        notFound.push(term);
+      'noMatch': array => {
+        notFound = array;
       },
       'done': () => {
         new Mark($ctx2[0]).mark(['lorem ipsum'], {

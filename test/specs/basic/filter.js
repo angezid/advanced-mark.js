@@ -50,7 +50,7 @@ describe('basic mark with filter callback', () => {
 
     new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
       'diacritics': false,
-      'combinePatterns' : 3,
+      'combineBy' : 3,
       'filter': (node, term, matchesSoFar) => {
         count = matchesSoFar;
         return true;
@@ -64,13 +64,13 @@ describe('basic mark with filter callback', () => {
     });
   });
 
-  it('should correctly count matches so far with \'combinePatterns: Infinity\'', done => {
+  it('should correctly count matches so far with \'combineBy: Infinity\'', done => {
     new Mark($ctx[0]).mark('lorem ipsum dolor', {
       'diacritics': false,
-      'combinePatterns' : Infinity,
+      'combineBy' : Infinity,
       'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
         if (totalMatchesSoFar >= 9) {
-          info.execution.abort = true;
+          info.abort = true;
           return  false;
         }
         return true;
@@ -79,6 +79,25 @@ describe('basic mark with filter callback', () => {
         expect($ctx.find('mark').length).toBe(9);
         expect(totalMatches).toBe(9);
 
+        done();
+      }
+    });
+  });
+
+  it('should correctly count matches so far when using \'info.count\' property', done => {
+    new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
+      'diacritics': false,
+      'accuracy' : 'exactly',
+      'combineBy': 3,
+      'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
+        if (info.count >= 19) {
+          info.abort = true;
+          return  false;
+        }
+        return true;
+      },
+      'done': (total, totalMatches) => {
+        expect(totalMatches).toBe(19);
         done();
       }
     });

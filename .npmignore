@@ -1,18 +1,13 @@
 # Files
 package-lock.json
-.editorconfig
 .gitattributes
 .gitignore
-.jsbeautifyrc
 .eslintrc.json
-
-# Personal
-TODO
-npm-debug.log*
 
 # Directories
 node_modules/
 build/
+performance/
 scripts/
 doc/
 doc_v2/

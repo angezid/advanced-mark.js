@@ -9,8 +9,8 @@ describe('basic mark with an array of keywords', () => {
     new Mark($ctx[0]).mark(['lorem', 'ipsum', 'test', 'hey'], {
       'diacritics': false,
       'separateWordSearch': false,
-      'noMatch': term => {
-        notFound.push(term);
+      'noMatch': array => {
+        notFound = array;
       },
       'done': () => {
         done();

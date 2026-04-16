@@ -12,8 +12,8 @@ describe('basic mark with synonyms and noMatch', () => {
       },
       'separateWordSearch': false,
       'diacritics': false,
-      'noMatch': term => {
-        notFound.push(term);
+      'noMatch': array => {
+        notFound = array;
       },
       'done': () => {
         done();

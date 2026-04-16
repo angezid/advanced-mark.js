@@ -10,12 +10,13 @@
 -  Iframes Support
 -  Shadow DOM Support
 -  Diacritics Support
+-  CSS Custom Highlight API
 -  Virtual DOMs like JSDOM Support
 -  Highly Customizable
 
-See [Playground](https://angezid.github.io/advanced-mark.js/playground) which can speak better than any words.  
-[Documentation](https://angezid.github.io/advanced-mark.js/doc-v2).  
-The [Performance page](https://angezid.github.io/advanced-mark.js/performance-v3) can also be used to evaluate the performance of `advanced-mark.js` version 2.x because the performance of wrapping matches in HTML elements is very close for both versions. Just uncheck the `Highlight API` checkbox.
+See [Playground](https://angezid.github.io/advanced-mark.js/playground-v3) which can speak better than any words.  
+See [Performance page](https://angezid.github.io/advanced-mark.js/performance-v3) which demonstrate the library performance.  
+[Documentation](https://angezid.github.io/advanced-mark.js/doc-v3).
 
 Happy highlighting!
 
