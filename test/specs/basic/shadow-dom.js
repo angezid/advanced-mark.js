@@ -39,24 +39,6 @@ describe('shadow DOM without acrossElements option', () => {
     });
   });
 
-  // important to test 'cacheTextNodes' option
-  it('should mark/unmark shadow DOM with cacheTextNodes option', done => {
-    const styleObj = {};
-
-    new Mark($ctx[0]).mark(array, {
-      'diacritics' : false,
-      'shadowDOM' : styleObj,
-      'cacheTextNodes' : true,
-      'exclude' : exclude,
-      'done' : () => {
-        let obj = collectElements($ctx[0]);
-        expect(obj.elements).toHaveLength(11);
-        testExcluded(obj.elements);
-        unmark(done);
-      }
-    });
-  });
-
   function testExcluded(elements) {
     expect(elements.filter((el) => {
       return /excluded/i.test(el.textContent);

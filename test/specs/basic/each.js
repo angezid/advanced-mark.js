@@ -23,22 +23,21 @@ describe('basic mark with each callback', () => {
     });
   });
 
-  /*it('should correctly count matches so far on the \'each\' callback', done => {
-    let count = 0;
-
+  it('should be able to break an execution on the \'each\' callback', done => {
     new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
       'diacritics': false,
       'accuracy' : 'exactly',
-      'combinePatterns': 3,
+      'combineBy': 3,
       'each': (elem, info) => {
-        count = info.count;
+        if (info.count >= 19) {
+          info.abort = true;
+        }
       },
-      'done': (total) => {
-        expect(count).toBe(29);
-        expect(total).toBe(29);
+      'done': (total, totalMatches) => {
+        expect(totalMatches).toBe(19);
         done();
       }
     });
-  });*/
+  });
 
 });

@@ -1,5 +1,5 @@
 
-// Type definitions for advanced-mark.js v2.7.1
+// Type definitions for advanced-mark.js v3.0.0
 // Based on "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/mark.js"
 
 /// <reference types="jquery"/>
@@ -16,8 +16,8 @@ declare namespace Mark {
     style: string;
   }
 
-  interface ExecutionObject {
-    abort: boolean;
+  interface IframesObject {
+    style: string;
   }
 
   interface AccuracyObject {
@@ -39,36 +39,40 @@ declare namespace Mark {
     ignoreJoiners?: boolean;
     ignorePunctuation?: string | string[];
     wildcards?: 'disabled' | 'enabled' | 'withSpaces';
-    iframes?: boolean;
+    iframes?: boolean | IframesObject;
     iframesTimeout?: number;
 
-    combinePatterns?: boolean;
-    cacheTextNodes?: boolean;
+    highlight?: Highlight;
+    highlightName?: string;
+    staticRanges?: boolean;
+    rangeAcrossElements?: boolean;
+    combineby?: number;
     blockElementsBoundary?: boolean | BoundaryObject;
     shadowDOM?: boolean | ShadowObject;
 
     filter?(
-      textNode: Text, term: string, totalMatchesSoFar: number, termMatchesSoFar: number, filterInfo: MarkFilterInfo
+      nodeOrArray: Text | Text[], term: string, totalMatchesSoFar: number, termMatchesSoFar: number, filterInfo: MarkFilterInfo
     ) : boolean;
-    each?(element: Element, eachInfo: MarkEachInfo) : void;
+    each?(elementOrRange: Element | StaticRange | Range, eachInfo: MarkEachInfo) : void;
     done?(totalMarks: number, totalMatches: number, termStats: TermStats) : void;
 
-    noMatch?(term: string | string[]) : void;
+    noMatch?(term: string[]) : void;
     debug?: boolean;
     log?: object;
   }
 
   interface MarkFilterInfo {
     match: RegExpExecArray;
-    matchStart: boolean;
-    execution: ExecutionObject;
-    offset: number;
+    matchStart?: boolean;
+    count: number;
+    abort: boolean;
   }
 
   interface MarkEachInfo {
     match: RegExpExecArray;
-    matchStart: boolean;
+    matchStart?: boolean;
     count: number;
+    abort: boolean;
   }
 
   interface TermStats {
@@ -81,16 +85,20 @@ declare namespace Mark {
     exclude?: string | string[];
     acrossElements?: boolean;
     ignoreGroups?: number;
-    iframes?: boolean;
+    iframes?: boolean | IframesObject;
     iframesTimeout?: number;
 
+    highlight?: Highlight;
+    highlightName?: string;
+    staticRanges?: boolean;
+    rangeAcrossElements?: boolean;
     separateGroups?: boolean;
     wrapAllRanges?: boolean;
     blockElementsBoundary?: boolean | BoundaryObject;
     shadowDOM?: boolean | ShadowObject;
 
-    filter?(textNode: Text, regexp: string, matchesSoFar: number, filterInfo: RegExpFilterInfo) : boolean;
-    each?(element: Element, eachInfo: RegExpEachInfo) : void;
+    filter?(nodeOrArray: Text | Text[], regexp: string, matchesSoFar: number, filterInfo: RegExpFilterInfo) : boolean;
+    each?(elementOrRange: Element | StaticRange | Range, eachInfo: RegExpEachInfo) : void;
     done?(totalMarks: number, totalMatches: number) : void;
 
     noMatch?(regexp: string) : void;
@@ -100,47 +108,52 @@ declare namespace Mark {
 
   interface RegExpFilterInfo {
     match: RegExpExecArray;
-    matchStart: boolean;
-    execution: ExecutionObject;
+    matchStart?: boolean;
+    count: number;
     groupIndex?: number;
-    offset?: number;
+    abort: boolean;
   }
 
   interface RegExpEachInfo {
     match: RegExpExecArray;
-    matchStart: boolean;
+    matchStart?: boolean;
     count: number;
     groupIndex?: number;
     groupStart?: boolean;
+    abort: boolean;
   }
 
   interface RangesOptions {
     element?: string;
     className?: string;
     exclude?: string | string[];
-    iframes?: boolean;
+    iframes?: boolean | IframesObject;
     iframesTimeout?: number;
 
+    highlight?: Highlight;
+    highlightName?: string;
+    staticRanges?: boolean;
+    rangeAcrossElements?: boolean;
     wrapAllRanges?: boolean;
     markLines?: boolean;
     shadowDOM?: boolean | ShadowObject;
 
-    filter?(textNode: Text, range: Range, matchingString: string, currentIndex: number) : boolean;
-    each?(element: Element, range: Range, eachInfo: RangeEachInfo) : void;
+    filter?(nodeOrArray: Text | Text[], range: MarkRange, matchingString: string, currentIndex: number) : boolean;
+    each?(elementOrRange: Element | StaticRange | Range, range: MarkRange, eachInfo: RangeEachInfo) : void;
     done?(totalMarks: number, totalRanges: number) : void;
 
-    noMatch?(range: string) : void;
+    noMatch?(range: MarkRange) : void;
     debug?: boolean;
     log?: object;
   }
 
-  interface Range {
+  interface MarkRange {
     start: number;
     length: number;
   }
 
   interface RangeEachInfo {
-    matchStart: boolean;
+    matchStart?: boolean;
     count: number;
   }
 
@@ -148,9 +161,11 @@ declare namespace Mark {
     element?: string;
     className?: string;
     exclude?: string | string[];
-    iframes?: boolean;
+    iframes?: boolean | IframesObject;
     iframesTimeout?: number;
     shadowDOM?: boolean;
+    highlight?: Highlight;
+    highlightName?: string | string[];
 
     done?() : void;
     debug?: boolean;
@@ -185,7 +200,7 @@ declare class Mark {
   * Note that the start positions must be specified including whitespace characters.
   * @param options Optional options
   */
-  markRanges(ranges: ReadonlyArray<Mark.Range>, options?: Mark.RangesOptions) : void;
+  markRanges(ranges: ReadonlyArray<Mark.MarkRange>, options?: Mark.RangesOptions) : void;
 
   /**
   * A method to remove mark elements created by mark.js and normalize text nodes.
@@ -203,7 +218,7 @@ declare global {
 
     markRegExp(regexp: RegExp, options?: Mark.RegExpOptions) : void;
 
-    markRanges(ranges: ReadonlyArray<Mark.Range>, options?: Mark.RangesOptions) : void;
+    markRanges(ranges: ReadonlyArray<Mark.MarkRange>, options?: Mark.RangesOptions) : void;
 
     unmark(options?: Mark.UnmarkOptions) : void;
   }
@@ -213,7 +228,7 @@ declare global {
 
     markRegExp(regexp: RegExp, options?: Mark.RegExpOptions) : void;
 
-    markRanges(ranges: ReadonlyArray<Mark.Range>, options?: Mark.RangesOptions) : void;
+    markRanges(ranges: ReadonlyArray<Mark.MarkRange>, options?: Mark.RangesOptions) : void;
 
     unmark(options?: Mark.UnmarkOptions) : void;
   }

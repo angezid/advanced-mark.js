@@ -36,36 +36,6 @@ describe('empty text nodes', () => {
     });
   });
 
-  it('should not create empty text nodes with \'cacheTextNodes\' option', done => {
-    let original = countTextNodes($ctx[0]),
-      instance = new Mark($ctx[0]),
-      previous = 0,
-      next = 0;
-
-    instance.mark(['Lorem', 'ipsum'], {
-      'diacritics' : false,
-      'cacheTextNodes' : true,
-      'each' : elem => {
-        if (checkNode(elem.previousSibling)) {
-          previous++;
-        }
-        if (checkNode(elem.nextSibling)) {
-          next++;
-        }
-      },
-      'done' : () => {
-        instance.unmark({
-          'done' : () => {
-            expect('previous ' + previous).toBe('previous 0');
-            expect('next ' + next).toBe('next 0');
-            expect(countTextNodes($ctx[0])).toBe(original);
-            done();
-          }
-        });
-      }
-    });
-  });
-
   function checkNode(node) {
     return node && node.nodeType === Node.TEXT_NODE && node.textContent.length === 0;
   }

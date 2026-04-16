@@ -129,12 +129,23 @@ class RegExpCreator {
    * Creates a regular expression to match the specified search term considering
    * the available option settings
    * @param {string} str - The search term to be used
-   * @param {boolean} patterns - Whether to return an object with pattern parts or RegExp object
-   * @return {RegExpCreator~patternObj|RegExp}
+   * @return {RegExp}
    */
-  create(str, patterns) {
-    const flags = 'g' + (this.opt.caseSensitive ? '' : 'i');
+  create(terms) {
+    const flags = `g${this.opt.caseSensitive ? '' : 'i'}`;
 
+    terms = terms.map(str => {
+      // wraps an individual term pattern in a capturing group; that allows to determine
+      // in filter callback which term is currently matched
+      return '(' + this.createPattern(str, flags) + ')';
+    });
+
+    const obj = this.createAccuracy(terms.join('|'));
+
+    return new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, flags);
+  }
+
+  createPattern(str, flags) {
     str = this.checkWildcardsEscape(str);
     str = this.createSynonyms(str, flags);
 
@@ -147,6 +158,7 @@ class RegExpCreator {
     if (this.opt.diacritics) {
       str = this.createDiacritics(str);
     }
+
     str = str.replace(/\s+/g, '[\\s]+');
 
     if (joiners) {
@@ -157,45 +169,11 @@ class RegExpCreator {
       str = this.createWildcards(str);
     }
 
-    const obj = this.createAccuracy(str);
-
-    return (patterns
-      ? obj
-      : new RegExp(`${obj.lookbehind}(${obj.pattern})${obj.lookahead}`, flags));
+    return str;
   }
 
   /**
-    * Creates a single combine pattern from an array of string considering the available option settings
-    * @param {Array} array - The array of string
-    * @param {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
-    * @return {RegExpCreator~patternObj|null}
-    */
-  createCombinePattern(array, capture) {
-    if ( !Array.isArray(array) || !array.length) {
-      return null;
-    }
-    const group = capture ? '(' : '(?:',
-      obj = this.create(array[0], true);
-    obj.pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
-
-    return obj;
-  }
-
-  /**
-   * Sort array from longest entry to shortest
-   * @param {array} arry - The array to sort
-   * @return {array}
-   */
-  sortByLength(arry) {
-    return arry.sort((a, b) => a.length === b.length ?
-      // sort a-z for same length elements
-      (a > b ? 1 : -1) :
-      b.length - a.length
-    );
-  }
-
-  /**
-   * Escapes RegExp special characters
+   * Escapes the RegExp special characters
    * @param {string} str - The string to escape
    * @return {string}
    */
@@ -204,7 +182,7 @@ class RegExpCreator {
   }
 
   /**
-   * Splits string if val is string, removes duplicates, escape '-^]\\' which are special in RegExp characters set
+   * Splits val if it is a string, removes duplicates, escape '-^]\\' which are special in the RegExp characters set
    * @param {array|string} val - The parameter to process
    * @return {string}
    */
@@ -223,7 +201,7 @@ class RegExpCreator {
   distinct(array) {
     const result = [];
     array.forEach(item => {
-      if (item.trim() && result.indexOf(item) === -1) {
+      if (item.trim() && !result.includes(item)) {
         result.push(item);
       }
     });
@@ -238,18 +216,17 @@ class RegExpCreator {
   createSynonyms(str, flags) {
     const syn = this.opt.synonyms;
 
-    if ( !Object.keys(syn).length) {
-      return str;
-    }
-
     for (const key in syn) {
       if (syn.hasOwnProperty(key)) {
         let array = Array.isArray(syn[key]) ? syn[key] : [syn[key]];
         array.unshift(key);
-        array = this.sortByLength(this.distinct(array)).map(term => this.checkWildcardsEscape(term));
+        array = this.distinct(array);
 
         if (array.length > 1) {
-          const pattern = array.map(k => this.escape(k)).join('|');
+          array.sort((a, b) => b.length - a.length);
+          array = array.map(term => this.checkWildcardsEscape(term));
+
+          const pattern = array.map(term => this.escape(term)).join('|');
           str = str.replace(new RegExp(pattern, flags), `(?:${array.join('|')})`);
         }
       }
@@ -353,16 +330,17 @@ class RegExpCreator {
 
     return str.split('').map(ch => {
       for (let i = 0; i < array.length; i += 2) {
-        const lowerCase = array[i].indexOf(ch) !== -1;
+        const lowerCase = array[i].includes(ch);
 
         if (this.opt.caseSensitive) {
           if (lowerCase) {
             return '[' + array[i] + ']';
 
-          } else if (array[i+1].indexOf(ch) !== -1) {
+          }
+          if (array[i+1].includes(ch)) {
             return '[' + array[i+1] + ']';
           }
-        } else if (lowerCase || array[i+1].indexOf(ch) !== -1) {
+        } else if (lowerCase || array[i+1].includes(ch)) {
           return '[' + array[i] + array[i+1] + ']';
         }
       }
@@ -379,33 +357,37 @@ class RegExpCreator {
    * @return {RegExpCreator~patternObj}
    */
   createAccuracy(str) {
-    const chars = '!-/:-@[-`{-~¡¿'; // '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+    // '!"#$%&\'()*+,\\-./:;<=>?@[\\]\\\\^_`{|}~¡¿';
+    const chars = '!-/:-@[-`{-~¡¿';
     let accuracy = this.opt.accuracy,
       lookbehind = '()',
       pattern = str,
       lookahead = '',
       limiters;
 
-    if (typeof accuracy !== 'string') {
-      limiters = this.preprocess(accuracy.limiters);
-      accuracy = accuracy.value;
-    }
+    if (accuracy !== 'partially') {
+      if (typeof accuracy !== 'string') {
+        limiters = this.preprocess(accuracy.limiters);
+        accuracy = accuracy.value;
+      }
 
-    if (accuracy === 'exactly') {
-      const charSet = limiters ? '[\\s' + limiters + ']' : '\\s';
-      lookbehind = `(^|${charSet})`;
-      lookahead = `(?=$|${charSet})`;
+      if (accuracy === 'exactly') {
+        const charSet = limiters ? '[\\s' + limiters + ']' : '\\s';
+        lookbehind = `(^|${charSet})`;
+        lookahead = `(?=$|${charSet})`;
 
-    } else {
-      const chs = limiters || chars,
-        charSet = `[^\\s${chs}]*`;
+      } else {
+        const chs = limiters || chars,
+          charSet = `[^\\s${chs}]*`;
+        pattern = `(?:${str})`;
 
-      if (accuracy === 'complementary') {
-        pattern = charSet + str + charSet;
+        if (accuracy === 'complementary') {
+          pattern = charSet + pattern + charSet;
 
-      } else if (accuracy === 'startsWith') {
-        lookbehind = `(^|[\\s${chs}])`;
-        pattern = str.split(/\[\\s\]\+/).join(charSet + '[\\s]+') + charSet;
+        } else if (accuracy === 'startsWith') {
+          lookbehind = `(^|[\\s${chs}])`;
+          pattern = pattern.split(/\[\\s\]\+/).join(charSet + '[\\s]+') + charSet;
+        }
       }
     }
     return { lookbehind, pattern, lookahead };

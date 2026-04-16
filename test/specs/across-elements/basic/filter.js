@@ -60,21 +60,21 @@ describe('mark with acrossElements and filter callback', () => {
     });
   });
 
-  it('should correctly count matches so far with \'combinePatterns: Infinity\'', done => {
-    new Mark($ctx[0]).mark('lorem ipsum dolor', {
+  it('should correctly count matches so far when using \'info.count\' property', done => {
+    new Mark($ctx[0]).mark('lorem ipsum dolor sit amet et diam vero', {
       'diacritics': false,
+      'accuracy': 'exactly',
       'acrossElements': true,
-      'combinePatterns' : Infinity,
+      'combineBy': 3,
       'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
-        if (totalMatchesSoFar >= 9) {
-          info.execution.abort = true;
+        if (info.count >= 19) {
+          info.abort = true;
           return  false;
         }
         return true;
       },
-      'done': (m, totalMatches) => {
-        expect(totalMatches).toBe(9);
-
+      'done': (total, totalMatches) => {
+        expect(totalMatches).toBe(19);
         done();
       }
     });

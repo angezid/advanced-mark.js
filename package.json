@@ -1,6 +1,6 @@
 {
   "name": "advanced-mark.js",
-  "version": "2.7.1",
+  "version": "3.0.0",
   "keywords": [
     "highlight",
     "highlight-text",
@@ -18,7 +18,7 @@
     "name": "angezid",
     "url": "https://github.com/angezid"
   },
-  "description": "A fast JavaScript library to highlight any text on a browser page. It has support for virtual DOMs like JSDOM.",
+  "description": "A fast JavaScript library to highlight any text on a browser page. It has support for CSS Custom Highlight API and virtual DOMs like JSDOM.",
   "main": "dist/mark.js",
   "types": "dist/mark.es6.d.ts",
   "repository": "angezid/advanced-mark.js",
@@ -29,11 +29,12 @@
   "scripts": {
     "eslint": "eslint src/ test/",
     "karma": "karma start build/karma.config.js",
-    "copy-files": "node scripts/copy-types-files.js && node scripts/add-import.js",
+    "copy-files": "node scripts/copy-types-files.js",
+    "build-performance": "node scripts/build-performance.js",
     "test-jsdom": "node jsdom-tests/test.js",
     "jsdoc": "jsdoc src/lib/ -d build/doc -R README.md -P package.json -r",
     "compile": "rollup -c build/rollup.config.js",
-    "build": "npm run test && npm run copy-files && npm run jsdoc",
+    "build": "npm run test && npm run copy-files && npm run build-performance && npm run jsdoc",
     "dev": "nodemon --exec \"npm run eslint && npm run compile\" --watch src/ --watch test/ -e js,html",
     "test": "npm run eslint && npm run compile && npm run karma && npm run test-jsdom"
   },
