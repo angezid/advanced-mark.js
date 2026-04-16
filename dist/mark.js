@@ -389,20 +389,6 @@
         return str;
       }
     }, {
-      key: "createCombinePattern",
-      value: function createCombinePattern(array, capture) {
-        var _this3 = this;
-        if (!Array.isArray(array) || !array.length) {
-          return null;
-        }
-        var group = capture ? '(' : '(?:',
-          obj = this.create(array[0], true);
-        obj.pattern = this.distinct(array.map(function (str) {
-          return "".concat(group).concat(_this3.create(str, true).pattern, ")");
-        })).join('|');
-        return obj;
-      }
-    }, {
       key: "escape",
       value: function escape(str) {
         return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
@@ -429,7 +415,7 @@
     }, {
       key: "createSynonyms",
       value: function createSynonyms(str, flags) {
-        var _this4 = this;
+        var _this3 = this;
         var syn = this.opt.synonyms;
         for (var key in syn) {
           if (syn.hasOwnProperty(key)) {
@@ -441,10 +427,10 @@
                 return b.length - a.length;
               });
               array = array.map(function (term) {
-                return _this4.checkWildcardsEscape(term);
+                return _this3.checkWildcardsEscape(term);
               });
               var pattern = array.map(function (term) {
-                return _this4.escape(term);
+                return _this3.escape(term);
               }).join('|');
               str = str.replace(new RegExp(pattern, flags), "(?:".concat(array.join('|'), ")"));
             }
@@ -496,12 +482,12 @@
     }, {
       key: "createDiacritics",
       value: function createDiacritics(str) {
-        var _this5 = this;
+        var _this4 = this;
         var array = this.chars;
         return str.split('').map(function (ch) {
           for (var i = 0; i < array.length; i += 2) {
             var lowerCase = array[i].includes(ch);
-            if (_this5.opt.caseSensitive) {
+            if (_this4.opt.caseSensitive) {
               if (lowerCase) {
                 return '[' + array[i] + ']';
               }
@@ -521,7 +507,7 @@
         var chars = '!-/:-@[-`{-~¡¿';
         var accuracy = this.opt.accuracy,
           lookbehind = '()',
-          pattern = "(?:".concat(str, ")"),
+          pattern = str,
           lookahead = '',
           limiters;
         if (accuracy !== 'partially') {
@@ -536,6 +522,7 @@
           } else {
             var chs = limiters || chars,
               _charSet = "[^\\s".concat(chs, "]*");
+            pattern = "(?:".concat(str, ")");
             if (accuracy === 'complementary') {
               pattern = _charSet + pattern + _charSet;
             } else if (accuracy === 'startsWith') {
@@ -1550,7 +1537,7 @@
           option = this.opt.combineBy || this.opt.combinePatterns,
           length = terms.length,
           array = [];
-        var num = 10,
+        var num = 100,
           value;
         if (option === Infinity) {
           num = length;

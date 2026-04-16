@@ -136,16 +136,16 @@ declare namespace Mark {
     markLines?: boolean;
     shadowDOM?: boolean | ShadowObject;
 
-    filter?(nodeOrArray: Text | Text[], range: TextRange, matchingString: string, currentIndex: number) : boolean;
-    each?(elementOrRange: Element | StaticRange | Range, range: TextRange, eachInfo: RangeEachInfo) : void;
+    filter?(nodeOrArray: Text | Text[], range: MarkRange, matchingString: string, currentIndex: number) : boolean;
+    each?(elementOrRange: Element | StaticRange | Range, range: MarkRange, eachInfo: RangeEachInfo) : void;
     done?(totalMarks: number, totalRanges: number) : void;
 
-    noMatch?(range: TextRange) : void;
+    noMatch?(range: MarkRange) : void;
     debug?: boolean;
     log?: object;
   }
 
-  interface TextRange {
+  interface MarkRange {
     start: number;
     length: number;
   }
@@ -198,7 +198,7 @@ declare class Mark {
   * Note that the start positions must be specified including whitespace characters.
   * @param options Optional options
   */
-  markRanges(ranges: ReadonlyArray<Mark.TextRange>, options?: Mark.RangesOptions) : void;
+  markRanges(ranges: ReadonlyArray<Mark.MarkRange>, options?: Mark.RangesOptions) : void;
 
   /**
   * A method to remove mark elements created by mark.js and normalize text nodes.

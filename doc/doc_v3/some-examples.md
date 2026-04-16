@@ -12,9 +12,6 @@ instance.mark(['AB CD', 'EF'], {
         // sets the external counter
         matchCount = info.count;
 
-        // highlight the first 10 matches
-        if (info.count >= 10) { info.execution.abort = true; }
-
         // if the start of a match
         if(info.matchStart) {
             // set a class or attribute for HTML element
@@ -41,9 +38,6 @@ context.mark('AB CD EF', {
     'each': (markElement, info) => {
         // sets the external counter
         matchCount = info.count; // also possible matchCount++;
-        
-        // highlights the first 10 matches
-        if (info.count >= 10) { info.execution.abort = true; }
     },
     'done': (totalMarks, totalMatches, termStats) => {
         console.log('Total matches = ' + totalMatches);
@@ -77,11 +71,11 @@ instance.markRegExp(/.../gi, {
 
 ### Example of using the `y` flag in `markRegExp()` method
 ``` js
-// 'startIndexes' is an array of open tag's start indexes of the elements that need to be highlighted
+// the 'startIndexes' is an array of open tags' start indexes of HTML tags that need to be highlighted
 function highlightOpenTags(startIndexes) {
     const tagReg = /<\w+[^>]*>/y;
     let i = 0; 
-    // set RegExp index at which to start the first match
+    // set the RegExp index at which to start the first match
     tagReg.lastIndex = startIndexes[i];
 
     new Mark(context).markRegExp(tagReg, {

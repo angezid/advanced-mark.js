@@ -39,6 +39,10 @@ new Mark('section').mark(['Lorem', 'dolor'], {
 });
 ```
 
+### `synonyms` option
+This option can be useful for providing alternative for words in phrases.  
+**Warning:** this option is blindly replaces all occurrences of (`key` and `value` of `synonyms` object) strings/substrings which it found in the input string or array of strings.
+
 ### `accuracy` option
 The option values specify how library should perform searching:
 

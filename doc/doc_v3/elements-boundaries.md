@@ -8,9 +8,9 @@ if a block element 'divides' two text nodes, `\x01` character with spaces (it de
 e.g. '&lt;h1&gt;Header&lt;/h1&gt;&lt;p&gt;Paragraph&lt;/p&gt;' resulted in 'Header \x01 Paragraph'.
 
 With different values the option allows matches across all HTML elements:
-* `blockElementsBoundary: true` except default block elements
-* `blockElementsBoundary: { tagNames: [..] }` except custom element(s)
-* `blockElementsBoundary: { tagNames: [..], extend: true }` except default block elements and custom element(s)
+* `blockElementsBoundary: true` except the default block elements
+* `blockElementsBoundary: { tagNames: [..] }` except the only custom element(s)
+* `blockElementsBoundary: { tagNames: [..], extend: true }` except the default block elements and custom element(s)
 
 #### Boundary object:
 * `tagNames` \{string[]\} - An array of custom tag names. (default is `undefined`)

@@ -7,7 +7,7 @@ const instance = new Mark(context);
 const ranges = [{ start: 2, length: 5 }, { start: 10, length: 7 },,,];
 instance.markRanges(ranges[, options]);
 // jQuery
-$(context).markRanges(ranges[, options]);
+$(selector).markRanges(ranges[, options]);
 ```
 #### Parameters:
 * `ranges` {object[]} - An array of objects with `start` and `length` properties with integer type values.
@@ -24,7 +24,7 @@ $(context).markRanges(ranges[, options]);
   * `highlightName` {string} - The name of the `Highlight` object necessary to register it using `HighlightRegistry` (default is `'advanced-markjs'`)
   * `staticRanges` {boolean} - Whether to use `StaticRange` objects instead of `Range` objects (`Highlight` API) (default is `true`)
     See [staticRanges](options.html#staticranges-option) option for more details.
-  * `rangeAcrossElements` {boolean} - Whether to create a single `StaticRange/Range` object for matches located across elements (when using the `Highlight` API) (default is `true`)
+  * `rangeAcrossElements` {boolean} - Whether to create a single `StaticRange/Range` object for matches located across elements (`Highlight` API) (default is `true`)
     See [rangeAcrossElements](options.html#rangeacrosselements-option) option for more details.
 
   * `shadowDOM` {boolean|object} - Whether to mark inside shadow DOMs (default is `undefined`)
@@ -37,7 +37,7 @@ $(context).markRanges(ranges[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter: (nodeOrArray, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (if a range is located across several elements, it calls for each text node which is part of the range) (default is )
+  * `filter: (nodeOrArray, range, matchString, index) => {}` {function} - A callback to filter matches. It calls for each range (FR) (default is )
     * `nodeOrArray` {Text|Text[]} - The text node which includes the range or is the part of the range  
       OR an array of text node(s) if the `Highlight` API is used with `rangeAcrossElements` option
     * `range` {object} - The current range object with `start` and `length` properties
@@ -46,7 +46,7 @@ $(context).markRanges(ranges[, options]);
 
 The function **must** return either `true` (highlight) or `false` (skip highlighting).
 
-  * `each: (elementOrRange, range, rangeInfo) => {}` {function} - A callback for each created element OR `StaticRange/Range` object (`Highlight` API) (default is )
+  * `each: (elementOrRange, range, rangeInfo) => {}` {function} - A callback for each created HTML element OR `StaticRange/Range` object (`Highlight` API) (default is )
     * `elementOrRange` {HTMLElement|StaticRange|Range} - The marked DOM element OR `StaticRange/Range` object (`Highlight` API)
     * `range` {object} - The range object with `start` and `length` properties
     * `rangeInfo` {object}:
@@ -68,20 +68,17 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
     className: '',
     exclude: [],
     
-    wrapAllRanges: false,
-    markLines: false,
-    
-    staticRanges: true, // Highlight API
-    rangeAcrossElements: true, // Highlight API
+    staticRanges: true, // Highlight API only
+    rangeAcrossElements: true, // Highlight API only
     shadowDOM: false,
     iframes: false,
     iframesTimeout: 5000,
     
-    filter: (textNode, range, matchingString, index) => {
+    filter: (nodeOrArray, range, matchingString, index) => {
         return true; // must return either true or false
     },
-    each: (markElement, range, rangeInfo) => {},
-    done: (totalMarks, totalMatches) => {},
+    each: (elementOrRange, range, rangeInfo) => {},
+    done: (total, totalMatches) => {},
     noMatch: (range) => {},
     debug: false,
     log: window.console
@@ -101,3 +98,5 @@ jQuery:
 
 <pre><code class='lang-javascript'>$('selector').markRanges(ranges, options);</code></pre>
 </details>
+
+* FR - if a range is located across several elements, it calls for each text node which includes the range

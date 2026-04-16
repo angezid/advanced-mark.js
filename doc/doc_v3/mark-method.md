@@ -6,7 +6,7 @@
 const instance = new Mark(context);
 instance.mark(search[, options]);
 // jQuery
-$(context).mark(search[, options]);
+$(selector).mark(search[, options]);
 ```
 #### Parameters:
 * `search` {string|string[]} - string or array of strings
@@ -20,7 +20,7 @@ $(context).mark(search[, options]);
     See [separateWordSearch](options.html#separatewordsearch-option) option for more details.
   * `diacritics` {boolean} - Whether to match diacritic characters (default is `true`)
   * `caseSensitive` {boolean} - Whether to search case sensitive (default is `false`)
-  * `combineBy` {number} - Combine a specified number of individual term patterns into one (old name `combinePatterns`) (default is `10`)
+  * `combineBy` {number} - Combine a specified number of individual term patterns into one (old name `combinePatterns`) (default is `100`)
     See [combineBy](options.html#combineby-option) option for more details.
 
   * `accuracy` {string|object} -   (default is `'partially'`):
@@ -31,7 +31,7 @@ $(context).mark(search[, options]);
       * `'complementary'` e.g. searching 'a' mark the whole words 'and', 'back', and 'visa'.  
   
   The **built-in** boundaries for values `startsWith` and `complementary` are:  
-  white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.
+  white spaces and `!"#$%&'()*+,-./:;<=>?@[\\]^_{|}~¡¿` characters.  
   See [accuracy](options.html#accuracy-option) option for more details.
 
     * Or an <b>object</b> with two properties:
@@ -53,6 +53,7 @@ $(context).mark(search[, options]);
   * `synonyms` {object} - An object with synonyms  (default is `{}`)
     e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa.  
     The value can be an array, e.g. `{ 'be': ['am', 'is', 'are'] }`.
+    See [synonyms](options.html#synonyms-option) option for more details.
  
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)
     See [acrossElements](options.html#acrosselements-option) option for more details.
@@ -79,15 +80,15 @@ $(context).mark(search[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, info) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
-    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with the `acrossElements` option can be part of the match)  
-      OR an array of text node(s) if the `Highlight` API is used with `acrossElements` and `rangeAcrossElements` options
+  * `filter: (nodeOrArray, term, matchesSoFar, termMatchesSoFar, info) => {}` {function} - A callback to filter matches. It calls for each match (FAE) (default is )
+    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (TAE)  
+      OR an array of text node(s) which include the match if the `Highlight` API is used with `acrossElements` and `rangeAcrossElements` options
     * `term` {string} - The current term
     * `matchesSoFar` {number} - The number of all matches so far
     * `termMatchesSoFar` {number} - The number of matches for the current term so far
     * `info` {object}:
       * `match` {array} - The result of RegExp exec() method
-      * `count` {number} - The number of matches so far
+      * `count` {number} - The number of matches so far MC
       * `matchStart` {boolean} - indicate the start of a match  AE
       * `abort` {boolean} - Setting it to `true` breaks the method execution
 
@@ -98,9 +99,9 @@ See [Filtering matches](filtering-matches.md) for more details.
     * `elementOrRange` {HTMLElement|StaticRange|Range} - The marked DOM element OR `StaticRange/Range` object (`Highlight` API)
     * `info` {object}:
       * `match` {array} - The result of RegExp exec() method
-      * `count` {number} - The number of matches so far
+      * `count` {number} - The number of matches so far MC
       * `matchStart` {boolean} - Indicate the start of a match  AE
-      * `abort` {boolean} - Setting it to `true` breaks the method execution
+      * `abort` {boolean} - Setting it to `true` breaks the method execution.
 
 See [Code examples](some-examples.md).
 **Note:** the `filter` and `each` callbacks are shared the `info` object with updated properties.
@@ -163,3 +164,6 @@ jQuery:
 </details>
 
 * AE - only available with the option `acrossElements: true`
+* MC - were already wrapped in HTML elements OR for which were created `StaticRange/Range` objects
+* FAE - with the `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match  
+* TAE - with the `acrossElements` option can be part of the match

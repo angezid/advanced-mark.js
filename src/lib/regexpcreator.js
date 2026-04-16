@@ -129,8 +129,7 @@ class RegExpCreator {
    * Creates a regular expression to match the specified search term considering
    * the available option settings
    * @param {string} str - The search term to be used
-   * @param {boolean} patterns - Whether to return an object with pattern parts or RegExp object
-   * @return {RegExpCreator~patternObj|RegExp}
+   * @return {RegExp}
    */
   create(terms) {
     const flags = `g${this.opt.caseSensitive ? '' : 'i'}`;
@@ -174,24 +173,7 @@ class RegExpCreator {
   }
 
   /**
-    * Creates a single combine pattern from an array of string considering the available option settings
-    * @param {Array} array - The array of string
-    * @param {boolean} capture - Whether to wrap an individual pattern in a capturing or non-capturing group
-    * @return {RegExpCreator~patternObj|null}
-    */
-  createCombinePattern(array, capture) {
-    if ( !Array.isArray(array) || !array.length) {
-      return null;
-    }
-    const group = capture ? '(' : '(?:',
-      obj = this.create(array[0], true);
-    obj.pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
-
-    return obj;
-  }
-
-  /**
-   * Escapes RegExp special characters
+   * Escapes the RegExp special characters
    * @param {string} str - The string to escape
    * @return {string}
    */
@@ -200,7 +182,7 @@ class RegExpCreator {
   }
 
   /**
-   * Splits string if val is string, removes duplicates, escape '-^]\\' which are special in RegExp characters set
+   * Splits val if it is a string, removes duplicates, escape '-^]\\' which are special in the RegExp characters set
    * @param {array|string} val - The parameter to process
    * @return {string}
    */
@@ -379,7 +361,7 @@ class RegExpCreator {
     const chars = '!-/:-@[-`{-~¡¿';
     let accuracy = this.opt.accuracy,
       lookbehind = '()',
-      pattern = `(?:${str})`,
+      pattern = str,
       lookahead = '',
       limiters;
 
@@ -397,6 +379,7 @@ class RegExpCreator {
       } else {
         const chs = limiters || chars,
           charSet = `[^\\s${chs}]*`;
+        pattern = `(?:${str})`;
 
         if (accuracy === 'complementary') {
           pattern = charSet + pattern + charSet;

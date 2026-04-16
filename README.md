@@ -2,7 +2,17 @@
 
 [![npm](https://img.shields.io/npm/v/advanced-mark.js)](https://www.npmjs.com/package/advanced-mark.js)
 
-### A fast JavaScript library to highlight any text on a browser page. It has support for CSS Custom Highlight API and virtual DOMs like JSDOM.
+### A fast JavaScript library to highlight any text on a browser page
+
+### Features
+-  Pure Vanilla Javascript
+-  Zero Dependencies
+-  Iframes Support
+-  Shadow DOM Support
+-  Diacritics Support
+-  CSS Custom Highlight API
+-  Virtual DOMs like JSDOM Support
+-  Highly Customizable
 
 See [Playground](https://angezid.github.io/advanced-mark.js/playground-v3) which can speak better than any words.  
 See [Performance page](https://angezid.github.io/advanced-mark.js/performance-v3) which demonstrate the library performance.  

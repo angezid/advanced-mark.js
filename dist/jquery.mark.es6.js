@@ -268,15 +268,6 @@ class RegExpCreator {
     }
     return str;
   }
-  createCombinePattern(array, capture) {
-    if ( !Array.isArray(array) || !array.length) {
-      return null;
-    }
-    const group = capture ? '(' : '(?:',
-      obj = this.create(array[0], true);
-    obj.pattern = this.distinct(array.map(str => `${group}${this.create(str, true).pattern})`)).join('|');
-    return obj;
-  }
   escape(str) {
     return str.replace(/[[\]/{}()*+?.\\^$|]/g, '\\$&');
   }
@@ -367,7 +358,7 @@ class RegExpCreator {
     const chars = '!-/:-@[-`{-~¡¿';
     let accuracy = this.opt.accuracy,
       lookbehind = '()',
-      pattern = `(?:${str})`,
+      pattern = str,
       lookahead = '',
       limiters;
     if (accuracy !== 'partially') {
@@ -382,6 +373,7 @@ class RegExpCreator {
       } else {
         const chs = limiters || chars,
           charSet = `[^\\s${chs}]*`;
+        pattern = `(?:${str})`;
         if (accuracy === 'complementary') {
           pattern = charSet + pattern + charSet;
         } else if (accuracy === 'startsWith') {
@@ -1170,7 +1162,7 @@ class Mark {
       option = this.opt.combineBy || this.opt.combinePatterns,
       length = terms.length,
       array = [];
-    let num = 10,
+    let num = 100,
       value;
     if (option === Infinity) {
       num = length;

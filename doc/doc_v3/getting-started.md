@@ -2,7 +2,7 @@
 ## Getting started
 
 You can download the package using npm by running:
-<pre class="bash"><code>$ npm install advanced-mark.js --save-dev</code></pre>
+<pre class="bash"><code>npm install advanced-mark.js --save-dev</code></pre>
 A `dist` directory contains files:  
 <details class="info">
 <summary>JavaScript</summary>
@@ -57,7 +57,7 @@ To customize a style of highlighting when using the CSS Custom Highlight API:
   color: black;
 }
 ```
-Also see how to customize a style inside [iframes](options.html#iframes-option) and [shadow DOM](options.html#shadowdom-option).
+See how to customize a style inside [iframes](options.html#iframes-option) and [shadow DOM](options.html#shadowdom-option).
 
 ### API
 There are four API methods:
@@ -72,7 +72,7 @@ API methods called on an instance object. To initialize a new instance, you have
 var instance = new Mark(context);
 instance.mark('lorem');
 ```
-where `context` can be:
+where the `context` can be:
 * a single element get by e.g. `document.getElementById()` or `document.querySelector()`
 * a NodeList get by e.g. `document.querySelectorAll()`
 * an array containing multiple single elements (**Note** that internally the array is sorted by the element position in the document)

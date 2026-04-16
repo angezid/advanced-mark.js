@@ -704,7 +704,7 @@ class Mark {
     range.absoluteOffset = absoluteOffset;
 
     eachCb(range, true);
-    // the range can be destroyed on callback
+    // a range can be destroyed on the 'each' callback
     if (range) this.rangeArray.push(range);
   }
 
@@ -1614,7 +1614,7 @@ class Mark {
   }
 
   /**
-    * Splits an array of string into chunks by the specified number and creates RegExp from each chunk
+    * Splits an array of strings into chunks by the specified number and creates RegExp from each chunk
     * @param {array} terms - The array of strings
     * @return {array} - The array of arrays with RegExp and its term chunks
     */
@@ -1623,7 +1623,7 @@ class Mark {
       option = this.opt.combineBy || this.opt.combinePatterns,
       length = terms.length,
       array = [];
-    let num = 10,
+    let num = 100,
       value;
 
     if (option === Infinity) {

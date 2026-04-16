@@ -6,7 +6,7 @@
 const instance = new Mark(context);
 instance.markRegExp(regex[, options]);
 // jQuery
-$(context).markRegExp(regex[, options]);
+$(selector).markRegExp(regex[, options]);
 ```
 #### Parameters:
 * `regex` {RegExp} - The regular expression. It **must** have the `g` flag - the library works with indexes, and only two `g` and `y` flags allow setting RegExp `lastIndex`.  
@@ -48,9 +48,9 @@ $(context).markRegExp(regex[, options]);
   * `debug` {boolean} - Whether to log messages (default is `false`)
   * `log` {object} - Log messages to a specific object (default is `console`)
 
-  * `filter: (nodeOrArray, matchString, matchesSoFar, info) => {}` {function} - A callback to filter matches. It calls for each match (with `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match) (default is )
-    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (with the `acrossElements` option can be part of the match)  
-      OR an array of text node(s) if the `Highlight` API is used with `acrossElements` and `rangeAcrossElements` options
+  * `filter: (nodeOrArray, matchString, matchesSoFar, info) => {}` {function} - A callback to filter matches. It calls for each match (FAE) (default is )
+    * `nodeOrArray` {Text|Text[]} - The text node which includes the match (TAE)  
+      OR an array of text node(s) which include the match if the `Highlight` API is used with `acrossElements` and `rangeAcrossElements` options
     * `matchString` {string} - The matching string:
       1. without `ignoreGroups` and `separateGroups` options - the whole match
       2. with `ignoreGroups` option - the match[ignoreGroups+1] group matching string,  
@@ -59,7 +59,7 @@ $(context).markRegExp(regex[, options]);
     * `matchesSoFar` {number} - The number of all matches so far
     * `info` {object}:
       * `match` {array} - The result of RegExp exec() method
-      * `count` {number} - The number of matches so far
+      * `count` {number} - The number of matches so far MC
       * `matchStart` {boolean} - indicate the start of a match  AE
       * `groupIndex` {number} - The current group index  SG
       * `abort` {boolean} - Setting it to `true` breaks the method execution
@@ -70,7 +70,7 @@ The function **must** return either `true` (highlight) or `false` (skip highligh
     * `elementOrRange` {HTMLElement|StaticRange|Range} - The marked DOM element OR `StaticRange/Range` object (`Highlight` API)
     * `info` {object}:
       * `match` {array} - The result of RegExp exec() method
-      * `count` {number} - The number of matches so far
+      * `count` {number} - The number of matches so far MC
       * `matchStart` {boolean} - Indicate the start of a match  AE
       * `groupIndex` {number} - The current index of match group  SG
       * `groupStart` {boolean} - Indicate the start of group  AE SG
@@ -129,3 +129,6 @@ jQuery:
 * AE - only available with the option `acrossElements: true`
 * SG - only available with the option `separateGroups: true`
 * AE SG - only available when with options `acrossElements: true` and `separateGroups: true`
+* MC - were already wrapped in HTML elements OR for which were created `StaticRange/Range` objects
+* FAE - with the `acrossElements` option, if the match is located across several elements, it calls for each text node which is part of the match  
+* TAE - with the `acrossElements` option can be part of the match
