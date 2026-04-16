@@ -45,7 +45,7 @@ describe('basic mark with filter callback', () => {
     }
   });
 
-  it('should correctly count total matches so far', done => {
+  it('should correctly count matches so far on the \'filter\' callback', done => {
     new Mark($ctx[0]).mark('lorem ipsum dolor', {
       'diacritics': false,
       'filter': (node, term, totalMatchesSoFar, termMatches, info) => {
@@ -64,8 +64,7 @@ describe('basic mark with filter callback', () => {
     });
   });
 
-  // tests markCombinePatterns() method
-  it('should correctly count total matches so far with \'combinePatterns: Infinity\'', done => {
+  it('should correctly count matches so far with \'combinePatterns: Infinity\'', done => {
     new Mark($ctx[0]).mark('lorem ipsum dolor', {
       'diacritics': false,
       'combinePatterns' : Infinity,

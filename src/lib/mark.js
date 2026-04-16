@@ -1738,6 +1738,7 @@ class Mark {
       runCount = 0,
       totalMarks = 0,
       totalMatches = 0,
+      abort,
       term;
 
     const across = this.opt.acrossElements,
@@ -1755,11 +1756,14 @@ class Mark {
           term = this.getCurrentTerm(filterInfo.match, regTerms);
         }
         // termStats[term] is the number of wrapped matches so far for the current term
-        return this.opt.filter(node, term, totalMatches + runCount, termStats[term], filterInfo);
+        const allow = this.opt.filter(node, term, totalMatches + runCount, termStats[term], filterInfo);
+        abort = filterInfo.execution.abort;
+        return allow;
 
       }, (element, eachInfo) => { // each
         totalMarks++;
         runCount = eachInfo.count;
+        eachInfo.count += totalMatches;
 
         if ( !across || eachInfo.matchStart) {
           termStats[term] += 1;
@@ -1775,7 +1779,7 @@ class Mark {
           this.opt.noMatch(array);
         }
 
-        if (++index < patterns.length) {
+        if ( !abort && ++index < patterns.length) {
           loop(patterns[index]);
         } else {
           this.opt.done(totalMarks, totalMatches, termStats);

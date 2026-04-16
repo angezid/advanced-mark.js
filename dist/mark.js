@@ -1,5 +1,5 @@
 /*!***************************************************
-* advanced-mark.js v2.7.0
+* advanced-mark.js v2.7.1
 * https://github.com/angezid/advanced-mark.js
 * MIT licensed
 * Copyright (c) 2022–2026, angezid
@@ -1661,6 +1661,7 @@
           runCount = 0,
           totalMarks = 0,
           totalMatches = 0,
+          abort,
           term;
         var across = this.opt.acrossElements,
           fn = across ? 'wrapMatchesAcross' : 'wrapMatches',
@@ -1675,10 +1676,13 @@
             if (!across || filterInfo.matchStart) {
               term = _this14.getCurrentTerm(filterInfo.match, regTerms);
             }
-            return _this14.opt.filter(node, term, totalMatches + runCount, termStats[term], filterInfo);
+            var allow = _this14.opt.filter(node, term, totalMatches + runCount, termStats[term], filterInfo);
+            abort = filterInfo.execution.abort;
+            return allow;
           }, function (element, eachInfo) {
             totalMarks++;
             runCount = eachInfo.count;
+            eachInfo.count += totalMatches;
             if (!across || eachInfo.matchStart) {
               termStats[term] += 1;
             }
@@ -1691,7 +1695,7 @@
             if (array.length) {
               _this14.opt.noMatch(array);
             }
-            if (++index < patterns.length) {
+            if (!abort && ++index < patterns.length) {
               loop(patterns[index]);
             } else {
               _this14.opt.done(totalMarks, totalMatches, termStats);
@@ -1800,7 +1804,7 @@
       return _this;
     };
     this.getVersion = function () {
-      return '2.7.0';
+      return '2.7.1';
     };
     return this;
   }
