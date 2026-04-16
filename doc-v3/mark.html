@@ -751,7 +751,7 @@
     range.absoluteOffset = absoluteOffset;
 
     eachCb(range, <span class="kwd">true</span>);
-    <span class="com">// the range can be destroyed on callback</span>
+    <span class="com">// a range can be destroyed on the 'each' callback</span>
     <span class="kwd">if</span> (range) <span class="kwd">this</span>.rangeArray.push(range);
   }
 
@@ -1661,7 +1661,7 @@
   }
 
   <span class="doc">/**
-    * Splits an array of string into chunks by the specified number and creates RegExp from each chunk
+    * Splits an array of strings into chunks by the specified number and creates RegExp from each chunk
     * @</span><span class="dtag">param</span><span class="doc"> {array} terms - The array of strings
     * @</span><span class="dtag">return</span><span class="doc"> {array} - The array of arrays with RegExp and its term chunks
     */</span>
@@ -1670,7 +1670,7 @@
       option = <span class="kwd">this</span>.opt.combineBy || <span class="kwd">this</span>.opt.combinePatterns,
       length = terms.length,
       array = [];
-    <span class="kwd">let</span> num = 10,
+    <span class="kwd">let</span> num = 100,
       value;
 
     <span class="kwd">if</span> (option === Infinity) {

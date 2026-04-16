@@ -225,7 +225,7 @@
 </div>
 <div class="combineBy advanced">
 <label for="string_-combineBy" name="combineBy">Combine by:</label>
-<input name="combineBy" id="string_-combineBy" type="number" min="1" max="10000" value="10">
+<input name="combineBy" id="string_-combineBy" type="number" min="1" max="10000" value="100">
 </div>
 <div class="iframesTimeout dependable hide">
 <label for="string_-iframesTimeout" name="iframesTimeout">Iframes timeout:</label>
@@ -428,7 +428,7 @@
 </div>
 <div class="combineBy advanced">
 <label for="array-combineBy" name="combineBy">Combine by:</label>
-<input name="combineBy" id="array-combineBy" type="number" min="1" max="10000" value="10">
+<input name="combineBy" id="array-combineBy" type="number" min="1" max="10000" value="100">
 </div>
 <div class="iframesTimeout dependable hide">
 <label for="array-iframesTimeout" name="iframesTimeout">Iframes timeout:</label>
@@ -825,7 +825,7 @@ See <a href="options.html#separatewordsearch-option" class="tooltip">separateWor
 
 <div id="caseSensitive"><span><code>caseSensitive</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to search case sensitive </div></div>
 
-<div id="combineBy"><span><code>combineBy</code></span><span><em class="type">number</em></span><span> <code>10</code></span><div>Combine a specified number of individual term patterns into one (old name <code>combinePatterns</code>) 
+<div id="combineBy"><span><code>combineBy</code></span><span><em class="type">number</em></span><span> <code>100</code></span><div>Combine a specified number of individual term patterns into one (old name <code>combinePatterns</code>) 
 <p>See <a href="options.html#combineby-option" class="tooltip">combineBy</a> option for more details.</p>
 </div></div>
 
@@ -876,7 +876,8 @@ e.g. <code>{ value: 'exactly', limiters: ',.;:?!\'&quot;()' }</code></li>
 
 <div id="synonyms"><span><code>synonyms</code></span><span><em class="type">object</em></span><span> <code>{}</code></span><div>An object with synonyms  
 <p>e.g. <code>{ 'one': '1' }</code> - '1' is synonym for 'one' and vice versa.<br>
-The value can be an array, e.g. <code>{ 'be': ['am', 'is', 'are'] }</code>.</p>
+The value can be an array, e.g. <code>{ 'be': ['am', 'is', 'are'] }</code>.
+See <a href="options.html#synonyms-option" class="tooltip">synonyms</a> option for more details.</p>
  </div></div>
 
 <div id="acrossElements"><span><code>acrossElements</code></span><span><em class="type">boolean</em></span><span> <code>false</code></span><div>Whether to search for matches across elements 

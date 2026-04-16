@@ -46,7 +46,8 @@
 <main>
 <article id="article"><h2 id="compatibility-with-version-2.x">Compatibility with version 2.x</h2>
 <h5 id="the-combineby-old-name-combinepatterns-option-become-the-default-in-the-mark-api">The <code>combineBy</code> (old name <code>combinePatterns</code>) option become the default in the <code>mark()</code> API</h5>
-<p>If your code uses <code>combinePatterns</code> option it should work correctly with version 3.x, otherwise set the <code>combineBy: 1</code> option.</p>
+<p>The default number of this option also is increased from 10 to 100.<br />
+If your code uses the <code>combinePatterns</code> option, it should work correctly with version 3.x, otherwise set the <code>combineBy: 1</code> option.</p>
 <h5 id="removing-the-execution-object-from-the-filter-and-each-callbacks-info-object">Removing the 'execution' object from the <code>filter </code> and <code>each</code> callbacks` info object</h5>
 <p>This allow setting <code>info.abort = true; </code> instead of <code>info.execution.abort = true;</code>.</p>
 <h5 id="dropping-support-to-highlight-regexp-groups-without-the-d-flag">Dropping support to highlight RegExp groups without the <code>d</code> flag</h5>
@@ -60,7 +61,7 @@ Fixing this bug brought requirement of the <code>g</code> flag for normal workfl
 </details>
 For backward compatibility, a RegExp without <code>g</code> flag is recompiled internally.
 <h5 id="removing-cachetextnodes-option">Removing <code>cacheTextNodes</code> option</h5>
-<p>Although in some cases this option increases performance, but not radical as <code>combineBy</code> (old name <code>combinePatterns</code>) option.<br />
+<p>The performance gain with this option is relatively small, also the code is not covered necessary options.<br />
 Plus, added support for the CSS Custom Highlight API.</p>
 <h5 id="removing-offset-property-from-filter-callback">Removing <code>offset</code> property from filter callback</h5>
 <p>I suspect it has very rare usage if any. If it's needed there is version 2.</p>

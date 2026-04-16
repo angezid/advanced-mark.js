@@ -50,7 +50,7 @@
 <span class="kwd">const</span> instance = <span class="kwd">new</span> Mark(context);
 instance.mark(search[, options]);
 <span class="com">// jQuery</span>
-$(context).mark(search[, options]);</code></pre>
+$(selector).mark(search[, options]);</code></pre>
 <h4 id="parameters">Parameters:</h4>
 <ul>
 <li><code>search</code> <em class="type">string <span class="or">or</span> string[]</em> - string or array of strings</li>
@@ -70,7 +70,7 @@ $(context).mark(search[, options]);</code></pre>
 See <a href="options.html#separatewordsearch-option" class="tooltip">separateWordSearch</a> option for more details.</td></tr>
 <tr id="mark-diacritics"><td><code>diacritics</code></td><td><em class="type">boolean</em></td><td> <code>true</code></td><td>Whether to match diacritic characters </td></tr>
 <tr id="mark-caseSensitive"><td><code>caseSensitive</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to search case sensitive </td></tr>
-<tr id="mark-combineBy"><td><code>combineBy</code></td><td><em class="type">number</em></td><td> <code>10</code></td><td>Combine a specified number of individual term patterns into one (old name <code>combinePatterns</code>) 
+<tr id="mark-combineBy"><td><code>combineBy</code></td><td><em class="type">number</em></td><td> <code>100</code></td><td>Combine a specified number of individual term patterns into one (old name <code>combinePatterns</code>) 
 <p>See <a href="options.html#combineby-option" class="tooltip">combineBy</a> option for more details.</p>
 </td></tr>
 <tr id="mark-accuracy"><td><code>accuracy</code></td><td><em class="type">string <span class="or">or</span> object</em></td><td> <code>'partially'</code></td><td>  
@@ -116,7 +116,8 @@ e.g. <code>{ value: 'exactly', limiters: ',.;:?!\'&quot;()' }</code></li>
 <tr id="mark-ignorePunctuation"><td><code>ignorePunctuation</code></td><td><em class="type">string <span class="or">or</span> string[]</em></td><td> <code>[]</code></td><td>A string or an array of punctuation characters </td></tr>
 <tr id="mark-synonyms"><td><code>synonyms</code></td><td><em class="type">object</em></td><td> <code>{}</code></td><td>An object with synonyms  
 <p>e.g. <code>{ 'one': '1' }</code> - '1' is synonym for 'one' and vice versa.<br>
-The value can be an array, e.g. <code>{ 'be': ['am', 'is', 'are'] }</code>.</p>
+The value can be an array, e.g. <code>{ 'be': ['am', 'is', 'are'] }</code>.
+See <a href="options.html#synonyms-option" class="tooltip">synonyms</a> option for more details.</p>
  </td></tr>
 <tr id="mark-acrossElements"><td><code>acrossElements</code></td><td><em class="type">boolean</em></td><td> <code>false</code></td><td>Whether to search for matches across elements 
 <p>See <a href="options.html#acrosselements-option" class="tooltip">acrossElements</a> option for more details.</td></tr>

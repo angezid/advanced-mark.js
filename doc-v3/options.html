@@ -72,6 +72,9 @@ e.g. <code>&quot;&quot;term&quot;&quot;</code> - marked <code>&quot;term&quot;</
   <span class="com">// Note: to exclude all descendants, you need to add 'p:last-child *' selector</span>
   exclude: <span class="str">'p:last-child, p:last-child *'</span>
 });</code></pre>
+<h3 id="synonyms-option"><code>synonyms</code> option</h3>
+<p>This option can be useful for providing alternative for words in phrases.</p>
+<div class='warning'><b>Warning:</b> this option is blindly replaces all occurrences of (<code>key</code> and <code>value</code> of <code>synonyms</code> object) strings/substrings which it found in the input string or array of strings.</div>
 <h3 id="accuracy-option"><code>accuracy</code> option</h3>
 <p>The option values specify how library should perform searching:</p>
 <ul>

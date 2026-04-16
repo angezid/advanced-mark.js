@@ -408,7 +408,7 @@
     <span class="kwd">const</span> chars = <span class="str">'!-/:-@[-`{-~¡¿'</span>;
     <span class="kwd">let</span> accuracy = <span class="kwd">this</span>.opt.accuracy,
       lookbehind = <span class="str">'()'</span>,
-      pattern = <span class="str">`(?:$</span>{str}<span class="str">)`</span>,
+      pattern = str,
       lookahead = <span class="str">''</span>,
       limiters;
 
@@ -426,6 +426,7 @@
       } <span class="kwd">else</span> {
         <span class="kwd">const</span> chs = limiters || chars,
           charSet = <span class="str">`[^\\s$</span>{chs}<span class="str">]*`</span>;
+        pattern = <span class="str">`(?:$</span>{str}<span class="str">)`</span>;
 
         <span class="kwd">if</span> (accuracy === <span class="str">'complementary'</span>) {
           pattern = charSet + pattern + charSet;
