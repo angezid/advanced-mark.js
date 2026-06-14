@@ -1,5 +1,5 @@
 
-## mark() method
+## mark()
 ### Syntax
 ``` js
 // javascript
@@ -52,7 +52,7 @@ $(selector).mark(search[, options]);
   * `ignorePunctuation` {string|string[]} - A string or an array of punctuation characters (default is `[]`)
   * `synonyms` {object} - An object with synonyms  (default is `{}`)
     e.g. `{ 'one': '1' }` - '1' is synonym for 'one' and vice versa.  
-    The value can be an array, e.g. `{ 'be': ['am', 'is', 'are'] }`.
+    The value can be an array, e.g. `{ 'be': ['am', 'is', 'are'] }`.  
     See [synonyms](options.html#synonyms-option) option for more details.
  
   * `acrossElements` {boolean} - Whether to search for matches across elements (default is `false`)

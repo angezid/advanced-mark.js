@@ -12,10 +12,10 @@
         "node": "true",
         "files": ["mark-method.md", "markRegExp-method.md", "markRanges-method.md", "unmark-method.md"]
     },
-    "usage": {
-        "name": "Usage",
+    "guides": {
+        "name": "Guides",
         "node": "true",
-        "files": ["performance.md", "options.md", "filtering-matches.md", "separate-groups.md", "nesting-overlapping.md", "elements-boundaries.md", "shadow-dom.md", "mark-lines.md","some-examples.md", "TypeScript-types.md"]
+        "files": ["options.md", "filtering-matches.md", "separate-groups.md", "nesting-overlapping.md", "elements-boundaries.md", "shadow-dom.md", "mark-lines.md", "performance.md", "TypeScript-types.md", "some-examples.md"]
     },
     "regexpcreator": {
         "name": "RegExpCreator",

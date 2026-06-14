@@ -1,5 +1,5 @@
 
-## markRegExp() method
+## markRegExp()
 ### Syntax
 ``` js
 // javascript

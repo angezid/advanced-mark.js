@@ -1,8 +1,6 @@
 
 ## Options descriptions
 
-**Note:** this is still under development.
-
 ### `acrossElements` option
 With this option, the library aggregates all context(s) text node contents into a single string taking into account HTML elements.  
 If two text nodes are divided by a block element, and `node.textContent`s doesn't separated by white spaces, a space is added to the string to separate them,  

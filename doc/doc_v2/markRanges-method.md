@@ -1,5 +1,5 @@
 
-## markRanges() method
+## markRanges()
 ### Syntax
 ``` js
 // javascript

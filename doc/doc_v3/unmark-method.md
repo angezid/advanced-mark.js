@@ -1,5 +1,5 @@
 
-## unmark() method
+## unmark()
 ### Syntax
 ``` js
 // javascript
@@ -8,6 +8,7 @@ instance.unmark([options]);
 // jQuery
 $(context).unmark([options]);
 ```
+Returns the Mark instance for method chaining.
 
 #### Parameters:
 * `options` {object} - Optional options:

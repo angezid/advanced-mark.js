@@ -1,5 +1,5 @@
 
-## mark() method
+## mark()
 ### Syntax
 ``` js
 // javascript

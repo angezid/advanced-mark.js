@@ -1,5 +1,5 @@
 
-## unmark() method
+## unmark()
 ### Syntax
 ``` js
 // javascript
