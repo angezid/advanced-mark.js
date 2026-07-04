@@ -399,8 +399,7 @@
 			isApiPage = /-method$/.test(name),
 			isSearchFile = name === '$search';
 
-		let selected = false,
-			allow = false,
+		let allow = false,
 			shiftKey = false,
 			sidebarToc = $(),
 			currentItem = $(),
@@ -909,17 +908,9 @@
 				$('.search-results').empty();
 			});
 
-			$("form #q").one('click', function() {
-				if ( !selected) {
-					selected = true;
-					$(this).select();
-				}
-			}).on('focusout', function() {
-				selected = false;
-			});
-
 			$('header #menu').on('click', function() {
-				toggleSidebar();
+				const on = $('div.nav-wrap').css('display') === 'none';
+				toggleSidebar(on);
 			});
 
 			$('.up-btn').on('click', function() {
@@ -1047,7 +1038,7 @@
 
 		function handleWidth() {
 			if (showBoth()) setBoth();
-			else toggleSidebar();
+			else toggleSidebar(false);
 		}
 
 		function getMargin() {
@@ -1063,10 +1054,9 @@
 			$('main').css('margin-left', marginLeft + 'px').css('margin-top', '0px');
 		}
 
-		function toggleSidebar() {
-			const on = $('div.nav-wrap').css('display') === 'none';
+		function toggleSidebar(on) {
 			const marginLeft = getMargin();
-			
+
 			$('div.nav-wrap').css('display', on ? 'block' : 'none');
 			$('main').css('margin-left', on ? marginLeft + 'px' : '0px').css('margin-top', on ? '0px' : '50px');
 			$('article').css('padding-left', on ? '10px' : '10px');
