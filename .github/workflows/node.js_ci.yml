@@ -34,7 +34,7 @@ jobs:
       run: npx puppeteer browsers install chrome
     - name: Set Chrome binary path
       run: |
-        CHROME_PATH=$(find /home/runner/.cache/puppeteer/chrome -name chrome -type f | head -1)
+        CHROME_PATH=$(node -e "console.log(require('puppeteer').executablePath())")
         echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
     - run: npm test
     
