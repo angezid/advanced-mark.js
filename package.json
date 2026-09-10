@@ -38,9 +38,6 @@
     "dev": "nodemon --exec \"npm run eslint && npm run compile\" --watch src/ --watch test/ -e js,html",
     "test": "npm run eslint && npm run compile && npm run karma && npm run test-jsdom"
   },
-  "allowScripts": {
-    "puppeteer": true
-  },
   "devDependencies": {
     "@babel/core": "^7.26.10",
     "@babel/plugin-transform-object-assign": "^7.22.5",

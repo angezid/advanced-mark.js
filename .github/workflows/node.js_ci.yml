@@ -33,4 +33,6 @@ jobs:
       # postinstall no longer downloads Chrome automatically.
       run: npx puppeteer browsers install chrome
     - run: npm test
+      env:
+        CHROME_BIN: /home/runner/.cache/puppeteer/chrome/linux-*/chrome-linux/chrome
  
