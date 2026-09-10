@@ -22,6 +22,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v7
       with:
@@ -32,9 +34,7 @@ jobs:
       # npm v12 disables install scripts by default, so Puppeteer's
       # postinstall no longer downloads Chrome automatically.
       run: npx puppeteer browsers install chrome
-    - name: Set Chrome binary path
-      run: |
-        CHROME_PATH=$(node -e "console.log(require('puppeteer').executablePath())")
-        echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
+    - name: Disable AppArmor
+      run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
     - run: npm test
     
